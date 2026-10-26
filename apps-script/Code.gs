@@ -71,6 +71,43 @@ const GAME_COLUMNS = {
   consent: 'Community guidelines',
 };
 
+/** Titles the forms may have been renamed to (the Sheet's header is the question's title), by the title this script reads. */
+const COLUMN_ALIASES = {
+  'Date of the first session': ['Session Date'],
+  'Other sessions or schedule notes': ['Schedule Notes'],
+  'Cover image (4:5 portrait)': ['Game Cover Image (4 : 5 Potrait)', 'Game Cover Image (4 : 5 Portrait)'],
+};
+
+/** Capitals, spaces and punctuation don't matter: "Game Title" and "Game title" are the same column (or tab). */
+function columnKey_(s) {
+  return str_(s).toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+
+function buildCanonicalKeys_() {
+  const map = {};
+  const add = function (title, canonical) { map[columnKey_(title)] = canonical; };
+  [GM_COLUMNS, GAME_COLUMNS, COMMON_COLUMNS].forEach(function (cols) {
+    Object.keys(cols).forEach(function (f) { add(cols[f], cols[f]); });
+  });
+  ADMIN_COLUMNS.forEach(function (h) { add(h, h); });
+  Object.keys(COLUMN_ALIASES).forEach(function (c) { COLUMN_ALIASES[c].forEach(function (a) { add(a, c); }); });
+  return map;
+}
+
+const CANONICAL_BY_KEY = buildCanonicalKeys_();
+
+/** A Sheet header as the title this script reads ("Session Date" -> "Date of the first session"); unknown headers stay as they are. */
+function canonicalHeader_(raw) {
+  const h = str_(raw);
+  return CANONICAL_BY_KEY[columnKey_(h)] || h;
+}
+
+/** The tab with this name, ignoring capitals ("GM Profiles" is "GM profiles"); null if there is none. */
+function findTab_(ss, name) {
+  const want = columnKey_(name);
+  return ss.getSheets().filter(function (s) { return columnKey_(s.getName()) === want; })[0] || null;
+}
+
 /**
  * The genres and play styles: the form's option text mapped to the site's keys (src/lib/categories.ts). Generated from
  * the site's English names, so the forms and the site can't drift apart (a unit test checks).
@@ -692,7 +729,7 @@ function spreadsheet_() {
 }
 
 function tabOf_(kind) {
-  const sheet = spreadsheet_().getSheetByName(kind === 'game' ? TAB.games : TAB.gms);
+  const sheet = findTab_(spreadsheet_(), kind === 'game' ? TAB.games : TAB.gms);
   if (!sheet) throw new Error('The tab "' + (kind === 'game' ? TAB.games : TAB.gms) + '" is missing.');
   return sheet;
 }
@@ -701,14 +738,14 @@ function sheetStore_() {
   return {
     headers: function (kind) {
       const sheet = tabOf_(kind);
-      return sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(str_);
+      return sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(canonicalHeader_);
     },
     load: function (kind) {
       const sheet = tabOf_(kind);
       const lastRow = sheet.getLastRow();
       const lastCol = sheet.getLastColumn();
       if (lastRow < 2) return [];
-      const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(str_);
+      const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(canonicalHeader_);
       const range = sheet.getRange(2, 1, lastRow - 1, lastCol);
       const values = range.getValues();
       const display = range.getDisplayValues();
@@ -721,7 +758,7 @@ function sheetStore_() {
     },
     update: function (kind, rowNum, patch) {
       const sheet = tabOf_(kind);
-      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(str_);
+      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(canonicalHeader_);
       Object.keys(patch).forEach(function (h) {
         const col = headers.indexOf(h);
         if (col >= 0) sheet.getRange(rowNum, col + 1).setValue(patch[h]);
@@ -930,9 +967,9 @@ function setup() {
   ss.setSpreadsheetLocale('en_US'); // dates as 9/28/2026 and times as 7:00:00 PM, which parseDate_ and parseTime_ read
   const problems = [];
   [['game', TAB.games, GAME_COLUMNS], ['gm', TAB.gms, GM_COLUMNS]].forEach(function (t) {
-    const sheet = ss.getSheetByName(t[1]);
+    const sheet = findTab_(ss, t[1]);
     if (!sheet) { problems.push('Tab "' + t[1] + '" is missing: link the form to this Sheet, then rename its tab.'); return; }
-    const headers = sheet.getRange(1, 1, 1, Math.max(1, sheet.getLastColumn())).getValues()[0].map(str_);
+    const headers = sheet.getRange(1, 1, 1, Math.max(1, sheet.getLastColumn())).getValues()[0].map(canonicalHeader_);
     ADMIN_COLUMNS.forEach(function (h) {
       if (headers.indexOf(h) < 0) { sheet.getRange(1, headers.length + 1).setValue(h); headers.push(h); }
     });

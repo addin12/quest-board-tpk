@@ -2,7 +2,9 @@
 
 Game Masters send their profile and their games through two Google Forms. You create them once, in your own Google
 account. The question titles below are **exact**: the Sheet's script finds each answer by its column title, and
-`setup()` tells you if one is missing or renamed. Multiple-choice and dropdown options are in
+`setup()` tells you if one is missing or renamed. Capitals, spaces and punctuation don't matter ("Game Title" is fine),
+and three renames are known (`COLUMN_ALIASES` in Code.gs: *Session Date*, *Schedule Notes*, *Game Cover Image (4 : 5
+Potrait)*); any other new wording needs an alias there. Multiple-choice and dropdown options are in
 [form-options.md](form-options.md) (generated from the site's own words: paste them as they are).
 
 ## Settings for both forms

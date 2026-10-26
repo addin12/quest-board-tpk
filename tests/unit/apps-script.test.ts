@@ -69,6 +69,19 @@ test("CreateForms.gs asks exactly the questions Code.gs reads (bar the two file 
   assert.ok(choices("Game system").includes("Other"));
 });
 
+test("a Sheet whose form questions were retitled (capitals, spacing, three renames) is still read by the script's own titles", () => {
+  // The headers of the owner's real Sheet on 2026-10-26, after they edited the generated forms.
+  const game = ["Timestamp", "Email Address", "Game Title", "Game System", "Other System (if you chose Other)", "One-line summary", "Full description", "Format", "Genres (pick up to 3)", "Play styles (pick up to 3)", "Where will you play?", "Platform (Online Games)", "City (In-person Games)", "Venue Name (In-person Games)", "Google Maps Link (In-person Games)", "Session Date", "Start Time", "Time Zone", "Schedule Notes", "Keep this listing until (optional)", "Price per Seat (Rupiah, 0 = free)", "Seats", "Play Language", "Experience level", "Minimum Age", "Content Warnings", "Safety Tools", "Community Guidelines", "Game Cover Image (4 : 5 Potrait)"];
+  const gm = ["Timestamp", "Email Address", "Display Name", "Short Bio", "City", "Systems you usually run", "WhatsApp number", "Discord (optional)", "Public listing", "Photo"];
+  const read = (headers: string[]) => headers.map((h) => ctx.canonicalHeader_(h));
+  for (const title of Object.values(GAME_COLS)) assert.ok(read(game).includes(title), `Games: ${title}`);
+  for (const title of Object.values(constantOf<Record<string, string>>(ctx, "GM_COLUMNS"))) assert.ok(read(gm).includes(title), `GM profiles: ${title}`);
+  assert.equal(ctx.canonicalHeader_("Status"), "Status", "the script's own columns are untouched");
+  assert.equal(ctx.canonicalHeader_("A question nobody knows"), "A question nobody knows");
+  assert.ok(ctx.findTab_({ getSheets: () => [{ getName: () => "GM Profiles" }] }, "GM profiles"));
+  assert.equal(ctx.findTab_({ getSheets: () => [{ getName: () => "Games" }] }, "GM profiles"), null);
+});
+
 test("phone numbers become digits with the country code; anything else is dropped", () => {
   const p = ctx.normalizePhone_;
   assert.equal(p("0812-3456-7890"), "6281234567890");
