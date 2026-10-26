@@ -146,7 +146,7 @@ function Row({ item, selected, checkbox, checked, lang, onSelect, onCheck }: { i
           <span className="mt-1 flex flex-wrap items-center gap-1.5 text-xs">
             <span className="text-muted">{formatWhen(item.rec.submittedAt || new Date().toISOString(), lang, "WIB")}</span>
             {errors > 0 && <span className="rounded bg-danger-soft px-1.5 py-0.5 font-semibold text-danger">{t("admin.level.error")}: {errors}</span>}
-            {warns > 0 && <span className="rounded bg-accent-soft px-1.5 py-0.5 font-semibold text-gold">{t("admin.level.warn")}: {warns}</span>}
+            {warns > 0 && <span className="rounded bg-accent-soft px-1.5 py-0.5 font-semibold text-text">{t("admin.level.warn")}: {warns}</span>}
             {item.rec.featured && <Icon name="star" solid className="text-gold" label={t("game.featured")} />}
           </span>
         </span>

@@ -11,6 +11,8 @@ export default defineConfig({
   testDir: "tests/e2e",
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
+  // Headless Firefox on Windows hangs (graphics compositor) when many windows run at once; two workers is steady everywhere.
+  workers: 2,
   reporter: process.env.CI ? [["github"], ["list"]] : "list",
   use: { baseURL: `http://localhost:${PORT}`, trace: "retain-on-failure" },
   projects: [

@@ -48,7 +48,7 @@ test("the review screen shows what the game will look like and what to check", a
   await open(page);
   await signIn(page);
   await row(page, "Neon Run").click();
-  await expect(page.getByTestId("admin-detail").getByRole("heading", { name: "Neon Run" })).toBeVisible();
+  await expect(page.getByTestId("admin-detail").getByRole("heading", { level: 2, name: "Neon Run" })).toBeVisible();
   await expect(page.getByTestId("admin-checks")).toContainText("Wording that often means a scam");
   await expect(page.getByTestId("admin-checks")).toContainText("asks for OTP, PIN or passwords");
   await expect(page.getByTestId("game-details")).toContainText("Rp 75.000");

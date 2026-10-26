@@ -99,9 +99,12 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
 
             <dl className="mt-8 grid gap-x-8 gap-y-5 sm:grid-cols-2">
               {facts.map((f) => (
-                <div key={f.label} className="flex gap-3">
-                  <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent"><Icon name={f.icon} /></span>
-                  <div className="min-w-0"><dt className="text-xs font-semibold uppercase tracking-wide text-muted">{f.label}</dt><dd>{f.value}</dd></div>
+                <div key={f.label} className="min-w-0">
+                  <dt className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-muted">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-base text-accent"><Icon name={f.icon} /></span>
+                    {f.label}
+                  </dt>
+                  <dd className="mt-1 pl-12">{f.value}</dd>
                 </div>
               ))}
             </dl>

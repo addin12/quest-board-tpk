@@ -229,13 +229,15 @@ export function AdminApp() {
       {phase === "ready" && queue && (
         <>
           <PublishBar deploy={queue.deploy} lang={lang} now={now} onPublish={publishNow} />
-          <div role="tablist" aria-label={t("admin.title")} className="mt-6 flex flex-wrap gap-2 border-b border-border pb-3">
-            {(["games", "gms", "admins"] as const).map((k) => (
-              <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={tab === k ? "btn-primary" : "btn-ghost"} data-testid={`tab-${k}`}>
-                {t(`admin.tab.${k}` as MsgKey)}
-                {k !== "admins" && waiting[k] > 0 && <span className="rounded-full bg-black/20 px-2 text-sm">{waiting[k]}</span>}
-              </button>
-            ))}
+          <div className="mt-6 flex flex-wrap items-center gap-2 border-b border-border pb-3">
+            <div role="tablist" aria-label={t("admin.title")} className="flex flex-wrap gap-2">
+              {(["games", "gms", "admins"] as const).map((k) => (
+                <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={tab === k ? "btn-primary" : "btn-ghost"} data-testid={`tab-${k}`}>
+                  {t(`admin.tab.${k}` as MsgKey)}
+                  {k !== "admins" && waiting[k] > 0 && <span className="rounded-full bg-black/20 px-2 text-sm">{waiting[k]}</span>}
+                </button>
+              ))}
+            </div>
             <button type="button" className="btn-ghost ml-auto" onClick={() => void load()}><Icon name="refresh" /> {t("admin.refresh")}</button>
           </div>
           {tab === "games" && <ReviewPane key="games" items={items.games} nowIso={queue.now} onReview={review} onFeature={feature} onNote={saveNote} />}
