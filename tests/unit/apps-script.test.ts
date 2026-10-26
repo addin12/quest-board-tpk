@@ -4,9 +4,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import vm from "node:vm";
 import { GENRES, STYLES } from "../../src/lib/categories.ts";
 import { makeT } from "../../src/lib/i18n/dict.ts";
-import { optionsMarkdown, patchedScript } from "../../scripts/build-form-options.mjs";
+import { optionsMarkdown, patchedForms, patchedScript } from "../../scripts/build-form-options.mjs";
 import { GAME_COLS, GAME_FORM, GM_FORM, call, constant as constantOf, fixture, loadScript, makeDeps, makeRow, makeStore, plain } from "../support/fake-sheet.ts";
 
 const ctx = loadScript();
@@ -25,6 +26,47 @@ test("the generated parts (Code.gs's labels, docs/form-options.md) are up to dat
   const gs = readFileSync(new URL("../../apps-script/Code.gs", import.meta.url), "utf8");
   assert.equal(patchedScript(gs), gs);
   assert.equal(readFileSync(new URL("../../docs/form-options.md", import.meta.url), "utf8"), optionsMarkdown());
+  const forms = readFileSync(new URL("../../apps-script/CreateForms.gs", import.meta.url), "utf8");
+  assert.equal(patchedForms(forms), forms);
+});
+
+test("CreateForms.gs asks exactly the questions Code.gs reads (bar the two file uploads), with the site's own options", () => {
+  type Rec = Record<string, unknown[]>;
+  const made: { form: Rec; items: Rec[] }[] = [];
+  const chain = (rec: Rec, onItem?: (item: Rec) => void): any =>
+    new Proxy(rec, {
+      get: (_t, name: string) => {
+        if (name === "build") return () => ({});
+        if (/^add\w+Item$/.test(name)) return () => { const item: Rec = {}; onItem?.(item); return chain(item); };
+        if (name === "getId" || name === "getTitle") return () => `${name}:${String(rec.create?.[0] ?? "")}`;
+        if (/^get\w*Url$/.test(name)) return () => "https://example.test/";
+        return (...args: unknown[]) => { rec[name] = args; return chain(rec, onItem); };
+      },
+    });
+  const sandbox = vm.createContext({
+    Logger: { log: () => {} },
+    FormApp: {
+      DestinationType: { SPREADSHEET: "SPREADSHEET" },
+      create: (title: string) => { const entry = { form: { create: [title] } as Rec, items: [] as Rec[] }; made.push(entry); return chain(entry.form, (i) => entry.items.push(i)); },
+      createTextValidation: () => chain({}),
+      createParagraphTextValidation: () => chain({}),
+      createCheckboxValidation: () => chain({}),
+    },
+    SpreadsheetApp: { create: () => ({ getId: () => "sheet", getUrl: () => "https://example.test/", getSheets: () => [], getSheetByName: () => null }), flush: () => {} },
+  });
+  vm.runInContext(readFileSync(new URL("../../apps-script/CreateForms.gs", import.meta.url), "utf8"), sandbox);
+  (sandbox as any).createForms();
+
+  const titles = (i: number) => made[i].items.map((it) => String(it.setTitle?.[0]));
+  const uploads = { gm: "Photo", game: "Cover image (4:5 portrait)" };
+  const expectTitles = (cols: Record<string, string>, upload: string) => Object.values(cols).filter((c) => c !== upload).sort();
+  assert.deepEqual(titles(0).sort(), expectTitles(constantOf(ctx, "GM_COLUMNS"), uploads.gm));
+  assert.deepEqual(titles(1).sort(), expectTitles(GAME_COLS, uploads.game));
+
+  const choices = (title: string) => plain<string[]>(made[1].items.find((it) => it.setTitle?.[0] === title)?.setChoiceValues?.[0]);
+  assert.deepEqual(choices("Genres (pick up to 3)"), Object.keys(constantOf(ctx, "GENRE_LABELS")));
+  assert.deepEqual(choices("Play styles (pick up to 3)"), Object.keys(constantOf(ctx, "STYLE_LABELS")));
+  assert.ok(choices("Game system").includes("Other"));
 });
 
 test("phone numbers become digits with the country code; anything else is dropped", () => {

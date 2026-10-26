@@ -18,9 +18,15 @@ You will need: a Google account (the **owner**), a GitHub account, a Cloudflare 
 
 ## 1. The forms and the Sheet
 
-1. Create the two forms as described in [forms.md](forms.md), with the options from [form-options.md](form-options.md).
-2. In each form: Responses → Link to Sheets → the **same** spreadsheet.
-3. Rename the tabs to exactly `GM profiles` and `Games`.
+The quick way (about 5 minutes): go to https://script.google.com → New project → paste
+[`apps-script/CreateForms.gs`](../apps-script/CreateForms.gs) → Run `createForms` and allow access. It builds both forms
+and the Sheet (tabs already named `GM profiles` and `Games`) and writes the links to the Execution log, with the
+few by-hand steps Google does not allow from a script (the two file-upload questions and "Verified" email collection).
+Then go to step 2.
+
+The by-hand way: create the two forms as described in [forms.md](forms.md), with the options from
+[form-options.md](form-options.md), link both to the **same** spreadsheet (Responses → Link to Sheets) and rename the
+tabs to exactly `GM profiles` and `Games`.
 
 ## 2. The script
 

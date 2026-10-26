@@ -1,7 +1,8 @@
 // The words the Google Forms and the site must agree on, from one source (src/lib/i18n/en.ts, categories.ts, systems.ts):
 //   - docs/form-options.md      the options to paste into the forms' multiple-choice, checkbox and dropdown questions
 //   - apps-script/Code.gs       the GENRE_LABELS / STYLE_LABELS between the GENERATED markers (option text -> key)
-// `npm run form-options` rewrites both; a unit test fails while either is stale.
+//   - apps-script/CreateForms.gs  FORM_OPTIONS between the GENERATED markers (the same lists, to build the forms)
+// `npm run form-options` rewrites all three; a unit test fails while either is stale.
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { en } from "../src/lib/i18n/en.ts";
@@ -65,17 +66,47 @@ ${list([en["level.beginner"], en["level.any"], en["level.experienced"]])}
 `;
 }
 
+function replaceBlock(source, begin, end, block, file) {
+  const start = source.indexOf(begin);
+  const stop = source.indexOf(end);
+  if (start < 0 || stop < 0) throw new Error(`${file} has no GENERATED markers`);
+  return source.slice(0, start) + block + source.slice(stop + end.length);
+}
+
 /** Code.gs with its generated block replaced. */
 export function patchedScript(source) {
-  const start = source.indexOf(BEGIN);
-  const end = source.indexOf(END);
-  if (start < 0 || end < 0) throw new Error("Code.gs has no GENERATED LABELS markers");
-  return source.slice(0, start) + labelsBlock() + source.slice(end + END.length);
+  return replaceBlock(source, BEGIN, END, labelsBlock(), "Code.gs");
+}
+
+const FORMS_BEGIN = "// BEGIN GENERATED OPTIONS (npm run form-options: the options to put on the forms' questions)";
+const FORMS_END = "// END GENERATED OPTIONS";
+
+/** The option lists of CreateForms.gs: the same ones docs/form-options.md shows. */
+export function optionsBlock() {
+  const lists = {
+    system: SYSTEMS,
+    format: [en["format.one_shot"], en["format.campaign"]],
+    genres: GENRES.map((g) => en[`genre.${g.key}`]),
+    styles: STYLES.map((s) => en[`style.${s.key}`]),
+    where: [en["loc.online"], en["loc.inPerson"]],
+    zone: ["WIB", "WITA", "WIT"],
+    language: [en["lang.gameId"], en["lang.gameEn"], en["lang.gameBoth"]],
+    level: [en["level.beginner"], en["level.any"], en["level.experienced"]],
+  };
+  const lit = Object.entries(lists).map(([k, v]) => `  ${k}: [\n${v.map((o) => `    ${JSON.stringify(o)},`).join("\n")}\n  ],`).join("\n");
+  return [FORMS_BEGIN, `const FORM_OPTIONS = {\n${lit}\n};`, FORMS_END].join("\n");
+}
+
+/** CreateForms.gs with its generated block replaced. */
+export function patchedForms(source) {
+  return replaceBlock(source, FORMS_BEGIN, FORMS_END, optionsBlock(), "CreateForms.gs");
 }
 
 if (process.argv[1]?.endsWith("build-form-options.mjs")) {
   const gs = path.join(ROOT, "apps-script", "Code.gs");
   writeFileSync(gs, patchedScript(readFileSync(gs, "utf8")));
+  const forms = path.join(ROOT, "apps-script", "CreateForms.gs");
+  writeFileSync(forms, patchedForms(readFileSync(forms, "utf8")));
   writeFileSync(path.join(ROOT, "docs", "form-options.md"), optionsMarkdown());
-  console.log("[form-options] apps-script/Code.gs and docs/form-options.md are up to date");
+  console.log("[form-options] Code.gs, CreateForms.gs and docs/form-options.md are up to date");
 }
