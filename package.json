@@ -1,0 +1,44 @@
+{
+  "name": "quest-board-tpk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Quest Board for The Pandemonium Kollektive: a free, static listing board for tabletop RPG games. GMs submit through Google Forms, an admin curates, players contact the GM directly.",
+  "scripts": {
+    "data": "node scripts/build-data.mjs",
+    "dev": "node scripts/build-data.mjs && next dev",
+    "build": "node scripts/build-data.mjs && next build && node scripts/fix-export.mjs",
+    "preview": "node scripts/preview.mjs",
+    "typecheck": "node scripts/build-data.mjs && next typegen && tsc --noEmit",
+    "lint": "eslint",
+    "test": "node --conditions=react-server --import ./tests/loader.mjs --test \"tests/unit/*.test.ts\"",
+    "test:e2e": "npm run build && playwright test",
+    "icons": "node scripts/build-icons.mjs",
+    "form-options": "node scripts/build-form-options.mjs"
+  },
+  "dependencies": {
+    "next": "16.3.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@flaticon/flaticon-uicons": "^3.3.1",
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^24.19.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.8",
+    "subset-font": "^2.9.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "license": "MIT"
+}

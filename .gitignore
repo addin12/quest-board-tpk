@@ -1,0 +1,25 @@
+# Dependencies and build output
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Made by the build from the Google Sheet's data (never committed: it comes from the live data)
+src/generated/
+public/media/
+
+# Test output
+test-results/
+playwright-report/
+blob-report/
+
+# Secrets (every NEXT_PUBLIC_ value is public by design; the rest never goes in the repo)
+.env*
+!.env.example
+*.pem
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log
