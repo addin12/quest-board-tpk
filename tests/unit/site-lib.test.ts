@@ -11,6 +11,7 @@ import { DICTIONARIES, makeT } from "../../src/lib/i18n/dict.ts";
 import { cleanDiscord, isGoogleMapsUrl, isPhone, parsePublicData, text } from "../../src/lib/public-data.ts";
 import { buildItems, canApprove, countByStatus, filterItems, previewGame, reasonText, whenLabel } from "../../src/lib/admin-view.ts";
 import { flatName } from "../../scripts/fix-export.mjs";
+import { PLACEHOLDER_SLUG, slugParams } from "../../src/lib/static-params.ts";
 import { constant, loadScript, plain } from "../support/fake-sheet.ts";
 import type { GameRecord, GmRecord, SiteGame } from "../../src/lib/types.ts";
 
@@ -243,4 +244,10 @@ test("the preview shows a game as the card would, with the picture straight from
 test("the prefetch file's dotted name is what the browser asks for", () => {
   assert.equal(flatName("__next.$d$lang", "games/$d$slug/__PAGE__.txt"), "__next.$d$lang.games.$d$slug.__PAGE__.txt");
   assert.equal(flatName("__next.$d$lang", "__PAGE__.txt"), "__next.$d$lang.__PAGE__.txt");
+});
+
+test("a site with no games or Game Masters yet still has a page to build per route (a static export needs at least one)", () => {
+  assert.deepEqual(slugParams([]), [{ lang: "en", slug: PLACEHOLDER_SLUG }, { lang: "id", slug: PLACEHOLDER_SLUG }]);
+  assert.deepEqual(slugParams([{ slug: "a-1234" }, { slug: "b-5678" }]).map((p) => `${p.lang}/${p.slug}`), ["en/a-1234", "en/b-5678", "id/a-1234", "id/b-5678"]);
+  assert.ok(!/-[0-9a-z]{4}$/.test(PLACEHOLDER_SLUG), "a real slug ends in -xxxx, so the placeholder never clashes with one");
 });

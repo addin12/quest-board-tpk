@@ -13,14 +13,14 @@ import { paths } from "@/lib/hrefs";
 import { makeT } from "@/lib/i18n/dict";
 import type { RegularIcon } from "@/lib/icons";
 import { REPORT_URL, SITE_URL } from "@/lib/site";
+import { slugParams } from "@/lib/static-params";
 import { breadcrumbJsonLd, gameJsonLd, languageAlternates } from "@/lib/seo";
-import { LANGS, isLang } from "@/lib/types";
+import { isLang } from "@/lib/types";
 
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  const { games } = loadSiteData();
-  return LANGS.flatMap((lang) => games.map((g) => ({ lang, slug: g.slug })));
+  return slugParams(loadSiteData().games);
 }
 
 export async function generateMetadata({ params }: PageProps<"/[lang]/games/[slug]">): Promise<Metadata> {
