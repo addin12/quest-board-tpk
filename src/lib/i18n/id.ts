@@ -319,7 +319,7 @@ export const id: Record<MsgKey, string> = {
   "admin.admins.remove": "Hapus",
   "admin.admins.addTitle": "Tambah admin",
   "admin.admins.emailLabel": "Email akun Google",
-  "admin.admins.emailHint": "Mereka masuk dengan akun Google ini. Pakai alamat Gmail mereka.",
+  "admin.admins.emailHint": "Mereka masuk dengan akun Google ini. Pakai alamat Gmail mereka, dan tambahkan juga di Google Cloud (Audience → Test users); tanpa itu Google menolak login mereka.",
   "admin.admins.addButton": "Tambah admin",
   "admin.admins.added": "{email} sekarang jadi admin.",
   "admin.admins.removed": "{email} dihapus.",

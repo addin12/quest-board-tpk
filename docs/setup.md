@@ -41,10 +41,13 @@ tabs to exactly `GM profiles` and `Games`.
 The admin page signs in with Google. Google needs to know the page is yours:
 
 1. https://console.cloud.google.com → create a project (any name, no billing).
-2. APIs & Services → OAuth consent screen → External → app name *Quest Board TPK* → your email → save. Then *Publish app*
-   (it only uses the basic email sign-in, so no review is needed).
-3. Credentials → Create credentials → OAuth client ID → Web application. *Authorised JavaScript origins*: your site's
-   address (e.g. `https://quest-board-tpk.pages.dev`) and `http://localhost:4173` for trying it locally. Copy the **Client ID**.
+2. APIs & Services → OAuth consent screen (Google Auth Platform) → Get started → app name *Quest Board TPK* → your email
+   → *External* → create. **Leave the app in "Testing"** and add every admin under Audience → Test users (up to 100).
+   Publishing would need your own domain with a privacy policy and terms pages on it: `pages.dev` can't be registered as
+   an authorised domain, and the Publish button stays disabled without it. Testing is enough here: the page only signs
+   people in. Admins see Google's "hasn't verified this app" screen once and click *Continue*; players never sign in.
+3. Clients → Create client → Web application. *Authorised JavaScript origins*: your site's address
+   (e.g. `https://quest-board-tpk.pages.dev`) and `http://localhost:4173` for trying it locally. Copy the **Client ID**.
 
 ## 4. The web app (the API)
 
@@ -82,8 +85,10 @@ The admin page signs in with Google. Google needs to know the page is yours:
 
 ## Adding another admin
 
-Admin page → **Admins** → type their Google (Gmail) address → *Add admin*. They sign in at the same page. Removing
-someone is one click there too. The owner (the Google account that owns the script) is always an admin.
+Two steps, because the Google app is in Testing (step 3): add their Google (Gmail) address in Google Cloud under
+Audience → Test users, **and** on the admin page → **Admins** → *Add admin*. They sign in at the same page. Removing
+someone is one click on the admin page (also remove them from Test users). The owner (the Google account that owns the
+script) is always an admin.
 
 ## What it costs, and the limits
 

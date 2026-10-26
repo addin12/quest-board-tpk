@@ -318,7 +318,7 @@ export const en = {
   "admin.admins.remove": "Remove",
   "admin.admins.addTitle": "Add an admin",
   "admin.admins.emailLabel": "Google account email",
-  "admin.admins.emailHint": "They sign in with this Google account. Use their Gmail address.",
+  "admin.admins.emailHint": "They sign in with this Google account. Use their Gmail address, and also add it in Google Cloud (Audience → Test users); without that Google refuses their sign-in.",
   "admin.admins.addButton": "Add admin",
   "admin.admins.added": "{email} is now an admin.",
   "admin.admins.removed": "{email} was removed.",
