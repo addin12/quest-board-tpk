@@ -64,7 +64,9 @@ test("the language toggle keeps the page and its filters", async ({ page }) => {
   await expect(page.getByTestId("games-count")).toHaveText("Menampilkan 7 game");
 });
 
-test("a GM's profile lists their games and both ways to reach them", async ({ page }) => {
+test("a GM's profile lists their games and both ways to reach them", async ({ page, context, browserName }) => {
+  // Headless Chromium on Linux refuses clipboard writes unless allowed; Firefox and WebKit have no such permission name.
+  if (browserName === "chromium") await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/en/gm/raka-pratama-0r01/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Raka Pratama");
   await expect(page.getByTestId("contact-whatsapp")).toBeVisible();
