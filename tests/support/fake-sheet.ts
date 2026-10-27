@@ -45,8 +45,10 @@ export const GAME_FORM = {
 export function makeStore(games: Row[], gms: Row[], admins: any[] = []) {
   const tables: Record<string, Row[]> = { game: games, gm: gms };
   const shared: Record<string, boolean> = {};
+  const logs: string[][] = [];
   return {
     shared,
+    logs,
     headers: (kind: string) => Object.keys(tables[kind][0]?.cells ?? { Timestamp: 1, "Email Address": 1 }),
     load: (kind: string) => tables[kind].map((r) => ({ rowNum: r.rowNum, cells: { ...r.cells }, display: { ...r.display } })),
     update: (kind: string, rowNum: number, patch: Record<string, string>) => {
@@ -57,6 +59,7 @@ export function makeStore(games: Row[], gms: Row[], admins: any[] = []) {
     addAdmin: (email: string, by: string, at: string) => { admins.push({ email, addedBy: by, addedAt: at }); },
     removeAdmin: (email: string) => { const i = admins.findIndex((a) => a.email === email); if (i >= 0) admins.splice(i, 1); },
     shareFile: (id: string, on: boolean) => { shared[id] = on; },
+    log: (rows: string[][]) => { logs.push(...rows); },
   };
 }
 

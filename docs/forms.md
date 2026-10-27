@@ -79,6 +79,8 @@ same Google account.*
 
 The script adds these to the right of the form's columns when you run `setup()`. Don't rename them.
 
+The script also keeps an **Activity** tab (created by `setup()`): one line for each change, with the time and who made it.
+
 `Id`, `Status`, `Featured`, `AdminNote`, `ReviewedBy`, `ReviewedAt`, `RejectReason`, `Slug`, `Hash`, `Superseded`, `WasLive`, `Full`.
 (`Full` is set from the admin page: a game marked full shows a "Full" badge and sinks in the lists. `WasLive` is `yes` once a listing has been approved: its address then keeps a "no longer listed" page when it goes
 offline, see DECISIONS.md ADR-11.)

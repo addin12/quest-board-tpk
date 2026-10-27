@@ -122,3 +122,8 @@ removed games, can still linger up to 7 days; the images can only be found throu
 **Context.** The community may want to know whether the board is used. A script of our own, or a cookie, would need a privacy page and a consent banner.
 **Decision.** Allow Cloudflare Web Analytics (cookieless, no personal data, free) in the Content-Security-Policy (`script-src` and `connect-src`, one host each). It is switched on in the Cloudflare dashboard, not in code, and does nothing while it is off.
 **Consequences.** Two more allowed hosts in the policy. Counts are page views and countries, not people.
+
+## ADR-20: The Sheet keeps its own audit trail, the Activity tab (2026-10-27)
+**Context.** Two decided test rows went back to "pending" with their review cells empty after a script update, and nothing recorded why. The Sheet is the whole database and has no history of its own except Google's version history.
+**Decision.** `logEvent_` appends a line to an *Activity* tab for every status change the script makes (new submission, an edit sent back to review, a row approved by hand, a profile replaced), every admin decision and change, every admin added or removed, every rebuild request, backup, key replacement and `setup` run: time, what, kind, id, title, detail, who. Titles and details are stored as plain text so that a title starting with `=` cannot run as a formula. A failing log never breaks the work. The tab keeps the latest 5,000 lines.
+**Consequences.** A status change with no line is a hand edit in the Sheet, which is itself a finding. The tab holds listing titles and admin emails: it is private, like the rest of the Sheet, and is copied by the weekly backup. Sign-in refusals are not logged (they could flood it).

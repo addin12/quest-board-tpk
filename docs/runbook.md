@@ -78,6 +78,12 @@ Retry: Deployments → the failed one → Retry deployment. A build with bad dat
 2. In the script editor, open **Executions**: a failed `tick` shows its error. Run `setup` and read the log: it lists missing columns or properties.
 3. Open the **Triggers** page: `tick`, `nightly` and `backup` must be listed. If not, run `setup`.
 
+### A status changed and nobody knows why
+Open the **Activity** tab of the Sheet. Every decision, every edit the script noticed, every change on the admin page, every
+admin added or removed, every rebuild, backup and `setup` run is one line there: when, what, which listing, and who (an
+admin's email, or *script*). A status that changed with **no line** in the Activity tab was changed by hand in the Sheet,
+or by Version history or undo. Compare the time with File → Version history. The tab keeps the latest 5,000 lines.
+
 ### An admin cannot sign in
 - *Access blocked*: their Gmail is not under Google Cloud → Audience → **Test users**.
 - *origin_mismatch*: the site's address is not an authorized origin on the OAuth client (it must be exactly `https://quest-board-tpk.pages.dev`). Google can take a few minutes to accept a change.
@@ -122,6 +128,7 @@ to be up (only a build does), so a script outage does not take the site down.
 | The admin page's *last publish is not in this page yet* | a publish did not reach the site |
 | GitHub CI on every push | the code breaks something |
 | Dependabot (weekly) | outdated dependencies; its eslint major is ignored on purpose |
+| The Activity tab of the Sheet | what changed, when and by whom, for every listing and admin (see *A status changed and nobody knows why*) |
 | The weekly Drive backup | nothing, until you need it: look at the folder now and then |
 
 ## Limits worth knowing

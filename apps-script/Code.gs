@@ -23,7 +23,7 @@ const VERSION = '1.0.0';
 // Names the sheet and the forms must agree on (docs/forms.md lists the same words for the forms).
 // ---------------------------------------------------------------------------------------------
 
-const TAB = { games: 'Games', gms: 'GM profiles', admins: 'Admins' };
+const TAB = { games: 'Games', gms: 'GM profiles', admins: 'Admins', activity: 'Activity' };
 
 /** Added by setup() to the right of the form's own columns. */
 const ADMIN_COLUMNS = ['Id', 'Status', 'Featured', 'AdminNote', 'ReviewedBy', 'ReviewedAt', 'RejectReason', 'Slug', 'Hash', 'Superseded', 'WasLive', 'Full'];
@@ -545,6 +545,29 @@ function affectsPublic_(before, after) {
 //             shareFile(id, on) }
 // ---------------------------------------------------------------------------------------------
 
+const ACTIVITY_HEADERS = ['Time', 'What', 'Kind', 'Id', 'Title', 'Detail', 'By'];
+const ACTIVITY_MAX_ROWS = 5000;
+
+/** A value Sheets will not read as a formula: a title that starts with = would otherwise run. */
+function plainCell_(v) {
+  const s = str_(v);
+  return /^[=+\-@]/.test(s) ? "'" + s : s;
+}
+
+/**
+ * One line in the Activity tab: what changed, when, and who or what changed it. The Sheet is the whole database, so this
+ * is its audit trail. A change to a status that has no line here was made by hand in the Sheet. A logging problem never
+ * breaks the work it describes.
+ */
+function logEvent_(store, nowMs, what, kind, id, title, detail, by) {
+  if (!store || !store.log) return;
+  try {
+    store.log([[new Date(nowMs).toISOString(), what, kind || '', id || '', plainCell_(clip_(title, 100)), plainCell_(clip_(detail, 300)), plainCell_(by || 'script')]]);
+  } catch (e) {
+    console.warn('Could not write to the Activity tab: ' + e);
+  }
+}
+
 function fail_(code, extra) {
   return Object.assign({ ok: false, error: code }, extra || {});
 }
@@ -576,6 +599,7 @@ function sync_(store, nowMs) {
         // Viewable by link (an unguessable address) so that every admin sees it on the review page, not just the owner.
         if (picture) store.shareFile(picture, true);
         result.newPending.push({ kind: kind, id: id, title: title });
+        logEvent_(store, nowMs, 'new submission', kind, id, title, 'pending', 'script');
       } else if (stored !== hash) {
         if (picture && rec.status !== 'rejected') store.shareFile(picture, true);
         const wasApproved = rec.status === 'approved';
@@ -586,12 +610,16 @@ function sync_(store, nowMs) {
           patch.ReviewedAt = '';
           patch.RejectReason = '';
           result.edited++;
+          logEvent_(store, nowMs, 'edited by the GM: back to review', kind, rec.id, titleOf_(rec), 'was ' + rec.status, 'script');
           if (wasApproved) result.dirty = true; // it just left the public site
         }
         store.update(kind, row.rowNum, patch);
       }
       // Approved by hand in the Sheet, or before this column existed: it was live, so its address is kept.
-      if (rec.id && rec.status === 'approved' && !rec.wasLive) store.update(kind, row.rowNum, { WasLive: 'yes' });
+      if (rec.id && rec.status === 'approved' && !rec.wasLive) {
+        store.update(kind, row.rowNum, { WasLive: 'yes' });
+        logEvent_(store, nowMs, 'marked live (approved by hand in the Sheet)', kind, rec.id, titleOf_(rec), '', 'script');
+      }
     });
   });
   // Mark older profiles of the same email as superseded.
@@ -605,6 +633,7 @@ function sync_(store, nowMs) {
     const want = current[rec.row] ? '' : 'yes';
     if (str_(admin_(row, 'Superseded')) !== want) {
       store.update('gm', row.rowNum, { Superseded: want });
+      logEvent_(store, nowMs, want ? 'profile replaced by a newer one' : 'profile is the current one again', 'gm', rec.id, titleOf_(rec), '', 'script');
       if (rec.status === 'approved') result.dirty = true;
     }
   });
@@ -647,6 +676,7 @@ function review_(deps, email, req) {
     if (!rec) return;
     const patch = patchOf_(kind, rec, status, email, deps.now(), req.reason);
     store.update(kind, rec.row, patch);
+    logEvent_(store, deps.now(), 'decision', kind, rec.id, titleOf_(rec), rec.status + ' → ' + status + (status === 'rejected' && req.reason ? ': ' + req.reason : ''), email);
     const after = Object.assign({}, rec, { status: status });
     if (affectsPublic_(rec, after) && rec.status !== status) dirty = true;
     const fileId = kind === 'game' ? rec.coverId : rec.photoId;
@@ -678,6 +708,7 @@ function patch_(deps, email, req) {
   if (typeof req.adminNote === 'string') patch.AdminNote = clip_(req.adminNote, 1000);
   if (Object.keys(patch).length === 0) return fail_('bad_request');
   store.update(kind, rec.row, patch);
+  logEvent_(store, deps.now(), 'changed', kind, rec.id, titleOf_(rec), Object.keys(patch).map(function (k) { return k + ' → ' + (clip_(patch[k], 60) || '(empty)'); }).join(', '), email);
   if (dirty) deps.markDirty();
   return { ok: true, publishing: dirty };
 }
@@ -687,6 +718,7 @@ function addAdmin_(deps, by, req) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 120) return fail_('bad_request');
   if (deps.store.admins().some(function (a) { return a.email === email; }) || email === deps.owner()) return { ok: true, admins: deps.store.admins() };
   deps.store.addAdmin(email, by, new Date(deps.now()).toISOString());
+  logEvent_(deps.store, deps.now(), 'admin added', '', '', '', email, by);
   return { ok: true, admins: deps.store.admins() };
 }
 
@@ -695,6 +727,7 @@ function removeAdmin_(deps, by, req) {
   if (email === deps.owner()) return fail_('forbidden', { message: 'owner' });
   if (email === by) return fail_('forbidden', { message: 'self' });
   deps.store.removeAdmin(email);
+  logEvent_(deps.store, deps.now(), 'admin removed', '', '', '', email, by);
   return { ok: true, admins: deps.store.admins() };
 }
 
@@ -713,7 +746,7 @@ function handle_(req, deps) {
     case 'patch': return patch_(deps, email, req);
     case 'admin.add': return addAdmin_(deps, email, req);
     case 'admin.remove': return removeAdmin_(deps, email, req);
-    case 'deploy': return deps.deployNow() ? { ok: true } : fail_('deploy_failed');
+    case 'deploy': return deps.deployNow(email) ? { ok: true } : fail_('deploy_failed');
     default: return fail_('bad_request');
   }
 }
@@ -815,6 +848,13 @@ function sheetStore_() {
       const rows = sheet.getLastRow() < 2 ? [] : sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues();
       for (let i = rows.length - 1; i >= 0; i--) if (str_(rows[i][0]).toLowerCase() === email) sheet.deleteRow(i + 2);
     },
+    log: function (rows) {
+      const ss = spreadsheet_();
+      let sheet = ss.getSheetByName(TAB.activity);
+      if (!sheet) { sheet = ss.insertSheet(TAB.activity); sheet.appendRow(ACTIVITY_HEADERS); sheet.setFrozenRows(1); }
+      sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, ACTIVITY_HEADERS.length).setValues(rows);
+      if (sheet.getLastRow() > ACTIVITY_MAX_ROWS) sheet.deleteRows(2, 1000); // the oldest thousand
+    },
     shareFile: function (fileId, on) {
       try {
         const file = DriveApp.getFileById(fileId);
@@ -859,7 +899,7 @@ function markDirty_() {
 }
 
 /** Asks Cloudflare Pages to rebuild the site. Returns whether the request was accepted. */
-function deployNow_() {
+function deployNow_(by) {
   const hook = prop_('DEPLOY_HOOK');
   if (!hook) return false;
   try {
@@ -872,9 +912,11 @@ function deployNow_() {
       setProp_('DEPLOY_COUNT', (prop_('DEPLOY_DAY') === day ? Number(prop_('DEPLOY_COUNT') || 0) : 0) + 1);
       setProp_('DEPLOY_DAY', day);
     }
+    logEvent_(sheetStore_(), Date.now(), 'rebuild requested', '', '', '', ok ? 'accepted' : 'refused (HTTP ' + res.getResponseCode() + ')', by || 'script');
     return ok;
   } catch (e) {
     console.error('Deploy hook failed: ' + e);
+    logEvent_(sheetStore_(), Date.now(), 'rebuild requested', '', '', '', 'failed: ' + e, by || 'script');
     return false;
   }
 }
@@ -1026,6 +1068,7 @@ function backup() {
     copies.push({ id: f.getId(), createdMs: f.getDateCreated().getTime() });
   }
   backupsToTrash_(copies, BACKUPS_KEPT).forEach(function (id) { DriveApp.getFileById(id).setTrashed(true); });
+  logEvent_(sheetStore_(), Date.now(), 'backup made', '', '', '', Math.min(copies.length, BACKUPS_KEPT) + ' copies kept', 'script');
 }
 
 function newBuildKey_() {
@@ -1040,6 +1083,7 @@ function logBuildKey_() {
 function rotateBuildKey() {
   setProp_('BUILD_KEY', newBuildKey_());
   logBuildKey_();
+  logEvent_(sheetStore_(), Date.now(), 'build key replaced', '', '', '', '', ownerEmail_());
 }
 
 /**
@@ -1073,6 +1117,11 @@ function setup() {
     admins.appendRow(['Email', 'AddedBy', 'AddedAt']);
     admins.setFrozenRows(1);
   }
+  if (!ss.getSheetByName(TAB.activity)) {
+    const activity = ss.insertSheet(TAB.activity);
+    activity.appendRow(ACTIVITY_HEADERS);
+    activity.setFrozenRows(1);
+  }
   ScriptApp.getProjectTriggers().forEach(function (tr) {
     if (['tick', 'nightly', 'backup'].indexOf(tr.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(tr);
   });
@@ -1084,6 +1133,7 @@ function setup() {
   ['CLIENT_ID', 'DEPLOY_HOOK', 'SITE_URL'].forEach(function (k) {
     if (!prop_(k)) problems.push('Script property ' + k + ' is not set yet (Project Settings > Script properties).');
   });
+  logEvent_(sheetStore_(), Date.now(), 'setup run', '', '', '', problems.length + ' problem(s)', ownerEmail_());
   console.log(problems.length ? 'Setup done, but:\n- ' + problems.join('\n- ') : 'Setup done. Everything is in place.');
   return problems;
 }
