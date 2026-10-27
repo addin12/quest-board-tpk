@@ -34,6 +34,7 @@ npm run dev        # http://localhost:3000, with demo data: no Google account ne
 
 `apps-script/Code.gs` is pasted into the Sheet's script by hand; a merge does not deploy it. So:
 
+- `npm run script:deploy` pushes it to the live project and moves the web app to a new version (setup in [docs/runbook.md](docs/runbook.md)).
 - Keep Google calls out of the helpers whose names end in `_`: those are unit-tested in a sandbox without Google.
 - If you add a Sheet column, add it to `ADMIN_COLUMNS` and to [docs/forms.md](docs/forms.md) (a test checks), and say in
   the pull request that the owner must paste the file, run `setup()` and deploy a new version.

@@ -40,7 +40,21 @@ and at most 20 times a day. Cloudflare's free plan allows 500 builds a month.
 tests, the demo and the empty-Sheet builds, and the browser tests in three browsers. Cloudflare builds the site from the
 same push. Do not merge on red.
 
-**The script** (`apps-script/Code.gs`) is not deployed by the push. By hand:
+**The script** (`apps-script/Code.gs`) is not deployed by the push. One command does it, with Google's `clasp`:
+
+```bash
+npm run script:deploy          # pushes Code.gs and the manifest, moves the web app to a new version (same address)
+npm run script:deploy -- --dry # only stages the files
+```
+
+Set it up once: `npx @google/clasp@3.4.1 login` (a Google consent page), switch on the Apps Script API at
+https://script.google.com/home/usersettings, and put the Script ID and the deployment id (`npx @google/clasp@3.4.1
+list-deployments`: the one that is not @HEAD) in `.apps-script.local.json` (git-ignored). The login is kept in
+`.clasprc.json` in your user folder: anything running as you can read it. To end it: `npx @google/clasp@3.4.1 logout`
+and revoke it at https://myaccount.google.com/permissions. `CreateForms.gs` is never pushed. If a `setup` run is
+needed (a new column or timer), run it by hand in the editor afterwards.
+
+Or by hand:
 
 1. Open the file, copy all of it. In the Sheet: Extensions → Apps Script → `Code.gs` → select all → paste → save.
 2. If the change adds a Sheet column or a timer, run `setup` (it is safe to run again; it keeps the build key).

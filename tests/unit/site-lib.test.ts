@@ -11,6 +11,7 @@ import { DICTIONARIES, makeT } from "../../src/lib/i18n/dict.ts";
 import { cleanDiscord, isGoogleMapsUrl, isPhone, parsePublicData, text } from "../../src/lib/public-data.ts";
 import { buildItems, canApprove, countByStatus, filterItems, previewGame, reasonText, siteBehind, whenLabel } from "../../src/lib/admin-view.ts";
 import { flatName } from "../../scripts/fix-export.mjs";
+import { parseConfig } from "../../scripts/push-apps-script.mjs";
 import { PLACEHOLDER_SLUG, slugParams } from "../../src/lib/static-params.ts";
 import { constant, loadScript, plain } from "../support/fake-sheet.ts";
 import type { GameRecord, GmRecord, SiteGame } from "../../src/lib/types.ts";
@@ -275,4 +276,13 @@ test("gone addresses: plain ones are kept, sorted and without repeats; odd or li
   assert.deepEqual(data.goneGms, [], "not a list: ignored");
   assert.equal(warnings.length, 4, "a bad address, a number, a live one, and the wrong type");
   assert.deepEqual(parsePublicData({ gms: [], games: [] }).data.goneGames, [], "an older script without the lists");
+});
+
+test("the script deploy command refuses a missing or mistyped id before it pushes anything", () => {
+  const good = { scriptId: "1ZnEWSMsYzAVSS91HI85wH2-tK8cR90gzlt0Ap_d8q91kGW-bA8DtKgwj", deploymentId: "AKfycbzGMrBu01ysA1PDP4M0qnXCJXi3DoLfOWe-vbjwJVTg1aC7QAogs7pigG-ca9ZZaPSS9Q" };
+  assert.deepEqual(parseConfig(good), good);
+  assert.throws(() => parseConfig(undefined), /scriptId/);
+  assert.throws(() => parseConfig({ ...good, scriptId: "short" }), /scriptId/);
+  assert.throws(() => parseConfig({ ...good, deploymentId: "has spaces and ; rm -rf" }), /deploymentId/);
+  assert.throws(() => parseConfig({ scriptId: good.scriptId }), /deploymentId/);
 });

@@ -23,3 +23,7 @@ blob-report/
 .DS_Store
 Thumbs.db
 *.log
+
+# The ids of the live Apps Script project (scripts/push-apps-script.mjs)
+.apps-script.local.json
+.apps-script-stage/
