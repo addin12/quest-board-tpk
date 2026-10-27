@@ -32,7 +32,18 @@ GM fills a Google Form (signs in with Google)  →  Google Sheet  →  an admin 
   number…), one-click approve or reject with reasons, undo, bulk approve and keyboard shortcuts. Adding another admin is one email address.
 - **Cost:** nothing. Google Forms/Sheets/Apps Script, Cloudflare Pages and GitHub, all on free plans.
 
-More: [architecture](docs/architecture.md) · [setup](docs/setup.md) · [the forms](docs/forms.md) · [for admins](docs/curation.md) · [decisions](DECISIONS.md)
+More: [architecture](docs/architecture.md) · [setup](docs/setup.md) · [the forms](docs/forms.md) · [runbook](docs/runbook.md) · [for admins](docs/curation.md) · [decisions](DECISIONS.md)
+
+## What it looks like
+
+Made-up data, from a local build.
+
+| | |
+|---|---|
+| ![The home page](docs/images/home.png) | ![The games list](docs/images/games.png) |
+| ![A game's page, with the way to message the Game Master](docs/images/game-page.png) | ![The admin review screen: a queue, the checks, approve or reject](docs/images/admin-review.png) |
+
+![A game's page on a phone, in Bahasa Indonesia](docs/images/game-page-id-phone.png)
 
 ## Quick start (demo data, no Google needed)
 
@@ -85,7 +96,7 @@ tests/   unit, e2e, and support (an in-memory sheet) · data/sample.json   demo 
 
 ## Contributing
 
-Start with [CLAUDE.md](CLAUDE.md). A change is done when `npm run typecheck`, `npm run lint`, `npm test` and
+Start with [CONTRIBUTING.md](CONTRIBUTING.md) and [CLAUDE.md](CLAUDE.md). A security problem: [SECURITY.md](SECURITY.md). A change is done when `npm run typecheck`, `npm run lint`, `npm test` and
 `npm run build` pass, new interface text exists in English and Indonesian, and both themes and a phone width look right.
 
 ---

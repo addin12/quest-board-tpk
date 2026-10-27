@@ -82,3 +82,38 @@ with a purge after each build (costs money).
 **Consequences.** One more Sheet column (`setup()` adds it and `sync_` fills it for anything already approved), a few
 hundred more tiny pages at most, and new texts (`gone.*`). Pages removed before this existed, and cover images of
 removed games, can still linger up to 7 days; the images can only be found through a page that no longer shows them.
+
+## ADR-12: The Google app stays in "Testing" (2026-10-27)
+**Context.** Admin sign-in uses a Google OAuth client. Moving the app to "In production" needs the app's home page, privacy policy and terms to sit on a domain registered under Authorized domains, and `pages.dev` is a shared domain that cannot be registered. The Publish button stays disabled without it. A domain costs money; the community edition must stay free.
+**Decision.** Keep the app in Testing and list every admin under Audience → Test users (up to 100). The page only signs people in, so the 7-day limit on Testing tokens does not matter.
+**Consequences.** Adding an admin is two steps (Test users and the Admins tab; the Admins tab says so). Admins see Google's "has not verified this app" screen once. If the community gets its own domain, publishing is a Google Cloud change plus a privacy and a terms page; nothing else changes.
+
+## ADR-13: The public data needs a secret build key (2026-10-27)
+**Context.** The script's web address must be public (the admin page calls it from the browser), and `?action=public` returns the GMs' WhatsApp numbers as plain data, so anyone who found the address could read all of them in one request.
+**Decision.** `?action=public` answers only a request carrying `key=<BUILD_KEY>` (a script property that `setup()` creates). The key lives in Cloudflare's `TPK_API_URL`, never in a `NEXT_PUBLIC_` variable. No key set means closed, not open. The comparison does not stop at the first difference. `rotateBuildKey()` replaces it.
+**Consequences.** One more value to keep right in `TPK_API_URL`: a wrong one fails the build (the live site stays up). The numbers are still in the built pages in a hidden form, as before; the key only closes the bulk-read route.
+
+## ADR-14: Sheet columns and tabs are matched loosely (2026-10-27)
+**Context.** The owner edited the generated forms (capitals, "Session Date", "Schedule Notes", a retitled cover question); exact matching would have reported most columns as missing.
+**Decision.** Capitals, spaces and punctuation do not matter, for column titles and tab names; three renames are aliases in `COLUMN_ALIASES`. A test uses the owner's real headers.
+**Consequences.** Forms can be reworded freely within that rule. A genuinely new wording needs an alias, and `setup()` still reports a column it cannot find.
+
+## ADR-15: A site with no listings still has one page per route (2026-10-27)
+**Context.** `output: "export"` refuses a dynamic route with no pages. The first deploy failed against the empty Sheet.
+**Decision.** `slugParams` builds one placeholder page when there are no items; it shows "not found", is `noindex` and is in no list or sitemap. CI builds the empty-Sheet state (`TPK_DATA_FILE=data/empty.json`) and checks it.
+**Consequences.** `/en/games/none/` exists. A real slug always ends in `-` and four characters, so it never clashes.
+
+## ADR-16: The forms are created by a script (2026-10-27)
+**Context.** Building two forms of ~30 questions by hand from a document is slow and error-prone.
+**Decision.** `apps-script/CreateForms.gs` creates the forms, the Sheet and the report form from the same option lists as the site (`npm run form-options`). A test keeps its question titles equal to the columns `Code.gs` reads.
+**Consequences.** Google's scripting service cannot add file-upload questions or choose "Verified" email collection, so those are two documented manual steps per form. The script is not part of the backend and is run once.
+
+## ADR-17: The Sheet is backed up weekly to Drive (2026-10-27)
+**Context.** The Sheet is the whole database; one deleted row or tab loses listings.
+**Decision.** `backup()` (a Monday timer) copies the Sheet into the Drive folder *Quest Board TPK backups* and keeps the newest 8. Restoring is pasting rows back ([runbook](docs/runbook.md)).
+**Consequences.** Copies hold personal data in the owner's own Drive. Forms still keep their own response history, a second source.
+
+## ADR-18: Stay on Cloudflare Pages for now (2026-10-27)
+**Context.** The dashboard calls the Pages flow "legacy" and steers new projects to Workers. Workers needs a config file in the repo, and the script's rebuild relies on a Pages deploy hook.
+**Decision.** Stay on Pages. Revisit when Cloudflare announces an end date for Pages, or if the deploy hook has no Workers equivalent we can use.
+**Consequences.** A later move is one config file and a new hook address in the script property `DEPLOY_HOOK`.
