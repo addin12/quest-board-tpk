@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 // The public site against the demo data (data/sample.json), as a player uses it.
 const GAME = "/en/games/mercusuar-di-pulau-kabut-0m01/";
-const PAGES = ["/en/", "/en/games/", GAME, "/en/gm/raka-pratama-0r01/", "/en/gms/", "/en/how-it-works/", "/en/list-your-game/", "/id/", "/id/games/", "/id/list-your-game/", "/en/games/a-game-that-ended-9z01/", "/id/gm/a-gm-who-left-9z02/"];
+const PAGES = ["/en/", "/en/games/", GAME, "/en/gm/raka-pratama-0r01/", "/en/gms/", "/en/how-it-works/", "/en/list-your-game/", "/id/", "/id/games/", "/id/list-your-game/", "/en/games/a-game-that-ended-9z01/", "/id/gm/a-gm-who-left-9z02/", "/en/games/doskvol-setelah-gelap-0d02/"];
 
 test("find a game, follow the links, message the GM on WhatsApp", async ({ page, context }) => {
   await page.goto("/");
@@ -92,6 +92,22 @@ test("an address that is not a page gets the 404 page, in both languages", async
   expect(res?.status()).toBe(404);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Natural 1.");
   await expect(page.getByRole("link", { name: "Back to the tavern" })).toHaveAttribute("href", "/en/");
+});
+
+test("a game marked full says so, sinks to the end of the list, and can still be messaged", async ({ page }) => {
+  await page.goto("/en/games/");
+  const titles = await page.locator("main a h2").allInnerTexts();
+  expect(titles.at(-1)).toBe("Doskvol Setelah Gelap");
+  await expect(page.locator("main li").filter({ hasText: "Doskvol Setelah Gelap" })).toContainText("Full");
+
+  await page.goto("/en/games/doskvol-setelah-gelap-0d02/");
+  await expect(page.getByTestId("full-chip")).toBeVisible();
+  await expect(page.getByTestId("full-note")).toContainText("This game is full");
+  await expect(page.getByTestId("contact-whatsapp")).toBeVisible();
+  expect((await page.locator('script[type="application/ld+json"]').allInnerTexts()).join("")).toContain("SoldOut");
+
+  await page.goto("/id/games/doskvol-setelah-gelap-0d02/");
+  await expect(page.getByTestId("full-note")).toContainText("Game ini sudah penuh");
 });
 
 test("the address of a listing that is no longer live shows a notice: no details, no way to contact, not for search engines", async ({ page, request }) => {

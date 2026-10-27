@@ -30,6 +30,7 @@ and at most 20 times a day. Cloudflare's free plan allows 500 builds a month.
 | Add an admin | Their Gmail in Google Cloud → Audience → **Test users**, **and** the admin page → Admins → Add admin. Both are needed. |
 | Remove an admin | Admin page → Admins → Remove (and take them off Test users) |
 | Feature a game | Admin page → open an approved game → Feature |
+| Mark a game full | Admin page → open an approved game → Mark as full (Reopen to undo), then Publish now |
 | Take a listing down | Reject it (or set an end date earlier), then **Publish now**. See *A listing must come down now* below. |
 | Change what a form asks | Edit the form. A new wording is read as it is; a renamed question needs an entry in `COLUMN_ALIASES` in `Code.gs` ([forms.md](forms.md)). |
 

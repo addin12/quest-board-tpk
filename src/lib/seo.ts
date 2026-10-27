@@ -38,7 +38,7 @@ export function gameJsonLd(game: SiteGame, gm: SiteGm | undefined, lang: Lang): 
         },
     image: game.cover ? [abs(game.cover)] : undefined,
     organizer: gm ? { "@type": "Person", name: gm.name, url: `${SITE_URL}/${lang}/gm/${gm.slug}/` } : undefined,
-    offers: { "@type": "Offer", url, price: game.priceIdr, priceCurrency: "IDR", availability: "https://schema.org/InStock" },
+    offers: { "@type": "Offer", url, price: game.priceIdr, priceCurrency: "IDR", availability: game.full ? "https://schema.org/SoldOut" : "https://schema.org/InStock" },
     maximumAttendeeCapacity: game.seats,
     keywords: game.system,
   };

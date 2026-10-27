@@ -22,7 +22,7 @@ like a scam: use the *Report this listing* link on the game's page instead.
   email of their Google account (the email is never shown on the site).
 - A game's details: the description, place, date, price information and an optional cover picture.
 - Where it lives: a Google Sheet and Google Drive of the community's admin account. The public site shows only what a
-  Game Master agreed to show when they ticked the consent box. There are no player accounts, no payments and no tracking.
+  Game Master agreed to show when they ticked the consent box. There are no player accounts and no payments, and no cookies. If the owner turns on Cloudflare's visit counter it counts page views only, with no personal data.
 
 ## How it is protected
 

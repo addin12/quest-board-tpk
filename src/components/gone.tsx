@@ -11,7 +11,7 @@ export function Gone({ kind, lang }: { kind: "game" | "gm"; lang: Lang }) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12" data-testid="gone">
       <div className="card flex flex-col items-center gap-3 px-6 py-12 text-center">
-        <Image src="/images/tavern/empty-tankard.svg" alt="" width={120} height={90} />
+        <Image src="/images/tavern/empty-tankard.svg" alt="" width={120} height={90} priority />
         <h1 className="text-2xl font-bold">{t(game ? "gone.gameTitle" : "gone.gmTitle")}</h1>
         <p className="max-w-prose text-muted">{t(game ? "gone.gameBody" : "gone.gmBody")}</p>
         <Link href={game ? paths.games(lang) : paths.gms(lang)} className="btn-primary">{t(game ? "gone.gamesLink" : "gone.gmsLink")}</Link>

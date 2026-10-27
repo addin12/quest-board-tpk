@@ -66,10 +66,11 @@ function matchesText(g: GameView, q: string): boolean {
 
 export function sortGames<G extends GameView>(games: G[], sort: SortKey): G[] {
   const byStart = (a: G, b: G) => Date.parse(a.startsAt) - Date.parse(b.startsAt);
+  const notFullFirst = (a: G, b: G) => Number(a.full) - Number(b.full); // a full game sinks, whatever the order
   const copy = [...games];
-  if (sort === "newest") return copy.sort((a, b) => Date.parse(b.listedAt) - Date.parse(a.listedAt) || byStart(a, b));
-  if (sort === "priceAsc") return copy.sort((a, b) => a.priceIdr - b.priceIdr || byStart(a, b));
-  return copy.sort((a, b) => Number(b.featured) - Number(a.featured) || byStart(a, b)); // soonest, featured first
+  if (sort === "newest") return copy.sort((a, b) => notFullFirst(a, b) || Date.parse(b.listedAt) - Date.parse(a.listedAt) || byStart(a, b));
+  if (sort === "priceAsc") return copy.sort((a, b) => notFullFirst(a, b) || a.priceIdr - b.priceIdr || byStart(a, b));
+  return copy.sort((a, b) => notFullFirst(a, b) || Number(b.featured) - Number(a.featured) || byStart(a, b)); // soonest, featured first
 }
 
 export function applyFilters<G extends GameView>(games: G[], f: Filters): G[] {

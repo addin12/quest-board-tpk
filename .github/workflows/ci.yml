@@ -43,7 +43,16 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium firefox webkit
+      # This step has hung for 20+ minutes twice (apt or a download stalling). A time limit and one more try turn that into a delay.
+      - name: Install browsers
+        id: browsers
+        timeout-minutes: 6
+        continue-on-error: true
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Install browsers (second try)
+        if: steps.browsers.outcome != 'success'
+        timeout-minutes: 8
+        run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run test:e2e
       - name: Upload traces on failure
         if: failure()

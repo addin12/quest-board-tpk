@@ -121,15 +121,20 @@ test("filters narrow the list, together, and read from and write to the address"
   assert.equal(applyFilters(all, { ...EMPTY_FILTERS, q: "zzzz" }).length, 0);
 });
 
-test("sorting: soonest first with featured games ahead; cheapest; newest", () => {
+test("sorting: soonest first with featured games ahead and full games last; cheapest; newest", () => {
   const all = games();
+  assert.ok(all.some((g) => g.full), "the demo data has a full game");
   const soon = applyFilters(all, EMPTY_FILTERS);
-  const featured = soon.filter((g) => g.featured);
-  assert.deepEqual(soon.slice(0, featured.length).map((g) => g.featured), featured.map(() => true));
-  const rest = soon.slice(featured.length).map((g) => Date.parse(g.startsAt));
+  const open = soon.filter((g) => !g.full);
+  assert.ok(soon.slice(open.length).every((g) => g.full) && soon.slice(0, open.length).every((g) => !g.full), "full games come last, whatever the order");
+  const featured = open.filter((g) => g.featured);
+  assert.deepEqual(open.slice(0, featured.length).map((g) => g.featured), featured.map(() => true));
+  const rest = open.slice(featured.length).map((g) => Date.parse(g.startsAt));
   assert.deepEqual(rest, [...rest].sort((a, b) => a - b));
-  const cheap = applyFilters(all, { ...EMPTY_FILTERS, sort: "priceAsc" }).map((g) => g.priceIdr);
+  const cheapSorted = applyFilters(all, { ...EMPTY_FILTERS, sort: "priceAsc" });
+  const cheap = cheapSorted.filter((g) => !g.full).map((g) => g.priceIdr);
   assert.deepEqual(cheap, [...cheap].sort((a, b) => a - b));
+  assert.ok(cheapSorted.at(-1)?.full, "cheapest first still puts a full game at the end");
 });
 
 test("a game stops showing when its time is up, and the filter choices come from the games that are there", () => {
@@ -161,14 +166,14 @@ test("the first message is in the game's language, or the page's when the game u
 
 // ── the admin view ───────────────────────────────────────────────────────────────────────────
 const record = (over: Partial<GameRecord> = {}): GameRecord => ({
-  kind: "game", id: "g1abc1234", slug: "x-abcd", status: "pending", featured: false, adminNote: "", reviewedBy: "", reviewedAt: "", rejectReason: "", superseded: false,
+  kind: "game", id: "g1abc1234", slug: "x-abcd", status: "pending", featured: false, full: false, adminNote: "", reviewedBy: "", reviewedAt: "", rejectReason: "", superseded: false,
   submittedAt: "2026-10-01T03:00:00.000Z", email: "gm@example.com", row: 2, title: "Mercusuar", system: "Call of Cthulhu", summary: "A horror one-shot.", description: "x".repeat(200),
   format: "one_shot", locationType: "in_person", platform: "", city: "Bandung", venueName: "Kumu", venueMapsUrl: "https://maps.app.goo.gl/k", startsAt: "2026-10-12T12:00:00.000Z",
   zone: "WIB", scheduleNote: "", expiresAt: "2026-10-13T12:00:00.000Z", priceIdr: 75000, seats: 5, language: "both", level: "beginner", minAge: 16, contentWarnings: "", safetyTools: "",
   genres: ["horror"], styles: [], coverId: "1AbCdEfGhIjKl", venueMapsRaw: "", consent: true, ...over,
 });
 const gmRecord = (over: Partial<GmRecord> = {}): GmRecord => ({
-  kind: "gm", id: "m1abc1234", slug: "raka-abcd", status: "approved", featured: false, adminNote: "", reviewedBy: "", reviewedAt: "", rejectReason: "", superseded: false,
+  kind: "gm", id: "m1abc1234", slug: "raka-abcd", status: "approved", featured: false, full: false, adminNote: "", reviewedBy: "", reviewedAt: "", rejectReason: "", superseded: false,
   submittedAt: "2026-09-30T03:00:00.000Z", email: "gm@example.com", row: 2, name: "Raka", bio: "Horror GM.", city: "Bandung", systems: [], whatsapp: "6281234567890", discord: "", photoId: "", consent: true, ...over,
 });
 const NOW = Date.parse("2026-10-05T00:00:00Z");

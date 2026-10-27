@@ -85,6 +85,13 @@ The admin page signs in with Google. Google needs to know the page is yours:
 2. Open `/en/admin/`, sign in with the owner's Google account, approve the profile and the game.
 3. After a minute or two the game is on the site. (*Publish now* on the admin page starts the rebuild at once.)
 
+## Visit counts (optional, free)
+
+Cloudflare Web Analytics counts page views without cookies and without personal data. To turn it on: Cloudflare →
+Workers & Pages → the project → **Metrics** → **Web Analytics** → Enable, then retry the deployment. Nothing in the code
+changes: `public/_headers` already lets Cloudflare's counter run (`static.cloudflareinsights.com` and
+`cloudflareinsights.com`). To turn it off, disable it there.
+
 ## The report form (so players can flag a listing)
 
 Without it the "Report this listing" link on game pages stays hidden.

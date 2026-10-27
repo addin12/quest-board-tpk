@@ -27,6 +27,9 @@ not an admin, ask the owner to add it under **Admins**.
 - **Several at once**: in the Waiting list, tick the games that have no problems and press *Approve … selected*.
 - **Search** finds a title, a GM's name or email.
 - **Featured**: on an approved game, *Feature* pins it first in the lists and gives it a badge.
+- **Full**: on an approved game, *Mark as full* adds a "Full" badge, sinks it to the end of the lists and tells visitors it is
+  full (they can still message the Game Master, for example about a waiting list). *Reopen* undoes it. A Game Master who
+  wants it marked asks an admin; editing the form would send the whole game back to review.
 
 ## Things worth knowing
 

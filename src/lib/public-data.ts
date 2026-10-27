@@ -114,7 +114,7 @@ function parseGame(raw: unknown, gmIds: ReadonlySet<string>, warn: (m: string) =
     startsAt, zone, scheduleNote: text(r.scheduleNote, 400, true), expiresAt, priceIdr, seats, language, level, minAge,
     contentWarnings: text(r.contentWarnings, 400, true), safetyTools: text(r.safetyTools, 200),
     genres: pickKeys(r.genres, GENRE_KEYS), styles: pickKeys(r.styles, STYLE_KEYS),
-    coverId: typeof r.coverId === "string" && PICTURE.test(r.coverId) ? r.coverId : "", featured: r.featured === true, listedAt: isoOrNull(r.listedAt) ?? startsAt,
+    coverId: typeof r.coverId === "string" && PICTURE.test(r.coverId) ? r.coverId : "", featured: r.featured === true, full: r.full === true, listedAt: isoOrNull(r.listedAt) ?? startsAt,
   };
 }
 

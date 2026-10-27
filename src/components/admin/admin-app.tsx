@@ -149,6 +149,17 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
     }
   }
 
+  async function markFull(item: Item, full: boolean) {
+    patchLocal(item.kind, [item.id], { full });
+    try {
+      const r = await call<{ publishing: boolean }>("patch", { kind: item.kind, id: item.id, full });
+      if (r.publishing) setQueue((q) => (q ? { ...q, deploy: { ...q.deploy, pending: true } } : q));
+    } catch (e) {
+      patchLocal(item.kind, [item.id], { full: !full });
+      say(t("admin.toast.error", { error: e instanceof ApiError ? e.code : "error" }));
+    }
+  }
+
   async function saveNote(item: Item, adminNote: string): Promise<boolean> {
     try {
       await call("patch", { kind: item.kind, id: item.id, adminNote });
@@ -240,8 +251,8 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
             </div>
             <button type="button" className="btn-ghost ml-auto" onClick={() => void load()}><Icon name="refresh" /> {t("admin.refresh")}</button>
           </div>
-          {tab === "games" && <ReviewPane key="games" items={items.games} nowIso={queue.now} onReview={review} onFeature={feature} onNote={saveNote} />}
-          {tab === "gms" && <ReviewPane key="gms" items={items.gms} nowIso={queue.now} onReview={review} onFeature={feature} onNote={saveNote} />}
+          {tab === "games" && <ReviewPane key="games" items={items.games} nowIso={queue.now} onReview={review} onFeature={feature} onFull={markFull} onNote={saveNote} />}
+          {tab === "gms" && <ReviewPane key="gms" items={items.gms} nowIso={queue.now} onReview={review} onFeature={feature} onFull={markFull} onNote={saveNote} />}
           {tab === "admins" && <AdminsPane admins={queue.admins} owner={queue.owner} me={email} onAdd={addAdmin} onRemove={removeAdmin} />}
         </>
       )}

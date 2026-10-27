@@ -67,23 +67,26 @@ export function whereLabel(g: Pick<GameView, "locationType" | "platform" | "city
 }
 
 /** A game as a card. `preview` draws it without a link (the admin page shows cards for games that are not on the site yet). */
-export function GameCard({ game, t, lang, preview = false }: { game: GameView; t: T; lang: Lang; preview?: boolean }) {
+/** `priority`: the picture is among the first things a visitor sees, so it loads first. `headingLevel`: 2 where the page has no h2 above the cards. */
+export function GameCard({ game, t, lang, preview = false, priority = false, headingLevel = 3 }: { game: GameView; t: T; lang: Lang; preview?: boolean; priority?: boolean; headingLevel?: 2 | 3 }) {
+  const Heading = headingLevel === 2 ? "h2" : "h3";
   const genre = game.genres.find(isGenre);
   const className = "card group flex flex-col overflow-hidden transition-colors hover:border-accent/50";
   const body = (
     <>
       <div className="relative">
-        <Cover src={game.cover ? smallCover(game.cover) : null} seed={game.title} className="aspect-[4/5] w-full" />
+        <Cover src={game.cover ? smallCover(game.cover) : null} seed={game.title} className="aspect-[4/5] w-full" priority={priority} />
         <span className="absolute left-3 top-3 rounded-md bg-black/60 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur">{game.system}</span>
         {game.featured && (
           <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-md bg-accent px-2.5 py-1 text-xs font-bold text-accent-ink">
             <Icon name="star" solid /> {t("game.featured")}
           </span>
         )}
+        {game.full && <span className="absolute bottom-3 right-3 rounded-md bg-black/70 px-2.5 py-1 text-xs font-bold text-white backdrop-blur">{t("game.full")}</span>}
       </div>
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-lg font-semibold leading-snug group-hover:text-accent">{game.title}</h3>
+          <Heading className="text-lg font-semibold leading-snug group-hover:text-accent">{game.title}</Heading>
           <span className="shrink-0 text-right">
             <span className="block font-semibold">{priceLabel(game.priceIdr, t)}</span>
             {game.priceIdr > 0 && <span className="block text-xs text-muted">{t("common.perSeat")}</span>}
@@ -147,7 +150,7 @@ export function Notice({ tone = "info", children }: { tone?: "info" | "success" 
 export function EmptyState({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
     <div className="card flex flex-col items-center gap-3 px-6 py-12 text-center">
-      <Image src="/images/tavern/empty-tankard.svg" alt="" width={120} height={90} />
+      <Image src="/images/tavern/empty-tankard.svg" alt="" width={120} height={90} priority />
       <p className="font-semibold">{title}</p>
       {children}
     </div>

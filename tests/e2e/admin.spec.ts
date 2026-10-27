@@ -133,6 +133,21 @@ test("featuring an approved game queues a rebuild; publishing now asks for one",
   expect(backend.calls.deploys).toBe(1);
 });
 
+test("marking an approved game full queues a rebuild, and it can be reopened", async ({ page }) => {
+  const backend = await open(page);
+  await signIn(page);
+  await page.getByTestId("status-approved").click();
+  await row(page, "Panen Harapan").click();
+  const full = () => backend.store.load("game").find((r) => r.cells["Game title"] === "Panen Harapan")?.cells.Full;
+  await page.getByTestId("toggle-full").click();
+  await expect.poll(full).toBe("yes");
+  expect(backend.calls.dirty).toBe(1);
+  await expect(page.getByTestId("toggle-full")).toHaveText("Reopen");
+  await page.getByTestId("toggle-full").click();
+  await expect.poll(full).toBe("");
+  await expect(page.getByTestId("toggle-full")).toHaveText("Mark as full");
+});
+
 test("Game Masters are reviewed the same way", async ({ page }) => {
   const backend = await open(page);
   await signIn(page);

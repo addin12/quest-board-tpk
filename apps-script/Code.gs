@@ -26,7 +26,7 @@ const VERSION = '1.0.0';
 const TAB = { games: 'Games', gms: 'GM profiles', admins: 'Admins' };
 
 /** Added by setup() to the right of the form's own columns. */
-const ADMIN_COLUMNS = ['Id', 'Status', 'Featured', 'AdminNote', 'ReviewedBy', 'ReviewedAt', 'RejectReason', 'Slug', 'Hash', 'Superseded', 'WasLive'];
+const ADMIN_COLUMNS = ['Id', 'Status', 'Featured', 'AdminNote', 'ReviewedBy', 'ReviewedAt', 'RejectReason', 'Slug', 'Hash', 'Superseded', 'WasLive', 'Full'];
 
 const COMMON_COLUMNS = { timestamp: 'Timestamp', email: 'Email Address' };
 
@@ -396,6 +396,7 @@ function adminFields_(row) {
     rejectReason: str_(admin_(row, 'RejectReason')),
     superseded: /^(yes|true|1)$/i.test(str_(admin_(row, 'Superseded'))),
     wasLive: /^(yes|true|1)$/i.test(str_(admin_(row, 'WasLive'))),
+    full: /^(yes|true|1)$/i.test(str_(admin_(row, 'Full'))),
     submittedAt: iso_(row.cells[COMMON_COLUMNS.timestamp]),
     email: str_(row.cells[COMMON_COLUMNS.email]).toLowerCase(),
     row: row.rowNum,
@@ -500,7 +501,7 @@ function buildPublic_(games, gms, nowMs) {
         format: g.format, locationType: g.locationType, platform: g.platform, city: g.city, venueName: g.venueName, venueMapsUrl: g.venueMapsUrl,
         startsAt: g.startsAt, zone: g.zone, scheduleNote: g.scheduleNote, expiresAt: g.expiresAt, priceIdr: g.priceIdr, seats: g.seats,
         language: g.language, level: g.level, minAge: g.minAge, contentWarnings: g.contentWarnings, safetyTools: g.safetyTools,
-        genres: g.genres, styles: g.styles, coverId: g.coverId, featured: g.featured, listedAt: g.reviewedAt || g.submittedAt,
+        genres: g.genres, styles: g.styles, coverId: g.coverId, featured: g.featured, full: g.full, listedAt: g.reviewedAt || g.submittedAt,
       };
     }),
     goneGames: goneSlugs_(games, idSet_(live), nowMs),
@@ -669,6 +670,10 @@ function patch_(deps, email, req) {
   if (typeof req.featured === 'boolean' && kind === 'game') {
     patch.Featured = req.featured ? 'yes' : '';
     dirty = rec.status === 'approved' && rec.featured !== req.featured;
+  }
+  if (typeof req.full === 'boolean' && kind === 'game') {
+    patch.Full = req.full ? 'yes' : '';
+    dirty = dirty || (rec.status === 'approved' && rec.full !== req.full);
   }
   if (typeof req.adminNote === 'string') patch.AdminNote = clip_(req.adminNote, 1000);
   if (Object.keys(patch).length === 0) return fail_('bad_request');

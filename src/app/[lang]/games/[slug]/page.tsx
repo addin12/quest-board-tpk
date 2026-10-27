@@ -91,6 +91,7 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
                 <p className="flex flex-wrap items-center gap-2">
                   <span className="chip">{game.system}</span>
                   {game.featured && <span className="chip border-accent/40! text-accent!"><Icon name="star" solid /> {t("game.featured")}</span>}
+                  {game.full && <span className="chip" data-testid="full-chip">{t("game.full")}</span>}
                 </p>
                 <h1 className="mt-2 text-3xl font-bold leading-tight">{game.title}</h1>
                 {game.summary && <p className="mt-2 text-lg text-muted">{game.summary}</p>}
@@ -152,6 +153,7 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
             <div className="card p-6">
               <h2 id="contact-h" className="text-xl font-bold">{t("game.contactTitle")}</h2>
               <p className="mt-2 text-sm text-muted">{t("game.contactBody")}</p>
+              {game.full && <p className="mt-3 rounded-lg bg-accent-soft px-3 py-2 text-sm font-semibold" data-testid="full-note">{t("game.fullNote")}</p>}
               <div className="mt-4"><ContactButtons wa={encodeContact(gm.whatsapp)} discord={gm.discord} message={contactMessage(gm, game, lang)} stacked /></div>
               <p className="mt-5 flex gap-2 border-t border-border pt-4 text-sm text-muted"><Icon name="shield-check" className="mt-0.5 shrink-0 text-gold" /><span>{t("game.safetyNote")}</span></p>
               {REPORT_URL && (

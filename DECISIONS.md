@@ -117,3 +117,8 @@ removed games, can still linger up to 7 days; the images can only be found throu
 **Context.** The dashboard calls the Pages flow "legacy" and steers new projects to Workers. Workers needs a config file in the repo, and the script's rebuild relies on a Pages deploy hook.
 **Decision.** Stay on Pages. Revisit when Cloudflare announces an end date for Pages, or if the deploy hook has no Workers equivalent we can use.
 **Consequences.** A later move is one config file and a new hook address in the script property `DEPLOY_HOOK`.
+
+## ADR-19: Visit counts, if wanted, come from Cloudflare Web Analytics (2026-10-27)
+**Context.** The community may want to know whether the board is used. A script of our own, or a cookie, would need a privacy page and a consent banner.
+**Decision.** Allow Cloudflare Web Analytics (cookieless, no personal data, free) in the Content-Security-Policy (`script-src` and `connect-src`, one host each). It is switched on in the Cloudflare dashboard, not in code, and does nothing while it is off.
+**Consequences.** Two more allowed hosts in the policy. Counts are page views and countries, not people.

@@ -94,7 +94,7 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
         <div className="mt-4"><EmptyState title={t(games.length === 0 ? "games.noneYet" : "games.none")} /></div>
       ) : (
         <ul className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" data-testid="games-list">
-          {shown.map((g) => <li key={g.id} className="flex"><div className="flex w-full flex-col [&>a]:flex-1"><GameCard game={g} t={t} lang={lang} /></div></li>)}
+          {shown.map((g, i) => <li key={g.id} className="flex"><div className="flex w-full flex-col [&>a]:flex-1"><GameCard game={g} t={t} lang={lang} priority={i < 3} headingLevel={2} /></div></li>)}
         </ul>
       )}
     </div>

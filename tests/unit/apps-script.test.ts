@@ -290,6 +290,26 @@ test("a listing that was live and is not now keeps its address (for a 'no longer
   assert.deepEqual(gone()[1], [rec("gm").slug]);
 });
 
+test("an admin can mark a game full and reopen it: only approved games go live-changed, only games can be full", () => {
+  const { store, deps, calls } = fixture();
+  ctx.sync_(store, deps.now());
+  const id = (kind: string) => plain(ctx.loadRecords_(store, kind))[0].id;
+  const patch = (kind: string, body: object) => call(deps, { action: "patch", token: "owner", kind, id: id(kind), ...body });
+  const data = () => plain(ctx.buildPublic_(ctx.loadRecords_(store, "game"), ctx.loadRecords_(store, "gm"), deps.now()));
+
+  assert.deepEqual([patch("game", { full: true }).ok, calls.dirty], [true, 0], "a pending game: saved, nothing live changes");
+  assert.equal(patch("game", { full: true }).publishing, false);
+  call(deps, { action: "review", token: "owner", kind: "gm", status: "approved", ids: [id("gm")] });
+  call(deps, { action: "review", token: "owner", kind: "game", status: "approved", ids: [id("game")] });
+  assert.equal(data().games[0].full, true, "the public data carries it");
+  const before = calls.dirty;
+  assert.equal(patch("game", { full: false }).publishing, true, "an approved game: the site must be rebuilt");
+  assert.equal(calls.dirty, before + 1);
+  assert.equal(data().games[0].full, false);
+  assert.deepEqual(patch("gm", { full: true }), { ok: false, error: "bad_request" }, "a Game Master is never full");
+  assert.ok(!JSON.stringify(data()).includes("Full\""), "no column names leak, only the flag");
+});
+
 test("approving by hand in the Sheet counts as live too, and a replaced profile keeps its old address", () => {
   const byHand = makeStore([makeRow("game", 2, GAME_FORM)], [makeRow("gm", 2, GM_FORM)]);
   ctx.sync_(byHand, Date.parse("2026-10-05T00:00:00Z"));
