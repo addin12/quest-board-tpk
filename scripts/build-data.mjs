@@ -112,6 +112,8 @@ async function main() {
     generatedAt: data.generatedAt,
     gms: data.gms.map((gm) => ({ ...omit(gm, "photoId"), photo: photos.get(gm.id) ?? null })),
     games: data.games.map((g) => ({ ...omit(g, "coverId"), cover: covers.get(g.id) ?? null })),
+    goneGames: data.goneGames,
+    goneGms: data.goneGms,
   };
   mkdirSync(path.join(ROOT, "src", "generated"), { recursive: true });
   writeFileSync(path.join(ROOT, "src", "generated", "data.json"), `${JSON.stringify(site, null, 2)}\n`);

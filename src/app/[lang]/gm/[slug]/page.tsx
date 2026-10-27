@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ContactButtons } from "@/components/contact-buttons";
+import { Gone, goneMetadata } from "@/components/gone";
 import { Icon } from "@/components/icon";
 import { JsonLd } from "@/components/json-ld";
 import { Avatar, GameCard } from "@/components/ui";
@@ -17,12 +18,15 @@ import { isLang } from "@/lib/types";
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return slugParams(loadSiteData().gms);
+  const { gms, goneGms } = loadSiteData();
+  return slugParams([...gms, ...goneGms.map((slug) => ({ slug }))]);
 }
 
 export async function generateMetadata({ params }: PageProps<"/[lang]/gm/[slug]">): Promise<Metadata> {
   const { lang, slug } = await params;
-  const gm = isLang(lang) ? loadSiteData().gms.find((g) => g.slug === slug) : undefined;
+  const data = loadSiteData();
+  if (isLang(lang) && data.goneGms.includes(slug)) return goneMetadata("gm", lang);
+  const gm = isLang(lang) ? data.gms.find((g) => g.slug === slug) : undefined;
   if (!gm || !isLang(lang)) return {};
   return { title: gm.name, description: gm.bio.slice(0, 160) || undefined, alternates: languageAlternates(lang, `/gm/${gm.slug}/`) };
 }
@@ -31,6 +35,7 @@ export default async function GmPage({ params }: PageProps<"/[lang]/gm/[slug]">)
   const { lang, slug } = await params;
   if (!isLang(lang)) notFound();
   const data = loadSiteData();
+  if (data.goneGms.includes(slug)) return <Gone kind="gm" lang={lang} />;
   const gm = data.gms.find((g) => g.slug === slug);
   if (!gm) notFound();
   const t = makeT(lang);

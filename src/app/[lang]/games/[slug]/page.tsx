@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ContactButtons } from "@/components/contact-buttons";
+import { Gone, goneMetadata } from "@/components/gone";
 import { Icon } from "@/components/icon";
 import { JsonLd } from "@/components/json-ld";
 import { Avatar, Cover, languageLabel, priceLabel, whereLabel } from "@/components/ui";
@@ -20,12 +21,15 @@ import { isLang } from "@/lib/types";
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return slugParams(loadSiteData().games);
+  const { games, goneGames } = loadSiteData();
+  return slugParams([...games, ...goneGames.map((slug) => ({ slug }))]);
 }
 
 export async function generateMetadata({ params }: PageProps<"/[lang]/games/[slug]">): Promise<Metadata> {
   const { lang, slug } = await params;
-  const game = isLang(lang) ? loadSiteData().games.find((g) => g.slug === slug) : undefined;
+  const data = loadSiteData();
+  if (isLang(lang) && data.goneGames.includes(slug)) return goneMetadata("game", lang);
+  const game = isLang(lang) ? data.games.find((g) => g.slug === slug) : undefined;
   if (!game || !isLang(lang)) return {};
   return {
     title: game.title,
@@ -39,6 +43,7 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
   const { lang, slug } = await params;
   if (!isLang(lang)) notFound();
   const data = loadSiteData();
+  if (data.goneGames.includes(slug)) return <Gone kind="game" lang={lang} />;
   const game = data.games.find((g) => g.slug === slug);
   const gm = game ? gmById(data, game.gmId) : undefined;
   if (!game || !gm) notFound();

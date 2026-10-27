@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 // The public site against the demo data (data/sample.json), as a player uses it.
 const GAME = "/en/games/mercusuar-di-pulau-kabut-0m01/";
-const PAGES = ["/en/", "/en/games/", GAME, "/en/gm/raka-pratama-0r01/", "/en/gms/", "/en/how-it-works/", "/en/list-your-game/", "/id/", "/id/games/", "/id/list-your-game/"];
+const PAGES = ["/en/", "/en/games/", GAME, "/en/gm/raka-pratama-0r01/", "/en/gms/", "/en/how-it-works/", "/en/list-your-game/", "/id/", "/id/games/", "/id/list-your-game/", "/en/games/a-game-that-ended-9z01/", "/id/gm/a-gm-who-left-9z02/"];
 
 test("find a game, follow the links, message the GM on WhatsApp", async ({ page, context }) => {
   await page.goto("/");
@@ -92,6 +92,24 @@ test("an address that is not a page gets the 404 page, in both languages", async
   expect(res?.status()).toBe(404);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Natural 1.");
   await expect(page.getByRole("link", { name: "Back to the tavern" })).toHaveAttribute("href", "/en/");
+});
+
+test("the address of a listing that is no longer live shows a notice: no details, no way to contact, not for search engines", async ({ page, request }) => {
+  await page.goto("/en/games/a-game-that-ended-9z01/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("This game is no longer listed.");
+  await expect(page.getByTestId("contact-whatsapp")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /Report this listing/ })).toHaveCount(0);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+  await page.getByRole("link", { name: "See the games" }).click();
+  await expect(page).toHaveURL(/\/en\/games\/$/);
+
+  await page.goto("/id/gm/a-gm-who-left-9z02/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Game Master ini tidak tampil.");
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+
+  const sitemap = await (await request.get("/sitemap.xml")).text();
+  expect(sitemap).not.toContain("9z01");
+  expect(sitemap).not.toContain("9z02");
 });
 
 test("search engines get a sitemap with both languages and structured data without any contact details", async ({ page, request }) => {

@@ -148,5 +148,22 @@ export function parsePublicData(input: unknown): { data: RawPublicData; warnings
     gameSlugs.add(game.slug);
     games.push(game);
   }
-  return { data: { generatedAt: isoOrNull(root.generatedAt) ?? new Date().toISOString(), gms, games }, warnings };
+  const goneGames = parseGone(root.goneGames, gameSlugs, "games", warn);
+  const goneGms = parseGone(root.goneGms, slugs, "Game Masters", warn);
+  return { data: { generatedAt: isoOrNull(root.generatedAt) ?? new Date().toISOString(), gms, games, goneGames, goneGms }, warnings };
+}
+
+const MAX_GONE = 5000;
+
+/** Addresses of listings that are not live now. Anything that is not a plain address, or is live, is dropped. */
+function parseGone(raw: unknown, live: Set<string>, what: string, warn: (m: string) => void): string[] {
+  if (raw === undefined) return [];
+  if (!Array.isArray(raw)) { warn(`The list of gone ${what} is not a list: ignored`); return []; }
+  const out = new Set<string>();
+  for (const item of raw.slice(0, MAX_GONE)) {
+    if (typeof item !== "string" || !/^[a-z0-9][a-z0-9-]{0,79}$/.test(item)) warn(`A gone ${what} address is not a plain address: ignored`);
+    else if (live.has(item)) warn(`A gone ${what} address is also live: ignored`);
+    else out.add(item);
+  }
+  return [...out].sort();
 }

@@ -1,5 +1,7 @@
 {
   "generatedAt": "2026-10-05T00:00:00.000Z",
+  "goneGames": ["a-game-that-ended-9z01"],
+  "goneGms": ["a-gm-who-left-9z02"],
   "gms": [
     {
       "id": "m0raka001",

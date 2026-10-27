@@ -79,7 +79,9 @@ same Google account.*
 
 The script adds these to the right of the form's columns when you run `setup()`. Don't rename them.
 
-`Id`, `Status`, `Featured`, `AdminNote`, `ReviewedBy`, `ReviewedAt`, `RejectReason`, `Slug`, `Hash`, `Superseded`.
+`Id`, `Status`, `Featured`, `AdminNote`, `ReviewedBy`, `ReviewedAt`, `RejectReason`, `Slug`, `Hash`, `Superseded`, `WasLive`.
+(`WasLive` is `yes` once a listing has been approved: its address then keeps a "no longer listed" page when it goes
+offline, see DECISIONS.md ADR-11.)
 
 You can read the Sheet, but make decisions on the admin page: it also emails the GM, keeps the audit trail
 (`ReviewedBy`, `ReviewedAt`) and queues the site rebuild.

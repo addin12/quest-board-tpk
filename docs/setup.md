@@ -111,8 +111,10 @@ project → Deployments, read the failed build's log, fix, and retry.
 ## Removing a listing: the edge cache
 
 Cloudflare Pages keeps serving the last copy of a page that disappears from a deployment, for up to 7 days, whatever
-headers the page has (tested). A rejected game stops being listed at once, but its own address can keep answering. See
-DECISIONS.md.
+headers the page has (tested). So the address of a listing that was live is never dropped: after a rejection, an edit
+that sends it back to review, or its end date, it shows "This game is no longer listed" (no details, no contact, not for
+search engines) from the next build on, and for 180 days. The `WasLive` column in the Sheet drives this: `setup()` adds
+it. See DECISIONS.md ADR-11.
 
 ## Adding another admin
 

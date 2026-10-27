@@ -60,19 +60,25 @@ GM-written content is shown as written.
 **Decision.** `npm run form-options` writes the label→key table into `Code.gs` and the options list into `docs/form-options.md`; a test fails when either is stale.
 **Consequences.** Changing a genre's English name means running one command and updating the form.
 
-## ADR-11: A removed listing's own page can linger at Cloudflare's edge (2026-10-27)
+## ADR-11: An address that was live is never dropped: it shows "no longer listed" (2026-10-27)
 
 **Context.** Tested with probe pages: when a page disappears from a deployment, Cloudflare Pages keeps answering at its
 address with the last copy (`CF-Cache-Status: HIT`, `Cache-Control: public, s-maxage=604800`) for up to 7 days. Pages
-that merely change are refreshed at once. Four header variants on the probes (`no-store`, `Cloudflare-CDN-Cache-Control:
+that merely change are refreshed at once (probed again: a cached page replaced by a changed one showed the new version straight away). Four header variants on the probes (`no-store`, `Cloudflare-CDN-Cache-Control:
 no-store`, `CDN-Cache-Control: no-store`, `s-maxage=0`) made no difference, so it is the platform, not our headers.
 
-**Consequences.** Rejecting (or the nightly expiry of) a listing removes it from the lists, the sitemap and the data at the
+**Problem.** Rejecting (or the nightly expiry of) a listing removes it from the lists, the sitemap and the data at the
 next build, but its own address can still show the old page for days. Nothing can purge it from here: the `pages.dev`
 zone is Cloudflare's, and a purge needs a zone of our own.
 
-**Decision (open).** Options: (a) Accept it: the address is only known to people who were given it. (b) Keep a
-"no longer available" page at the address of every listing that was ever public (a tombstone: the slug stays in the data,
-the page says so, shows no contact details and is `noindex`). The changed page is refreshed like any other, so removal
-becomes effective at the next build. It needs a `WasLive` admin column and a list of gone slugs in the public data.
-(c) A domain of our own on a Cloudflare zone, purging by URL after each build.
+**Decision.** A tombstone. The script records `WasLive = yes` in the Sheet when a listing is approved. The public data
+carries two lists of addresses, `goneGames` and `goneGms`: listings that were live and are not now (rejected, sent back
+to review by an edit, expired, or a replaced profile), dropped 180 days after they went offline (a game: after it ended).
+The site builds a page at each of them that says so: no title, no details, no contact, `noindex`, not in the sitemap.
+Because the page changes instead of vanishing, Cloudflare replaces its cached copy at the next build. Only listings
+that were once public get one, so a pending title never appears. Not chosen: accepting the delay, or a domain of our own
+with a purge after each build (costs money).
+
+**Consequences.** One more Sheet column (`setup()` adds it and `sync_` fills it for anything already approved), a few
+hundred more tiny pages at most, and new texts (`gone.*`). Pages removed before this existed, and cover images of
+removed games, can still linger up to 7 days; the images can only be found through a page that no longer shows them.

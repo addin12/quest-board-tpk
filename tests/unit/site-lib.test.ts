@@ -262,3 +262,12 @@ test("the admin page warns when the newest publish is missing from the page it i
   assert.equal(siteBehind("2026-10-27T10:03:00Z", T, min(60)), false, "this page was built after the publish: all is well");
   assert.equal(siteBehind("not a date", T, min(60)), false, "unreadable build time: no false alarm");
 });
+
+test("gone addresses: plain ones are kept, sorted and without repeats; odd or live ones are dropped; none at all is fine", () => {
+  const withGone = { ...structuredClone(sample), goneGames: ["z-old-0001", "a-old-0002", "a-old-0002", "Bad Slug", 5, sample.games[0].slug], goneGms: "nope" };
+  const { data, warnings } = parsePublicData(withGone);
+  assert.deepEqual(data.goneGames, ["a-old-0002", "z-old-0001"]);
+  assert.deepEqual(data.goneGms, [], "not a list: ignored");
+  assert.equal(warnings.length, 4, "a bad address, a number, a live one, and the wrong type");
+  assert.deepEqual(parsePublicData({ gms: [], games: [] }).data.goneGames, [], "an older script without the lists");
+});

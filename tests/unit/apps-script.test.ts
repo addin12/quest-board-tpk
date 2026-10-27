@@ -257,6 +257,54 @@ test("the public data holds only approved, unexpired games of approved GMs, with
   assert.equal(build().games.length, 0);
 });
 
+test("a listing that was live and is not now keeps its address (for a 'no longer listed' page); one that never was does not", () => {
+  const { store, deps } = fixture();
+  ctx.sync_(store, deps.now());
+  const build = (now = deps.now()) => plain(ctx.buildPublic_(ctx.loadRecords_(store, "game"), ctx.loadRecords_(store, "gm"), now));
+  const rec = (kind: string) => plain(ctx.loadRecords_(store, kind))[0];
+  const review = (kind: string, status: string) => call(deps, { action: "review", token: "owner", kind, status, ids: [rec(kind).id] });
+  const gone = (now?: number) => [build(now).goneGames, build(now).goneGms];
+
+  assert.deepEqual(gone(), [[], []], "never approved: no address at all, so a pending title never leaks");
+  review("gm", "approved");
+  review("game", "approved");
+  assert.equal(build().games.length, 1);
+  assert.deepEqual(gone(), [[], []], "live: it has its real page");
+  assert.equal(rec("game").wasLive, true, "approving marks it");
+
+  review("game", "rejected");
+  assert.deepEqual(gone(), [[rec("game").slug], []], "rejected after being live: the address stays");
+  review("game", "approved");
+  assert.deepEqual(gone(), [[], []], "approved again: the real page is back");
+
+  const end = Date.parse(rec("game").expiresAt);
+  assert.deepEqual(gone(end + 1000)[0], [rec("game").slug], "expired: the address stays");
+  assert.deepEqual(gone(end + 179 * 86_400_000)[0], [rec("game").slug], "…for 180 days");
+  assert.deepEqual(gone(end + 181 * 86_400_000)[0], [], "…then it is let go");
+
+  store.update("game", 2, { Status: "pending", ReviewedAt: "" }); // the GM edited it: back to review
+  assert.deepEqual(gone()[0], [rec("game").slug], "back in review: the old page must not keep its contact buttons");
+  assert.ok(!JSON.stringify(build()).includes("Mercusuar"), "an address, never a title");
+
+  review("gm", "rejected");
+  assert.deepEqual(gone()[1], [rec("gm").slug]);
+});
+
+test("approving by hand in the Sheet counts as live too, and a replaced profile keeps its old address", () => {
+  const byHand = makeStore([makeRow("game", 2, GAME_FORM)], [makeRow("gm", 2, GM_FORM)]);
+  ctx.sync_(byHand, Date.parse("2026-10-05T00:00:00Z"));
+  byHand.update("game", 2, { Status: "approved" });
+  ctx.sync_(byHand, Date.parse("2026-10-05T00:01:00Z"));
+  assert.equal(plain(ctx.loadRecords_(byHand, "game"))[0].wasLive, true, "sync marks a row someone approved in the Sheet");
+
+  const admin = (id: string, slug: string) => ({ Id: id, Status: "approved", Slug: slug, WasLive: "yes", ReviewedAt: "2026-10-01T00:00:00.000Z" });
+  const twice = makeStore([], [makeRow("gm", 2, GM_FORM, admin("m1old", "raka-old1")), makeRow("gm", 3, { ...GM_FORM, bio: "Newer profile." }, admin("m2new", "raka-new2"))]);
+  ctx.sync_(twice, Date.parse("2026-10-05T00:00:00Z"));
+  const data = plain(ctx.buildPublic_(ctx.loadRecords_(twice, "game"), ctx.loadRecords_(twice, "gm"), Date.parse("2026-10-05T00:00:00Z")));
+  assert.deepEqual(data.gms.map((g: any) => g.slug), ["raka-new2"]);
+  assert.deepEqual(data.goneGms, ["raka-old1"], "the older profile is replaced, its address says so");
+});
+
 test("'Keep this listing until' extends a listing, but never before it starts", () => {
   const { store, deps } = fixture();
   store.load("game");

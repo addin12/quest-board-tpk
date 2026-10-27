@@ -64,11 +64,12 @@ export type GmFields = {
 
 export type RawGm = GmFields & { id: string; slug: string; photoId: string };
 export type RawGame = GameFields & { id: string; slug: string; gmId: string; coverId: string; featured: boolean; listedAt: string };
-export type RawPublicData = { generatedAt: string; gms: RawGm[]; games: RawGame[] };
+export type RawPublicData = { generatedAt: string; gms: RawGm[]; games: RawGame[]; goneGames: string[]; goneGms: string[] };
 
 export type SiteGm = GmFields & { id: string; slug: string; photo: string | null };
 export type SiteGame = GameFields & { id: string; slug: string; gmId: string; cover: string | null; featured: boolean; listedAt: string };
-export type SiteData = { generatedAt: string; gms: SiteGm[]; games: SiteGame[] };
+/** `goneGames` / `goneGms`: addresses of listings that were live and are not now; each gets a "no longer listed" page. */
+export type SiteData = { generatedAt: string; gms: SiteGm[]; games: SiteGame[]; goneGames: string[]; goneGms: string[] };
 
 // ── The admin side ─────────────────────────────────────────────────────────────────────────
 

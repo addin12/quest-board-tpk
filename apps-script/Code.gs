@@ -26,7 +26,7 @@ const VERSION = '1.0.0';
 const TAB = { games: 'Games', gms: 'GM profiles', admins: 'Admins' };
 
 /** Added by setup() to the right of the form's own columns. */
-const ADMIN_COLUMNS = ['Id', 'Status', 'Featured', 'AdminNote', 'ReviewedBy', 'ReviewedAt', 'RejectReason', 'Slug', 'Hash', 'Superseded'];
+const ADMIN_COLUMNS = ['Id', 'Status', 'Featured', 'AdminNote', 'ReviewedBy', 'ReviewedAt', 'RejectReason', 'Slug', 'Hash', 'Superseded', 'WasLive'];
 
 const COMMON_COLUMNS = { timestamp: 'Timestamp', email: 'Email Address' };
 
@@ -395,6 +395,7 @@ function adminFields_(row) {
     reviewedAt: iso_(admin_(row, 'ReviewedAt')),
     rejectReason: str_(admin_(row, 'RejectReason')),
     superseded: /^(yes|true|1)$/i.test(str_(admin_(row, 'Superseded'))),
+    wasLive: /^(yes|true|1)$/i.test(str_(admin_(row, 'WasLive'))),
     submittedAt: iso_(row.cells[COMMON_COLUMNS.timestamp]),
     email: str_(row.cells[COMMON_COLUMNS.email]).toLowerCase(),
     row: row.rowNum,
@@ -502,7 +503,33 @@ function buildPublic_(games, gms, nowMs) {
         genres: g.genres, styles: g.styles, coverId: g.coverId, featured: g.featured, listedAt: g.reviewedAt || g.submittedAt,
       };
     }),
+    goneGames: goneSlugs_(games, idSet_(live), nowMs),
+    goneGms: goneSlugs_(gms, idSet_(current), nowMs),
   };
+}
+
+/** How long the address of a listing that is no longer live keeps its "no longer listed" page. */
+const TOMBSTONE_MS = 180 * DAY_MS;
+
+function idSet_(records) {
+  const set = {};
+  records.forEach(function (r) { set[r.id] = true; });
+  return set;
+}
+
+/**
+ * The addresses (slugs) of listings that were live once and are not now. The site builds a "no longer listed" page at
+ * each of them: Cloudflare Pages keeps serving a page that vanishes for up to 7 days, but refreshes a page that changes.
+ * Addresses only, never a title or a contact detail. One is dropped 180 days after its listing went offline (a game:
+ * after it ended); with no date to go by it is kept.
+ */
+function goneSlugs_(records, liveIds, nowMs) {
+  return records.filter(function (r) {
+    if (!r.wasLive || !r.slug || !r.id || liveIds[r.id]) return false;
+    const ended = r.expiresAt && Date.parse(r.expiresAt) <= nowMs;
+    const since = Date.parse(ended ? r.expiresAt : r.reviewedAt);
+    return isNaN(since) || nowMs - since < TOMBSTONE_MS;
+  }).map(function (r) { return r.slug; }).sort();
 }
 
 /** An approved or rejected record changes the public site when it is, or was, approved. */
@@ -562,6 +589,8 @@ function sync_(store, nowMs) {
         }
         store.update(kind, row.rowNum, patch);
       }
+      // Approved by hand in the Sheet, or before this column existed: it was live, so its address is kept.
+      if (rec.id && rec.status === 'approved' && !rec.wasLive) store.update(kind, row.rowNum, { WasLive: 'yes' });
     });
   });
   // Mark older profiles of the same email as superseded.
@@ -600,6 +629,7 @@ function queue_(deps) {
 
 function patchOf_(kind, rec, status, reviewer, nowMs, reason) {
   const patch = { Status: status, ReviewedBy: reviewer, ReviewedAt: new Date(nowMs).toISOString(), RejectReason: status === 'rejected' ? clip_(reason, 500) : '' };
+  if (status === 'approved') patch.WasLive = 'yes'; // from now on its address is never dropped: see goneSlugs_
   return patch;
 }
 
