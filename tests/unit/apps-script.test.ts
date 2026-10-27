@@ -119,6 +119,10 @@ test("the public data (with the GMs' WhatsApp numbers) is only given to the buil
   assert.deepEqual(get({ action: "public", key: "x".repeat(64) }), { ok: false, error: "forbidden" }, "a wrong key");
   assert.ok(Array.isArray(get({ action: "public", key: "k".repeat(64) }).games), "the right key gets the data");
   assert.deepEqual(get({}), { ok: true, name: "quest-board-tpk", version: "1.0.0" }, "the plain address stays harmless");
+  assert.deepEqual(get({ action: "health" }), { ok: false, error: "forbidden" }, "the health check needs the key too");
+  assert.deepEqual(get({ action: "health", key: "x".repeat(64) }), { ok: false, error: "forbidden" });
+  sandbox.health_ = () => ({ ok: true, stand: "in" });
+  assert.deepEqual(get({ action: "health", key: "k".repeat(64) }), { ok: true, stand: "in" }, "with the key it reaches the check");
   assert.ok(sandbox.safeEqual_("abc", "abc") && !sandbox.safeEqual_("abc", "abd") && !sandbox.safeEqual_("abc", "abcd") && !sandbox.safeEqual_("", "x"));
 });
 

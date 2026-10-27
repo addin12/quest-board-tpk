@@ -142,6 +142,7 @@ to be up (only a build does), so a script outage does not take the site down.
 | The admin page's *last publish is not in this page yet* | a publish did not reach the site |
 | GitHub CI on every push | the code breaks something |
 | Dependabot (weekly) | outdated dependencies; its eslint major is ignored on purpose |
+| `…/exec?action=health&key=<build key>` | a read-only look inside the script: tabs, timers, properties, row counts, the last rebuild and the backup folder, as names and counts only. Calling it writes one *health check* line to the Activity tab. |
 | The Activity tab of the Sheet | what changed, when and by whom, for every listing and admin (see *A status changed and nobody knows why*) |
 | The weekly Drive backup | nothing, until you need it: look at the folder now and then |
 

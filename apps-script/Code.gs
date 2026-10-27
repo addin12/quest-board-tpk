@@ -959,13 +959,53 @@ function safeEqual_(a, b) {
 }
 
 /** The public data for the website build: GET <web app url>?action=public&key=<BUILD_KEY> */
+/** Whether the request carries the build key. No key set means closed, not open. */
+function buildKeyOk_(e) {
+  const key = prop_('BUILD_KEY');
+  return !!key && safeEqual_(e.parameter.key, key);
+}
+
+/**
+ * What the owner can see without opening anything: which tabs, timers and properties exist and what the backup folder
+ * holds, as names and counts only (no listing, no email, no number). It also writes one line to the Activity tab, which
+ * proves that the log works on the real Sheet.
+ */
+function health_() {
+  const ss = spreadsheet_();
+  logEvent_(sheetStore_(), Date.now(), 'health check', '', '', '', '', 'build key');
+  const rows = function (sheet) { return sheet ? Math.max(0, sheet.getLastRow() - 1) : null; };
+  const folders = DriveApp.getFoldersByName(BACKUP_FOLDER);
+  const backups = { folder: folders.hasNext(), files: 0, newest: '' };
+  if (backups.folder) {
+    const files = folders.next().getFiles();
+    while (files.hasNext()) {
+      const created = files.next().getDateCreated().toISOString();
+      backups.files++;
+      if (created > backups.newest) backups.newest = created;
+    }
+  }
+  const lastDeploy = Number(prop_('LAST_DEPLOY') || 0);
+  return {
+    ok: true,
+    version: VERSION,
+    checkedAt: new Date().toISOString(),
+    tabs: ss.getSheets().map(function (s) { return s.getName(); }),
+    rows: { games: rows(findTab_(ss, TAB.games)), gms: rows(findTab_(ss, TAB.gms)), admins: rows(ss.getSheetByName(TAB.admins)), activity: rows(ss.getSheetByName(TAB.activity)) },
+    timers: ScriptApp.getProjectTriggers().map(function (t) { return t.getHandlerFunction(); }).sort(),
+    properties: ['CLIENT_ID', 'SITE_URL', 'DEPLOY_HOOK', 'BUILD_KEY'].reduce(function (o, k) { o[k] = !!prop_(k); return o; }, {}),
+    lastRebuild: lastDeploy ? new Date(lastDeploy).toISOString() : null,
+    changesWaiting: !!prop_('DIRTY_AT'),
+    backups: backups,
+  };
+}
+
 function doGet(e) {
   const action = e && e.parameter ? e.parameter.action : '';
+  if (action === 'health') return buildKeyOk_(e) ? json_(health_()) : json_(fail_('forbidden'));
   if (action === 'public') {
     // The web app's address is public (the admin page needs it), and this data holds the GMs' WhatsApp numbers: only
-    // the site's build, which knows the key, may read it. No key set means closed, not open.
-    const key = prop_('BUILD_KEY');
-    if (!key || !safeEqual_(e.parameter.key, key)) return json_(fail_('forbidden'));
+    // the site's build, which knows the key, may read it.
+    if (!buildKeyOk_(e)) return json_(fail_('forbidden'));
     const lock = LockService.getScriptLock();
     lock.waitLock(20000);
     try {
