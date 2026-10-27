@@ -67,7 +67,7 @@ Everything is read when the site is built. Without any of them the site builds w
 
 | Variable | Used for |
 |---|---|
-| `TPK_API_URL` | The Apps Script web app (`…/exec`): where the build gets the real data. Unset = demo data. |
+| `TPK_API_URL` | The Apps Script web app plus the secret build key (`…/exec?key=…`): where the build gets the real data. Unset = demo data. |
 | `NEXT_PUBLIC_SITE_URL` | The site's address (sitemap, canonical links, emails). |
 | `NEXT_PUBLIC_GM_FORM_URL`, `NEXT_PUBLIC_GAME_FORM_URL` | The two forms' public links, for the "List your game" page. |
 | `NEXT_PUBLIC_REPORT_URL` | Optional: where players can report a listing. |

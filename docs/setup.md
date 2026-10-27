@@ -35,6 +35,8 @@ tabs to exactly `GM profiles` and `Games`.
    [`apps-script/appsscript.json`](../apps-script/appsscript.json).
 3. Select `setup` in the toolbar → Run. Google asks you to authorise: *Advanced → Go to … (unsafe)* is normal for your own
    script. When it finishes, open Execution log: it lists anything still missing (a renamed question, a property not set yet).
+   It also creates a secret **build key** (script property `BUILD_KEY`) and logs it: the public data, which holds the
+   GMs' WhatsApp numbers, is only given to a request that carries this key (step 5 uses it).
 
 ## 3. Sign-in for the admin page (a Google "OAuth client", free)
 
@@ -66,7 +68,7 @@ The admin page signs in with Google. Google needs to know the page is yours:
 
    | Variable | Value |
    |---|---|
-   | `TPK_API_URL` | the Web app URL (`…/exec`) |
+   | `TPK_API_URL` | the Web app URL followed by `?key=` and the build key from step 2: `…/exec?key=…` (keep it a plain Text variable, never `NEXT_PUBLIC_`) |
    | `NEXT_PUBLIC_ADMIN_API_URL` | the same Web app URL |
    | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | the Client ID |
    | `NEXT_PUBLIC_SITE_URL` | your site's address |

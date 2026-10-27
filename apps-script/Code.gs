@@ -872,10 +872,23 @@ function json_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
 
-/** The public data for the website build: GET <web app url>?action=public */
+/** Compares two secrets without stopping at the first difference. */
+function safeEqual_(a, b) {
+  const x = str_(a);
+  const y = str_(b);
+  let diff = x.length ^ y.length;
+  for (let i = 0; i < Math.max(x.length, y.length); i++) diff |= (x.charCodeAt(i) || 0) ^ (y.charCodeAt(i) || 0);
+  return diff === 0;
+}
+
+/** The public data for the website build: GET <web app url>?action=public&key=<BUILD_KEY> */
 function doGet(e) {
   const action = e && e.parameter ? e.parameter.action : '';
   if (action === 'public') {
+    // The web app's address is public (the admin page needs it), and this data holds the GMs' WhatsApp numbers: only
+    // the site's build, which knows the key, may read it. No key set means closed, not open.
+    const key = prop_('BUILD_KEY');
+    if (!key || !safeEqual_(e.parameter.key, key)) return json_(fail_('forbidden'));
     const lock = LockService.getScriptLock();
     lock.waitLock(20000);
     try {
@@ -993,6 +1006,8 @@ function setup() {
   });
   ScriptApp.newTrigger('tick').timeBased().everyMinutes(1).create();
   ScriptApp.newTrigger('nightly').timeBased().atHour(0).nearMinute(30).everyDays(1).create();
+  if (!prop_('BUILD_KEY')) setProp_('BUILD_KEY', Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, ''));
+  console.log('Build key: in Cloudflare, TPK_API_URL = <the web app URL ending in /exec>?key=' + prop_('BUILD_KEY') + '  (keep it private)');
   ['CLIENT_ID', 'DEPLOY_HOOK', 'SITE_URL'].forEach(function (k) {
     if (!prop_(k)) problems.push('Script property ' + k + ' is not set yet (Project Settings > Script properties).');
   });

@@ -47,7 +47,8 @@ stateDiagram-v2
   approved --> [*]: the date passes, the listing leaves the site
 ```
 
-Only `approved` listings (of an `approved` GM profile, not expired) leave the Sheet through `?action=public`.
+Only `approved` listings (of an `approved` GM profile, not expired) leave the Sheet through `?action=public`, and only for a request carrying the secret build key (`BUILD_KEY`): the web
+app's address is public (the admin page needs it), and this data holds the GMs' WhatsApp numbers.
 
 ## An approval, step by step
 

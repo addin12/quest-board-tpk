@@ -82,6 +82,29 @@ test("a Sheet whose form questions were retitled (capitals, spacing, three renam
   assert.equal(ctx.findTab_({ getSheets: () => [{ getName: () => "Games" }] }, "GM profiles"), null);
 });
 
+test("the public data (with the GMs' WhatsApp numbers) is only given to the build key; no key set means closed", () => {
+  const props: Record<string, string> = {};
+  const sandbox: any = vm.createContext({
+    console,
+    PropertiesService: { getScriptProperties: () => ({ getProperty: (k: string) => props[k] ?? null, setProperty: (k: string, v: string) => { props[k] = v; } }) },
+    ContentService: { MimeType: { JSON: "json" }, createTextOutput: (text: string) => ({ text, setMimeType() { return this; } }) },
+    LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
+  });
+  vm.runInContext(readFileSync(new URL("../../apps-script/Code.gs", import.meta.url), "utf8"), sandbox);
+  sandbox.sheetDeps_ = () => fixture().deps;
+  const get = (parameter: Record<string, string>) => JSON.parse(sandbox.doGet({ parameter }).text);
+
+  assert.deepEqual(get({ action: "public" }), { ok: false, error: "forbidden" }, "no key configured: closed");
+  assert.deepEqual(get({ action: "public", key: "" }), { ok: false, error: "forbidden" }, "an empty key never matches an unset one");
+  props.BUILD_KEY = "k".repeat(64);
+  assert.deepEqual(get({ action: "public" }), { ok: false, error: "forbidden" }, "no key sent");
+  assert.deepEqual(get({ action: "public", key: "k".repeat(63) }), { ok: false, error: "forbidden" }, "a shorter key");
+  assert.deepEqual(get({ action: "public", key: "x".repeat(64) }), { ok: false, error: "forbidden" }, "a wrong key");
+  assert.ok(Array.isArray(get({ action: "public", key: "k".repeat(64) }).games), "the right key gets the data");
+  assert.deepEqual(get({}), { ok: true, name: "quest-board-tpk", version: "1.0.0" }, "the plain address stays harmless");
+  assert.ok(sandbox.safeEqual_("abc", "abc") && !sandbox.safeEqual_("abc", "abd") && !sandbox.safeEqual_("abc", "abcd") && !sandbox.safeEqual_("", "x"));
+});
+
 test("phone numbers become digits with the country code; anything else is dropped", () => {
   const p = ctx.normalizePhone_;
   assert.equal(p("0812-3456-7890"), "6281234567890");
