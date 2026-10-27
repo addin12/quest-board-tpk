@@ -294,7 +294,11 @@ test("decision emails say what happened in both languages and link to the listin
   const rec = { kind: "game", title: "Mercusuar", slug: "mercusuar-1a2b", name: "" };
   const ok = plain(ctx.decisionEmail_("approved", { record: rec }, "https://quest-board-tpk.pages.dev/"));
   assert.match(ok.subject, /Approved: Mercusuar \/ Disetujui: Mercusuar/);
-  assert.match(ok.body, /https:\/\/quest-board-tpk\.pages\.dev\/games\/mercusuar-1a2b\//);
+  assert.match(ok.body, /Quest Board within a few minutes\.\nhttps:\/\/quest-board-tpk\.pages\.dev\/en\/games\/mercusuar-1a2b\/\n/);
+  assert.match(ok.body, /dalam beberapa menit\.\nhttps:\/\/quest-board-tpk\.pages\.dev\/id\/games\/mercusuar-1a2b\/\n/);
+  assert.ok(!/pages\.dev\/games\//.test(ok.body), "a link without /en/ or /id/ is a 404 on the site");
+  const gmMail = plain(ctx.decisionEmail_("approved", { record: { kind: "gm", name: "Raka", slug: "raka-0r01" } }, "https://quest-board-tpk.pages.dev"));
+  assert.match(gmMail.body, /pages\.dev\/en\/gm\/raka-0r01\//);
   const no = plain(ctx.decisionEmail_("rejected", { record: rec, reason: "No venue." }, ""));
   assert.match(no.body, /Reason: No venue\./);
   assert.match(no.body, /Alasan: No venue\./);

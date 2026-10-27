@@ -692,13 +692,14 @@ function titleOf_(rec) {
 function decisionEmail_(status, info, siteUrl) {
   const rec = info.record;
   const title = titleOf_(rec);
-  const url = siteUrl ? siteUrl.replace(/\/$/, '') + '/' + (rec.kind === 'game' ? 'games/' : 'gm/') + rec.slug + '/' : '';
+  // The site's pages live under /en/ and /id/ (a bare /games/... is a 404): each half of the email links its own language.
+  const link = function (lang) { return siteUrl ? '\n' + siteUrl.replace(/\/$/, '') + '/' + lang + '/' + (rec.kind === 'game' ? 'games/' : 'gm/') + rec.slug + '/' : ''; };
   if (status === 'approved') {
     return {
       subject: 'Approved: ' + title + ' / Disetujui: ' + title,
-      body: 'Hi,\n\n“' + title + '” was approved and will appear on the Quest Board within a few minutes.' + (url ? '\n' + url : '') + '\n\n' +
+      body: 'Hi,\n\n“' + title + '” was approved and will appear on the Quest Board within a few minutes.' + link('en') + '\n\n' +
         'To change something later, open your form response with the “Edit your response” link; it goes back to review.\n\n— The Pandemonium Kollektive\n\n' +
-        '—\n\nHalo,\n\n“' + title + '” sudah disetujui dan akan tampil di Quest Board dalam beberapa menit.' + (url ? '\n' + url : '') + '\n\n' +
+        '—\n\nHalo,\n\n“' + title + '” sudah disetujui dan akan tampil di Quest Board dalam beberapa menit.' + link('id') + '\n\n' +
         'Untuk mengubah sesuatu nanti, buka jawaban formulirmu lewat tautan “Edit your response”; setelah itu ditinjau lagi.\n\n— The Pandemonium Kollektive',
     };
   }
