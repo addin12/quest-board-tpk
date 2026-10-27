@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ApiError, adminConfigured, api, readToken, signOutGoogle, storeToken, storedToken } from "@/lib/admin-api";
-import { buildItems, titleOf, whenLabel, type Item } from "@/lib/admin-view";
+import { buildItems, siteBehind, titleOf, whenLabel, type Item } from "@/lib/admin-view";
 import type { MsgKey } from "@/lib/i18n/core";
 import type { AdminEntry, AdminFields, DeployInfo, QueueResponse, Status } from "@/lib/types";
 import { Icon } from "../icon";
@@ -21,7 +21,7 @@ type Tab = "games" | "gms" | "admins";
  * (the change shows at once and is undone if the script refuses). Nothing is stored in this browser except the
  * sign-in token, for as long as the tab is open.
  */
-export function AdminApp() {
+export function AdminApp({ builtAt }: { builtAt: string }) {
   const { t, lang } = useI18n();
   const [phase, setPhase] = useState<Phase>("init");
   const [token, setToken] = useState<string | null>(null);
@@ -228,7 +228,7 @@ export function AdminApp() {
 
       {phase === "ready" && queue && (
         <>
-          <PublishBar deploy={queue.deploy} lang={lang} now={now} onPublish={publishNow} />
+          <PublishBar deploy={queue.deploy} lang={lang} now={now} behind={siteBehind(builtAt, queue.deploy.lastAt, now)} onPublish={publishNow} />
           <div className="mt-6 flex flex-wrap items-center gap-2 border-b border-border pb-3">
             <div role="tablist" aria-label={t("admin.title")} className="flex flex-wrap gap-2">
               {(["games", "gms", "admins"] as const).map((k) => (
@@ -258,7 +258,7 @@ export function AdminApp() {
   );
 }
 
-function PublishBar({ deploy, lang, now, onPublish }: { deploy: DeployInfo; lang: "en" | "id"; now: number; onPublish: () => void }) {
+function PublishBar({ deploy, lang, now, behind, onPublish }: { deploy: DeployInfo; lang: "en" | "id"; now: number; behind: boolean; onPublish: () => void }) {
   const { t } = useI18n();
   return (
     <div className="card mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3" data-testid="publish-bar">
@@ -266,6 +266,7 @@ function PublishBar({ deploy, lang, now, onPublish }: { deploy: DeployInfo; lang
       <span className="text-sm text-muted">{deploy.lastAt ? t("admin.publish.updated", { when: whenLabel(deploy.lastAt, lang, now) }) : t("admin.publish.never")}</span>
       {deploy.pending && <span className="text-sm font-semibold text-gold">{t("admin.publish.pending")}</span>}
       {!deploy.configured && <span className="text-sm text-danger">{t("admin.publish.notConfigured")}</span>}
+      {behind && deploy.lastAt && <span className="w-full text-sm font-semibold text-danger" role="status">{t("admin.publish.behind", { when: whenLabel(deploy.lastAt, lang, now) })}</span>}
       <button type="button" className="btn-secondary ml-auto" disabled={!deploy.configured} onClick={onPublish} data-testid="publish-now"><Icon name="rocket-lunch" /> {t("admin.publish.now")}</button>
     </div>
   );

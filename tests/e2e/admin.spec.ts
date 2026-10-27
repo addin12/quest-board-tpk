@@ -169,6 +169,17 @@ test("the admin page is kept out of search results and has no accessibility prob
   expect(await check()).toEqual([]);
 });
 
+test("when the newest publish is not in the page, the admin is told to reload or check the build", async ({ page }) => {
+  const backend = seedBackend();
+  Object.assign(backend.deps, { deployInfo: () => ({ lastAt: Date.now(), pending: false, configured: true }) }); // after this page was built
+  await installAdminStubs(page, backend, fakeToken("admin@example.com", 3 * 3600));
+  await page.clock.setFixedTime(new Date(Date.now() + 60 * 60_000)); // an hour later: past the build's grace
+  await page.goto("/en/admin/");
+  await signIn(page);
+  await expect(page.getByRole("status").filter({ hasText: "is not in this page yet" })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Deployments in Cloudflare" })).toBeVisible();
+});
+
 test("on a phone the list and the review screen take turns", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await open(page);

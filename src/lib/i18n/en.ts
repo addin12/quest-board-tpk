@@ -305,6 +305,7 @@ export const en = {
   "admin.publish.updated": "Updated {when}",
   "admin.publish.never": "No update started from here yet",
   "admin.publish.pending": "Changes are waiting to go live (usually within 2 minutes).",
+  "admin.publish.behind": "The last publish ({when}) is not in this page yet. Reload; if it stays like this, the build probably failed: check Deployments in Cloudflare.",
   "admin.publish.now": "Publish now",
   "admin.publish.started": "Publishing. The site updates in a minute or two.",
   "admin.publish.notConfigured": "Publishing is not set up: add the Cloudflare deploy hook (docs/setup.md).",

@@ -59,3 +59,20 @@ GM-written content is shown as written.
 **Context.** The script turns the form's option text ("Urban fantasy") back into the site's key (`urban`). Slugifying the label failed for 4 of 57 categories, and a mismatch silently drops a category.
 **Decision.** `npm run form-options` writes the label→key table into `Code.gs` and the options list into `docs/form-options.md`; a test fails when either is stale.
 **Consequences.** Changing a genre's English name means running one command and updating the form.
+
+## ADR-11: A removed listing's own page can linger at Cloudflare's edge (2026-10-27)
+
+**Context.** Tested with probe pages: when a page disappears from a deployment, Cloudflare Pages keeps answering at its
+address with the last copy (`CF-Cache-Status: HIT`, `Cache-Control: public, s-maxage=604800`) for up to 7 days. Pages
+that merely change are refreshed at once. Four header variants on the probes (`no-store`, `Cloudflare-CDN-Cache-Control:
+no-store`, `CDN-Cache-Control: no-store`, `s-maxage=0`) made no difference, so it is the platform, not our headers.
+
+**Consequences.** Rejecting (or the nightly expiry of) a listing removes it from the lists, the sitemap and the data at the
+next build, but its own address can still show the old page for days. Nothing can purge it from here: the `pages.dev`
+zone is Cloudflare's, and a purge needs a zone of our own.
+
+**Decision (open).** Options: (a) Accept it: the address is only known to people who were given it. (b) Keep a
+"no longer available" page at the address of every listing that was ever public (a tombstone: the slug stays in the data,
+the page says so, shows no contact details and is `noindex`). The changed page is refreshed like any other, so removal
+becomes effective at the next build. It needs a `WasLive` admin column and a list of gone slugs in the public data.
+(c) A domain of our own on a Cloudflare zone, purging by URL after each build.

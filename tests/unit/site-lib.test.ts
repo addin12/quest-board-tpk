@@ -9,7 +9,7 @@ import { formatDay, formatIdr, formatWhen, initialsOf } from "../../src/lib/form
 import { EMPTY_FILTERS, activeFilterCount, applyFilters, filterOptions, filtersToQuery, isLive, parseFilters, type GameView } from "../../src/lib/games.ts";
 import { DICTIONARIES, makeT } from "../../src/lib/i18n/dict.ts";
 import { cleanDiscord, isGoogleMapsUrl, isPhone, parsePublicData, text } from "../../src/lib/public-data.ts";
-import { buildItems, canApprove, countByStatus, filterItems, previewGame, reasonText, whenLabel } from "../../src/lib/admin-view.ts";
+import { buildItems, canApprove, countByStatus, filterItems, previewGame, reasonText, siteBehind, whenLabel } from "../../src/lib/admin-view.ts";
 import { flatName } from "../../scripts/fix-export.mjs";
 import { PLACEHOLDER_SLUG, slugParams } from "../../src/lib/static-params.ts";
 import { constant, loadScript, plain } from "../support/fake-sheet.ts";
@@ -250,4 +250,15 @@ test("a site with no games or Game Masters yet still has a page to build per rou
   assert.deepEqual(slugParams([]), [{ lang: "en", slug: PLACEHOLDER_SLUG }, { lang: "id", slug: PLACEHOLDER_SLUG }]);
   assert.deepEqual(slugParams([{ slug: "a-1234" }, { slug: "b-5678" }]).map((p) => `${p.lang}/${p.slug}`), ["en/a-1234", "en/b-5678", "id/a-1234", "id/b-5678"]);
   assert.ok(!/-[0-9a-z]{4}$/.test(PLACEHOLDER_SLUG), "a real slug ends in -xxxx, so the placeholder never clashes with one");
+});
+
+test("the admin page warns when the newest publish is missing from the page it is looking at, but not too early", () => {
+  const T = Date.parse("2026-10-27T10:00:00Z");
+  const min = (n: number) => T + n * 60_000;
+  const built = "2026-10-27T09:00:00Z";
+  assert.equal(siteBehind(built, null, min(60)), false, "nothing was ever published from here");
+  assert.equal(siteBehind(built, T, min(5)), false, "a build takes a few minutes: not yet");
+  assert.equal(siteBehind(built, T, min(11)), true, "built before the publish, and the grace has passed");
+  assert.equal(siteBehind("2026-10-27T10:03:00Z", T, min(60)), false, "this page was built after the publish: all is well");
+  assert.equal(siteBehind("not a date", T, min(60)), false, "unreadable build time: no false alarm");
 });

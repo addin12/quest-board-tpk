@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AdminApp } from "@/components/admin/admin-app";
 import { I18nProvider } from "@/components/i18n-provider";
+import { loadSiteData } from "@/lib/data";
 import { adminMessages } from "@/lib/i18n/dict";
 import { isLang } from "@/lib/types";
 
@@ -14,7 +15,7 @@ export default async function AdminPage({ params }: PageProps<"/[lang]/admin">) 
   // The public pages are sent only the public strings; this page adds the admin ones.
   return (
     <I18nProvider lang={lang} messages={adminMessages(lang)}>
-      <AdminApp />
+      <AdminApp builtAt={loadSiteData().generatedAt} />
     </I18nProvider>
   );
 }

@@ -30,8 +30,10 @@ test("the generated parts (Code.gs's labels, docs/form-options.md) are up to dat
   assert.equal(patchedForms(forms), forms);
 });
 
-test("CreateForms.gs asks exactly the questions Code.gs reads (bar the two file uploads), with the site's own options", () => {
-  type Rec = Record<string, unknown[]>;
+type Rec = Record<string, unknown[]>;
+
+/** Runs one function of CreateForms.gs against a recording stand-in for Google's Forms service. */
+function runFormsScript(fn: string) {
   const made: { form: Rec; items: Rec[] }[] = [];
   const chain = (rec: Rec, onItem?: (item: Rec) => void): any =>
     new Proxy(rec, {
@@ -55,8 +57,13 @@ test("CreateForms.gs asks exactly the questions Code.gs reads (bar the two file 
     SpreadsheetApp: { create: () => ({ getId: () => "sheet", getUrl: () => "https://example.test/", getSheets: () => [], getSheetByName: () => null }), flush: () => {} },
   });
   vm.runInContext(readFileSync(new URL("../../apps-script/CreateForms.gs", import.meta.url), "utf8"), sandbox);
-  (sandbox as any).createForms();
+  (sandbox as any)[fn]();
+  return made;
+}
 
+test("CreateForms.gs asks exactly the questions Code.gs reads (bar the two file uploads), with the site's own options", () => {
+  const made = runFormsScript("createForms");
+  assert.equal(made.length, 2, "the profile form and the game form, no report form");
   const titles = (i: number) => made[i].items.map((it) => String(it.setTitle?.[0]));
   const uploads = { gm: "Photo", game: "Cover image (4:5 portrait)" };
   const expectTitles = (cols: Record<string, string>, upload: string) => Object.values(cols).filter((c) => c !== upload).sort();
@@ -67,6 +74,16 @@ test("CreateForms.gs asks exactly the questions Code.gs reads (bar the two file 
   assert.deepEqual(choices("Genres (pick up to 3)"), Object.keys(constantOf(ctx, "GENRE_LABELS")));
   assert.deepEqual(choices("Play styles (pick up to 3)"), Object.keys(constantOf(ctx, "STYLE_LABELS")));
   assert.ok(choices("Game system").includes("Other"));
+});
+
+test("the report form: anyone can report, so no sign-in question; which listing and what is wrong are required, contact is not", () => {
+  const made = runFormsScript("createReportForm");
+  assert.equal(made.length, 1);
+  const items = made[0].items;
+  assert.deepEqual(items.map((i) => i.setTitle?.[0]), ["Which listing? (paste the page address)", "What is wrong?", "Details", "How can we reach you? (optional)"]);
+  assert.deepEqual(items.map((i) => i.setRequired?.[0]), [true, true, true, false]);
+  assert.equal(made[0].form.setCollectEmail, undefined, "no email or sign-in is asked of a reporter");
+  assert.equal((plain(items[1].setChoiceValues?.[0]) as string[]).length, 5);
 });
 
 test("a Sheet whose form questions were retitled (capitals, spacing, three renames) is still read by the script's own titles", () => {
@@ -103,6 +120,14 @@ test("the public data (with the GMs' WhatsApp numbers) is only given to the buil
   assert.ok(Array.isArray(get({ action: "public", key: "k".repeat(64) }).games), "the right key gets the data");
   assert.deepEqual(get({}), { ok: true, name: "quest-board-tpk", version: "1.0.0" }, "the plain address stays harmless");
   assert.ok(sandbox.safeEqual_("abc", "abc") && !sandbox.safeEqual_("abc", "abd") && !sandbox.safeEqual_("abc", "abcd") && !sandbox.safeEqual_("", "x"));
+});
+
+test("backups: only the newest few are kept, whatever order Drive lists them in", () => {
+  const files = [3, 9, 1, 7, 5].map((n) => ({ id: `f${n}`, createdMs: n * 1000 }));
+  assert.deepEqual(plain(ctx.backupsToTrash_(files, 3)), ["f3", "f1"], "the two oldest go");
+  assert.deepEqual(plain(ctx.backupsToTrash_(files, 8)), [], "fewer than the limit: nothing is trashed");
+  assert.deepEqual(plain(ctx.backupsToTrash_([], 8)), []);
+  assert.equal(files[0].id, "f3", "the list given is not reordered");
 });
 
 test("phone numbers become digits with the country code; anything else is dropped", () => {

@@ -74,3 +74,13 @@ export function whenLabel(iso: number | string | null, lang: "en" | "id", nowMs:
   if (mins < 60 * 24) return rtf.format(-Math.round(mins / 60), "hour");
   return rtf.format(-Math.round(mins / 1440), "day");
 }
+
+/**
+ * Whether the newest publish is missing from the page in front of you: it was started more than `graceMs` ago, yet this
+ * page was built before it. Either this tab is old (reload) or the build failed (the old site stays up, so nothing else
+ * would say so). `builtAt` is when the data of this page's build was read.
+ */
+export function siteBehind(builtAt: string, lastDeployAt: number | null, nowMs: number, graceMs = 10 * 60_000): boolean {
+  const built = Date.parse(builtAt);
+  return lastDeployAt !== null && !Number.isNaN(built) && nowMs - lastDeployAt > graceMs && built < lastDeployAt;
+}

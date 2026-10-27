@@ -85,6 +85,35 @@ The admin page signs in with Google. Google needs to know the page is yours:
 2. Open `/en/admin/`, sign in with the owner's Google account, approve the profile and the game.
 3. After a minute or two the game is on the site. (*Publish now* on the admin page starts the rebuild at once.)
 
+## The report form (so players can flag a listing)
+
+Without it the "Report this listing" link on game pages stays hidden.
+
+1. In the Apps Script project where you ran `createForms`, paste the current [`CreateForms.gs`](../apps-script/CreateForms.gs)
+   and run `createReportForm`. The Execution log gives the form's public link.
+2. In that form's edit page: Responses → the three dots → *Get email notifications for new responses*.
+3. In Cloudflare add `NEXT_PUBLIC_REPORT_URL` = the public link, then retry the deployment.
+
+## Backups, and replacing the build key
+
+- `setup()` adds a weekly timer: every Monday around 03:00 the script copies the whole Sheet (it is the database) into the
+  Drive folder *Quest Board TPK backups* and keeps the newest 8. Run `backup` once by hand to see the first copy appear.
+  To restore, open a copy and use it as the Sheet (or copy its tabs back), then run `setup()` again.
+- To replace the build key (say it was shown somewhere): run `rotateBuildKey`, copy the key it logs, put it in Cloudflare's
+  `TPK_API_URL` (`…/exec?key=…`), then retry the deployment. Build in between: the old site stays up.
+
+## When the admin page says the last publish is "not in this page yet"
+
+The page you are looking at was built before your latest publish. Reload: if the warning goes away, your tab was just old.
+If it stays, the build most likely failed (the old site stays up, so nothing else says so): open Cloudflare → the
+project → Deployments, read the failed build's log, fix, and retry.
+
+## Removing a listing: the edge cache
+
+Cloudflare Pages keeps serving the last copy of a page that disappears from a deployment, for up to 7 days, whatever
+headers the page has (tested). A rejected game stops being listed at once, but its own address can keep answering. See
+DECISIONS.md.
+
 ## Adding another admin
 
 Two steps, because the Google app is in Testing (step 3): add their Google (Gmail) address in Google Cloud under

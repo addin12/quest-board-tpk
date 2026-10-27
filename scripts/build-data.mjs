@@ -2,6 +2,7 @@
 //
 //   TPK_API_URL=https://script.google.com/macros/s/…/exec  npm run data     the real data
 //   npm run data                                                            the demo data (data/sample.json)
+//   TPK_DATA_FILE=data/empty.json  npm run data                             data from a local file (CI builds the day-one empty site)
 //
 // The real data is the Google Sheet script's public JSON: only approved, unexpired games and their approved
 // GMs. It is checked again here (src/lib/public-data.ts); bad records are dropped with a warning. If the script
@@ -20,6 +21,7 @@ const MEDIA = path.join(ROOT, "public", "media");
 const DAY = 86_400_000;
 
 async function loadRaw() {
+  if (process.env.TPK_DATA_FILE) return JSON.parse(readFileSync(path.join(ROOT, process.env.TPK_DATA_FILE), "utf8"));
   if (!API) {
     console.log("[data] TPK_API_URL is not set: using data/sample.json (demo data, dates moved to the present)");
     return rebase(JSON.parse(readFileSync(path.join(ROOT, "data", "sample.json"), "utf8")));
@@ -113,7 +115,7 @@ async function main() {
   };
   mkdirSync(path.join(ROOT, "src", "generated"), { recursive: true });
   writeFileSync(path.join(ROOT, "src", "generated", "data.json"), `${JSON.stringify(site, null, 2)}\n`);
-  console.log(`[data] ${site.games.length} games, ${site.gms.length} Game Masters, ${covers.size} covers, ${photos.size} photos${API ? "" : " (demo data)"}`);
+  console.log(`[data] ${site.games.length} games, ${site.gms.length} Game Masters, ${covers.size} covers, ${photos.size} photos${API || process.env.TPK_DATA_FILE ? "" : " (demo data)"}`);
 }
 
 main().catch((err) => {

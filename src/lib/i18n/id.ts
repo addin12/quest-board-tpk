@@ -306,6 +306,7 @@ export const id: Record<MsgKey, string> = {
   "admin.publish.updated": "Diperbarui {when}",
   "admin.publish.never": "Belum ada pembaruan yang dimulai dari sini",
   "admin.publish.pending": "Perubahan menunggu tayang (biasanya dalam 2 menit).",
+  "admin.publish.behind": "Pembaruan situs terakhir ({when}) belum ada di halaman ini. Muat ulang; kalau tetap begitu, kemungkinan build gagal: cek Deployments di Cloudflare.",
   "admin.publish.now": "Tayangkan sekarang",
   "admin.publish.started": "Sedang menayangkan. Situs diperbarui dalam satu-dua menit.",
   "admin.publish.notConfigured": "Penayangan belum disiapkan: tambahkan deploy hook Cloudflare (docs/setup.md).",

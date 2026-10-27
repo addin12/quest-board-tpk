@@ -23,6 +23,15 @@ jobs:
       - run: npm test
       - name: Build (demo data)
         run: npm run build
+      - name: Build (empty data, the state of a new Sheet)
+        run: npm run build
+        env:
+          TPK_DATA_FILE: data/empty.json
+      - name: The empty site has its placeholder pages, and the sitemap does not list them
+        run: |
+          test -f out/en/games/none/index.html
+          test -f out/id/gm/none/index.html
+          ! grep -q '/none/' out/sitemap.xml
 
   e2e:
     runs-on: ubuntu-24.04

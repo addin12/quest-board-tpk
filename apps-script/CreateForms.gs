@@ -232,6 +232,35 @@ function createForms() {
   ].join('\n'));
 }
 
+/**
+ * Run once, after createForms: the form behind the "Report this listing" link on each game page. Anyone may report, so
+ * it asks for no sign-in. The answers stay in the form: in its Responses tab turn on "Get email notifications for new
+ * responses". The log gives the link to put in Cloudflare as NEXT_PUBLIC_REPORT_URL.
+ */
+function createReportForm() {
+  const form = FormApp.create('Quest Board TPK: report a listing')
+    .setDescription('Tell the TPK admins about a listing that looks wrong, unsafe or like a scam. Never write passwords or codes (OTP, PIN) here.')
+    .setConfirmationMessage('Thank you. The TPK admins will look at it.');
+  short_(form, 'Which listing? (paste the page address)', true);
+  pick_(form.addMultipleChoiceItem(), 'What is wrong?', true, [
+    'It looks like a scam',
+    'It asks for money outside the listing',
+    'The information is wrong or outdated',
+    'Unsafe or inappropriate content',
+    'Something else',
+  ]);
+  long_(form, 'Details', true, 'What did you see? Never write passwords or codes.', paragraphMax_(2000));
+  short_(form, 'How can we reach you? (optional)', false, 'An email or WhatsApp number, only if you want an answer.');
+  Logger.log([
+    'DONE. Report form:',
+    '  Public link (this is NEXT_PUBLIC_REPORT_URL in Cloudflare): ' + form.getPublishedUrl(),
+    '  Edit link:                                                  ' + form.getEditUrl(),
+    '',
+    'BY HAND: in the form\'s edit page, Responses tab > the three dots > "Get email notifications for new responses".',
+    'THEN: in Cloudflare add NEXT_PUBLIC_REPORT_URL = the public link, and retry the deployment.',
+  ].join('\n'));
+}
+
 function gmForm_() {
   const form = newForm_('Quest Board TPK: GM profile',
     'Fill this in once. It is what players see about you, and how they reach you. Your email address is never shown.');

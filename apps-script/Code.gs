@@ -970,6 +970,43 @@ function nightly() {
   deployNow_();
 }
 
+const BACKUP_FOLDER = 'Quest Board TPK backups';
+const BACKUPS_KEPT = 8;
+
+/** Which backup files to trash: everything but the newest `keep`. files = [{ id, createdMs }]. */
+function backupsToTrash_(files, keep) {
+  return files.slice().sort(function (a, b) { return b.createdMs - a.createdMs; }).slice(keep).map(function (f) { return f.id; });
+}
+
+/** Every Monday: a dated copy of the whole Sheet (it is the database) in a Drive folder; the newest few are kept. */
+function backup() {
+  const file = DriveApp.getFileById(spreadsheet_().getId());
+  const folders = DriveApp.getFoldersByName(BACKUP_FOLDER);
+  const folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(BACKUP_FOLDER);
+  file.makeCopy('Quest Board TPK backup ' + new Date().toISOString().slice(0, 10), folder);
+  const copies = [];
+  const files = folder.getFiles();
+  while (files.hasNext()) {
+    const f = files.next();
+    copies.push({ id: f.getId(), createdMs: f.getDateCreated().getTime() });
+  }
+  backupsToTrash_(copies, BACKUPS_KEPT).forEach(function (id) { DriveApp.getFileById(id).setTrashed(true); });
+}
+
+function newBuildKey_() {
+  return Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
+}
+
+function logBuildKey_() {
+  console.log('Build key: in Cloudflare, TPK_API_URL = <the web app URL ending in /exec>?key=' + prop_('BUILD_KEY') + '  (keep it private)');
+}
+
+/** Run by hand to replace the build key (say, after it was shown somewhere). Then put the new key in Cloudflare's TPK_API_URL. */
+function rotateBuildKey() {
+  setProp_('BUILD_KEY', newBuildKey_());
+  logBuildKey_();
+}
+
 /**
  * Run once from the script editor (Run > setup). Prepares the Sheet and the triggers; safe to run again.
  * Check View > Logs afterwards: it lists anything still missing.
@@ -1002,12 +1039,13 @@ function setup() {
     admins.setFrozenRows(1);
   }
   ScriptApp.getProjectTriggers().forEach(function (tr) {
-    if (['tick', 'nightly'].indexOf(tr.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(tr);
+    if (['tick', 'nightly', 'backup'].indexOf(tr.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(tr);
   });
   ScriptApp.newTrigger('tick').timeBased().everyMinutes(1).create();
   ScriptApp.newTrigger('nightly').timeBased().atHour(0).nearMinute(30).everyDays(1).create();
-  if (!prop_('BUILD_KEY')) setProp_('BUILD_KEY', Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, ''));
-  console.log('Build key: in Cloudflare, TPK_API_URL = <the web app URL ending in /exec>?key=' + prop_('BUILD_KEY') + '  (keep it private)');
+  ScriptApp.newTrigger('backup').timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(3).create();
+  if (!prop_('BUILD_KEY')) setProp_('BUILD_KEY', newBuildKey_());
+  logBuildKey_();
   ['CLIENT_ID', 'DEPLOY_HOOK', 'SITE_URL'].forEach(function (k) {
     if (!prop_(k)) problems.push('Script property ' + k + ' is not set yet (Project Settings > Script properties).');
   });
