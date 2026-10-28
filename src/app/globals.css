@@ -5,6 +5,7 @@
 /* Hallmark · waive 44c · hero: Banner · the inner pages open straight on their list, listing or form under the masthead, so there is no hero stage on them to fill the first screen */
 /* Hallmark · waive 79 · hero: Banner · the masthead is the only chrome above the list, listing or form, which starts at once, so no dead band is left under it */
 /* Hallmark · waive 77 · hero: Banner · the listing's about, schedule and safety rows are plain reading text beside their heads, set as one ruled list across the page */
+/* Hallmark · waive 78 · heads are card titles · the games list has no section heads, each listing's title is its own h2 inside its link, set at item size so four fit across */
 /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: S, the hero had no picture of its own; led with the real listings (cover rail directly under the search) instead of a stock photograph */
 @import "tailwindcss";
 @import "./tokens.css";

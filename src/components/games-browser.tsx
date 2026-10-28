@@ -92,12 +92,9 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
       {shown.length === 0 ? (
         <div className="mt-[var(--space-md)]"><EmptyState title={t(games.length === 0 ? "games.noneYet" : "games.none")} /></div>
       ) : (
-        <>
-          <h2 className="sr-only">{t("games.title")}</h2>
-          <ul className="mt-[var(--space-md)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-2xl)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" data-testid="games-list">
-            {shown.map((g, i) => <li key={g.id}><GameCard game={g} t={t} lang={lang} priority={i < 4} /></li>)}
-          </ul>
-        </>
+        <ul className="mt-[var(--space-md)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-2xl)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" data-testid="games-list">
+          {shown.map((g, i) => <li key={g.id}><GameCard game={g} t={t} lang={lang} priority={i < 4} headingLevel={2} /></li>)}
+        </ul>
       )}
     </div>
   );

@@ -39,7 +39,8 @@ export default async function ListYourGamePage({ params }: PageProps<"/[lang]/li
       <p className="lead mt-[var(--space-sm)] text-ink-2">{t("post.lead")}</p>
       {(!GM_FORM_URL || !GAME_FORM_URL) && <div className="mt-[var(--space-lg)] max-w-2xl"><Notice tone="warn">{t("post.notConnected")}</Notice></div>}
 
-      <ol className="ruled mt-[var(--space-2xl)] lg:max-w-4xl">
+      <div className="mt-[var(--space-2xl)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-2xl)] lg:grid-cols-12">
+      <ol className="ruled lg:col-span-7">
         {steps.map((st) => (
           <li key={st.title} className="py-[var(--space-xl)]">
             <h2 className="max-w-none text-[length:var(--text-section)]">{st.title}</h2>
@@ -49,13 +50,14 @@ export default async function ListYourGamePage({ params }: PageProps<"/[lang]/li
         ))}
       </ol>
 
-      <section className="mt-[var(--section-gap-s)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] lg:grid-cols-12" aria-labelledby="public-h">
-        <h2 id="public-h" className="lg:col-span-5">{t("post.public")}</h2>
-        <ul className="ruled lg:col-span-7">
+      <section className="lg:col-span-5" aria-labelledby="public-h">
+        <h2 id="public-h" className="text-[length:var(--text-2xl)]">{t("post.public")}</h2>
+        <ul className="ruled mt-[var(--space-lg)]">
           {[t("post.public1"), t("post.public2"), t("post.public3")].map((x) => <li key={x} className="py-[var(--space-md)]">{x}</li>)}
           <li className="py-[var(--space-md)] font-bold">{t("post.private")}</li>
         </ul>
       </section>
+      </div>
 
       <section className="mt-[var(--section-gap-s)] grid gap-[var(--gap-columns)] sm:grid-cols-2">
         <div className="well"><h2 className="max-w-none text-[length:var(--text-title)]">{t("post.changeTitle")}</h2><p className="mt-[var(--space-sm)] text-ink-2">{t("post.changeBody")}</p></div>

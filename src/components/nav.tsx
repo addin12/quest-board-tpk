@@ -69,7 +69,7 @@ export function LanguageSwitcher() {
           aria-current={lang === l ? "true" : undefined}
           title={t(l === "en" ? "lang.name.en" : "lang.name.id")}
           onClick={(e) => { e.currentTarget.href = switchLang(pathname, l) + window.location.search + window.location.hash; }}
-          className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-input)] px-2 ${lang === l ? "bg-ink text-paper" : "text-ink hover:bg-paper-3"}`}
+          className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-input)] px-2 ${lang === l ? "bg-ink text-paper" : "border border-ink text-ink hover:bg-paper-3"}`}
         >
           {l}
         </a>

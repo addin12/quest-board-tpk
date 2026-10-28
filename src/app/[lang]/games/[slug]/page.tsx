@@ -102,15 +102,6 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
             </Link>
             <p className="mt-[var(--space-lg)] lg:hidden"><a href="#contact" className="btn btn-primary">{t("game.contactTitle")}</a></p>
 
-            <dl className="panel mt-[var(--space-xl)] lg:grid lg:grid-cols-2 lg:gap-x-[var(--gap-columns)] lg:[&>div:last-child]:col-span-2">
-              {facts.map((f) => (
-                <div key={f.label}>
-                  <dt>{f.label}</dt>
-                  <dd>{f.value}</dd>
-                </div>
-              ))}
-            </dl>
-
             <aside id="contact" className="well mt-[var(--space-xl)] scroll-mt-[var(--space-xl)]" aria-labelledby="contact-h">
               <h2 id="contact-h" className="max-w-none text-[length:var(--text-title)]">{t("game.contactTitle")}</h2>
               <p className="mt-[var(--space-sm)] text-ink-2">{t("game.contactBody")}</p>
@@ -121,6 +112,16 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
                 <p className="mt-[var(--space-sm)]"><a href={REPORT_URL} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-sm font-bold underline decoration-accent decoration-2 underline-offset-4 hover:text-accent-deep">{t("game.report")} <span className="sr-only">{t("a11y.opensNewTab")}</span></a></p>
               )}
             </aside>
+
+            <dl className="panel mt-[var(--space-xl)] lg:grid lg:grid-cols-2 lg:gap-x-[var(--gap-columns)] lg:[&>div:last-child]:col-span-2">
+              {facts.map((f) => (
+                <div key={f.label}>
+                  <dt>{f.label}</dt>
+                  <dd>{f.value}</dd>
+                </div>
+              ))}
+            </dl>
+
 
             {(genres.length > 0 || styles.length > 0) && (
               <ul className="mt-[var(--space-xl)] flex flex-wrap gap-[var(--space-xs)]">
