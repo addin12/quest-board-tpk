@@ -194,6 +194,7 @@ test("checks: what blocks approval, what only deserves a look", () => {
   assert.ok(ids(checkGame(record({ venueMapsRaw: "https://evil.example" }), { gm, games: [], nowMs: NOW })).includes("maps"));
   assert.ok(ids(checkGame(record({ locationType: "online", platform: "" }), { gm, games: [], nowMs: NOW })).includes("platform"));
   assert.ok(ids(checkGame(record({ locationType: "in_person", city: "" }), { gm, games: [], nowMs: NOW })).includes("city"));
+  assert.ok(ids(checkGm(gmRecord({ sharesPhoneWith: ["Raka P."] }))).includes("duplicatePhone"), "a shared WhatsApp number is flagged");
   assert.ok(ids(checkGame(record({ locationType: "in_person", city: "Surabaya" }), { gm, games: [], nowMs: NOW })).includes("area"), "a city outside Jabodetabek is flagged");
   assert.ok(!ids(checkGame(record({ locationType: "in_person", city: "Jakarta Selatan" }), { gm, games: [], nowMs: NOW })).includes("area"), "a district of Jakarta is inside");
   assert.ok(!ids(checkGame(record({ locationType: "online", city: "" }), { gm, games: [], nowMs: NOW })).includes("area"), "online games have no area");

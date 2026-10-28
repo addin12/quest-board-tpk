@@ -349,6 +349,7 @@ export const en = {
   "check.gmMissing": "No Game Master profile was submitted from {email}. The game stays hidden without one.",
   "check.gmNotApproved": "The profile of {name} isn't approved yet. The game stays hidden until it is.",
   "check.noSystem": "No game system was given.",
+  "check.duplicatePhone": "The same WhatsApp number is on another profile: {names}. It may be one person with two accounts; consider merging.",
   "check.noCity": "An in-person game needs a city.",
   "check.outsideArea": "This city is outside Jabodetabek. Quest Board lists games in Jabodetabek and online games.",
   "check.summaryLong": "The short description is longer than {max} characters, so the game's card will be tall.",

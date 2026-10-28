@@ -48,6 +48,7 @@ export function checkGm(gm: GmRecord): Check[] {
   if (!gm.consent) add("consent", "error", "check.consent");
   if (!gm.whatsapp) add("phone", "error", "check.phone");
   if (gm.name.length < 2) add("name", "error", "check.noName");
+  if (gm.sharesPhoneWith?.length) add("duplicatePhone", "warn", "check.duplicatePhone", { names: gm.sharesPhoneWith.join(", ") });
   const signals = scamSignals([gm.name, gm.bio].join("\n"));
   if (signals.length) add("scam", "warn", "check.scam", { signals: signals.join(",") });
   if (!gm.bio) add("bio", "info", "check.noBio");

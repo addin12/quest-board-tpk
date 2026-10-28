@@ -96,7 +96,8 @@ export type AdminFields = {
 };
 
 export type GameRecord = AdminFields & GameFields & { kind: "game"; coverId: string; venueMapsRaw: string; consent: boolean };
-export type GmRecord = AdminFields & GmFields & { kind: "gm"; photoId: string; consent: boolean };
+/** `sharesPhoneWith`: names of other profiles with the same WhatsApp number (a likely second account of one person); filled by the Cloudflare backend. */
+export type GmRecord = AdminFields & GmFields & { kind: "gm"; photoId: string; consent: boolean; sharesPhoneWith?: string[] };
 export type AdminRecord = GameRecord | GmRecord;
 
 export type AdminEntry = { email: string; addedBy: string; addedAt: string };

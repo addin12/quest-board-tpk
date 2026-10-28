@@ -350,6 +350,7 @@ export const id: Record<MsgKey, string> = {
   "check.gmMissing": "Tidak ada profil Game Master yang dikirim dari {email}. Game tetap tersembunyi tanpa profil.",
   "check.gmNotApproved": "Profil {name} belum disetujui. Game tetap tersembunyi sampai profilnya disetujui.",
   "check.noSystem": "Sistem game tidak diisi.",
+  "check.duplicatePhone": "Nomor WhatsApp yang sama ada di profil lain: {names}. Mungkin satu orang dengan dua akun; pertimbangkan untuk menggabungkan.",
   "check.noCity": "Game luring butuh nama kota.",
   "check.outsideArea": "Kota ini di luar Jabodetabek. Quest Board memuat game di Jabodetabek dan game online.",
   "check.summaryLong": "Deskripsi singkat lebih dari {max} karakter, jadi kartu game-nya akan tinggi.",
