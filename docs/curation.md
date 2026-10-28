@@ -29,7 +29,7 @@ not an admin, ask the owner to add it under **Admins**.
 - **Featured**: on an approved game, *Feature* pins it first in the lists and gives it a badge.
 - **Full**: on an approved game, *Mark as full* adds a "Full" badge, sinks it to the end of the lists and tells visitors it is
   full (they can still message the Game Master, for example about a waiting list). *Reopen* undoes it. A Game Master who
-  wants it marked asks an admin; editing the form would send the whole game back to review.
+  wants it marked asks an admin (WhatsApp or Discord); editing the form would send the whole game back to review.
 
 ## Things worth knowing
 

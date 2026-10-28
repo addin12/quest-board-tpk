@@ -261,12 +261,15 @@ function createReportForm() {
   ].join('\n'));
 }
 
+// Quest Board TPK covers Jabodetabek and online play only (same list as src/lib/areas.ts).
+const AREAS = ['Jakarta', 'Bogor', 'Depok', 'Tangerang', 'Tangerang Selatan', 'Bekasi'];
+
 function gmForm_() {
   const form = newForm_('Quest Board TPK: GM profile',
     'Fill this in once. It is what players see about you, and how they reach you. Your email address is never shown.');
   short_(form, 'Display name', true, '', textMax_(60));
   long_(form, 'Short bio', true, '', paragraphMax_(800));
-  short_(form, 'City', true);
+  pick_(form.addListItem(), 'City', true, AREAS.concat(['Online only']));
   short_(form, 'Systems you usually run', false, 'Comma-separated, e.g. Call of Cthulhu, Mothership.');
   short_(form, 'WhatsApp number', true, 'With country code or starting with 0, e.g. 0812-3456-7890.',
     FormApp.createTextValidation().requireTextMatchesPattern('^\\+?[0-9][0-9 \\-]{7,18}$').setHelpText('Enter a phone number, e.g. 0812-3456-7890.').build());
@@ -282,14 +285,14 @@ function gameForm_() {
   short_(form, 'Game title', true, '', textMax_(100));
   pick_(form.addListItem(), 'Game system', true, o.system);
   short_(form, 'Other system (if you chose Other)', false);
-  short_(form, 'One-line summary', true, 'Shown on the game\'s card.', textMax_(200));
+  short_(form, 'One-line summary', true, 'The short description on the game\'s card. Keep it short: up to 80 characters.', textMax_(80));
   long_(form, 'Full description', true, 'What the game is, who it suits, what to bring.', paragraphMax_(4000));
   pick_(form.addMultipleChoiceItem(), 'Format', true, o.format);
   boxes_(form, 'Genres (pick up to 3)', false, o.genres, FormApp.createCheckboxValidation().requireSelectAtMost(3).build());
   boxes_(form, 'Play styles (pick up to 3)', false, o.styles, FormApp.createCheckboxValidation().requireSelectAtMost(3).build());
   pick_(form.addMultipleChoiceItem(), 'Where will you play?', true, o.where);
   short_(form, 'Platform (online games)', false, 'Discord, Foundry VTT, Roll20, Google Meet...');
-  short_(form, 'City (in-person games)', false);
+  pick_(form.addListItem(), 'City (in-person games)', false, AREAS);
   short_(form, 'Venue name (in-person games)', false, 'A public place such as a cafe or game store, never a home address.');
   short_(form, 'Google Maps link (in-person games)', false, 'In Google Maps: open the place > Share > Copy link.',
     FormApp.createTextValidation().requireTextMatchesPattern('^https://.*').setHelpText('The link must start with https://').build());

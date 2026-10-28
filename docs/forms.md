@@ -33,7 +33,7 @@ reach you. Your email address is never shown.*
 |---|---|---|---|
 | `Display name` | Short answer | Yes | Max 60 characters. |
 | `Short bio` | Paragraph | Yes | Max 800 characters. |
-| `City` | Short answer | Yes | |
+| `City` | Dropdown | Yes | Jakarta, Bogor, Depok, Tangerang, Tangerang Selatan, Bekasi, Online only. |
 | `Systems you usually run` | Short answer | No | Comma-separated, e.g. `Call of Cthulhu, Mothership`. |
 | `Photo` | File upload | No | Images only, 1 file, up to 10 MB. Cropped to a square on the site. |
 | `WhatsApp number` | Short answer | Yes | Response validation → Regular expression → Matches → `^\+?[0-9][0-9 \-]{7,18}$`. Help text: *With country code or starting with 0, e.g. 0812-3456-7890.* |
@@ -50,14 +50,14 @@ same Google account.*
 | `Game title` | Short answer | Yes | Max 100 characters. |
 | `Game system` | Dropdown | Yes | Options: [form-options.md](form-options.md#game-system-dropdown). |
 | `Other system (if you chose Other)` | Short answer | No | |
-| `One-line summary` | Short answer | Yes | Max 200 characters. Shown on the game's card. |
+| `One-line summary` | Short answer | Yes | Max 80 characters. The short description on the game's card; the card shows all of it. |
 | `Full description` | Paragraph | Yes | What the game is, who it suits, what to bring. Max 4000 characters. |
 | `Format` | Multiple choice | Yes | One-shot, Campaign. |
 | `Genres (pick up to 3)` | Checkboxes | No | Response validation → Select at most → 3. |
 | `Play styles (pick up to 3)` | Checkboxes | No | Response validation → Select at most → 3. |
 | `Where will you play?` | Multiple choice | Yes | Online, In person. |
 | `Platform (online games)` | Short answer | No | Discord, Foundry VTT, Roll20, Google Meet… |
-| `City (in-person games)` | Short answer | No | |
+| `City (in-person games)` | Dropdown | No | Jakarta, Bogor, Depok, Tangerang, Tangerang Selatan, Bekasi. |
 | `Venue name (in-person games)` | Short answer | No | A public place such as a café or game store, never a home address. |
 | `Google Maps link (in-person games)` | Short answer | No | In Google Maps: open the place → Share → Copy link. Response validation → Text → Contains → `https://`. |
 | `Date of the first session` | Date | Yes | |
@@ -87,3 +87,18 @@ offline, see DECISIONS.md ADR-11.)
 
 You can read the Sheet, but make decisions on the admin page: it also emails the GM, keeps the audit trail
 (`ReviewedBy`, `ReviewedAt`) and queues the site rebuild.
+
+## Scope: Jabodetabek and online
+
+Quest Board TPK lists games played online or in person in Jabodetabek. The city questions are dropdowns of the six areas
+(the same list as `AREAS` in `apps-script/CreateForms.gs` and `src/lib/areas.ts`); the GM profile adds *Online only*.
+A game's short description (`One-line summary`) is limited to 80 characters because the card shows all of it; the long one
+is `Full description`. The admin page warns (it does not block) when a game's city is outside Jabodetabek or its short
+description is over 80 characters.
+
+**Changing a form that already exists** (the scripts cannot reach Google Forms; do it by hand, a few minutes each):
+1. GM profile form, question `City`: change the type to *Dropdown* and add the seven options above.
+2. Game form, question `City (in-person games)`: change the type to *Dropdown* and add the six areas.
+3. Game form, question `One-line summary`: Response validation → Length → Maximum character count → 80, and set the description to
+   *The short description on the game's card. Keep it short: up to 80 characters.*
+Titles stay the same, so the Sheet keeps working. Answers already given are not changed.

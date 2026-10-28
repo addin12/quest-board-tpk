@@ -2,6 +2,7 @@
 // wrong, what looks like a scam. An "error" means the listing could not show correctly (the Approve button
 // stays off until the GM fixes it); a "warn" is worth a look; an "info" is just good to know.
 // Pure module. Messages are translation keys (check.*).
+import { SUMMARY_MAX, inJabodetabek } from "./areas.ts";
 import { scamSignals } from "./scam-signals.ts";
 import type { MsgKey } from "./i18n/core.ts";
 import type { GameRecord, GmRecord } from "./types.ts";
@@ -26,6 +27,8 @@ export function checkGame(game: GameRecord, ctx: { gm: GmRecord | undefined; gam
   else if (ctx.gm.status !== "approved") add("gmNotApproved", "warn", "check.gmNotApproved", { name: ctx.gm.name });
   if (!game.system) add("system", "error", "check.noSystem");
   if (game.locationType === "in_person" && !game.city) add("city", "error", "check.noCity");
+  if (game.locationType === "in_person" && game.city && !inJabodetabek(game.city)) add("area", "warn", "check.outsideArea");
+  if (game.summary.length > SUMMARY_MAX) add("summaryLong", "warn", "check.summaryLong", { max: SUMMARY_MAX });
   if (game.locationType === "online" && !game.platform) add("platform", "warn", "check.noPlatform");
   if (game.venueMapsRaw) add("maps", "warn", "check.mapsInvalid");
   const signals = scamSignals([game.title, game.summary, game.description, game.venueName, game.scheduleNote, game.platform].join("\n"));

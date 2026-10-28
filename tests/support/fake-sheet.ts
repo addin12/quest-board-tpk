@@ -34,10 +34,10 @@ export function makeRow(kind: "game" | "gm", rowNum: number, form: Record<string
   return { rowNum, cells, display };
 }
 
-export const GM_FORM = { name: "Raka Pratama", bio: "Horror GM from Bandung.", city: "Bandung", systems: "Call of Cthulhu, Mothership", whatsapp: "0812-3456-7890", discord: "@raka_gm", consent: "I agree" };
+export const GM_FORM = { name: "Raka Pratama", bio: "Horror GM from Depok.", city: "Depok", systems: "Call of Cthulhu, Mothership", whatsapp: "0812-3456-7890", discord: "@raka_gm", consent: "I agree" };
 export const GAME_FORM = {
   title: "Mercusuar di Pulau Kabut", system: "Call of Cthulhu", summary: "A horror one-shot on a foggy island.", description: "Long description.", format: "One-shot",
-  genres: "Horror, Eldritch horror", styles: "Roleplay-heavy", locationType: "In person", city: "Bandung", venueName: "Kumu Ground Coffee",
+  genres: "Horror, Eldritch horror", styles: "Roleplay-heavy", locationType: "In person", city: "Depok", venueName: "Kumu Ground Coffee",
   venueMapsUrl: "https://maps.app.goo.gl/Kumu", date: "10/12/2026", time: "7:00:00 PM", zone: "WIB", price: "75.000", seats: "5", language: "Both (Indonesian & English)",
   level: "Beginner friendly", minAge: "16", cover: "https://drive.google.com/open?id=1AbC_dEfGhIjKlMn-op", consent: "I agree",
 };

@@ -2,6 +2,7 @@
  * hero: Banner (the list or the listing leads on every route but home), Corridor (/en), Corridor (/id) · nav: masthead · footer: statement · imagery: the listings' own cover art · signature: each game printed as a playbill, its cover over a ruled label panel · halftone: cream, with a derived dark stock (modes: light+dark)
  * axes: light/slab-serif/warm · posture: committed · contrast: pass · fold: pass · v2.0.0 */
 /* Hallmark · dropped arrow-right, calendar-clock, comment, dice-d20, eye, filter, flag, language, lock, marker, megaphone, paper-plane, search, seedling, shield-check, hero.webp · the icons beside labels and the tavern hero picture give way to type and the listings' own covers; the brand marks and genre icons stay */
+/* Hallmark · dropped #f-city · the owner removed the city filter: the community plays in Jabodetabek and online only */
 /* Hallmark · waive 44c · hero: Banner · the inner pages open straight on their list, listing or form under the masthead, so there is no hero stage on them to fill the first screen */
 /* Hallmark · waive 79 · hero: Banner · the masthead is the only chrome above the list, listing or form, which starts at once, so no dead band is left under it */
 /* Hallmark · waive 77 · hero: Banner · the listing's about, schedule and safety rows are plain reading text beside their heads, set as one ruled list across the page */
@@ -107,6 +108,7 @@
 
   /* Fields: the label sits above, the edge is ink (3:1 or better), focus is an outline so the border never shifts. */
   .input { width: 100%; min-height: 3rem; padding: var(--space-sm) var(--space-md); border: var(--rule-hair) solid var(--color-ink); border-radius: var(--radius-input); background: var(--color-paper); color: var(--color-ink); font: 400 var(--text-md)/1.4 var(--font-body); }
+  select.input { appearance: none; padding-right: var(--space-2xl); background-image: linear-gradient(45deg, transparent 50%, var(--color-ink) 50%), linear-gradient(135deg, var(--color-ink) 50%, transparent 50%); background-position: calc(100% - 28px) 50%, calc(100% - 20px) 50%; background-size: 8px 8px; background-repeat: no-repeat; }
   .input::placeholder { color: var(--color-muted); }
   .input:focus-visible { outline: 3px solid var(--color-focus); outline-offset: -2px; }
   .input:disabled { opacity: 0.55; cursor: not-allowed; }

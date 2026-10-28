@@ -91,7 +91,7 @@ export function GameCard({ game, t, lang, preview = false, priority = false, hea
             {game.priceIdr > 0 && <small className="ml-1 text-sm font-normal text-muted">{t("common.perSeat")}</small>}
           </span>
         </p>
-        <p className="mt-[var(--space-xs)] line-clamp-2 text-muted">{game.summary}</p>
+        <p className="mt-[var(--space-xs)] text-muted">{game.summary}</p>
         <dl className="mt-[var(--space-md)]">
           {rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
         </dl>

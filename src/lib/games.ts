@@ -9,14 +9,13 @@ export type Filters = {
   genre: string;
   format: "" | GameFormat;
   where: "" | LocationType;
-  city: string;
   level: "" | Level;
   language: "" | "id" | "en";
   free: boolean;
   sort: SortKey;
 };
 
-export const EMPTY_FILTERS: Filters = { q: "", system: "", genre: "", format: "", where: "", city: "", level: "", language: "", free: false, sort: "soonest" };
+export const EMPTY_FILTERS: Filters = { q: "", system: "", genre: "", format: "", where: "", level: "", language: "", free: false, sort: "soonest" };
 
 const oneOf = <T extends string>(v: string | null, allowed: readonly T[], fallback: T): T => (allowed.includes(v as T) ? (v as T) : fallback);
 
@@ -29,7 +28,6 @@ export function parseFilters(search: string): Filters {
     genre: (p.get("genre") ?? "").slice(0, 40),
     format: oneOf(p.get("format"), ["", "one_shot", "campaign"] as const, ""),
     where: oneOf(p.get("where"), ["", "online", "in_person"] as const, ""),
-    city: (p.get("city") ?? "").slice(0, 60),
     level: oneOf(p.get("level"), ["", "beginner", "any", "experienced"] as const, ""),
     language: oneOf(p.get("language"), ["", "id", "en"] as const, ""),
     free: p.get("free") === "1",
@@ -40,7 +38,7 @@ export function parseFilters(search: string): Filters {
 /** The query string for filters ("" when nothing differs from the defaults). @example filtersToQuery({ ...EMPTY_FILTERS, q: "horror" }) // "?q=horror" */
 export function filtersToQuery(f: Filters): string {
   const p = new URLSearchParams();
-  (["q", "system", "genre", "format", "where", "city", "level", "language"] as const).forEach((k) => { if (f[k]) p.set(k, f[k]); });
+  (["q", "system", "genre", "format", "where", "level", "language"] as const).forEach((k) => { if (f[k]) p.set(k, f[k]); });
   if (f.free) p.set("free", "1");
   if (f.sort !== "soonest") p.set("sort", f.sort);
   const s = p.toString();
@@ -49,7 +47,7 @@ export function filtersToQuery(f: Filters): string {
 
 /** How many filters are on (the sort doesn't count). */
 export function activeFilterCount(f: Filters): number {
-  return (["q", "system", "genre", "format", "where", "city", "level", "language"] as const).filter((k) => f[k]).length + (f.free ? 1 : 0);
+  return (["q", "system", "genre", "format", "where", "level", "language"] as const).filter((k) => f[k]).length + (f.free ? 1 : 0);
 }
 
 export type GameView = SiteGame & { gmName: string };
@@ -74,7 +72,6 @@ export function sortGames<G extends GameView>(games: G[], sort: SortKey): G[] {
 }
 
 export function applyFilters<G extends GameView>(games: G[], f: Filters): G[] {
-  const city = norm(f.city);
   return sortGames(
     games.filter((g) =>
       matchesText(g, f.q) &&
@@ -82,7 +79,6 @@ export function applyFilters<G extends GameView>(games: G[], f: Filters): G[] {
       (!f.genre || g.genres.includes(f.genre)) &&
       (!f.format || g.format === f.format) &&
       (!f.where || g.locationType === f.where) &&
-      (!city || norm(g.city) === city) &&
       (!f.level || g.level === f.level) &&
       (!f.language || g.language === f.language || g.language === "both") &&
       (!f.free || g.priceIdr === 0),
@@ -99,7 +95,6 @@ export function filterOptions(games: readonly SiteGame[]) {
   const uniq = (xs: string[]) => [...new Set(xs.filter(Boolean))].sort((a, b) => a.localeCompare(b));
   return {
     systems: uniq(games.map((g) => g.system)),
-    cities: uniq(games.filter((g) => g.locationType === "in_person").map((g) => g.city)),
     genres: [...new Set(games.flatMap((g) => g.genres))],
   };
 }

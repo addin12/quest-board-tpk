@@ -3,6 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { GENRES, MAX_PER_GAME, STYLES } from "../../src/lib/categories.ts";
+import { SUMMARY_MAX } from "../../src/lib/areas.ts";
 import { checkGame, checkGm, hasErrors } from "../../src/lib/checks.ts";
 import { contactMessage, decodeContact, encodeContact, messageLang, waLink } from "../../src/lib/contact.ts";
 import { formatDay, formatIdr, formatWhen, initialsOf } from "../../src/lib/format.ts";
@@ -114,8 +115,6 @@ test("filters narrow the list, together, and read from and write to the address"
   assert.equal(activeFilterCount(f), 4);
   const inPerson = applyFilters(all, { ...EMPTY_FILTERS, where: "in_person" });
   assert.ok(inPerson.length >= 3 && inPerson.every((g) => g.locationType === "in_person"));
-  const byCity = applyFilters(all, { ...EMPTY_FILTERS, city: "BANDUNG" });
-  assert.ok(byCity.length > 0 && byCity.every((g) => g.city === "Bandung"));
   assert.ok(applyFilters(all, { ...EMPTY_FILTERS, language: "en" }).every((g) => g.language === "en" || g.language === "both"));
   assert.equal(applyFilters(all, { ...EMPTY_FILTERS, q: "kumu" }).length, 1, "a venue name is searchable");
   assert.equal(applyFilters(all, { ...EMPTY_FILTERS, q: "RAKA cthulhu" }).length >= 1, true, "every word must match somewhere, in any order");
@@ -143,7 +142,7 @@ test("a game stops showing when its time is up, and the filter choices come from
   assert.equal(isLive(g, Date.parse(g.expiresAt) - 1), true);
   assert.equal(isLive(g, Date.parse(g.expiresAt)), false);
   const o = filterOptions(games());
-  assert.ok(o.systems.includes("Call of Cthulhu") && o.cities.includes("Bandung") && !o.cities.includes(""));
+  assert.ok(o.systems.includes("Call of Cthulhu"));
 });
 
 // ── contacting a GM ──────────────────────────────────────────────────────────────────────────
@@ -169,13 +168,13 @@ test("the first message is in the game's language, or the page's when the game u
 const record = (over: Partial<GameRecord> = {}): GameRecord => ({
   kind: "game", id: "g1abc1234", slug: "x-abcd", status: "pending", featured: false, full: false, adminNote: "", reviewedBy: "", reviewedAt: "", rejectReason: "", superseded: false,
   submittedAt: "2026-10-01T03:00:00.000Z", email: "gm@example.com", row: 2, title: "Mercusuar", system: "Call of Cthulhu", summary: "A horror one-shot.", description: "x".repeat(200),
-  format: "one_shot", locationType: "in_person", platform: "", city: "Bandung", venueName: "Kumu", venueMapsUrl: "https://maps.app.goo.gl/k", startsAt: "2026-10-12T12:00:00.000Z",
+  format: "one_shot", locationType: "in_person", platform: "", city: "Depok", venueName: "Kumu", venueMapsUrl: "https://maps.app.goo.gl/k", startsAt: "2026-10-12T12:00:00.000Z",
   zone: "WIB", scheduleNote: "", expiresAt: "2026-10-13T12:00:00.000Z", priceIdr: 75000, seats: 5, language: "both", level: "beginner", minAge: 16, contentWarnings: "", safetyTools: "",
   genres: ["horror"], styles: [], coverId: "1AbCdEfGhIjKl", venueMapsRaw: "", consent: true, ...over,
 });
 const gmRecord = (over: Partial<GmRecord> = {}): GmRecord => ({
   kind: "gm", id: "m1abc1234", slug: "raka-abcd", status: "approved", featured: false, full: false, adminNote: "", reviewedBy: "", reviewedAt: "", rejectReason: "", superseded: false,
-  submittedAt: "2026-09-30T03:00:00.000Z", email: "gm@example.com", row: 2, name: "Raka", bio: "Horror GM.", city: "Bandung", systems: [], whatsapp: "6281234567890", discord: "", photoId: "", consent: true, ...over,
+  submittedAt: "2026-09-30T03:00:00.000Z", email: "gm@example.com", row: 2, name: "Raka", bio: "Horror GM.", city: "Depok", systems: [], whatsapp: "6281234567890", discord: "", photoId: "", consent: true, ...over,
 });
 const NOW = Date.parse("2026-10-05T00:00:00Z");
 const ids = (checks: { id: string }[]) => checks.map((c) => c.id);
@@ -195,6 +194,11 @@ test("checks: what blocks approval, what only deserves a look", () => {
   assert.ok(ids(checkGame(record({ venueMapsRaw: "https://evil.example" }), { gm, games: [], nowMs: NOW })).includes("maps"));
   assert.ok(ids(checkGame(record({ locationType: "online", platform: "" }), { gm, games: [], nowMs: NOW })).includes("platform"));
   assert.ok(ids(checkGame(record({ locationType: "in_person", city: "" }), { gm, games: [], nowMs: NOW })).includes("city"));
+  assert.ok(ids(checkGame(record({ locationType: "in_person", city: "Surabaya" }), { gm, games: [], nowMs: NOW })).includes("area"), "a city outside Jabodetabek is flagged");
+  assert.ok(!ids(checkGame(record({ locationType: "in_person", city: "Jakarta Selatan" }), { gm, games: [], nowMs: NOW })).includes("area"), "a district of Jakarta is inside");
+  assert.ok(!ids(checkGame(record({ locationType: "online", city: "" }), { gm, games: [], nowMs: NOW })).includes("area"), "online games have no area");
+  assert.ok(ids(checkGame(record({ summary: "x".repeat(SUMMARY_MAX + 1) }), { gm, games: [], nowMs: NOW })).includes("summaryLong"));
+  assert.ok(!ids(checkGame(record({ summary: "x".repeat(SUMMARY_MAX) }), { gm, games: [], nowMs: NOW })).includes("summaryLong"));
 
   const scam = checkGame(record({ description: "Send me your OTP and pay the admin fee to my new account. ".repeat(3) }), { gm, games: [], nowMs: NOW });
   assert.ok(ids(scam).includes("scam"));
@@ -220,7 +224,7 @@ test("the admin lists: counts, search, order, and the approve button's rule", ()
   assert.deepEqual(countByStatus(items), { pending: 2, approved: 1, rejected: 1 });
   assert.deepEqual(filterItems(items, "pending", "").map((i) => i.rec.id), ["g2bbbbbbb", "g1aaaaaaa"], "the one waiting longest comes first");
   assert.deepEqual(filterItems(items, "pending", "dewi").map((i) => i.rec.id), ["g2bbbbbbb"], "a game is found by its GM's name");
-  assert.deepEqual(filterItems(items, "pending", "alpha bandung").map((i) => i.rec.id), ["g1aaaaaaa"]);
+  assert.deepEqual(filterItems(items, "pending", "alpha depok").map((i) => i.rec.id), ["g1aaaaaaa"]);
   assert.equal(canApprove(items[0]), true);
   assert.equal(canApprove(items[3]), false, "no readable date, so no approval until the GM fixes it");
   assert.equal(canApprove(items[1]), true, "its GM's profile still waiting is a warning, not a block");
