@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Icon } from "@/components/icon";
 import { JsonLd } from "@/components/json-ld";
-import { EmptyState, GameCard } from "@/components/ui";
-import { GENRES, genreIcon, genreLabelKey } from "@/lib/categories";
+import { EmptyState, GameCard, GameRow } from "@/components/ui";
+import { GENRES, genreLabelKey } from "@/lib/categories";
 import { gameViews, loadSiteData } from "@/lib/data";
 import { sortGames } from "@/lib/games";
 import { paths } from "@/lib/hrefs";
@@ -28,91 +26,102 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   const genres = GENRES.filter((g) => games.some((x) => x.genres.includes(g.key))).slice(0, 12);
 
   const steps = [
-    { icon: "search", title: t("home.step1Title"), body: t("home.step1Body") },
-    { icon: "comment", title: t("home.step2Title"), body: t("home.step2Body") },
-    { icon: "dice-d20", title: t("home.step3Title"), body: t("home.step3Body") },
+    { title: t("home.step1Title"), body: t("home.step1Body") },
+    { title: t("home.step2Title"), body: t("home.step2Body") },
+    { title: t("home.step3Title"), body: t("home.step3Body") },
   ] as const;
 
   return (
     <>
       <JsonLd data={websiteJsonLd(lang, t("meta.description"))} />
-      <section className="on-wood relative overflow-hidden border-b-2 border-[#8a6a3a] bg-[#1b1008]">
-        <Image src="/images/tavern/hero.webp" alt="" fill priority sizes="100vw" className="object-cover object-[75%_center] opacity-70" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#1b1008]/90 via-[#1b1008]/60 to-transparent" aria-hidden />
-        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:py-24">
-          <p className="eyebrow text-accent">{t("home.eyebrow")}</p>
-          <h1 className="mt-3 max-w-2xl text-4xl font-bold leading-tight sm:text-5xl">
-            {t("home.title1")} <span className="text-accent">{t("home.title2")}</span>
-          </h1>
-          <p className="mt-4 max-w-xl text-base text-muted">{t("home.lead")}</p>
-          <form action={paths.games(lang)} method="get" role="search" className="mt-8 flex max-w-xl flex-col gap-2 sm:flex-row sm:items-end">
+
+      {/* Corridor: one centred column, the search is the action. The screen at the foot is the only decoration, and it sits under no type. */}
+      <section className="relative flex min-h-[calc(100dvh-9rem)] max-lg:min-h-0">
+        <div className="wrap relative z-10 flex flex-col items-center justify-center py-[var(--space-3xl)] text-center">
+          <h1 className="mx-auto max-w-[16ch] text-[length:var(--text-display-s)]">{t("home.title1")} {t("home.title2")}</h1>
+          <p className="lead mt-[var(--space-lg)] text-ink-2">{t("home.lead")}</p>
+          <form action={paths.games(lang)} method="get" role="search" className="mt-[var(--space-xl)] flex w-full max-w-2xl flex-col gap-[var(--space-sm)] text-left sm:flex-row sm:items-end">
             <div className="flex-1">
               <label htmlFor="home-q" className="label">{t("home.searchLabel")}</label>
               <input id="home-q" name="q" type="search" className="input" placeholder={t("home.searchPlaceholder")} maxLength={80} />
             </div>
-            <button type="submit" className="btn-primary"><Icon name="search" /> {t("games.search")}</button>
+            <button type="submit" className="btn btn-primary">{t("games.search")}</button>
           </form>
         </div>
+        <div className="halftone halftone-up pointer-events-none absolute inset-x-0 bottom-0 h-[var(--space-3xl)]" aria-hidden />
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pt-14">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 className="text-2xl font-bold">{t("home.soon")}</h2>
-          <Link href={paths.games(lang)} className="btn-ghost">{t("home.browseAll")} <Icon name="arrow-right" /></Link>
+      <section className="section" aria-labelledby="soon-h">
+        <div className="wrap">
+          <div className="flex flex-wrap items-end justify-between gap-[var(--space-md)]">
+            <h2 id="soon-h">{t("home.soon")}</h2>
+            <Link href={paths.games(lang)} className="btn btn-secondary">{t("home.browseAll")}</Link>
+          </div>
+          {soon.length === 0 ? (
+            <div className="mt-[var(--space-xl)]"><EmptyState title={t("home.empty")}><Link href={paths.list(lang)} className="btn btn-primary">{t("nav.list")}</Link></EmptyState></div>
+          ) : (
+            <ul className="rail mt-[var(--space-xl)]" tabIndex={0} aria-label={t("home.soon")}>
+              {soon.map((g, i) => <li key={g.id}><GameCard game={g} t={t} lang={lang} priority={i < 3} /></li>)}
+            </ul>
+          )}
         </div>
-        {soon.length === 0 ? (
-          <div className="mt-5"><EmptyState title={t("home.empty")}><Link href={paths.list(lang)} className="btn-primary">{t("nav.list")}</Link></EmptyState></div>
-        ) : (
-          <ul className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {soon.map((g) => <li key={g.id} className="flex"><div className="flex w-full flex-col [&>a]:flex-1"><GameCard game={g} t={t} lang={lang} /></div></li>)}
-          </ul>
-        )}
       </section>
-
-      {beginner.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 pt-14">
-          <h2 className="text-2xl font-bold">{t("home.newTitle")}</h2>
-          <p className="mt-1 text-muted">{t("home.newBody")}</p>
-          <ul className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {beginner.map((g) => <li key={g.id} className="flex"><div className="flex w-full flex-col [&>a]:flex-1"><GameCard game={g} t={t} lang={lang} /></div></li>)}
-          </ul>
-          <p className="mt-4"><Link href={paths.games(lang, "?level=beginner")} className="btn-secondary">{t("home.moreBeginner")}</Link></p>
-        </section>
-      )}
 
       {genres.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 pt-14" aria-labelledby="genres-h">
-          <h2 id="genres-h" className="text-2xl font-bold">{t("home.genresTitle")}</h2>
-          <ul className="mt-4 flex flex-wrap gap-2.5">
-            {genres.map((g) => (
-              <li key={g.key}>
-                <Link href={paths.games(lang, `?genre=${g.key}`)} className="btn-secondary"><Icon name={genreIcon(g.key)} /> {t(genreLabelKey(g.key))}</Link>
-              </li>
-            ))}
-          </ul>
+        <section className="section band-tint" aria-labelledby="genres-h">
+          <div className="wrap">
+            <h2 id="genres-h">{t("home.genresTitle")}</h2>
+            <ul className="ruled mt-[var(--space-xl)] grid gap-x-[var(--gap-columns)] sm:grid-cols-2 lg:grid-cols-3">
+              {genres.map((g) => (
+                <li key={g.key}>
+                  <Link href={paths.games(lang, `?genre=${g.key}`)} className="flex min-h-16 items-baseline justify-between gap-[var(--space-md)] py-[var(--space-md)] hover:text-accent-deep">
+                    <span className="font-display text-[length:var(--text-title)] leading-tight">{t(genreLabelKey(g.key))}</span>
+                    <span className="shrink-0 text-sm text-muted">{t("games.count", { n: games.filter((x) => x.genres.includes(g.key)).length })}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
       )}
 
-      <section className="mx-auto max-w-6xl px-4 pt-14" aria-labelledby="steps-h">
-        <h2 id="steps-h" className="sr-only">{t("nav.how")}</h2>
-        <ol className="grid gap-5 md:grid-cols-3">
-          {steps.map((s) => (
-            <li key={s.title} className="card p-6">
-              <span className="flex size-11 items-center justify-center rounded-lg bg-accent-soft text-xl text-accent"><Icon name={s.icon} /></span>
-              <h3 className="mt-4 text-lg font-semibold">{s.title}</h3>
-              <p className="mt-1 text-sm text-muted">{s.body}</p>
-            </li>
-          ))}
-        </ol>
+      {beginner.length > 0 && (
+        <section className="section" aria-labelledby="new-h">
+          <div className="wrap grid gap-[var(--space-2xl)] lg:grid-cols-12">
+            <div className="lg:col-span-5">
+              <h2 id="new-h">{t("home.newTitle")}</h2>
+              <p className="lead mt-[var(--space-md)]">{t("home.newBody")}</p>
+              <p className="mt-[var(--space-xl)]"><Link href={paths.games(lang, "?level=beginner")} className="btn btn-primary">{t("home.moreBeginner")}</Link></p>
+            </div>
+            <ul className="ruled lg:col-span-6 lg:col-start-7">
+              {beginner.map((g) => <li key={g.id}><GameRow game={g} t={t} lang={lang} /></li>)}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      <section className="section pt-0" aria-labelledby="steps-h">
+        <div className="wrap grid gap-[var(--space-2xl)] lg:grid-cols-12">
+          <h2 id="steps-h" className="lg:col-span-4">{t("nav.how")}</h2>
+          <ol className="steps ruled lg:col-span-8">
+            {steps.map((s) => (
+              <li key={s.title} className="grid gap-[var(--space-xs)] py-[var(--space-lg)] sm:grid-cols-[5rem_minmax(0,1fr)] sm:gap-x-[var(--space-lg)]">
+                <h3 className="sm:col-start-2">{s.title}</h3>
+                <p className="text-ink-2 sm:col-start-2">{s.body}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pt-14">
-        <div className="card flex flex-col items-start gap-4 p-8 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">{t("home.gmCtaTitle")}</h2>
-            <p className="mt-1 max-w-xl text-muted">{t("home.gmCtaBody")}</p>
+      <section className="band-ink section" aria-labelledby="gm-h">
+        <div className="wrap grid items-center gap-[var(--space-2xl)] lg:grid-cols-12">
+          <div className="lg:col-span-7">
+            <h2 id="gm-h">{t("home.gmCtaTitle")}</h2>
+            <p className="lead mt-[var(--space-md)]">{t("home.gmCtaBody")}</p>
+            <p className="mt-[var(--space-xl)]"><Link href={paths.list(lang)} className="btn btn-primary">{t("nav.list")}</Link></p>
           </div>
-          <Link href={paths.list(lang)} className="btn-primary shrink-0"><Icon name="megaphone" /> {t("nav.list")}</Link>
+          <div className="halftone hidden min-h-64 lg:col-span-4 lg:col-start-9 lg:block" aria-hidden />
         </div>
       </section>
     </>

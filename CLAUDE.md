@@ -43,7 +43,7 @@ npm run icons          # after editing src/lib/icons.ts
 - Never force-push or rewrite pushed history. Never commit `.env*`, `src/generated/`, `public/media/`, `out/`.
 - Ask the owner about Indonesian wording (native speaker); the glossary is the v1 one (GM, one-shot, safety tools stay English).
 - UI rules for real users are mandatory: body text 17 px (nothing under 14 px), controls at least 44 px, labels above fields,
-  one accent, words next to colours, visible focus, both themes. Keep the medieval-tavern palette and art.
+  one accent, words next to colours, visible focus, both themes. The look is Halftone (a Hallmark redesign, ADR-22): butter-cream and brown-black, one vermilion, Ultra over Chivo, covers as the only full colour. The stamp at the top of `src/app/globals.css` records its decisions; keep it current.
 
 ## Hard rules
 - **Public data is a fixed list of fields** (`buildPublic_` in Code.gs). Never add an email, an admin note, a status or a rejected/pending row to it.

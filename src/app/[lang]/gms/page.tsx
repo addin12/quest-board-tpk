@@ -20,14 +20,14 @@ export default async function GmsPage({ params }: PageProps<"/[lang]/gms">) {
   const open = (id: string) => games.filter((g) => g.gmId === id).length;
   const sorted = [...gms].sort((a, b) => open(b.id) - open(a.id) || a.name.localeCompare(b.name));
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="text-3xl font-bold">{t("gm.title")}</h1>
-      <p className="mt-1 mb-6 text-muted">{t("gm.lead")}</p>
+    <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-2xl)]">
+      <h1 className="max-w-none text-[length:var(--text-display-s)]">{t("gm.title")}</h1>
+      <p className="lead mb-[var(--space-xl)] mt-[var(--space-sm)] text-ink-2">{t("gm.lead")}</p>
       {sorted.length === 0 ? (
         <EmptyState title={t("gm.empty")} />
       ) : (
-        <ul className="grid gap-4 md:grid-cols-2">
-          {sorted.map((gm) => <li key={gm.id} className="flex"><div className="flex w-full flex-col [&>a]:flex-1"><GmCard gm={gm} openGames={open(gm.id)} t={t} lang={lang} /></div></li>)}
+        <ul className="ruled grid gap-x-[var(--gap-columns)] md:grid-cols-2">
+          {sorted.map((gm) => <li key={gm.id}><GmCard gm={gm} openGames={open(gm.id)} t={t} lang={lang} /></li>)}
         </ul>
       )}
     </div>

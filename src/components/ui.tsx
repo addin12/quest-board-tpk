@@ -1,54 +1,47 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Picture } from "./picture";
 import type { GameView } from "@/lib/games";
 import type { T } from "@/lib/i18n/core";
 import type { Lang, SiteGm } from "@/lib/types";
-import { genreIcon, genreLabelKey, isGenre } from "@/lib/categories";
+import { genreLabelKey, isGenre } from "@/lib/categories";
 import { formatIdr, formatShortDay, formatWhen, initialsOf } from "@/lib/format";
 import { paths, smallCover } from "@/lib/hrefs";
 import { Icon } from "./icon";
 
 // Presentational pieces shared by server pages and the client-side games list. Anything that needs words takes `t`.
 
-/** A steady hue from any text, for the colour behind a picture that is missing or still loading. */
+/** A steady number from any text: it picks the solid field behind a picture that is missing. */
 export function hueOf(text: string): number {
   let h = 0;
   for (const c of text) h = (h * 31 + c.charCodeAt(0)) % 360;
   return h;
 }
+const fieldOf = (text: string) => (hueOf(text) % 2 === 0 ? "bg-ink text-paper" : "bg-accent text-accent-ink");
 
-/** A 4:5 cover (like an Instagram post) with a colour gradient behind it. */
+/** A 4:5 cover (like an Instagram post). With no picture it is a solid field with the title set big. */
 export function Cover({ src, seed, className = "", priority = false, sizes }: { src: string | null; seed: string; className?: string; priority?: boolean; sizes?: string }) {
-  const hue = hueOf(seed);
   return (
-    <div
-      className={`relative overflow-hidden ${className}`}
-      style={{
-        background: `radial-gradient(circle at 20% 20%, hsl(${hue} 70% 60% / .9), transparent 55%), radial-gradient(circle at 80% 70%, hsl(${(hue + 50) % 360} 65% 40% / .9), transparent 60%), linear-gradient(135deg, hsl(${hue} 45% 22%), hsl(${(hue + 30) % 360} 50% 12%))`,
-      }}
-    >
-      {src && <Picture src={src} priority={priority} sizes={sizes ?? "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"} />}
+    <div className={`plate ${src ? "" : `${fieldOf(seed)} flex items-end p-[var(--space-md)]`} ${className}`}>
+      {src ? (
+        <Picture src={src} priority={priority} sizes={sizes ?? "(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"} />
+      ) : (
+        <span aria-hidden className="font-display text-[length:var(--text-title)] leading-tight">{seed}</span>
+      )}
     </div>
   );
 }
 
-/** A GM's photo, or their initials on a colour. */
+/** A GM's photo (square), or their initials on a solid field. */
 export function Avatar({ name, photo, size = 36 }: { name: string; photo: string | null; size?: number }) {
   if (photo) {
     return (
-      <span aria-hidden className="relative inline-block shrink-0 overflow-hidden rounded-full bg-surface-2" style={{ width: size, height: size }}>
+      <span aria-hidden className="plate inline-block shrink-0" style={{ width: size, maxWidth: "100%", aspectRatio: "1" }}>
         <Picture src={photo} sizes={`${size}px`} />
       </span>
     );
   }
-  const hue = hueOf(name);
   return (
-    <span
-      aria-hidden
-      className="inline-flex shrink-0 items-center justify-center rounded-full font-semibold text-white"
-      style={{ width: size, height: size, fontSize: size * 0.4, background: `linear-gradient(135deg, hsl(${hue} 55% 45%), hsl(${(hue + 40) % 360} 60% 32%))` }}
-    >
+    <span aria-hidden className={`inline-flex shrink-0 items-center justify-center font-display ${fieldOf(name)}`} style={{ width: size, maxWidth: "100%", aspectRatio: "1", fontSize: size * 0.4 }}>
       {initialsOf(name)}
     </span>
   );
@@ -66,82 +59,92 @@ export function whereLabel(g: Pick<GameView, "locationType" | "platform" | "city
   return g.venueName ? `${g.venueName}, ${g.city}` : g.city;
 }
 
-/** A game as a card. `preview` draws it without a link (the admin page shows cards for games that are not on the site yet). */
-/** `priority`: the picture is among the first things a visitor sees, so it loads first. `headingLevel`: 2 where the page has no h2 above the cards. */
+/**
+ * A game as a playbill: the cover, then a ruled label panel. `preview` draws it without a link (the admin page shows cards
+ * for games that are not on the site yet).
+ * `priority`: the picture is among the first things a visitor sees, so it loads first. `headingLevel`: 2 where the page has no h2 above the cards.
+ */
 export function GameCard({ game, t, lang, preview = false, priority = false, headingLevel = 3 }: { game: GameView; t: T; lang: Lang; preview?: boolean; priority?: boolean; headingLevel?: 2 | 3 }) {
   const Heading = headingLevel === 2 ? "h2" : "h3";
   const genre = game.genres.find(isGenre);
-  const className = "card group flex flex-col overflow-hidden transition-colors hover:border-accent/50";
+  const rows: [string, string][] = [
+    [t("game.when"), formatShortDay(game.startsAt, lang, game.zone)],
+    [t("game.where"), game.locationType === "online" ? t("loc.online") : whereLabel(game, t)],
+    [t("game.format"), t(game.format === "campaign" ? "format.campaign" : "format.one_shot")],
+    [t("game.language"), languageLabel(game.language, t)],
+  ];
+  if (game.level === "beginner") rows.push([t("game.level"), t("level.beginner")]);
+  else if (genre) rows.push([t("games.genre"), t(genreLabelKey(genre))]);
   const body = (
     <>
       <div className="relative">
         <Cover src={game.cover ? smallCover(game.cover) : null} seed={game.title} className="aspect-[4/5] w-full" priority={priority} />
-        <span className="absolute left-3 top-3 rounded-md bg-black/60 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur">{game.system}</span>
-        {game.featured && (
-          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-md bg-accent px-2.5 py-1 text-xs font-bold text-accent-ink">
-            <Icon name="star" solid /> {t("game.featured")}
-          </span>
-        )}
-        {game.full && <span className="absolute bottom-3 right-3 rounded-md bg-black/70 px-2.5 py-1 text-xs font-bold text-white backdrop-blur">{t("game.full")}</span>}
+        {game.featured && <span className="absolute left-0 top-0 bg-accent px-3 py-1 text-sm font-bold text-accent-ink">{t("game.featured")}</span>}
+        {game.full && <span className="absolute bottom-0 right-0 bg-ink px-3 py-1 text-sm font-bold text-paper">{t("game.full")}</span>}
       </div>
-      <div className="flex flex-1 flex-col gap-3 p-5">
-        <div className="flex items-start justify-between gap-3">
-          <Heading className="text-lg font-semibold leading-snug group-hover:text-accent">{game.title}</Heading>
-          <span className="shrink-0 text-right">
-            <span className="block font-semibold">{priceLabel(game.priceIdr, t)}</span>
-            {game.priceIdr > 0 && <span className="block text-xs text-muted">{t("common.perSeat")}</span>}
+      <div className="mt-[var(--space-md)] flex flex-1 flex-col border-t-3 border-ink pt-[var(--space-sm)]">
+        <Heading className="bill-title">{game.title}</Heading>
+        <p className="mt-[var(--space-xs)] flex items-baseline justify-between gap-[var(--space-md)]">
+          <span className="min-w-0 font-bold">{game.system}</span>
+          <span className="shrink-0 text-right font-bold">
+            {priceLabel(game.priceIdr, t)}
+            {game.priceIdr > 0 && <small className="ml-1 text-sm font-normal text-muted">{t("common.perSeat")}</small>}
           </span>
-        </div>
-        <p className="line-clamp-2 text-sm text-muted">{game.summary}</p>
-        <div className="flex flex-wrap gap-1.5">
-          <span className="chip"><Icon name={game.format === "campaign" ? "scroll-old" : "book-open-cover"} />{t(game.format === "campaign" ? "format.campaign" : "format.one_shot")}</span>
-          <span className="chip whitespace-normal!"><Icon name={game.locationType === "online" ? "laptop" : "marker"} />{game.locationType === "online" ? t("loc.online") : whereLabel(game, t)}</span>
-          <span className="chip"><Icon name="language" />{languageLabel(game.language, t)}</span>
-          {game.level === "beginner" ? (
-            <span className="chip border-success/30! bg-success-soft! text-success!"><Icon name="seedling" />{t("level.beginner")}</span>
-          ) : (
-            genre && <span className="chip"><Icon name={genreIcon(genre)} />{t(genreLabelKey(genre))}</span>
-          )}
-        </div>
-        <div className="mt-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 border-t border-border pt-3 text-sm">
-          <span className="flex min-w-0 items-center gap-2">
-            <span className="font-medium">{game.gmName}</span>
-          </span>
-          <span className="inline-flex items-center gap-1 text-muted"><Icon name="calendar-clock" />{formatShortDay(game.startsAt, lang, game.zone)}</span>
-        </div>
+        </p>
+        <p className="mt-[var(--space-xs)] line-clamp-2 text-muted">{game.summary}</p>
+        <dl className="mt-[var(--space-md)]">
+          {rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
+        </dl>
+        <p className="mt-auto pt-[var(--space-sm)] text-sm text-muted">{t("common.by", { name: game.gmName })}</p>
       </div>
     </>
   );
-  return preview ? <div className={className}>{body}</div> : <Link href={paths.game(lang, game.slug)} className={className}>{body}</Link>;
+  return preview ? <div className="bill">{body}</div> : <Link href={paths.game(lang, game.slug)} className="bill">{body}</Link>;
 }
 
+/** A game as one row of an index: a small cover, the title and its facts, the price at the edge. */
+export function GameRow({ game, t, lang }: { game: GameView; t: T; lang: Lang }) {
+  return (
+    <Link href={paths.game(lang, game.slug)} className="bill !h-auto flex-row items-center gap-[var(--space-lg)] py-[var(--space-lg)]">
+      <Cover src={game.cover ? smallCover(game.cover) : null} seed={game.title} className="aspect-[4/5] w-20 shrink-0 sm:w-24" sizes="96px" />
+      <div className="min-w-0 flex-1">
+        <h3 className="bill-title">{game.title}</h3>
+        <p className="mt-[var(--space-2xs)] font-bold">{game.system}</p>
+        <p className="mt-[var(--space-2xs)] text-muted">{`${formatShortDay(game.startsAt, lang, game.zone)}, ${game.locationType === "online" ? t("loc.online") : whereLabel(game, t)}`}</p>
+      </div>
+      <span className="shrink-0 text-right font-bold">{priceLabel(game.priceIdr, t)}</span>
+    </Link>
+  );
+}
+
+/** A GM as one row of an index: their photo, their name set as a title, where they play and what. */
 export function GmCard({ gm, openGames, t, lang }: { gm: SiteGm; openGames: number; t: T; lang: Lang }) {
   return (
-    <Link href={paths.gm(lang, gm.slug)} className="card group flex items-start gap-4 p-5 transition-colors hover:border-accent/50">
-      <Avatar name={gm.name} photo={gm.photo} size={64} />
+    <Link href={paths.gm(lang, gm.slug)} className="bill !h-auto flex-row items-start gap-[var(--space-lg)] py-[var(--space-lg)]">
+      <Avatar name={gm.name} photo={gm.photo} size={88} />
       <span className="min-w-0 flex-1">
-        <span className="block text-lg font-semibold leading-snug group-hover:text-accent">{gm.name}</span>
-        <span className="mt-0.5 flex flex-wrap items-center gap-x-3 text-sm text-muted">
-          {gm.city && <span className="inline-flex items-center gap-1"><Icon name="marker" />{gm.city}</span>}
-          <span>{t("gm.openGames", { n: openGames })}</span>
+        <span className="bill-title block font-display text-[length:var(--text-title)] leading-tight">{gm.name}</span>
+        <span className="mt-[var(--space-2xs)] block text-muted">
+          {gm.city ? `${gm.city}, ${t("gm.openGames", { n: openGames })}` : t("gm.openGames", { n: openGames })}
         </span>
-        {gm.systems.length > 0 && <span className="mt-2 flex flex-wrap gap-1.5">{gm.systems.slice(0, 3).map((s) => <span key={s} className="chip">{s}</span>)}</span>}
+        {gm.systems.length > 0 && <span className="mt-[var(--space-sm)] flex flex-wrap gap-[var(--space-xs)]">{gm.systems.slice(0, 3).map((x) => <span key={x} className="chip">{x}</span>)}</span>}
       </span>
     </Link>
   );
 }
 
-/** "Sun 12 Oct, 19.00 WIB" with a calendar icon. */
+/** "Sun 12 Oct, 19.00 WIB". */
 export function WhenLine({ iso, zone, lang }: { iso: string; zone: GameView["zone"]; lang: Lang }) {
-  return <span className="inline-flex items-center gap-1.5"><Icon name="calendar-clock" />{formatWhen(iso, lang, zone)}</span>;
+  return <span>{formatWhen(iso, lang, zone)}</span>;
 }
 
+/** A message in the page's own voice: a ruled box with its icon and text; the tone changes the edge, never the meaning. */
 export function Notice({ tone = "info", children }: { tone?: "info" | "success" | "danger" | "warn"; children: React.ReactNode }) {
-  const cls = { info: "border-border bg-surface-2", success: "border-success/40 bg-success-soft text-success", danger: "border-danger/40 bg-danger-soft text-danger", warn: "border-gold/50 bg-accent-soft" }[tone];
+  const edge = { info: "border-ink", success: "border-success", danger: "border-danger", warn: "border-ink" }[tone];
   const icon = { info: "info", success: "check-circle", danger: "triangle-warning", warn: "triangle-warning" }[tone] as "info" | "check-circle" | "triangle-warning";
   return (
-    <div role={tone === "danger" ? "alert" : "status"} className={`flex items-start gap-2.5 rounded-lg border px-4 py-3 text-sm ${cls}`}>
-      <Icon name={icon} className="mt-0.5 shrink-0 text-base" />
+    <div role={tone === "danger" ? "alert" : "status"} className={`flex items-start gap-[var(--space-sm)] border-2 bg-paper-2 px-[var(--space-md)] py-[var(--space-sm)] ${edge}`}>
+      <Icon name={icon} className="mt-1 shrink-0" />
       <div className="min-w-0">{children}</div>
     </div>
   );
@@ -149,9 +152,8 @@ export function Notice({ tone = "info", children }: { tone?: "info" | "success" 
 
 export function EmptyState({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
-    <div className="card flex flex-col items-center gap-3 px-6 py-12 text-center">
-      <Image src="/images/tavern/empty-tankard.svg" alt="" width={120} height={90} priority />
-      <p className="font-semibold">{title}</p>
+    <div className="ruled flex flex-col items-start gap-[var(--space-md)] py-[var(--space-2xl)]">
+      <p className="font-display text-[length:var(--text-section)] leading-tight">{title}</p>
       {children}
     </div>
   );

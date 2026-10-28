@@ -22,13 +22,13 @@ export default async function GamesPage({ params }: PageProps<"/[lang]/games">) 
   const t = makeT(lang);
   const games = gameViews(loadSiteData());
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
+    <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-2xl)]">
       <JsonLd data={[
         collectionJsonLd(t("games.title"), lang, games),
         breadcrumbJsonLd([{ name: "Quest Board TPK", url: `${SITE_URL}${paths.home(lang)}` }, { name: t("games.title"), url: `${SITE_URL}${paths.games(lang)}` }]),
       ]} />
-      <h1 className="text-3xl font-bold">{t("games.title")}</h1>
-      <p className="mt-1 mb-6 text-muted">{t("games.count", { n: games.length })}</p>
+      <h1 className="max-w-none text-[length:var(--text-display-s)]">{t("games.title")}</h1>
+      <p className="lead mb-[var(--space-xl)] mt-[var(--space-sm)] text-ink-2">{t("games.count", { n: games.length })}</p>
       <GamesBrowser games={games} options={filterOptions(games)} />
     </div>
   );

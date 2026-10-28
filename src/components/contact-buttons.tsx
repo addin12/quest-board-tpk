@@ -31,22 +31,22 @@ export function ContactButtons({ wa, discord, message, stacked = false }: { wa: 
 
   const isLink = discord.startsWith("https://");
   return (
-    <div className={`flex gap-3 ${stacked ? "flex-col" : "flex-col sm:flex-row sm:flex-wrap"}`}>
-      <a href="https://wa.me/" onClick={openWhatsApp} target="_blank" rel="noopener noreferrer" className="btn-primary" data-testid="contact-whatsapp">
+    <div className={`flex gap-[var(--space-md)] ${stacked ? "flex-col" : "flex-col sm:flex-row sm:flex-wrap sm:items-center"}`}>
+      <a href="https://wa.me/" onClick={openWhatsApp} target="_blank" rel="noopener noreferrer" className="btn btn-primary" data-testid="contact-whatsapp">
         <Icon name="whatsapp" brand /> {t("game.whatsapp")} <span className="sr-only">{t("a11y.opensNewTab")}</span>
       </a>
       {discord && isLink && (
-        <a href={discord} target="_blank" rel="noopener noreferrer" className="btn-secondary" data-testid="contact-discord">
+        <a href={discord} target="_blank" rel="noopener noreferrer" className="btn btn-secondary" data-testid="contact-discord">
           <Icon name="discord" brand /> {t("game.discordOpen")} <span className="sr-only">{t("a11y.opensNewTab")}</span>
         </a>
       )}
       {discord && !isLink && (
-        <span className="flex flex-wrap items-center gap-2" data-testid="contact-discord">
-          <button type="button" onClick={copyDiscord} className="btn-secondary">
+        <span className="flex flex-wrap items-center gap-[var(--space-sm)]" data-testid="contact-discord">
+          <button type="button" onClick={copyDiscord} className="btn btn-secondary">
             <Icon name="discord" brand /> {t("game.discordCopy")}
           </button>
-          <span className="font-mono text-sm text-muted">{discord}</span>
-          <span role="status" className="text-sm font-semibold text-success">{copied ? t("common.copied") : ""}</span>
+          <span className="text-sm text-muted">{discord}</span>
+          <span role="status" className="text-sm font-bold text-success">{copied ? t("common.copied") : ""}</span>
         </span>
       )}
     </div>

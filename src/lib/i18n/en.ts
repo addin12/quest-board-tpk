@@ -115,7 +115,6 @@ export const en = {
   "common.copied": "Copied",
   "common.back": "Back",
   "common.any": "Any",
-  "home.eyebrow": "Tabletop RPGs, found by the community",
   "home.title1": "Find your table.",
   "home.title2": "Message your Game Master.",
   "home.lead": "Browse games run by Game Masters of The Pandemonium Kollektive, online and in person across Indonesia. Found one you like? Message the GM directly.",

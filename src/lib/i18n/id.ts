@@ -116,7 +116,6 @@ export const id: Record<MsgKey, string> = {
   "common.copied": "Tersalin",
   "common.back": "Kembali",
   "common.any": "Semua",
-  "home.eyebrow": "Tabletop RPG, ditemukan oleh komunitas",
   "home.title1": "Temukan mejamu.",
   "home.title2": "Hubungi Game Master-mu.",
   "home.lead": "Jelajahi game yang dijalankan para Game Master The Pandemonium Kollektive, online maupun luring di seluruh Indonesia. Sudah ketemu yang cocok? Hubungi GM-nya langsung.",

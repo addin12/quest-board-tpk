@@ -1,231 +1,190 @@
+/* Hallmark · shape: Split Studio (game page), Rail and Index (home, lists) · genre: playful · theme: Halftone (deal 3/3, seed free-community-board-where-d0f3·4d8b804d·2026-10-28·r0) · redesign: full · draw: 37f29c · job: attend
+ * hero: Banner (the list or the listing leads on every route but home), Corridor (/en), Corridor (/id) · nav: masthead · footer: statement · imagery: the listings' own cover art · signature: each game printed as a playbill, its cover over a ruled label panel · halftone: cream, with a derived dark stock (modes: light+dark)
+ * axes: light/slab-serif/warm · posture: committed · contrast: pass · fold: pass · v2.0.0 */
+/* Hallmark · dropped arrow-right, calendar-clock, comment, dice-d20, eye, filter, flag, language, lock, marker, megaphone, paper-plane, search, seedling, shield-check, hero.webp · the icons beside labels and the tavern hero picture give way to type and the listings' own covers; the brand marks and genre icons stay */
+/* Hallmark · waive 44c · hero: Banner · the inner pages open straight on their list, listing or form under the masthead, so there is no hero stage on them to fill the first screen */
+/* Hallmark · waive 79 · hero: Banner · the masthead is the only chrome above the list, listing or form, which starts at once, so no dead band is left under it */
+/* Hallmark · waive 77 · hero: Banner · the listing's about, schedule and safety rows are plain reading text beside their heads, set as one ruled list across the page */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: S, the hero had no picture of its own; led with the real listings (cover rail directly under the search) instead of a stock photograph */
 @import "tailwindcss";
+@import "./tokens.css";
+@import "./base.css" layer(base);
 
-/*
- * Design tokens — "medieval tavern" theme (see DESIGN.md).
- * Layout and type follow "Universal UI Rules for Real Users" with an Apple/Notion calm: a readable
- * scale (17px body, 14px smallest), 44px controls, one accent, flat parchment cards with a hairline
- * edge. The tavern stays in the palette, the wood, the textures, Cinzel headings and the art.
- * Light = parchment & ink by daylight; dark = a candlelit tavern at night.
- * `.parchment` re-applies the page palette inside a wooden area (e.g. the bell popover);
- * `.on-wood` switches to the dark-oak palette used by the header, footer, tab bar and hero.
- * Every text/background pair below is ≥ 4.5:1 (checked; the axe sweep re-checks).
- */
-:root,
-.parchment {
-  --bg: #efe3c8;
-  --surface: #faf3e3;
-  --surface-2: #e9dcbf;
-  --text: #2b1d10;
-  --muted: #665034;
-  --border: #cdb68c;
-  --accent: #8e2b1c;        /* oxblood — wax seal */
-  --accent-hover: #71200f;
-  --accent-ink: #fbf3e2;
-  --accent-soft: #f3ddd0;
-  --gold: #85600f;          /* brass, as text */
-  --success: #2c5a31;
-  --success-soft: #e0ecd6;
-  --danger: #9f2419;
-  --danger-soft: #f5dcd4;
-  --card-shadow: none;
-  --page-texture: url("/textures/parchment.svg");
-  color: var(--text);
+/* The faces come from next/font (self-hosted at build time); their variables are set on <html> in the layout. */
+:root {
+  --font-display: var(--font-ultra), "Ultra", ui-serif, Georgia, serif;
+  --font-body: var(--font-chivo), "Chivo", ui-sans-serif, system-ui, sans-serif;
+  --color-band: oklch(23% 0.040 38);
+  --color-band-ink: oklch(96.2% 0.032 94);
+  --color-band-muted: oklch(82% 0.045 85);
+  --color-band-rule: oklch(42% 0.03 45);
+  --color-band-accent: oklch(66% 0.19 33); --color-band-accent-deep: oklch(73% 0.17 33); --color-band-accent-ink: oklch(18% 0.02 38);
 }
 
-/* Dark palette: the OS preference, unless the person picked Light (html[data-theme="light"]). */
+/* Dark stock, derived from the light one (the hue never moves, the accent loses chroma and gains lightness).
+   The OS preference decides unless the person picked a theme (html[data-theme]). */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-paper: oklch(17% 0.012 38); --color-paper-2: oklch(21% 0.016 38); --color-paper-3: oklch(25.5% 0.02 38);
+  --color-ink: oklch(94% 0.016 90); --color-ink-2: oklch(86% 0.02 88); --color-muted: oklch(74% 0.03 80);
+  --color-rule: oklch(34% 0.025 50);
+  --color-accent: oklch(66% 0.19 33); --color-accent-deep: oklch(73% 0.17 33); --color-accent-ink: oklch(18% 0.02 38); --color-focus: oklch(73% 0.17 33);
+  --color-error: oklch(72% 0.17 27); --color-success: oklch(76% 0.14 150);
+  --color-band: oklch(27% 0.03 38);
+}
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]),
-  :root:not([data-theme="light"]) .parchment {
-    --bg: #16100a;
-    --surface: #22180f;
-    --surface-2: #2e2217;
-    --text: #f0e3c6;
-    --muted: #c4ae8b;
-    --border: #4d3825;
-    --accent: #e8a54b;      /* candle amber */
-    --accent-hover: #f2b865;
-    --accent-ink: #1c1208;
-    --accent-soft: #3a2913;
-    --gold: #e8c46c;
-    --success: #9bd08f;
-    --success-soft: #1f2e1a;
-    --danger: #f08e7e;
-    --danger-soft: #3b1b15;
-    --card-shadow: none;
-    --page-texture: url("/textures/wood-faint.svg");
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --color-paper: oklch(17% 0.012 38); --color-paper-2: oklch(21% 0.016 38); --color-paper-3: oklch(25.5% 0.02 38);
+    --color-ink: oklch(94% 0.016 90); --color-ink-2: oklch(86% 0.02 88); --color-muted: oklch(74% 0.03 80);
+    --color-rule: oklch(34% 0.025 50);
+    --color-accent: oklch(66% 0.19 33); --color-accent-deep: oklch(73% 0.17 33); --color-accent-ink: oklch(18% 0.02 38); --color-focus: oklch(73% 0.17 33);
+    --color-error: oklch(72% 0.17 27); --color-success: oklch(76% 0.14 150);
+    --color-band: oklch(27% 0.03 38);
   }
 }
-/* …or an explicit Dark choice, whatever the OS says. */
-:root[data-theme="dark"],
-:root[data-theme="dark"] .parchment {
-  --bg: #16100a;
-  --surface: #22180f;
-  --surface-2: #2e2217;
-  --text: #f0e3c6;
-  --muted: #c4ae8b;
-  --border: #4d3825;
-  --accent: #e8a54b;      /* candle amber */
-  --accent-hover: #f2b865;
-  --accent-ink: #1c1208;
-  --accent-soft: #3a2913;
-  --gold: #e8c46c;
-  --success: #9bd08f;
-  --success-soft: #1f2e1a;
-  --danger: #f08e7e;
-  --danger-soft: #3b1b15;
-  --card-shadow: none;
-  --page-texture: url("/textures/wood-faint.svg");
-}
-:root { color-scheme: light dark; }
+:root:not([data-theme="dark"]) { color-scheme: light dark; }
 :root[data-theme="light"] { color-scheme: light; }
-:root[data-theme="dark"] { color-scheme: dark; }
 
-/* Dark-oak surfaces (header, footer, mobile tab bar, home hero) — same in both schemes. */
-.on-wood {
-  --bg: #2a1b10;
-  --surface: #332215;
-  --surface-2: #3b2819;
-  --text: #f3e6c8;
-  --muted: #d6c09b;
-  --border: #5a3f27;
-  --accent: #eab35a;
-  --accent-hover: #f5c877;
-  --accent-ink: #1c1208;
-  --accent-soft: #4a3218;
-  --gold: #eab35a;
-  color: var(--text);
-}
-
-/* Keyboard focus: one clear ring everywhere — oxblood on parchment, amber in the dark theme and on the
-   wood (both via --accent). The browser default is faint, and nearly invisible on the dark header.
-   Inputs keep their own focus ring (.input). */
-:where(a, button, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-.wood-plank {
-  background-color: #2a1b10;
-  background-image: linear-gradient(rgb(255 220 160 / 0.06), rgb(0 0 0 / 0.22)), url("/textures/wood.svg");
-  background-size: auto, 900px 180px;
-}
-
-/* Type scale (Tailwind's names, readable sizes): xs is the smallest text anywhere — 14px. */
-@theme {
-  --text-xs: 0.875rem;   --text-xs--line-height: 1.45;    /* 14px: supporting detail */
-  --text-sm: 1rem;       --text-sm--line-height: 1.5;     /* 16px: labels, buttons, card text */
-  --text-base: 1.0625rem; --text-base--line-height: 1.55; /* 17px: body */
-  --text-lg: 1.1875rem;  --text-lg--line-height: 1.45;    /* 19px: card titles */
-  --text-xl: 1.375rem;   --text-xl--line-height: 1.35;    /* 22px */
-  --text-2xl: 1.75rem;   --text-2xl--line-height: 1.25;   /* 28px: key numbers */
-  --text-3xl: 2rem;      --text-3xl--line-height: 1.2;    /* 32px: page titles */
-  --text-4xl: 2.5rem;    --text-4xl--line-height: 1.12;
-  --text-5xl: 3.25rem;   --text-5xl--line-height: 1.06;
-}
-
+/* The admin screens and a few older class names read these names: they now point at the Halftone tokens.
+   Squarer radii than Tailwind's defaults, to match the print material: wells and photographs are square. */
 @theme inline {
-  --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
-  --color-text: var(--text);
-  --color-muted: var(--muted);
-  --color-border: var(--border);
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-ink: var(--accent-ink);
-  --color-accent-soft: var(--accent-soft);
-  --color-gold: var(--gold);
-  --color-success: var(--success);
-  --color-success-soft: var(--success-soft);
-  --color-danger: var(--danger);
-  --color-danger-soft: var(--danger-soft);
-  --font-sans: var(--font-alegreya-sans), "Segoe UI", system-ui, sans-serif;
-  --font-serif: var(--font-alegreya), Georgia, serif;
-  --font-display: var(--font-cinzel), "Times New Roman", serif;
+  --color-bg: var(--color-paper);
+  --color-surface: var(--color-paper);
+  --color-surface-2: var(--color-paper-2);
+  --color-text: var(--color-ink);
+  --color-border: var(--color-rule);
+  --color-accent-soft: color-mix(in oklab, var(--color-accent) 14%, var(--color-paper));
+  --color-gold: var(--color-accent-deep);
+  --color-success-soft: color-mix(in oklab, var(--color-success) 14%, var(--color-paper));
+  --color-danger: var(--color-error);
+  --color-danger-soft: color-mix(in oklab, var(--color-error) 12%, var(--color-paper));
+  --font-sans: var(--font-body);
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 3px;
+  --radius-xl: 0;
+  --radius-2xl: 0;
 }
-
-:root {
-  /* For inline styles (e.g. the wordmark). */
-  --font-heading: var(--font-cinzel), "Times New Roman", serif;
+/* Tailwind's own text steps, held at the readable floor: 14px is the smallest text anywhere. */
+@theme {
+  --text-md: 1.0625rem; /* 17px body, as the Halftone theme sets it and as CLAUDE.md asks */
+  --text-xs: 0.875rem;
+  --text-xs--line-height: 1.45;
 }
 
 @layer base {
-  body {
-    background-color: var(--bg);
-    background-image: var(--page-texture);
-    background-size: 360px 360px;
-    color: var(--text);
-    font-size: var(--text-base);
-    line-height: var(--text-base--line-height);
-  }
-  h1, h2 {
-    font-family: var(--font-cinzel), "Times New Roman", serif;
-    letter-spacing: 0.01em;
-  }
-  h3 {
-    font-family: var(--font-alegreya), Georgia, serif;
-  }
-  ::selection {
-    background: var(--accent);
-    color: var(--accent-ink);
-  }
+  html { accent-color: var(--color-accent); }
+  html, body { overflow-x: clip; }
+  html { scrollbar-gutter: stable; }
+  body { min-height: 100dvh; display: flex; flex-direction: column; }
+  ::selection { background: color-mix(in oklab, var(--color-accent) 30%, transparent); }
+  /* Links in running text: ink with a spot underline. */
+  :where(main p, main li, footer p) a:not([class]) { text-decoration: underline; text-decoration-color: var(--color-accent); text-decoration-thickness: 2px; }
+  /* The admin works in one family: Chivo for heads, buttons and data (app scope). */
+  .app-screen :is(h1, h2, h3) { font-family: var(--font-body); font-weight: 700; letter-spacing: 0; line-height: 1.2; }
+  .app-screen h1 { font-size: var(--text-2xl); } .app-screen h2 { font-size: var(--text-xl); } .app-screen h3 { font-size: var(--text-lg); }
 }
 
-/* Buttons: flat 8px rectangles, at least 44px tall, a full-word label; pressing shrinks them a touch. */
-@utility btn {
-  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-transparent px-4 py-2 text-sm font-semibold transition-[background-color,color,border-color,transform] duration-150 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 motion-reduce:active:scale-100;
-}
-/* The one accent: the main action of a section. */
-@utility btn-primary { @apply btn bg-accent text-accent-ink hover:bg-accent-hover; }
-@utility btn-secondary { @apply btn border-border bg-surface text-text hover:bg-surface-2; }
-@utility btn-ghost { @apply btn text-muted hover:bg-surface-2 hover:text-text; }
-@utility btn-danger { @apply btn border-danger/40 text-danger hover:bg-danger-soft; }
-/* Parchment card with a slightly burnt edge. */
-/* Below-the-fold sections of long pages: still in the HTML (search engines, screen readers,
-   find-in-page), but the browser lays them out and draws them only when they come near the
-   screen — slow phones reach first content sooner. The size is a placeholder until then
-   ("auto" remembers the real size once drawn, so the scrollbar doesn't jump back). */
-@utility defer-render { content-visibility: auto; contain-intrinsic-size: auto 640px; }
-/* Parchment card: one hairline edge, no shadow (spacing groups things before borders do). */
-@utility card { @apply rounded-xl border border-border bg-surface; }
-/* Fields: 44px tall, 16px text (phones don't zoom in), the label always above (.label). */
-@utility input {
-  @apply min-h-11 w-full rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm text-text placeholder:text-muted/80 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30;
-}
-@utility label { @apply mb-1.5 block text-sm font-semibold; }
-/* Helper text under a field: an example or what happens next. */
-@utility hint { @apply mt-1.5 text-xs text-muted; }
-/* Round parchment medallion with a brass rim (home "Browse by categories"). Always parchment,
-   in both themes, so the ink-drawn illustrations read the same on light and dark wood. */
-@utility medallion {
-  @apply flex aspect-square w-full max-w-52 items-center justify-center rounded-full bg-[#f6ead0] transition-shadow duration-200;
-  box-shadow: 0 0 0 3px #c8912b, 0 0 0 6px var(--surface), 0 0 0 7px var(--border), 0 6px 18px -6px rgb(40 20 5 / 0.45);
-  &:where(.group:hover *, .group:focus-visible *) {
-    box-shadow: 0 0 0 3px var(--accent), 0 0 0 6px var(--surface), 0 0 0 7px var(--accent), 0 10px 24px -6px rgb(40 20 5 / 0.5);
+@layer components {
+  /* Controls: 48px, 3px radius. The spot is the one filled button; the second action is typographic. */
+  .btn, .btn-primary, .btn-secondary, .btn-ghost, .btn-danger { display: inline-flex; min-height: 3rem; align-items: center; justify-content: center; gap: var(--space-xs); padding: var(--space-sm) var(--space-lg); border: 0; border-radius: var(--radius-input); font: 700 var(--text-md)/1.2 var(--font-body); white-space: nowrap; text-decoration: none; cursor: pointer; transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
+  .btn:active, .btn-primary:active, .btn-secondary:active, .btn-ghost:active, .btn-danger:active { transform: translateY(1px); }
+  .btn:disabled, .btn[aria-disabled="true"], .btn-primary:disabled, .btn-primary[aria-disabled="true"], .btn-secondary:disabled, .btn-secondary[aria-disabled="true"], .btn-ghost:disabled, .btn-ghost[aria-disabled="true"], .btn-danger:disabled, .btn-danger[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; transform: none; }
+  .btn-primary, .btn.btn-primary { background: var(--color-accent); color: var(--color-accent-ink); }
+  .btn-primary:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--color-accent-deep); }
+  .btn-secondary, .btn-ghost { padding-inline: 0; border-radius: 0; background: none; color: var(--color-ink); border-bottom: var(--rule-bar) solid var(--color-accent); }
+  .btn-secondary:hover:not(:disabled):not([aria-disabled="true"]), .btn-ghost:hover:not(:disabled) { border-bottom-color: var(--color-ink); }
+  .btn-ghost { border-bottom-color: var(--color-rule); }
+  .btn-danger { background: none; color: var(--color-error); border: var(--rule-hair) solid var(--color-error); }
+  .btn-danger:hover:not(:disabled) { background: color-mix(in oklab, var(--color-error) 12%, var(--color-paper)); }
+  /* In the admin (an app screen) buttons are 40px outlined controls, the primary stays the spot. */
+  .app-screen .btn, .app-screen .btn-primary, .app-screen .btn-secondary, .app-screen .btn-ghost, .app-screen .btn-danger { min-height: 2.5rem; padding: var(--space-xs) var(--space-md); font-size: var(--text-sm); position: relative; }
+  .app-screen .btn::after, .app-screen .btn-primary::after, .app-screen .btn-secondary::after, .app-screen .btn-ghost::after, .app-screen .btn-danger::after { content: ""; position: absolute; inset: -0.25rem 0; }
+  .app-screen .btn-secondary, .app-screen .btn-ghost { border: var(--rule-hair) solid var(--color-ink); border-radius: var(--radius-input); padding-inline: var(--space-md); }
+  .app-screen .btn-ghost { border-color: var(--color-rule); }
+
+  /* Fields: the label sits above, the edge is ink (3:1 or better), focus is an outline so the border never shifts. */
+  .input { width: 100%; min-height: 3rem; padding: var(--space-sm) var(--space-md); border: var(--rule-hair) solid var(--color-ink); border-radius: var(--radius-input); background: var(--color-paper); color: var(--color-ink); font: 400 var(--text-md)/1.4 var(--font-body); }
+  .input::placeholder { color: var(--color-muted); }
+  .input:focus-visible { outline: 3px solid var(--color-focus); outline-offset: -2px; }
+  .input:disabled { opacity: 0.55; cursor: not-allowed; }
+  .app-screen .input { min-height: 2.5rem; padding-block: var(--space-xs); }
+  .label { display: block; margin-bottom: var(--space-xs); font: 700 var(--text-md)/1.3 var(--font-body); }
+  .hint { margin-top: var(--space-xs); min-height: 1lh; font-size: var(--text-sm); color: var(--color-muted); }
+
+  /* The one boxed surface: a well, square, inside a bar of ink. Everything else is a rule. */
+  .well { border: var(--rule-bar) solid var(--color-ink); background: var(--color-paper-2); padding: var(--space-lg); }
+  .card { border: var(--rule-hair) solid var(--color-ink); background: var(--color-paper); }
+  .chip { display: inline-flex; align-items: center; gap: var(--space-xs); padding: var(--space-3xs) var(--space-sm); border-radius: var(--radius-pill); background: var(--color-paper-3); color: var(--color-ink); font-size: var(--text-sm); line-height: 1.5; white-space: nowrap; }
+  .chip-spot { background: var(--color-accent); color: var(--color-accent-ink); font-weight: 700; }
+
+  /* A ruled list: a bar of ink above, hairlines between the rows. */
+  .ruled { border-top: var(--rule-bar) solid var(--color-ink); }
+  .ruled > * { border-bottom: var(--rule-hair) solid var(--color-rule); }
+
+  /* A photograph or a cover: square, a 1px ink hairline. */
+  .plate { position: relative; overflow: hidden; outline: var(--rule-hair) solid var(--color-ink); outline-offset: calc(-1 * var(--rule-hair)); background: var(--color-paper-3); }
+
+  /* The screen: spot dots on a 12px cell, fading from solid to nothing. One per section, never under type or a photograph. */
+  .halftone { position: relative; isolation: isolate; }
+  .halftone::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(var(--color-dot) var(--halftone-dot), transparent calc(var(--halftone-dot) + 0.5px)) 0 0 / var(--halftone-size) var(--halftone-size); mask: linear-gradient(110deg, transparent 45%, var(--color-ink) 95%); }
+  .halftone-up::before { mask: linear-gradient(0deg, var(--color-ink), transparent 85%); }
+
+  /* Bands: a change of paper. */
+  /* A dark band swaps the whole palette inside it, so nothing in it needs its own colours. */
+  .band-ink {
+    --color-paper: var(--color-band); --color-paper-2: var(--color-band); --color-ink: var(--color-band-ink); --color-ink-2: var(--color-band-ink);
+    --color-muted: var(--color-band-muted); --color-rule: var(--color-band-rule);
+    --color-accent: var(--color-band-accent); --color-accent-deep: var(--color-band-accent-deep); --color-accent-ink: var(--color-band-accent-ink); --color-focus: var(--color-band-accent-deep);
+    background: var(--color-band); color: var(--color-band-ink);
   }
+  .band-tint { background: var(--color-paper-2); }
+
+  /* Sections part by the scaffold's steps. */
+  .section { padding-block: var(--section-gap-s); }
+  .section-l { padding-block: var(--section-gap); }
+
+  /* A figure as a poster: the number in Ultra, solid spot. */
+  .poster { font: 400 clamp(5rem, 14vw, 11rem)/0.9 var(--font-display); letter-spacing: -0.02em; color: var(--color-accent); font-variant-numeric: tabular-nums; }
+
+  /* A horizontal run past the container's edge, with snap points; scrollable by touch and keyboard. */
+  .rail { display: flex; gap: var(--gap-columns); overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: var(--space-md); scrollbar-color: var(--color-muted) var(--color-paper-2); }
+  .rail > * { flex: 0 0 min(20rem, 78vw); scroll-snap-align: start; min-width: 0; }
+
+  /* Steps: a real ordered list, the numeral set in Ultra by a counter. */
+  .steps { counter-reset: step; }
+  .steps > li { counter-increment: step; position: relative; }
+  .steps > li::before { content: counter(step); font: 400 var(--text-section)/1 var(--font-display); color: var(--color-accent-deep); }
+  @media (min-width: 40rem) { .steps > li::before { position: absolute; left: 0; top: var(--space-lg); } }
+
+  /* The page width: capped and centred; at 1920 the gutters grow and the grids do not. */
+  .wrap { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: var(--gutter); }
+
+  /* A game as a playbill: the cover, then a ruled label panel. One signal on hover: the title takes the deep spot. */
+  .bill { display: flex; flex-direction: column; height: 100%; color: inherit; text-decoration: none; }
+  .bill h2.bill-title, .bill h3.bill-title { font-size: var(--text-lg); line-height: 1.2; }
+  .bill-title { transition: color var(--dur-micro) var(--ease-out); }
+  .bill:hover .bill-title { color: var(--color-accent-deep); }
+  .bill dl > div { display: flex; justify-content: space-between; gap: var(--space-md); padding-block: var(--space-xs); border-bottom: var(--rule-hair) solid var(--color-rule); }
+  .bill dt { color: var(--color-muted); font-size: var(--text-sm); }
+  .bill dd { margin: 0; font-weight: 700; font-size: var(--text-sm); text-align: right; min-width: 0; overflow-wrap: anywhere; }
+
+  /* The label panel of a game or a profile: a bar of ink, the name in Chivo, the value in Ultra. */
+  .panel { border-top: var(--rule-bar) solid var(--color-ink); }
+  .panel > div { display: grid; grid-template-columns: minmax(0, 8rem) minmax(0, 1fr); gap: var(--space-md); align-items: baseline; padding-block: var(--space-md); border-bottom: var(--rule-hair) solid var(--color-rule); }
+  .panel dt { font-weight: 700; font-size: var(--text-md); }
+  .panel dd { margin: 0; font: 400 var(--text-lg)/1.25 var(--font-display); overflow-wrap: break-word; min-width: 0; }
+  .panel dd small { display: block; margin-top: var(--space-2xs); font: 400 var(--text-sm)/1.4 var(--font-body); color: var(--color-muted); }
+  @media (max-width: 40rem) { .panel > div { grid-template-columns: minmax(0, 1fr); gap: var(--space-2xs); } }
+
+  /* The wordmark and the page head's underline. */
+  .wordmark { font-family: var(--font-display); font-weight: 400; letter-spacing: var(--tracking-display); line-height: 1; white-space: nowrap; }
+  .link-spot { text-decoration: none; border-bottom: var(--rule-bar) solid var(--color-accent); }
+  .link-spot:hover { border-bottom-color: var(--color-ink); }
+
+  /* Keyboard focus: a ring that appears at once (never fades). */
+  :where(a, button, summary, [tabindex]:not([tabindex="-1"])):focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 }
-@utility chip { @apply inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-border bg-surface-2 px-2.5 py-1 text-xs font-medium text-muted; }
-@utility popover { @apply overflow-hidden rounded-lg border border-border bg-surface text-text shadow-2xl shadow-black/40; }
-@utility badge { @apply flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-xs font-bold leading-none text-accent-ink ring-2 ring-[#2a1b10]; }
-@utility eyebrow { @apply font-display text-xs font-bold uppercase tracking-[0.12em] text-muted; }
-/* Notice-board note: parchment with a soft drop shadow, pinned at the top. */
-@utility notice {
-  @apply rounded-sm border border-border bg-surface text-text shadow-[0_6px_14px_-6px_rgb(40_20_5/0.55),inset_0_0_30px_rgb(140_95_35/0.12)];
-}
-/* Dark mode: notes a shade lighter than the oak board, with a warm edge, so they read as paper. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .notice {
-    background-color: #33261a;
-    border-color: #7a5a38;
-  }
-}
-:root[data-theme="dark"] .notice {
-  background-color: #33261a;
-  border-color: #7a5a38;
-}
-@utility skeleton { @apply animate-pulse rounded-md bg-surface-2; }
-@media (prefers-reduced-motion: reduce) { .animate-pulse { animation: none; } }
-/* ❦ divider: the flourish SVG is a mask, so it takes the current theme's brass colour. */
-@utility ornament {
-  @apply block h-4 w-44 bg-gold;
-  mask: url("/textures/flourish.svg") center / contain no-repeat;
-}
+
+@media (prefers-reduced-motion: reduce) { .btn:active, .btn-primary:active, .btn-secondary:active, .btn-ghost:active, .btn-danger:active { transform: none; } }

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { paths } from "@/lib/hrefs";
 import { makeT } from "@/lib/i18n/dict";
@@ -9,12 +8,11 @@ export function Gone({ kind, lang }: { kind: "game" | "gm"; lang: Lang }) {
   const t = makeT(lang);
   const game = kind === "game";
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12" data-testid="gone">
-      <div className="card flex flex-col items-center gap-3 px-6 py-12 text-center">
-        <Image src="/images/tavern/empty-tankard.svg" alt="" width={120} height={90} priority />
-        <h1 className="text-2xl font-bold">{t(game ? "gone.gameTitle" : "gone.gmTitle")}</h1>
-        <p className="max-w-prose text-muted">{t(game ? "gone.gameBody" : "gone.gmBody")}</p>
-        <Link href={game ? paths.games(lang) : paths.gms(lang)} className="btn-primary">{t(game ? "gone.gamesLink" : "gone.gmsLink")}</Link>
+    <div className="wrap py-[var(--section-gap-s)]" data-testid="gone">
+      <div className="ruled flex flex-col items-start gap-[var(--space-md)] pt-[var(--space-xl)]">
+        <h1 className="max-w-[18ch] text-[length:var(--text-display-s)]">{t(game ? "gone.gameTitle" : "gone.gmTitle")}</h1>
+        <p className="lead max-w-[52ch] text-ink-2">{t(game ? "gone.gameBody" : "gone.gmBody")}</p>
+        <Link href={game ? paths.games(lang) : paths.gms(lang)} className="btn btn-primary mt-[var(--space-md)]">{t(game ? "gone.gamesLink" : "gone.gmsLink")}</Link>
       </div>
     </div>
   );

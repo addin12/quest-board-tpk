@@ -27,3 +27,6 @@ Thumbs.db
 # The ids of the live Apps Script project (scripts/push-apps-script.mjs)
 .apps-script.local.json
 .apps-script-stage/
+
+# Hallmark's local lint records and screenshots
+.hallmark/

@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { GENRES, genreLabelKey } from "@/lib/categories";
 import { EMPTY_FILTERS, activeFilterCount, applyFilters, filtersToQuery, isLive, parseFilters, type Filters, type GameView, type filterOptions } from "@/lib/games";
-import { Icon } from "./icon";
 import { useI18n } from "./i18n-provider";
 import { EmptyState, GameCard } from "./ui";
 
@@ -54,12 +53,12 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
           <label htmlFor="q" className="label">{t("games.search")}</label>
           <input id="q" type="search" className="input" value={filters.q} placeholder={t("games.searchPlaceholder")} maxLength={80} onChange={(e) => set({ q: e.target.value })} />
         </div>
-        <button type="button" className="btn-secondary" aria-expanded={open} aria-controls="filter-panel" onClick={() => setOpen(!open)}>
-          <Icon name="filter" /> {t("games.filters")}{filterCount > 0 ? ` (${filterCount})` : ""}
+        <button type="button" className="btn btn-secondary" aria-expanded={open} aria-controls="filter-panel" onClick={() => setOpen(!open)}>
+          {t("games.filters")}{filterCount > 0 ? ` (${filterCount})` : ""}
         </button>
       </div>
 
-      <div id="filter-panel" hidden={!open} className="card mt-3 grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div id="filter-panel" hidden={!open} className="well mt-[var(--space-md)] grid gap-[var(--space-lg)] sm:grid-cols-2 lg:grid-cols-4">
         {select("f-system", t("games.system"), filters.system, (v) => set({ system: v }), options.systems.map((s) => ({ value: s, label: s })))}
         {select("f-genre", t("games.genre"), filters.genre, (v) => set({ genre: v }), GENRES.filter((g) => options.genres.includes(g.key)).map((g) => ({ value: g.key, label: t(genreLabelKey(g.key)) })))}
         {select("f-format", t("games.format"), filters.format, (v) => set({ format: v as Filters["format"] }), [{ value: "one_shot", label: t("format.one_shot") }, { value: "campaign", label: t("format.campaign") }])}
@@ -75,27 +74,30 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
             <option value="priceAsc">{t("sort.priceAsc")}</option>
           </select>
         </div>
-        <label className="flex min-h-11 items-center gap-2.5 text-sm font-semibold sm:col-span-2">
-          <input type="checkbox" className="size-5 accent-[var(--accent)]" checked={filters.free} onChange={(e) => set({ free: e.target.checked })} />
+        <label className="flex min-h-11 items-center gap-[var(--space-sm)] font-bold sm:col-span-2">
+          <input type="checkbox" className="size-5 accent-[var(--color-accent)]" checked={filters.free} onChange={(e) => set({ free: e.target.checked })} />
           {t("games.freeOnly")}
         </label>
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-muted" role="status" aria-live="polite" data-testid="games-count">{t("games.results", { n: shown.length })}</p>
+      <div className="mt-[var(--space-xl)] flex flex-wrap items-center justify-between gap-[var(--space-md)]">
+        <p className="text-muted" role="status" aria-live="polite" data-testid="games-count">{t("games.results", { n: shown.length })}</p>
         {active > 0 && (
-          <button type="button" className="btn-ghost" onClick={() => { setFilters(EMPTY_FILTERS); window.history.replaceState(null, "", window.location.pathname); }}>
-            <Icon name="cross-circle" /> {t("games.clear")}
+          <button type="button" className="btn btn-ghost" onClick={() => { setFilters(EMPTY_FILTERS); window.history.replaceState(null, "", window.location.pathname); }}>
+            {t("games.clear")}
           </button>
         )}
       </div>
 
       {shown.length === 0 ? (
-        <div className="mt-4"><EmptyState title={t(games.length === 0 ? "games.noneYet" : "games.none")} /></div>
+        <div className="mt-[var(--space-md)]"><EmptyState title={t(games.length === 0 ? "games.noneYet" : "games.none")} /></div>
       ) : (
-        <ul className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" data-testid="games-list">
-          {shown.map((g, i) => <li key={g.id} className="flex"><div className="flex w-full flex-col [&>a]:flex-1"><GameCard game={g} t={t} lang={lang} priority={i < 3} headingLevel={2} /></div></li>)}
-        </ul>
+        <>
+          <h2 className="sr-only">{t("games.title")}</h2>
+          <ul className="mt-[var(--space-md)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-2xl)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" data-testid="games-list">
+            {shown.map((g, i) => <li key={g.id}><GameCard game={g} t={t} lang={lang} priority={i < 4} /></li>)}
+          </ul>
+        </>
       )}
     </div>
   );

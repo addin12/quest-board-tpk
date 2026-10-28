@@ -132,7 +132,7 @@ function Row({ item, selected, checkbox, checked, lang, onSelect, onCheck }: { i
     <li className="flex items-stretch gap-2">
       {checkbox && (
         <label className="flex w-11 shrink-0 items-center justify-center">
-          <input type="checkbox" className="size-5 accent-[var(--accent)]" checked={checked} disabled={!canApprove(item)} onChange={(e) => onCheck(e.target.checked)} aria-label={t("admin.select", { title })} />
+          <input type="checkbox" className="size-5 accent-accent" checked={checked} disabled={!canApprove(item)} onChange={(e) => onCheck(e.target.checked)} aria-label={t("admin.select", { title })} />
         </label>
       )}
       <button type="button" onClick={onSelect} aria-current={selected ? "true" : undefined} className={`card flex min-w-0 flex-1 items-center gap-3 p-3 text-left transition-colors hover:border-accent/50 ${selected ? "border-accent! bg-accent-soft" : ""}`} data-testid="admin-row">
@@ -192,7 +192,7 @@ function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting
       </div>
 
       <section className="mt-5" aria-labelledby="checks-h">
-        <h3 id="checks-h" className="text-sm font-semibold uppercase tracking-wide text-muted">{t("admin.checksTitle")}</h3>
+        <h3 id="checks-h" className="text-base font-bold text-ink-2">{t("admin.checksTitle")}</h3>
         {item.checks.length === 0 ? (
           <p className="mt-2 flex items-center gap-2 text-success"><Icon name="check-circle" /> {t("admin.checksOk")}</p>
         ) : (
@@ -214,14 +214,14 @@ function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting
             <div className="mt-2 space-y-1">
               {REASONS.map((r) => (
                 <label key={r} className="flex min-h-11 items-center gap-2.5">
-                  <input type="checkbox" className="size-5 accent-[var(--accent)]" checked={reasons.includes(r)} onChange={(e) => setReasons(e.target.checked ? [...reasons, r] : reasons.filter((x) => x !== r))} />
+                  <input type="checkbox" className="size-5 accent-accent" checked={reasons.includes(r)} onChange={(e) => setReasons(e.target.checked ? [...reasons, r] : reasons.filter((x) => x !== r))} />
                   {t(`admin.reason.${r}` as MsgKey)}
                 </label>
               ))}
             </div>
             <label htmlFor="reason-note" className="label mt-3">{t("admin.reasonNote")}</label>
             <textarea id="reason-note" rows={3} className="input" value={reasonNote} maxLength={400} onChange={(e) => setReasonNote(e.target.value)} />
-            <label className="mt-3 flex min-h-11 items-center gap-2.5 text-sm font-semibold"><input type="checkbox" className="size-5 accent-[var(--accent)]" checked={notify} onChange={(e) => setNotify(e.target.checked)} />{t("admin.notifyGm")}</label>
+            <label className="mt-3 flex min-h-11 items-center gap-2.5 text-sm font-semibold"><input type="checkbox" className="size-5 accent-accent" checked={notify} onChange={(e) => setNotify(e.target.checked)} />{t("admin.notifyGm")}</label>
             <p className="mt-2 flex flex-wrap gap-2">
               <button type="button" className="btn-danger" disabled={reasons.length === 0 && !reasonNote.trim()} onClick={reject} data-testid="reject-confirm"><Icon name="cross-circle" /> {t("admin.rejectConfirm")}</button>
               <button type="button" className="btn-ghost" onClick={() => setRejecting(false)}>{t("admin.cancel")}</button>
@@ -241,13 +241,13 @@ function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting
               )}
             </p>
             {blocked && rec.status !== "approved" && <p className="mt-2 text-sm text-danger">{t("admin.approveBlocked")}</p>}
-            <label className="mt-3 flex min-h-11 items-center gap-2.5 text-sm font-semibold"><input type="checkbox" className="size-5 accent-[var(--accent)]" checked={notify} onChange={(e) => setNotify(e.target.checked)} data-testid="notify" />{t("admin.notifyGm")}</label>
+            <label className="mt-3 flex min-h-11 items-center gap-2.5 text-sm font-semibold"><input type="checkbox" className="size-5 accent-accent" checked={notify} onChange={(e) => setNotify(e.target.checked)} data-testid="notify" />{t("admin.notifyGm")}</label>
           </div>
         )}
       </section>
 
       <section className="mt-6" aria-labelledby="preview-h">
-        <h3 id="preview-h" className="text-sm font-semibold uppercase tracking-wide text-muted">{t("admin.previewTitle")}</h3>
+        <h3 id="preview-h" className="text-base font-bold text-ink-2">{t("admin.previewTitle")}</h3>
         {item.kind === "game" ? (
           <div className="mt-3 grid gap-6 md:grid-cols-[minmax(0,280px)_minmax(0,1fr)]">
             <div className="max-w-xs"><GameCard game={previewGame(item.rec, item.gm, nowIso)} t={t} lang={lang} preview /></div>
@@ -259,15 +259,15 @@ function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting
       </section>
 
       <section className="mt-6" aria-labelledby="contact-h">
-        <h3 id="contact-h" className="text-sm font-semibold uppercase tracking-wide text-muted">{t("admin.contactTitle")}</h3>
+        <h3 id="contact-h" className="text-base font-bold text-ink-2">{t("admin.contactTitle")}</h3>
         {gm ? (
           <div className="mt-2 space-y-1.5">
             {item.kind === "game" && <p className="font-semibold">{t("admin.gmOf", { name: gm.name })}</p>}
             <p className="flex flex-wrap items-center gap-3">
-              <span className="font-mono">{gm.whatsapp ? `+${gm.whatsapp}` : "–"}</span>
+              <span className="tabular-nums">{gm.whatsapp ? `+${gm.whatsapp}` : "–"}</span>
               {gm.whatsapp && <a href={waLink(gm.whatsapp, contactMessage({ name: gm.name }, null, lang))} target="_blank" rel="noopener noreferrer" className="btn-secondary"><Icon name="whatsapp" brand /> {t("admin.testWhatsapp")}</a>}
             </p>
-            {gm.discord && <p className="flex items-center gap-2"><Icon name="discord" brand /> <span className="font-mono">{gm.discord}</span></p>}
+            {gm.discord && <p className="flex items-center gap-2"><Icon name="discord" brand /> <span className="tabular-nums">{gm.discord}</span></p>}
           </div>
         ) : (
           <p className="mt-2 text-muted">{t("admin.noGm")}</p>

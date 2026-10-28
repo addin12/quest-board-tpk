@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Icon } from "@/components/icon";
 import { Notice } from "@/components/ui";
 import { makeT } from "@/lib/i18n/dict";
 import { GAME_FORM_URL, GM_FORM_URL } from "@/lib/site";
@@ -21,11 +20,11 @@ export default async function ListYourGamePage({ params }: PageProps<"/[lang]/li
 
   const button = (url: string, label: string, primary: boolean) =>
     url ? (
-      <a href={url} target="_blank" rel="noopener noreferrer" className={primary ? "btn-primary" : "btn-secondary"}>
-        <Icon name="paper-plane" /> {label} <span className="sr-only">{t("a11y.opensNewTab")}</span>
+      <a href={url} target="_blank" rel="noopener noreferrer" className={primary ? "btn btn-primary" : "btn btn-secondary"}>
+        {label} <span className="sr-only">{t("a11y.opensNewTab")}</span>
       </a>
     ) : (
-      <span className="btn-secondary pointer-events-none opacity-60" aria-disabled="true">{label}</span>
+      <span className="btn btn-secondary pointer-events-none opacity-60" aria-disabled="true">{label}</span>
     );
 
   const steps = [
@@ -35,32 +34,32 @@ export default async function ListYourGamePage({ params }: PageProps<"/[lang]/li
   ];
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="text-4xl font-bold">{t("post.title")}</h1>
-      <p className="mt-3 text-lg text-muted">{t("post.lead")}</p>
-      {(!GM_FORM_URL || !GAME_FORM_URL) && <div className="mt-6"><Notice tone="warn">{t("post.notConnected")}</Notice></div>}
+    <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-2xl)]">
+      <h1 className="max-w-none text-[length:var(--text-display-s)]">{t("post.title")}</h1>
+      <p className="lead mt-[var(--space-sm)] text-ink-2">{t("post.lead")}</p>
+      {(!GM_FORM_URL || !GAME_FORM_URL) && <div className="mt-[var(--space-lg)] max-w-2xl"><Notice tone="warn">{t("post.notConnected")}</Notice></div>}
 
-      <ol className="mt-8 space-y-4">
-        {steps.map((s) => (
-          <li key={s.title} className="card p-6">
-            <h2 className="text-xl font-bold">{s.title}</h2>
-            <p className="mt-1 text-muted">{s.body}</p>
-            {s.action && <p className="mt-4">{s.action}</p>}
+      <ol className="ruled mt-[var(--space-2xl)] lg:max-w-4xl">
+        {steps.map((st) => (
+          <li key={st.title} className="py-[var(--space-xl)]">
+            <h2 className="max-w-none text-[length:var(--text-section)]">{st.title}</h2>
+            <p className="mt-[var(--space-xs)] max-w-[60ch] text-ink-2">{st.body}</p>
+            {st.action && <p className="mt-[var(--space-md)]">{st.action}</p>}
           </li>
         ))}
       </ol>
 
-      <section className="mt-10" aria-labelledby="public-h">
-        <h2 id="public-h" className="text-xl font-bold">{t("post.public")}</h2>
-        <ul className="mt-3 space-y-2">
-          {[t("post.public1"), t("post.public2"), t("post.public3")].map((s) => <li key={s} className="flex gap-3"><Icon name="eye" className="mt-1.5 shrink-0 text-muted" /><span>{s}</span></li>)}
-          <li className="flex gap-3 font-semibold"><Icon name="lock" className="mt-1.5 shrink-0 text-success" /><span>{t("post.private")}</span></li>
+      <section className="mt-[var(--section-gap-s)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] lg:grid-cols-12" aria-labelledby="public-h">
+        <h2 id="public-h" className="lg:col-span-5">{t("post.public")}</h2>
+        <ul className="ruled lg:col-span-7">
+          {[t("post.public1"), t("post.public2"), t("post.public3")].map((x) => <li key={x} className="py-[var(--space-md)]">{x}</li>)}
+          <li className="py-[var(--space-md)] font-bold">{t("post.private")}</li>
         </ul>
       </section>
 
-      <section className="mt-10 grid gap-4 sm:grid-cols-2">
-        <div className="card p-6"><h2 className="text-lg font-bold">{t("post.changeTitle")}</h2><p className="mt-1 text-sm text-muted">{t("post.changeBody")}</p></div>
-        <div className="card p-6"><h2 className="text-lg font-bold">{t("post.removeTitle")}</h2><p className="mt-1 text-sm text-muted">{t("post.removeBody")}</p></div>
+      <section className="mt-[var(--section-gap-s)] grid gap-[var(--gap-columns)] sm:grid-cols-2">
+        <div className="well"><h2 className="max-w-none text-[length:var(--text-title)]">{t("post.changeTitle")}</h2><p className="mt-[var(--space-sm)] text-ink-2">{t("post.changeBody")}</p></div>
+        <div className="well"><h2 className="max-w-none text-[length:var(--text-title)]">{t("post.removeTitle")}</h2><p className="mt-[var(--space-sm)] text-ink-2">{t("post.removeBody")}</p></div>
       </section>
     </div>
   );
