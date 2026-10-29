@@ -1,9 +1,15 @@
 # Quest Board TPK: agent guide
 
-A free, static noticeboard for tabletop RPG games, run by **The Pandemonium Kollektive** (TPK), Indonesia. Game Masters
-submit games through Google Forms; admins review them on a page of this site; players browse and contact the GM directly
-(WhatsApp, optionally Discord). **No bookings, no payments, no accounts, no server, no database.** English by default,
-Bahasa Indonesia at `/id/`.
+A free noticeboard for tabletop RPG games in Jabodetabek and online, run by **The Pandemonium Kollektive** (TPK), Indonesia.
+Players browse and contact the GM directly (WhatsApp, optionally Discord). **No bookings, no payments.** English by default,
+Bahasa Indonesia at `/id/`. The site itself is a static export.
+
+**Two stacks exist in the repo; check [docs/handoff.md](docs/handoff.md) for which one is live.**
+
+- *Live today:* Game Masters submit through Google Forms, a Sheet and an Apps Script hold the data, admins review on `/admin`.
+- *Built, tested, not deployed (ADR-25):* Cloudflare Pages Functions + D1 + R2 in `worker/` and `functions/`, with email-link accounts
+  (one verified email = one account, one GM profile, many games), self-service edit/mark full/remove/erase, admin review and merge,
+  nightly backups. Going live is [docs/cutover.md](docs/cutover.md) and needs the owner's accounts. **Do not push until the owner says so.**
 
 This is the successor of Quest Board v1 (accounts, booking, payment tracking: repo `addin12/Quest-Board`, tag
 `v1.0-booking`). Don't bring v1's server features back.
@@ -11,6 +17,8 @@ This is the successor of Quest Board v1 (accounts, booking, payment tracking: re
 ## Read before you work on…
 | Task | Read |
 |---|---|
+| Where the project stands, gotchas, open items | [docs/handoff.md](docs/handoff.md) |
+| The new backend (API, data, rules) | [docs/backend.md](docs/backend.md); going live: [docs/cutover.md](docs/cutover.md) |
 | How the parts fit | [docs/architecture.md](docs/architecture.md), then [DECISIONS.md](DECISIONS.md) for why |
 | The Sheet's script | `apps-script/Code.gs` (and its tests: `tests/unit/apps-script.test.ts`) |
 | The forms, their exact question titles | [docs/forms.md](docs/forms.md); options are generated: `npm run form-options` |
@@ -20,11 +28,12 @@ This is the successor of Quest Board v1 (accounts, booking, payment tracking: re
 
 ## Commands
 ```bash
-npm run dev            # builds the data (demo data without TPK_API_URL), then next dev on :3000
+npm run dev            # builds the data (demo data without TPK_API_BASE or TPK_API_URL), then next dev on :3000
 npm run build          # data -> next build (static export to out/) -> fix-export
 npm run preview        # serves out/ like Cloudflare Pages on :4173 ("/" -> "/en/", 404 page)
 npm run typecheck && npm run lint && npm test
-npm run test:e2e       # Playwright against a build with demo data and a fake admin backend (tests/support)
+npm run test:e2e       # Playwright against a build with demo data and the real backend code on a test server (tests/support)
+npm run cloudflare:setup  # owner only: creates D1/R2, writes wrangler.toml and .cloudflare.local.json (use -- --dry first)
 npm run form-options   # rewrite docs/form-options.md and the GENERATED labels in Code.gs after changing genres/styles/systems
 npm run icons          # after editing src/lib/icons.ts
 ```
@@ -66,5 +75,8 @@ npm run icons          # after editing src/lib/icons.ts
 - Tests: unit tests for pure logic and for `Code.gs`; Playwright for the player and admin journeys with Google and the Sheet replaced; a flaky test is a P1 bug; a bug fix gets a regression test.
 - Documentation: README, setup and curation guides, architecture with Mermaid diagrams, DECISIONS.md; examples (`@example`) on helpers whose use isn't obvious.
 
-Not applicable here (no database, accounts, mail server or container): connection pooling, indexes, sessions, rate limits, Docker, off-site backups.
-(The Sheet is the data; Google keeps its version history.)
+The old stack has no database, accounts or mail server of its own (the Sheet is the data; Google keeps its history). The new backend
+does: there, `worker/` follows these rules too: all input validated at the boundary (`worker/src/rules.ts`), only hashes of login and
+session tokens stored, `Origin` checked on every write, rate limits in D1, pictures sniffed from their bytes, only approved pictures
+public, a backup a day, no secret in a log or an error. Every external service (D1, R2, mail, clock, fetch) is injected into `handle()`;
+keep it that way so the node:test world and the Playwright test server run the real code. Not applicable: Docker, connection pooling.
