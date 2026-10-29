@@ -10,7 +10,8 @@ const ROOT = path.join(import.meta.dirname, "..", "out");
 const PORT = Number(process.env.PORT ?? 4173);
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp", ".woff2": "font/woff2", ".ico": "image/x-icon", ".txt": "text/plain", ".xml": "application/xml", ".webmanifest": "application/manifest+json" };
 
-createServer((req, res) => {
+/** Answers one request from out/ (used by the preview server below and by the browser tests' server). */
+export function serveStatic(req, res) {
   const url = new URL(req.url ?? "/", "http://localhost");
   let pathname = decodeURIComponent(url.pathname);
   if (pathname === "/") {
@@ -30,4 +31,8 @@ createServer((req, res) => {
   }
   res.writeHead(status, { "Content-Type": TYPES[path.extname(file)] ?? "application/octet-stream" });
   res.end(readFileSync(file));
-}).listen(PORT, () => console.log(`Quest Board TPK preview: http://localhost:${PORT}`));
+}
+
+if (process.argv[1]?.endsWith("preview.mjs")) {
+  createServer(serveStatic).listen(PORT, () => console.log(`Quest Board TPK preview: http://localhost:${PORT}`));
+}

@@ -5,7 +5,7 @@ import { REASONS, canApprove, countByStatus, filterItems, previewGame, reasonTex
 import { contactMessage, waLink } from "@/lib/contact";
 import { makeT } from "@/lib/i18n/dict";
 import { formatWhen } from "@/lib/format";
-import { driveThumbUrl } from "@/lib/pictures";
+import { adminPictureUrl } from "@/lib/pictures";
 import { STATUSES, type GameRecord, type GmRecord, type Lang, type Status } from "@/lib/types";
 import type { MsgKey, T } from "@/lib/i18n/core";
 import { genreIcon, genreLabelKey, isGenre, isStyle, styleIcon, styleLabelKey } from "@/lib/categories";
@@ -23,13 +23,14 @@ type Props = {
   onFeature: (item: Item, featured: boolean) => void;
   onFull: (item: Item, full: boolean) => void;
   onNote: (item: Item, note: string) => Promise<boolean>;
+  onMerge: (fromId: string, intoId: string) => Promise<boolean>;
 };
 
 const levelIcon = { error: "cross-circle", warn: "triangle-warning", info: "info" } as const;
 const levelClass = { error: "text-danger", warn: "text-gold", info: "text-muted" } as const;
 
 /** The list of submissions (by status, searchable) beside the one being reviewed. */
-export function ReviewPane({ items, nowIso, onReview, onFeature, onFull, onNote }: Props) {
+export function ReviewPane({ items, nowIso, onReview, onFeature, onFull, onNote, onMerge }: Props) {
   const { t, lang } = useI18n();
   const [status, setStatus] = useState<Status>("pending");
   const [q, setQ] = useState("");
@@ -112,7 +113,7 @@ export function ReviewPane({ items, nowIso, onReview, onFeature, onFull, onNote 
         <div className={!selected ? "max-lg:hidden" : ""}>
           {selected ? (
             <Detail key={selected.id} item={selected} nowIso={nowIso} lang={lang} notify={notify} setNotify={setNotify} rejecting={rejecting} setRejecting={setRejecting}
-              onBack={() => select(null)} onDecide={(next, reason) => decide(selected, next, reason)} onFeature={(f) => onFeature(selected, f)} onFull={(v) => onFull(selected, v)} onNote={(n) => onNote(selected, n)} />
+              onBack={() => select(null)} onDecide={(next, reason) => decide(selected, next, reason)} onFeature={(f) => onFeature(selected, f)} onFull={(v) => onFull(selected, v)} onNote={(n) => onNote(selected, n)} onMerge={(from, into) => onMerge(from, into)} />
           ) : (
             <p className="card hidden p-10 text-center text-muted lg:block">{t("admin.pick")}</p>
           )}
@@ -137,9 +138,9 @@ function Row({ item, selected, checkbox, checked, lang, onSelect, onCheck }: { i
       )}
       <button type="button" onClick={onSelect} aria-current={selected ? "true" : undefined} className={`card flex min-w-0 flex-1 items-center gap-3 p-3 text-left transition-colors hover:border-accent/50 ${selected ? "border-accent! bg-accent-soft" : ""}`} data-testid="admin-row">
         {item.kind === "game" ? (
-          <Cover src={item.rec.coverId ? driveThumbUrl(item.rec.coverId, 160) : null} seed={title} className="aspect-[4/5] w-11 shrink-0 rounded-md" sizes="44px" />
+          <Cover src={item.rec.coverId ? adminPictureUrl(item.rec.coverId, 160) : null} seed={title} className="aspect-[4/5] w-11 shrink-0 rounded-md" sizes="44px" />
         ) : (
-          <Avatar name={title} photo={item.rec.photoId ? driveThumbUrl(item.rec.photoId, 120) : null} size={44} />
+          <Avatar name={title} photo={item.rec.photoId ? adminPictureUrl(item.rec.photoId, 120) : null} size={44} />
         )}
         <span className="min-w-0 flex-1">
           <span className="block truncate font-semibold">{title}</span>
@@ -162,9 +163,9 @@ function checkText(c: Check, t: T): string {
   return t(c.key, vars);
 }
 
-function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting, onBack, onDecide, onFeature, onFull, onNote }: {
+function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting, onBack, onDecide, onFeature, onFull, onNote, onMerge }: {
   item: Item; nowIso: string; lang: Lang; notify: boolean; setNotify: (v: boolean) => void; rejecting: boolean; setRejecting: (v: boolean) => void;
-  onBack: () => void; onDecide: (status: Status, reason?: string) => void; onFeature: (featured: boolean) => void; onFull: (full: boolean) => void; onNote: (note: string) => Promise<boolean>;
+  onBack: () => void; onDecide: (status: Status, reason?: string) => void; onFeature: (featured: boolean) => void; onFull: (full: boolean) => void; onNote: (note: string) => Promise<boolean>; onMerge: (fromId: string, intoId: string) => Promise<boolean>;
 }) {
   const { t } = useI18n();
   const rec = item.rec;
@@ -172,6 +173,7 @@ function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting
   const blocked = !canApprove(item);
   const [reasons, setReasons] = useState<Reason[]>([]);
   const [reasonNote, setReasonNote] = useState("");
+  const [confirmId, setConfirmId] = useState("");
   const [note, setNote] = useState(rec.adminNote);
   const [noteSaved, setNoteSaved] = useState(false);
   const gm = item.kind === "game" ? item.gm : item.rec;
@@ -188,7 +190,7 @@ function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting
           {rec.reviewedAt && rec.status !== "pending" && <p className="text-sm text-muted">{t("admin.reviewed", { status: t(`admin.status.${rec.status}` as MsgKey), email: rec.reviewedBy, date: formatWhen(rec.reviewedAt, lang, "WIB") })}</p>}
           {rec.status === "rejected" && rec.rejectReason && <p className="mt-1 text-sm">{rec.rejectReason}</p>}
         </div>
-        <span className={`chip ${rec.status === "approved" ? "border-success/40! bg-success-soft! text-success!" : rec.status === "rejected" ? "border-danger/40! bg-danger-soft! text-danger!" : ""}`} data-testid="detail-status">{t(`admin.status.${rec.status}` as MsgKey)}</span>
+        <span className={`chip ${rec.status === "approved" ? "border-success/40! bg-success-soft! text-ink!" : rec.status === "rejected" ? "border-danger/40! bg-danger-soft! text-ink!" : ""}`} data-testid="detail-status">{t(`admin.status.${rec.status}` as MsgKey)}</span>
       </div>
 
       <section className="mt-5" aria-labelledby="checks-h">
@@ -275,6 +277,24 @@ function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting
         <p className="mt-2 text-sm"><span className="text-muted">{t("admin.emailLabel")}:</span> <a className="break-all underline" href={`mailto:${rec.email}`}>{rec.email}</a></p>
       </section>
 
+      {item.kind === "gm" && (item.rec as GmRecord).sharesPhoneIds?.length ? (
+        <section className="mt-6" aria-labelledby="merge-h" data-testid="merge-box">
+          <h3 id="merge-h" className="text-base font-bold text-ink-2">{t("admin.mergeTitle")}</h3>
+          <ul className="mt-2 space-y-2">
+            {(item.rec as GmRecord).sharesPhoneIds!.map((otherId, i) => {
+              const name = (item.rec as GmRecord).sharesPhoneWith![i] ?? otherId;
+              return (
+                <li key={otherId} className="flex flex-wrap items-center gap-3">
+                  <button type="button" className="btn-secondary" onClick={() => { if (confirmId === otherId) void onMerge(item.id, otherId); else setConfirmId(otherId); }}>
+                    {confirmId === otherId ? t("admin.mergeConfirm", { name }) : t("admin.merge", { name })}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
+
       <section className="mt-6" aria-labelledby="note-h">
         <h3 id="note-h" className="sr-only">{t("admin.noteLabel")}</h3>
         <label htmlFor="admin-note" className="label">{t("admin.noteLabel")}</label>
@@ -320,7 +340,7 @@ function GameDetails({ rec, t, lang }: { rec: GameRecord; t: T; lang: Lang }) {
 function GmDetails({ rec, t }: { rec: GmRecord; t: T }) {
   return (
     <div className="mt-3 flex flex-col gap-4 sm:flex-row">
-      <Avatar name={rec.name || "?"} photo={rec.photoId ? driveThumbUrl(rec.photoId, 240) : null} size={96} />
+      <Avatar name={rec.name || "?"} photo={rec.photoId ? adminPictureUrl(rec.photoId, 240) : null} size={96} />
       <dl className="min-w-0 flex-1 space-y-2 text-sm" data-testid="gm-details">
         <Field label={t("gm.title")}>{rec.name || "–"}</Field>
         <Field label={t("games.city")}>{rec.city || "–"}</Field>

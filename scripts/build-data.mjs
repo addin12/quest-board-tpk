@@ -1,6 +1,7 @@
 // Prepares what the site is built from: src/generated/data.json (+ pictures in public/media/).
 //
-//   TPK_API_URL=https://script.google.com/macros/s/…/exec  npm run data     the real data
+//   TPK_API_BASE=https://quest-board-tpk.pages.dev TPK_BUILD_KEY=…  npm run data     the real data (the Cloudflare backend)
+//   TPK_API_URL=https://script.google.com/macros/s/…/exec  npm run data     the real data (the old Google Sheet script, until the cutover)
 //   npm run data                                                            the demo data (data/sample.json)
 //   TPK_DATA_FILE=data/empty.json  npm run data                             data from a local file (CI builds the day-one empty site)
 //
@@ -17,13 +18,25 @@ import { driveThumbUrl, localPicture } from "../src/lib/pictures.ts";
 
 const ROOT = path.join(import.meta.dirname, "..");
 const API = (process.env.TPK_API_URL ?? "").trim();
+const BASE = (process.env.TPK_API_BASE ?? "").trim().replace(/\/+$/, "");
+const BUILD_KEY = (process.env.TPK_BUILD_KEY ?? "").trim();
 const MEDIA = path.join(ROOT, "public", "media");
 const DAY = 86_400_000;
 
 async function loadRaw() {
   if (process.env.TPK_DATA_FILE) return JSON.parse(readFileSync(path.join(ROOT, process.env.TPK_DATA_FILE), "utf8"));
+  if (BASE) {
+    if (!BUILD_KEY) throw new Error("TPK_API_BASE is set but TPK_BUILD_KEY is not.");
+    const res = await fetch(`${BASE}/api/public?key=${encodeURIComponent(BUILD_KEY)}`, { signal: AbortSignal.timeout(60_000) });
+    if (!res.ok) throw new Error(`The backend answered ${res.status} for ${BASE}/api/public`);
+    try {
+      return await res.json();
+    } catch {
+      throw new Error("The backend did not answer with JSON.");
+    }
+  }
   if (!API) {
-    console.log("[data] TPK_API_URL is not set: using data/sample.json (demo data, dates moved to the present)");
+    console.log("[data] TPK_API_BASE and TPK_API_URL are not set: using data/sample.json (demo data, dates moved to the present)");
     return rebase(JSON.parse(readFileSync(path.join(ROOT, "data", "sample.json"), "utf8")));
   }
   const url = `${API}${API.includes("?") ? "&" : "?"}action=public`;
@@ -47,9 +60,11 @@ function rebase(data) {
 }
 
 async function download(fileId, width) {
+  // Our own bucket (covers/…, photos/…) through the backend with the build key; older rows are Drive files.
+  const url = BASE && /^(?:covers|photos)\//.test(fileId) ? `${BASE}/api/img/${fileId}?key=${encodeURIComponent(BUILD_KEY)}` : driveThumbUrl(fileId, width);
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      const res = await fetch(driveThumbUrl(fileId, width), { redirect: "follow", signal: AbortSignal.timeout(30_000) });
+      const res = await fetch(url, { redirect: "follow", signal: AbortSignal.timeout(30_000) });
       const type = res.headers.get("content-type") ?? "";
       if (res.ok && type.startsWith("image/")) {
         const buf = Buffer.from(await res.arrayBuffer());
@@ -117,7 +132,7 @@ async function main() {
   };
   mkdirSync(path.join(ROOT, "src", "generated"), { recursive: true });
   writeFileSync(path.join(ROOT, "src", "generated", "data.json"), `${JSON.stringify(site, null, 2)}\n`);
-  console.log(`[data] ${site.games.length} games, ${site.gms.length} Game Masters, ${covers.size} covers, ${photos.size} photos${API || process.env.TPK_DATA_FILE ? "" : " (demo data)"}`);
+  console.log(`[data] ${site.games.length} games, ${site.gms.length} Game Masters, ${covers.size} covers, ${photos.size} photos${API || BASE || process.env.TPK_DATA_FILE ? "" : " (demo data)"}`);
 }
 
 main().catch((err) => {

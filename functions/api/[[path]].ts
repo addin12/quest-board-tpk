@@ -2,7 +2,7 @@
 // (see docs/setup.md): DB (D1), IMAGES (R2) and the variables below.
 import { handle } from "../../worker/src/handler.ts";
 import type { Bucket, Db } from "../../worker/src/db.ts";
-import { resendMailer, type Mailer } from "../../worker/src/email.ts";
+import { relayMailer, type Mailer } from "../../worker/src/email.ts";
 
 type Bindings = {
   DB: Db;
@@ -11,12 +11,12 @@ type Bindings = {
   OWNER_EMAIL: string;
   BUILD_KEY: string;
   DEPLOY_HOOK: string;
-  RESEND_API_KEY: string;
-  MAIL_FROM: string;
+  MAIL_RELAY_URL: string;
+  MAIL_SECRET: string;
   TURNSTILE_SECRET: string;
 };
 
-/** Without a mail key (a preview or a local run) the sign-in links are not sent anywhere: nobody can sign in, which is the safe failure. */
+/** Without the relay's address and secret (a preview or a local run) the sign-in links are not sent anywhere: nobody can sign in, which is the safe failure. */
 const silent: Mailer = { send: async () => { throw new Error("mail_not_configured"); } };
 
 export const onRequest = async ({ request, env, waitUntil }: { request: Request; env: Bindings; waitUntil: (p: Promise<unknown>) => void }): Promise<Response> =>
@@ -25,7 +25,7 @@ export const onRequest = async ({ request, env, waitUntil }: { request: Request;
     {
       ctx: {
         db: env.DB,
-        mailer: env.RESEND_API_KEY && env.MAIL_FROM ? resendMailer(env.RESEND_API_KEY, env.MAIL_FROM) : silent,
+        mailer: env.MAIL_RELAY_URL && env.MAIL_SECRET ? relayMailer(env.MAIL_RELAY_URL, env.MAIL_SECRET) : silent,
         now: Date.now,
         siteUrl: env.SITE_URL.replace(/\/$/, ""),
         owner: env.OWNER_EMAIL.trim().toLowerCase(),

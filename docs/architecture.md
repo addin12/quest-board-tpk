@@ -95,5 +95,5 @@ src/components/     UI pieces; admin/ is the curation page
 src/lib/            pure logic (types, data check, filters, contact, checks, admin view), i18n/
 tests/unit/         node:test, including Code.gs run in a sandbox
 tests/e2e/          Playwright, with Google and the Sheet replaced by tests/support/
-data/sample.json    demo data, used when TPK_API_URL is not set
+data/sample.json    demo data, used when neither TPK_API_BASE nor TPK_API_URL is set
 ```

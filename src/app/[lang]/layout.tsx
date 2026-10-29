@@ -77,6 +77,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
               <div className="flex flex-col lg:col-span-3">
                 <p className="font-bold">{t("footer.gms")}</p>
                 <Link href={paths.list(lang)} className="inline-flex min-h-11 items-center text-muted hover:text-ink">{t("nav.list")}</Link>
+                <Link href={paths.account(lang)} className="inline-flex min-h-11 items-center text-muted hover:text-ink">{t("footer.account")}</Link>
                 <Link href={`${paths.how(lang)}#safety`} className="inline-flex min-h-11 items-center text-muted hover:text-ink">{t("footer.safety")}</Link>
               </div>
             </div>

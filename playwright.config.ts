@@ -1,8 +1,7 @@
 import { defineConfig } from "@playwright/test";
 
-// The built site (out/) is served by scripts/preview.mjs, the way Cloudflare Pages serves it. The test build
-// (scripts/e2e-build.mjs) uses the demo data and fake form and sign-in settings; the admin page's Google sign-in
-// and Sheet script are replaced in each test (tests/support/admin-stubs.ts).
+// The built site (out/) is served, with the REAL backend under /api (worker/src, on an in-memory database), by tests/support/test-server.ts.
+// The test build (scripts/e2e-build.mjs) uses the demo data. Each test makes its own world (database, bucket, mailbox, clock).
 const PORT = 4174;
 // The installed Edge locally (no download), Playwright's bundled Chromium on CI.
 const CHROMIUM = process.env.PW_CHANNEL || (process.env.CI ? undefined : "msedge");
@@ -21,7 +20,7 @@ export default defineConfig({
     { name: "webkit", use: { browserName: "webkit" }, testMatch: /public\.spec\.ts/ },
   ],
   webServer: {
-    command: "node scripts/e2e-build.mjs && node scripts/preview.mjs",
+    command: "node scripts/e2e-build.mjs && node --conditions=react-server --import ./tests/loader.mjs tests/support/test-server.ts",
     env: { PORT: String(PORT) },
     url: `http://localhost:${PORT}/en/`,
     reuseExistingServer: false,

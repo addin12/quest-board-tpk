@@ -12,7 +12,7 @@ const MAX_GMS = 300;
 const SLUG = /^[a-z0-9][a-z0-9-]{2,80}$/;
 const ID = /^[a-z0-9][a-z0-9-]{3,40}$/;
 /** A Drive file id, or a path inside this project (`local:/images/…`, for the sample data only). */
-const PICTURE = /^(?:[A-Za-z0-9_-]{10,100}|local:\/[A-Za-z0-9/_.-]{1,120})$/;
+const PICTURE = /^(?:[A-Za-z0-9_-]{10,100}|(?:covers|photos)\/[a-z0-9]{8,40}\.(?:webp|jpg|png)|local:\/[A-Za-z0-9/_.-]{1,120})$/;
 
 const asRecord = (v: unknown): Record<string, unknown> | null => (v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null);
 

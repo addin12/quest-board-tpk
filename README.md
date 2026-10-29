@@ -78,11 +78,11 @@ Everything is read when the site is built. Without any of them the site builds w
 
 | Variable | Used for |
 |---|---|
-| `TPK_API_URL` | The Apps Script web app plus the secret build key (`…/exec?key=…`): where the build gets the real data. Unset = demo data. |
+| `TPK_API_BASE`, `TPK_BUILD_KEY` | The site's own address and the secret build key: where the build gets the real data and pictures from the Cloudflare backend (`/api/public`). Both unset = demo data. Never `NEXT_PUBLIC_`. |
+| `TPK_API_URL` | The old Apps Script web app plus build key (`…/exec?key=…`), used until the cutover to the Cloudflare backend. |
 | `NEXT_PUBLIC_SITE_URL` | The site's address (sitemap, canonical links, emails). |
-| `NEXT_PUBLIC_GM_FORM_URL`, `NEXT_PUBLIC_GAME_FORM_URL` | The two forms' public links, for the "List your game" page. |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Cloudflare Turnstile's public site key (the robot check on the sign-in form). Empty = no check. |
 | `NEXT_PUBLIC_REPORT_URL` | Optional: where players can report a listing. |
-| `NEXT_PUBLIC_ADMIN_API_URL`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | The admin page's API and Google sign-in. |
 
 A full walk-through, with the Google and Cloudflare steps: [docs/setup.md](docs/setup.md).
 

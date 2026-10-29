@@ -280,3 +280,60 @@ test("the health check needs the build key and reports counts only", async () =>
   const h = await w.call("GET", `/health?key=${BUILD_KEY}`);
   assert.deepEqual(h.json, { ok: true, accounts: 0, profiles: 0, games: 0, admins: 0, deployConfigured: true });
 });
+
+test("the mail relay is called with the secret; an error from it is an error here", async () => {
+  const { relayMailer } = await import("../../worker/src/email.ts");
+  const seen: any[] = [];
+  const good = relayMailer("https://script.example/exec", "sekret", (async (url: string, init: any) => { seen.push([url, JSON.parse(init.body)]); return new Response(JSON.stringify({ ok: true })); }) as unknown as typeof fetch);
+  await good.send({ to: "a@example.com", subject: "S", body: "B" });
+  assert.deepEqual(seen[0], ["https://script.example/exec", { action: "mail", secret: "sekret", to: "a@example.com", subject: "S", body: "B" }]);
+  const bad = relayMailer("https://script.example/exec", "x", (async () => new Response(JSON.stringify({ ok: false, error: "quota" }))) as unknown as typeof fetch);
+  await assert.rejects(bad.send({ to: "a@example.com", subject: "S", body: "B" }), /quota/);
+});
+
+test("the daily job: backs up everything to the bucket, keeps two weeks, rebuilds, and clears old sign-ins", async () => {
+  const w = makeWorld();
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  const { daily } = await import("../../worker/src/handler.ts");
+  await daily(w.env);
+  const keys = w.bucket.keys();
+  assert.deepEqual([...keys].sort(), ["backups/2026-10-28-games.csv", "backups/2026-10-28-profiles.csv", "backups/2026-10-28.json"]);
+  const snap = JSON.parse(new TextDecoder().decode((await w.bucket.get("backups/2026-10-28.json"))!.body as ArrayBuffer));
+  const csv = new TextDecoder().decode((await w.bucket.get("backups/2026-10-28-profiles.csv"))!.body as ArrayBuffer);
+  assert.match(csv, /^"id","account_id"/);
+  assert.ok(csv.includes('"raka@example.com"'), "the owner's copy has the email, the public data never does");
+  assert.equal(snap.tables.profiles.length, 1);
+  assert.equal(snap.tables.accounts[0].email, "raka@example.com");
+  for (let d = 1; d <= 16; d++) { w.clock.ms += 86_400_000; await daily(w.env); }
+  assert.equal(w.bucket.keys().length, 45, "two weeks and today, three files a day");
+  assert.equal(w.bucket.keys().includes("backups/2026-10-28.json"), false, "the oldest is gone");
+  assert.ok(w.hook.length >= 1, "the daily job asks for a build");
+});
+
+test("the CSV copy quotes everything and defuses spreadsheet formulas", async () => {
+  const { toCsv } = await import("../../worker/src/backup.ts");
+  assert.equal(toCsv([{ a: 'say "hi"', b: "=HYPERLINK(1)", c: "+1", d: "plain, text", e: null }]), '"a","b","c","d","e"\r\n"say ""hi""","\'=HYPERLINK(1)","\'+1","plain, text",""\r\n');
+  assert.equal(toCsv([]), "");
+});
+
+test("the timers: only the build key may call /cron; tick sends a waiting build, daily backs up", async () => {
+  const w = makeWorld();
+  assert.equal((await w.call("POST", "/cron?job=tick", { origin: null })).status, 403);
+  assert.equal((await w.call("POST", `/cron?job=tick&key=wrong`, { origin: null })).status, 403);
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  const profileId = (await w.call("GET", "/me", { cookie: gm })).json.profile.id as string;
+  const admin = await w.signIn(OWNER);
+  const flip = (status: string) => w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "gm", ids: [profileId], status } });
+  await flip("approved");
+  await flip("rejected");
+  assert.equal(w.hook.length, 1, "the second change waits");
+  w.clock.ms += MIN_GAP_MS + 1000;
+  const tick = await w.call("POST", `/cron?job=tick&key=${BUILD_KEY}`, { origin: null });
+  assert.deepEqual([tick.status, tick.json.result], [200, "sent"]);
+  assert.equal(w.hook.length, 2);
+  const daily = await w.call("POST", `/cron?job=daily&key=${BUILD_KEY}`, { origin: null });
+  assert.equal(daily.status, 200);
+  assert.ok(w.bucket.keys().some((k) => k.startsWith("backups/")));
+});

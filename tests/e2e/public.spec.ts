@@ -78,10 +78,10 @@ test("a GM's profile lists their games and both ways to reach them", async ({ pa
   await expect(page.getByRole("link", { name: "Open Discord invite" })).toHaveAttribute("href", "https://discord.gg/sampleinvite");
 });
 
-test("the list-your-game page sends GMs to the two forms", async ({ page }) => {
+test("the list-your-game page sends GMs to the account page, and the report link is shown", async ({ page }) => {
   await page.goto("/en/list-your-game/");
-  await expect(page.getByRole("link", { name: /Open the GM profile form/ })).toHaveAttribute("href", "https://forms.example/gm-profile");
-  await expect(page.getByRole("link", { name: /Open the game form/ })).toHaveAttribute("href", "https://forms.example/game");
+  await expect(page.getByRole("link", { name: "Sign in and start" })).toHaveAttribute("href", "/en/account/");
+  await expect(page.getByRole("link", { name: "Add your game" })).toHaveAttribute("href", "/en/account/");
   await expect(page.getByText("Your email address is never shown.")).toBeVisible();
   await page.goto("/en/games/mercusuar-di-pulau-kabut-0m01/");
   await expect(page.getByRole("link", { name: /Report this listing/ })).toHaveAttribute("href", "https://forms.example/report");

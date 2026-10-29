@@ -1,8 +1,10 @@
 # The Cloudflare backend (D1 + R2)
 
-Replaces Google Forms, the Google Sheet and Apps Script (ADR-25). **Phase 1 is written and tested; nothing is deployed yet
-and the live site still runs on the Sheet.** Everything lives in `worker/` and one Pages Function, `functions/api/[[path]].ts`,
-which only wires the bindings to `handle()` in `worker/src/handler.ts`.
+Replaces Google Forms, the Google Sheet and Apps Script (ADR-25). **It is built and tested (73 unit and 178 browser tests, run against
+the real code on an in-memory SQLite database) but not deployed: going live is [cutover.md](cutover.md).** Everything lives in
+`worker/` and one Pages Function, `functions/api/[[path]].ts`, which only wires the bindings to `handle()` in `worker/src/handler.ts`.
+The site's side is `src/app/[lang]/account/` (sign-in, profile, games), `src/components/account/`, and the admin page, which now
+signs in the same way and calls `/api/admin`.
 
 ## Data (D1)
 
@@ -40,17 +42,19 @@ any number of **games**. Also: `admins`, `activity` (the audit trail), `login_to
 Every write needs the site's own `Origin` and JSON. Sign-in and uploads are rate-limited in D1. Deploys are coalesced: at most one
 build per two minutes however many changes arrive, plus one forced build a day (`daily`).
 
-## Setting it up (you do this once; I cannot reach your Cloudflare account)
+## Also in the API
 
-1. `npx wrangler login`, then `npx wrangler d1 create quest-board` and `npx wrangler r2 bucket create quest-board-images`.
-2. `npx wrangler d1 migrations apply quest-board --remote` (from `worker/`, pointing at `migrations/`).
-3. Cloudflare Pages project → Settings → Bindings: D1 `DB`, R2 `IMAGES`.
-4. Variables and secrets: `SITE_URL`, `OWNER_EMAIL`, `BUILD_KEY`, `DEPLOY_HOOK`, `MAIL_FROM`, secrets `RESEND_API_KEY`, `TURNSTILE_SECRET`.
-5. A free [Resend](https://resend.com) account with a verified sender, and a Turnstile site key.
+| Call | Who | Does |
+|---|---|---|
+| `POST /cron?job=tick\|daily&key=` | the timers (`.github/workflows/cron.yml`) | tick sends a waiting build; daily backs up to R2 (JSON of every table, plus games and profiles as CSV, kept 14 days), tidies sign-ins, rebuilds |
 
-## Not built yet (phases 2 and 3)
+## What the tests cover
 
-Phase 2: the site's pages (sign-in, "my account" with the profile and games forms, shrink-and-upload of pictures, the Turnstile
-widget), the admin page switched to this API, and `scripts/build-data.mjs` reading `/api/public` and `/api/img/…`.
-Phase 3: importing the existing GMs and games, a nightly CSV export to a second place, the cron Worker, the cutover and the
-shutdown of Forms and the script.
+`tests/unit/worker.test.ts` (the API through its HTTP handler: accounts, limits, review, self-service, pictures, builds, backups, timers) and
+`tests/e2e/{account,admin}.spec.ts` (the real built pages against the real backend: `tests/support/test-server.ts` gives every test its own
+database, bucket, mailbox and clock).
+
+## Not proven
+
+Never run against a real Cloudflare account, a real Resend or Apps Script relay, or real Turnstile: those parts are thin wiring
+(`functions/api/[[path]].ts`, `worker/src/email.ts`, `verifyTurnstile`, `scripts/cloudflare-setup.mjs`). Check them first when going live.

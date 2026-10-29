@@ -478,3 +478,14 @@ test("a game row with unreadable parts still loads, with the problem visible as 
   assert.equal(rec.venueMapsRaw, "https://evil.example/x");
   assert.equal(rec.priceIdr, 0);
 });
+
+test("the mail relay: off until it has a secret, and only for the right secret, one plain address and a message", () => {
+  const send = (req: object, secret = "s".repeat(40), sent = 0) => plain<any>(ctx.mailRequest_(req, secret, sent));
+  const ok = { secret: "s".repeat(40), to: "Raka@Example.com", subject: "Hi\nthere", body: "Link: https://x.example" };
+  assert.deepEqual(send(ok), { to: "raka@example.com", subject: "Hi there", body: "Link: https://x.example" });
+  assert.equal(send(ok, "__MAIL_SECRET__").error, "mail_not_configured", "the placeholder keeps the relay off");
+  assert.equal(send({ ...ok, secret: "wrong" }).error, "unauthorized");
+  assert.equal(send({ ...ok, to: "a@example.com,b@example.com" }).error, "bad_request", "one recipient only");
+  assert.equal(send({ ...ok, body: "" }).error, "bad_request");
+  assert.equal(send(ok, "s".repeat(40), 90).error, "quota");
+});

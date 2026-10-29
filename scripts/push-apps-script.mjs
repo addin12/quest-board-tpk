@@ -8,6 +8,7 @@
 // https://script.google.com/home/usersettings, and write the two ids to .apps-script.local.json (not committed):
 //   { "scriptId": "<Project Settings > Script ID>", "deploymentId": "<clasp list-deployments: the one that is not @HEAD>" }
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { randomBytes } from "node:crypto";
 import { execSync } from "node:child_process";
 import path from "node:path";
 
@@ -39,6 +40,15 @@ function main() {
   try {
     mkdirSync(stage, { recursive: true });
     for (const f of ["Code.gs", "appsscript.json"]) copyFileSync(path.join(ROOT, "apps-script", f), path.join(stage, f));
+    // The mail relay's secret lives only in the pushed copy and in .apps-script.local.json (git-ignored), never in the repo.
+    const local = JSON.parse(readFileSync(configPath, "utf8"));
+    if (typeof local.mailSecret !== "string" || local.mailSecret.length < 32) {
+      local.mailSecret = randomBytes(32).toString("base64url");
+      if (!dry) writeFileSync(configPath, JSON.stringify(local, null, 2) + "\n");
+    }
+    const code = readFileSync(path.join(stage, "Code.gs"), "utf8");
+    if (!code.includes("'__MAIL_SECRET__'")) throw new Error("Code.gs has lost the MAIL_SECRET placeholder.");
+    writeFileSync(path.join(stage, "Code.gs"), code.replace("'__MAIL_SECRET__'", JSON.stringify(local.mailSecret)));
     writeFileSync(path.join(stage, ".clasp.json"), JSON.stringify({ scriptId, rootDir: "." }));
     console.log(`Staged Code.gs and appsscript.json for the script ending …${scriptId.slice(-6)}.`);
     if (dry) return console.log("Dry run: nothing was pushed.");

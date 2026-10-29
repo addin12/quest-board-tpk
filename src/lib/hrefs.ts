@@ -11,6 +11,7 @@ export const paths = {
   how: (l: Lang) => `/${l}/how-it-works/`,
   list: (l: Lang) => `/${l}/list-your-game/`,
   admin: (l: Lang) => `/${l}/admin/`,
+  account: (l: Lang) => `/${l}/account/`,
 };
 
 /** The same page in the other language: "/en/games/x/" -> "/id/games/x/". */
@@ -18,5 +19,5 @@ export function switchLang(pathname: string, to: Lang): string {
   return /^\/(en|id)(\/|$)/.test(pathname) ? pathname.replace(/^\/(en|id)/, `/${to}`) : `/${to}/`;
 }
 
-/** The smaller copy of a cover the build made (cards use it); covers that ship with the project have only one size. */
-export const smallCover = (cover: string): string => cover.replace(/\.webp$/, "-sm.webp");
+/** The smaller copy of a cover the build made (cards use it); covers that ship with the project, and the admin page's previews straight from the backend, have only one size. */
+export const smallCover = (cover: string): string => (cover.startsWith("/media/") ? cover.replace(/\.webp$/, "-sm.webp") : cover);

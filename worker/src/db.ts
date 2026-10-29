@@ -18,6 +18,7 @@ export interface Bucket {
   put(key: string, value: ArrayBuffer, options?: { httpMetadata?: { contentType?: string } }): Promise<unknown>;
   get(key: string): Promise<{ body: ReadableStream | ArrayBuffer; httpMetadata?: { contentType?: string } } | null>;
   delete(key: string): Promise<void>;
+  list(options: { prefix: string }): Promise<{ objects: { key: string }[] }>;
 }
 
 export const one = <T>(db: Db, sql: string, ...values: unknown[]): Promise<T | null> => db.prepare(sql).bind(...values).first<T>();

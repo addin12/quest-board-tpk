@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Notice } from "@/components/ui";
+import Link from "next/link";
 import { makeT } from "@/lib/i18n/dict";
-import { GAME_FORM_URL, GM_FORM_URL } from "@/lib/site";
+import { paths } from "@/lib/hrefs";
 import { languageAlternates } from "@/lib/seo";
 import { isLang } from "@/lib/types";
 
@@ -18,18 +18,13 @@ export default async function ListYourGamePage({ params }: PageProps<"/[lang]/li
   if (!isLang(lang)) notFound();
   const t = makeT(lang);
 
-  const button = (url: string, label: string, primary: boolean) =>
-    url ? (
-      <a href={url} target="_blank" rel="noopener noreferrer" className={primary ? "btn btn-primary" : "btn btn-secondary"}>
-        {label} <span className="sr-only">{t("a11y.opensNewTab")}</span>
-      </a>
-    ) : (
-      <span className="btn btn-secondary pointer-events-none opacity-60" aria-disabled="true">{label}</span>
-    );
+  const button = (label: string, primary: boolean) => (
+    <Link href={paths.account(lang)} className={primary ? "btn btn-primary" : "btn btn-secondary"}>{label}</Link>
+  );
 
   const steps = [
-    { title: t("post.step1Title"), body: t("post.step1Body"), action: button(GM_FORM_URL, t("post.step1Button"), true) },
-    { title: t("post.step2Title"), body: t("post.step2Body"), action: button(GAME_FORM_URL, t("post.step2Button"), true) },
+    { title: t("post.step1Title"), body: t("post.step1Body"), action: button(t("post.step1Button"), true) },
+    { title: t("post.step2Title"), body: t("post.step2Body"), action: button(t("post.step2Button"), true) },
     { title: t("post.step3Title"), body: t("post.step3Body"), action: null },
   ];
 
@@ -37,7 +32,6 @@ export default async function ListYourGamePage({ params }: PageProps<"/[lang]/li
     <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-2xl)]">
       <h1 className="max-w-none text-[length:var(--text-display-s)]">{t("post.title")}</h1>
       <p className="lead mt-[var(--space-sm)] text-ink-2">{t("post.lead")}</p>
-      {(!GM_FORM_URL || !GAME_FORM_URL) && <div className="mt-[var(--space-lg)] max-w-2xl"><Notice tone="warn">{t("post.notConnected")}</Notice></div>}
 
       <div className="mt-[var(--space-2xl)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-2xl)] lg:grid-cols-12">
       <ol className="ruled lg:col-span-7">

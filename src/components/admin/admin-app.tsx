@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ApiError, adminConfigured, api, readToken, signOutGoogle, storeToken, storedToken } from "@/lib/admin-api";
+import { ApiError, api, signOutSession, whoami } from "@/lib/admin-api";
 import { buildItems, siteBehind, titleOf, whenLabel, type Item } from "@/lib/admin-view";
 import type { MsgKey } from "@/lib/i18n/core";
 import type { AdminEntry, AdminFields, DeployInfo, QueueResponse, Status } from "@/lib/types";
@@ -10,21 +10,20 @@ import { useI18n } from "../i18n-provider";
 import { Notice } from "../ui";
 import { AdminsPane } from "./admins-pane";
 import { ReviewPane } from "./review-pane";
-import { SignIn } from "./sign-in";
+import { EmailSignIn } from "../account/email-sign-in";
 
 type Phase = "init" | "signedOut" | "loading" | "forbidden" | "ready" | "error";
 type Toast = { id: number; text: string; undo?: () => void };
 type Tab = "games" | "gms" | "admins";
 
 /**
- * The curation page. It signs in with Google, loads the queue from the Sheet's script, and sends each decision back
- * (the change shows at once and is undone if the script refuses). Nothing is stored in this browser except the
- * sign-in token, for as long as the tab is open.
+ * The curation page. Admins sign in with an emailed link like everyone else; this loads the queue from the backend and sends each
+ * decision back (the change shows at once and is undone if the backend refuses).
  */
 export function AdminApp({ builtAt }: { builtAt: string }) {
   const { t, lang } = useI18n();
   const [phase, setPhase] = useState<Phase>("init");
-  const [token, setToken] = useState<string | null>(null);
+  const [signedIn, setSignedIn] = useState(false);
   const [email, setEmail] = useState("");
   const [expired, setExpired] = useState(false);
   const [queue, setQueue] = useState<QueueResponse | null>(null);
@@ -41,9 +40,8 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
   }, []);
 
   const signOut = useCallback((wasExpired = false) => {
-    storeToken(null);
-    signOutGoogle();
-    setToken(null);
+    void signOutSession();
+    setSignedIn(false);
     setQueue(null);
     setExpired(wasExpired);
     setPhase("signedOut");
@@ -51,12 +49,12 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
 
   const call = useCallback(async <T,>(action: string, body: Record<string, unknown> = {}): Promise<T> => {
     try {
-      return await api<T>(token ?? "", action, body);
+      return await api<T>(action, body);
     } catch (e) {
       if (e instanceof ApiError && e.code === "unauthorized") signOut(true);
       throw e;
     }
-  }, [token, signOut]);
+  }, [signOut]);
 
   const load = useCallback(async () => {
     try {
@@ -75,20 +73,19 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
     }
   }, [call, email]);
 
-  // First load: a token from this tab's earlier sign-in, if it is still valid.
+  // First load: is there a session (the cookie is HttpOnly, so ask the backend)?
   useEffect(() => {
-    const stored = storedToken();
-    if (stored && adminConfigured()) {
-      setToken(stored); // eslint-disable-line react-hooks/set-state-in-effect -- sessionStorage is only readable in the browser
-      setEmail(readToken(stored)?.email ?? "");
-      setPhase("loading");
-    } else setPhase("signedOut");
+    void whoami().then((w) => {
+      if (w.state === "admin") { setEmail(w.email); setSignedIn(true); setPhase("loading"); }
+      else if (w.state === "notAdmin") { setEmail(w.email); setSignedIn(true); setPhase("forbidden"); }
+      else setPhase(w.state === "out" ? "signedOut" : "error");
+    });
   }, []);
 
   useEffect(() => {
-    if (token) void load(); // eslint-disable-line react-hooks/set-state-in-effect -- loads the queue once signed in
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the token changes
-  }, [token]);
+    if (signedIn && phase === "loading") void load(); // eslint-disable-line react-hooks/set-state-in-effect -- loads the queue once signed in
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the phase becomes loading
+  }, [signedIn, phase === "loading"]);
 
   // Fresh data every minute while the tab is on screen (a GM may have submitted, another admin may have decided).
   useEffect(() => {
@@ -96,14 +93,6 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
     const id = window.setInterval(() => { if (document.visibilityState === "visible") void load(); }, 60_000);
     return () => window.clearInterval(id);
   }, [phase, load]);
-
-  const onToken = useCallback((credential: string) => {
-    storeToken(credential);
-    setEmail(readToken(credential)?.email ?? "");
-    setExpired(false);
-    setPhase("loading");
-    setToken(credential);
-  }, []);
 
   const items = useMemo(() => (queue ? buildItems(queue.games, queue.gms, now) : { games: [], gms: [] }), [queue, now]);
 
@@ -171,6 +160,17 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
     }
   }
 
+  async function merge(fromId: string, intoId: string): Promise<boolean> {
+    try {
+      await call("merge", { fromId, intoId });
+      await load();
+      return true;
+    } catch (e) {
+      say(t("admin.toast.error", { error: e instanceof ApiError ? e.code : "error" }));
+      return false;
+    }
+  }
+
   async function addAdmin(address: string): Promise<string | null> {
     try {
       const r = await call<{ admins: AdminEntry[] }>("admin.add", { email: address });
@@ -213,7 +213,7 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
           <h1 className="text-3xl font-bold">{t("admin.title")}</h1>
           <p className="mt-1 max-w-2xl text-muted">{t("admin.lead")}</p>
         </div>
-        {token && phase !== "signedOut" && (
+        {signedIn && phase !== "signedOut" && (
           <p className="flex flex-wrap items-center gap-2 text-sm">
             <span className="text-muted">{t("admin.signedInAs", { email })}</span>
             <button type="button" className="btn-secondary" onClick={() => signOut()}><Icon name="sign-out-alt" /> {t("admin.signOut")}</button>
@@ -221,8 +221,12 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
         )}
       </div>
 
-      {!adminConfigured() && <div className="mt-6"><Notice tone="warn">{t("admin.notConfigured")}</Notice></div>}
-      {adminConfigured() && phase === "signedOut" && <SignIn expired={expired} onToken={onToken} />}
+      {phase === "signedOut" && (
+        <div className="mt-10">
+          {expired && <div className="mb-6 max-w-xl"><Notice tone="warn">{t("admin.sessionExpired")}</Notice></div>}
+          <EmailSignIn heading={t("admin.signInTitle")} lead={t("admin.signInBody")} />
+        </div>
+      )}
       {phase === "loading" && <p className="mt-10 text-center text-muted" role="status">{t("common.loading")}</p>}
       {phase === "forbidden" && (
         <div className="card mx-auto mt-10 max-w-lg p-8">
@@ -251,8 +255,8 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
             </div>
             <button type="button" className="btn-ghost ml-auto" onClick={() => void load()}><Icon name="refresh" /> {t("admin.refresh")}</button>
           </div>
-          {tab === "games" && <ReviewPane key="games" items={items.games} nowIso={queue.now} onReview={review} onFeature={feature} onFull={markFull} onNote={saveNote} />}
-          {tab === "gms" && <ReviewPane key="gms" items={items.gms} nowIso={queue.now} onReview={review} onFeature={feature} onFull={markFull} onNote={saveNote} />}
+          {tab === "games" && <ReviewPane key="games" items={items.games} nowIso={queue.now} onReview={review} onFeature={feature} onFull={markFull} onNote={saveNote} onMerge={merge} />}
+          {tab === "gms" && <ReviewPane key="gms" items={items.gms} nowIso={queue.now} onReview={review} onFeature={feature} onFull={markFull} onNote={saveNote} onMerge={merge} />}
           {tab === "admins" && <AdminsPane admins={queue.admins} owner={queue.owner} me={email} onAdd={addAdmin} onRemove={removeAdmin} />}
         </>
       )}

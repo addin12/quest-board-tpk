@@ -25,11 +25,11 @@ export const profileOf = (ctx: Ctx, accountId: string) => one<ProfileRow>(ctx.db
 
 // ── Rows to the shapes the site and the admin page already use ────────────────────────────────────────────────────────
 
-export function gmRecord(p: ProfileRow, email: string, sharesPhoneWith: string[] = []): GmRecord & { sharesPhoneWith: string[] } {
+export function gmRecord(p: ProfileRow, email: string, shares: { id: string; name: string }[] = []): GmRecord {
   return {
     kind: "gm", id: p.id, slug: p.slug, status: p.status, featured: false, full: false, adminNote: p.admin_note, reviewedBy: p.reviewed_by, reviewedAt: p.reviewed_at,
     rejectReason: p.reject_reason, superseded: false, submittedAt: p.created_at, email, row: p.rowid ?? 0,
-    name: p.name, bio: p.bio, city: p.city, systems: parseList(p.systems), whatsapp: p.whatsapp, discord: p.discord, photoId: p.photo_key, consent: p.consent === 1, sharesPhoneWith,
+    name: p.name, bio: p.bio, city: p.city, systems: parseList(p.systems), whatsapp: p.whatsapp, discord: p.discord, photoId: p.photo_key, consent: p.consent === 1, sharesPhoneWith: shares.map((s) => s.name), sharesPhoneIds: shares.map((s) => s.id),
   };
 }
 

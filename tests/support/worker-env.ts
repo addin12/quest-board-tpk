@@ -42,6 +42,7 @@ export function memoryBucket(): Bucket & { keys(): string[] } {
     put: async (key, value, options) => { files.set(key, { data: value, type: options?.httpMetadata?.contentType ?? "" }); },
     get: async (key) => { const f = files.get(key); return f ? { body: f.data, httpMetadata: { contentType: f.type } } : null; },
     delete: async (key) => { files.delete(key); },
+    list: async ({ prefix }) => ({ objects: [...files.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key })) }),
     keys: () => [...files.keys()],
   };
 }
@@ -70,12 +71,12 @@ export function makeWorld(startMs = Date.parse("2026-10-28T03:00:00Z")) {
   /** One API call as a browser on the site would make it; `cookie` is the session cookie value. */
   async function call(method: string, path: string, init: { body?: unknown; cookie?: string; origin?: string | null; raw?: ArrayBuffer; type?: string } = {}) {
     const headers: Record<string, string> = {};
-    if (init.origin !== null) headers.Origin = init.origin ?? SITE;
+    if (init.origin !== null) headers.Origin = init.origin ?? env.ctx.siteUrl;
     if (init.cookie) headers.Cookie = `tpk_session=${init.cookie}`;
     let body: BodyInit | undefined;
     if (init.raw) { body = init.raw; headers["Content-Type"] = init.type ?? "image/webp"; }
     else if (init.body !== undefined) { body = JSON.stringify(init.body); headers["Content-Type"] = "application/json"; }
-    const res = await handle(new Request(`${SITE}/api${path}`, { method, headers, body }), env, (p) => pending.push(p));
+    const res = await handle(new Request(`${env.ctx.siteUrl}/api${path}`, { method, headers, body }), env, (p) => pending.push(p));
     await Promise.all(pending.splice(0));
     const text = await res.text();
     let json: any = null;

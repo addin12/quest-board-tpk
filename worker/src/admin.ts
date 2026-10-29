@@ -30,7 +30,7 @@ export async function queue(ctx: Ctx, deployConfigured: boolean) {
     ok: true as const,
     now: iso(ctx.now()),
     games: games.map((g) => gameRecord(g, g.email)),
-    gms: gms.map((p) => gmRecord(p, p.email, (byPhone.get(p.whatsapp) ?? []).filter((o) => o.id !== p.id).map((o) => o.name))),
+    gms: gms.map((p) => gmRecord(p, p.email, (byPhone.get(p.whatsapp) ?? []).filter((o) => o.id !== p.id).map((o) => ({ id: o.id, name: o.name })))),
     admins,
     owner: ctx.owner,
     deploy: await deployInfo(ctx, deployConfigured),

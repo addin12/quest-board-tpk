@@ -958,6 +958,27 @@ function safeEqual_(a, b) {
   return diff === 0;
 }
 
+/**
+ * The mail relay for the Cloudflare backend: it has no domain to send from, so it asks this script to send its sign-in links and
+ * decisions from the owner's Gmail. The secret is put into the pushed copy by scripts/push-apps-script.mjs (never committed);
+ * with the placeholder still in place the relay is off.
+ */
+const MAIL_SECRET = '__MAIL_SECRET__';
+const MAIL_DAILY_LIMIT = 90;
+
+/** Checks one relay request; returns the mail to send, or { error }. Pure: the sending itself is in doPost. */
+function mailRequest_(req, secret, sentToday) {
+  if (!secret || secret.indexOf('__') === 0) return { error: 'mail_not_configured' };
+  if (!safeEqual_(req.secret, secret)) return { error: 'unauthorized' };
+  const to = str_(req.to).toLowerCase();
+  if (!/^[^\s@,;<>"']+@[^\s@,;<>"']+\.[a-z]{2,}$/.test(to) || to.length > 254) return { error: 'bad_request' };
+  const subject = clip_(req.subject, 200).replace(/[\r\n]+/g, ' ');
+  const body = clip_(req.body, 5000);
+  if (!subject || !body) return { error: 'bad_request' };
+  if (sentToday >= MAIL_DAILY_LIMIT) return { error: 'quota' };
+  return { to: to, subject: subject, body: body };
+}
+
 /** The public data for the website build: GET <web app url>?action=public&key=<BUILD_KEY> */
 /** Whether the request carries the build key. No key set means closed, not open. */
 function buildKeyOk_(e) {
@@ -1028,6 +1049,22 @@ function doPost(e) {
     req = JSON.parse(e.postData.contents);
   } catch (err) {
     return json_(fail_('bad_request'));
+  }
+  if (req && req.action === 'mail') {
+    const props = PropertiesService.getScriptProperties();
+    const today = Utilities.formatDate(new Date(), 'Etc/UTC', 'yyyy-MM-dd');
+    const counter = (props.getProperty('MAIL_DAY') || '').split(':');
+    const sent = counter[0] === today ? Number(counter[1]) || 0 : 0;
+    const m = mailRequest_(req, MAIL_SECRET, sent);
+    if (m.error) return json_(fail_(m.error));
+    props.setProperty('MAIL_DAY', today + ':' + (sent + 1));
+    try {
+      MailApp.sendEmail({ to: m.to, subject: m.subject, body: m.body, name: 'Quest Board TPK' });
+    } catch (err) {
+      console.error(err);
+      return json_(fail_('mail_failed'));
+    }
+    return json_({ ok: true });
   }
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);

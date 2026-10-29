@@ -22,16 +22,21 @@ export interface Mailer {
   send(mail: Mail): Promise<void>;
 }
 
-/** Resend's HTTP API (https://resend.com/docs/api-reference/emails/send-email). `from` must be a verified sender. */
-export function resendMailer(apiKey: string, from: string, fetcher: typeof fetch = fetch): Mailer {
+/**
+ * Sends through the Apps Script web app (its "mail" action), which mails from the owner's Gmail: there is no domain of our own to
+ * send from. The secret is shared with the script (scripts/push-apps-script.mjs puts it there). The script answers JSON after a redirect.
+ */
+export function relayMailer(url: string, secret: string, fetcher: typeof fetch = fetch): Mailer {
   return {
     async send(mail) {
-      const res = await fetcher("https://api.resend.com/emails", {
+      const res = await fetcher(url, {
         method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ from, to: [mail.to], subject: mail.subject, text: mail.body }),
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "mail", secret, to: mail.to, subject: mail.subject, body: mail.body }),
+        redirect: "follow",
       });
-      if (!res.ok) throw new Error(`mail_failed_${res.status}`);
+      const answer = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+      if (!res.ok || answer.ok !== true) throw new Error(`mail_failed_${answer.error ?? res.status}`);
     },
   };
 }

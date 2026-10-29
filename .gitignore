@@ -30,3 +30,6 @@ Thumbs.db
 
 # Hallmark's local lint records and screenshots
 .hallmark/
+
+# The backend's generated keys (scripts/cloudflare-setup.mjs)
+.cloudflare.local.json

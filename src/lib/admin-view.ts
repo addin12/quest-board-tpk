@@ -1,7 +1,7 @@
 // What the admin page shows, worked out from the script's queue: each submission with its checks, who its GM is,
 // the lists by status, the search, and the wording of a rejection. Pure module, so it is tested without a browser.
 import { checkGame, checkGm, hasErrors, type Check } from "./checks.ts";
-import { driveThumbUrl } from "./pictures.ts";
+import { adminPictureUrl } from "./pictures.ts";
 import type { GameView } from "./games.ts";
 import type { GameRecord, GmRecord, Status } from "./types.ts";
 import type { MsgKey, T } from "./i18n/core.ts";
@@ -60,7 +60,7 @@ export function previewGame(rec: GameRecord, gm: GmRecord | undefined, nowIso: s
     format: rec.format, locationType: rec.locationType, platform: rec.platform, city: rec.city, venueName: rec.venueName, venueMapsUrl: rec.venueMapsUrl,
     startsAt, zone: rec.zone, scheduleNote: rec.scheduleNote, expiresAt: rec.expiresAt || startsAt, priceIdr: rec.priceIdr, seats: rec.seats, language: rec.language,
     level: rec.level, minAge: rec.minAge, contentWarnings: rec.contentWarnings, safetyTools: rec.safetyTools, genres: rec.genres, styles: rec.styles,
-    cover: rec.coverId ? driveThumbUrl(rec.coverId, 480) : null, featured: rec.featured, full: rec.full, listedAt: rec.submittedAt || startsAt,
+    cover: rec.coverId ? adminPictureUrl(rec.coverId, 480) : null, featured: rec.featured, full: rec.full, listedAt: rec.submittedAt || startsAt,
   };
 }
 

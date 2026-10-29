@@ -8,6 +8,7 @@ import { contentTypeOf, storeImage, type ImageKind } from "./images.ts";
 import { isPublicImage, buildPublic } from "./public.ts";
 import { parseGame, parseProfile } from "./rules.ts";
 import { eraseAccount, mine, removeGame, saveGame, saveProfile, setFull } from "./store.ts";
+import { backup } from "./backup.ts";
 import { allow, pruneRateEvents, safeEqual } from "./util.ts";
 import { one } from "./db.ts";
 
@@ -32,7 +33,8 @@ function cookieOf(request: Request): string | null {
   return m ? m[1]! : null;
 }
 
-const sessionCookie = (value: string, days: number): string => `${COOKIE}=${value}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${days * 86_400}`;
+/** `Secure` only on the real https site: browsers refuse it over plain http, which is how the local test server runs. */
+const sessionCookie = (value: string, days: number, siteUrl: string): string => `${COOKIE}=${value}; HttpOnly;${siteUrl.startsWith("https:") ? " Secure;" : ""} SameSite=Lax; Path=/; Max-Age=${days * 86_400}`;
 
 /** A browser request that changes something must come from the site itself (cookies are SameSite=Lax; this is the second lock). */
 function fromSite(request: Request, siteUrl: string): boolean {
@@ -74,6 +76,15 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
   if (method === "GET" && path === "/public") {
     return safeEqual(url.searchParams.get("key") ?? "", env.buildKey) && env.buildKey ? json(200, await buildPublic(ctx)) : err(403, "forbidden");
   }
+  // The timers (.github/workflows/cron.yml) call this with the build key: "tick" sends a waiting build, "daily" backs up and rebuilds.
+  if (method === "POST" && path === "/cron") {
+    if (!(env.buildKey && safeEqual(url.searchParams.get("key") ?? "", env.buildKey))) return err(403, "forbidden");
+    if (url.searchParams.get("job") === "daily") {
+      await daily(env);
+      return json(200, { ok: true, job: "daily" });
+    }
+    return json(200, { ok: true, job: "tick", result: await deployIfDue(ctx, env.deployHook, env.fetcher) });
+  }
   if (method === "GET" && path === "/health") {
     if (!(env.buildKey && safeEqual(url.searchParams.get("key") ?? "", env.buildKey))) return err(403, "forbidden");
     const n = async (table: string) => (await one<{ n: number }>(ctx.db, `SELECT COUNT(*) AS n FROM ${table}`))?.n ?? 0;
@@ -83,10 +94,12 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
     const key = decodeURIComponent(path.slice(5));
     if (!/^(?:covers|photos)\/[a-z0-9]{8,40}\.(?:webp|jpg|png)$/.test(key)) return err(404, "not_found");
     const viaKey = env.buildKey && safeEqual(url.searchParams.get("key") ?? "", env.buildKey);
-    if (!viaKey && !(await isPublicImage(ctx, key))) return err(404, "not_found");
+    const viewer = viaKey ? null : await getSession(ctx, cookieOf(request));
+    // The build and admins see every picture (an admin reviews pending ones); everyone else only those of approved things.
+    if (!viaKey && !(viewer && (await isAdmin(ctx, viewer.email))) && !(await isPublicImage(ctx, key))) return err(404, "not_found");
     const object = await env.images.get(key);
     if (!object) return err(404, "not_found");
-    return new Response(object.body as BodyInit, { headers: { "Content-Type": contentTypeOf(key), "Cache-Control": "public, max-age=86400", "X-Content-Type-Options": "nosniff" } });
+    return new Response(object.body as BodyInit, { headers: { "Content-Type": contentTypeOf(key), "Cache-Control": viaKey || viewer ? "private, max-age=300" : "public, max-age=86400", "X-Content-Type-Options": "nosniff" } });
   }
 
   // Everything below changes or reads something private: the same site only, JSON in and out.
@@ -103,11 +116,11 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
     const b = await body(request);
     if (!b) return err(400, "bad_request");
     const r = await verifyLogin(ctx, b.token);
-    return r.ok ? json(200, { ok: true, email: r.email }, { "Set-Cookie": sessionCookie(r.session, SESSION_DAYS) }) : err(400, r.error);
+    return r.ok ? json(200, { ok: true, email: r.email }, { "Set-Cookie": sessionCookie(r.session, SESSION_DAYS, ctx.siteUrl) }) : err(400, r.error);
   }
   if (method === "POST" && path === "/logout") {
     await endSession(ctx, cookieOf(request));
-    return json(200, { ok: true }, { "Set-Cookie": sessionCookie("", 0) });
+    return json(200, { ok: true }, { "Set-Cookie": sessionCookie("", 0, ctx.siteUrl) });
   }
 
   const session = await getSession(ctx, cookieOf(request));
@@ -159,7 +172,7 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
     const keys = await eraseAccount(ctx, session);
     after(Promise.all(keys.map((k) => env.images.delete(k))).catch(() => undefined));
     publish();
-    return json(200, { ok: true }, { "Set-Cookie": sessionCookie("", 0) });
+    return json(200, { ok: true }, { "Set-Cookie": sessionCookie("", 0, ctx.siteUrl) });
   }
 
   return err(404, "not_found");
@@ -190,5 +203,6 @@ export async function daily(env: Env): Promise<void> {
   const { ctx } = env;
   await pruneAuth(ctx);
   await pruneRateEvents(ctx.db, ctx.now());
+  await backup(ctx, env.images);
   await deployIfDue(ctx, env.deployHook, env.fetcher, true);
 }

@@ -7,15 +7,11 @@ const env = (v: string | undefined) => (v ?? "").trim();
 /** The site's address, no trailing slash: links in sitemaps, share previews and the approval emails. */
 export const SITE_URL = (env(process.env.NEXT_PUBLIC_SITE_URL) || "https://quest-board-tpk.pages.dev").replace(/\/+$/, "");
 
-/** The two Google Forms GMs fill in (docs/forms.md). */
-export const GM_FORM_URL = env(process.env.NEXT_PUBLIC_GM_FORM_URL);
-export const GAME_FORM_URL = env(process.env.NEXT_PUBLIC_GAME_FORM_URL);
+/** Cloudflare Turnstile's public site key (the robot check on the sign-in form); empty means no check, as in development. */
+export const TURNSTILE_SITE_KEY = env(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
 
 /** Where a player can report a listing (a form or chat link); the link is hidden when empty. */
 export const REPORT_URL = env(process.env.NEXT_PUBLIC_REPORT_URL);
 
-/** The Apps Script web app's address (…/exec) and the Google OAuth client id the admin page signs in with. */
-export const ADMIN_API_URL = env(process.env.NEXT_PUBLIC_ADMIN_API_URL);
-export const GOOGLE_CLIENT_ID = env(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
 
 export const COMMUNITY_NAME = "The Pandemonium Kollektive";

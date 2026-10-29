@@ -1,0 +1,28 @@
+# The backend's timers. A Cloudflare Pages Function has no schedule of its own, so GitHub calls it:
+#   every 10 minutes   POST /api/cron?job=tick     sends a waiting build (changes within two minutes of the last one are held back)
+#   once a day         POST /api/cron?job=daily    backs up the database to the bucket, tidies old sign-ins, rebuilds so ended listings leave
+# Needs the repository secret BUILD_KEY (the same value as the backend's) and, optionally, the variable SITE_URL.
+name: backend timers
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+    - cron: "30 18 * * *" # 01:30 in Jakarta
+  workflow_dispatch:
+    inputs:
+      job:
+        description: tick or daily
+        default: tick
+permissions: {}
+jobs:
+  call:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Call the backend
+        env:
+          BUILD_KEY: ${{ secrets.BUILD_KEY }}
+          SITE_URL: ${{ vars.SITE_URL || 'https://quest-board-tpk.pages.dev' }}
+          JOB: ${{ github.event.inputs.job || (github.event.schedule == '30 18 * * *' && 'daily' || 'tick') }}
+        run: |
+          if [ -z "$BUILD_KEY" ]; then echo "No BUILD_KEY secret yet: the backend is not connected, nothing to do."; exit 0; fi
+          curl --fail --silent --show-error --max-time 120 --retry 2 -X POST "$SITE_URL/api/cron?job=$JOB&key=$BUILD_KEY" -H "Origin: $SITE_URL"

@@ -32,7 +32,7 @@ test("every relative link in the README and the guides points at a file that exi
 });
 
 test("the public pages' environment settings are all in .env.example and the README", () => {
-  const used = new Set([...read("src/lib/site.ts").matchAll(/process\.env\.([A-Z_]+)/g)].map((m) => m[1]).concat("TPK_API_URL"));
+  const used = new Set([...read("src/lib/site.ts").matchAll(/process\.env\.([A-Z_]+)/g)].map((m) => m[1]).concat("TPK_API_URL", "TPK_API_BASE", "TPK_BUILD_KEY"));
   const example = read(".env.example");
   const readme = read("README.md");
   for (const name of used) {
