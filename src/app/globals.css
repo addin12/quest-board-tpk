@@ -72,6 +72,9 @@
   html { scrollbar-gutter: stable; }
   body { min-height: 100dvh; display: flex; flex-direction: column; }
   ::selection { background: color-mix(in oklab, var(--color-accent) 30%, transparent); }
+  /* Everything that can be used shows it (R-39), set once here. */
+  :where(a[href], button:not(:disabled), summary, select, label[for], [role="button"]) { cursor: pointer; }
+  :where(button:disabled) { cursor: not-allowed; }
   /* Links in running text: ink with an accent underline. */
   :where(main p, main li, footer p) a:not([class]) { text-decoration: underline; text-decoration-color: var(--color-accent); text-decoration-thickness: 2px; }
   /* The admin works in one family: Chivo for heads, buttons and data (app scope). */

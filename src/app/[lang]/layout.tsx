@@ -5,6 +5,7 @@ import { Chivo, EB_Garamond } from "next/font/google";
 import { I18nProvider } from "@/components/i18n-provider";
 import { LanguageSwitcher, NavLinks } from "@/components/nav";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { makeT, publicMessages } from "@/lib/i18n/dict";
 import { paths } from "@/lib/hrefs";
 import { SITE_URL } from "@/lib/site";
@@ -55,10 +56,10 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
           <header>
             <div className="oak-strip" />
             <div className="rule-double">
-              <div className="wrap flex items-center justify-between gap-x-6 py-3 lg:py-4">
-                <Link href={paths.home(lang)} className="wordmark inline-flex min-h-11 items-center text-2xl lg:text-3xl">{"Quest Board TPK"}</Link>
+              <div className="wrap flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-3 sm:gap-x-6 lg:flex-nowrap lg:py-4">
+                <Link href={paths.home(lang)} className="wordmark inline-flex min-h-11 items-center text-lg min-[400px]:text-xl sm:text-2xl lg:text-3xl">{"Quest Board TPK"}</Link>
                 <div className="hidden min-w-0 flex-1 lg:block"><NavLinks variant="header" /></div>
-                <LanguageSwitcher />
+                <div className="flex items-center gap-[var(--space-sm)]"><ThemeToggle /><LanguageSwitcher /></div>
               </div>
             </div>
           </header>

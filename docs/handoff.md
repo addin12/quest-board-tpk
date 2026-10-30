@@ -24,6 +24,7 @@ Forms + Sheet stack was **retired in code** the same day (ADR-27); the Apps Scri
 
 ## What was done on 2026-10-30
 
+- **Header controls** (2026-10-30): a light/dark toggle in the masthead (`src/components/theme-toggle.tsx`, shared state in `theme-state.ts`, also read by the footer switch) and the language labels set in capitals with CSS (`uppercase`; the text in the page stays `en` and `id`). Checked in Edge at 320 to 1280 px in both languages; the Playwright suite was not run.
 - **Minimal tavern** (ADR-30, [design.md](../design.md)): after Halftone, an oak-board tavern and a tavern at night were each tried and disliked, the owner asked for "more minimalist but still a tavern touch". Warm paper, ink, one oxblood accent, EB Garamond heads over Chivo (the owner chose it from a seven-face specimen; Fell was dropped); the tavern is an oak strip, a double rule, a nail per card, menu leaders and the book face. Measured with the audit script; the Playwright suite and the Hallmark linter were not run on it.
 
 - **Cutover** (log in [cutover.md](cutover.md)): `wrangler login`, R2 enabled by the owner (no API for that), `npm run cloudflare:setup` (D1, R2,
