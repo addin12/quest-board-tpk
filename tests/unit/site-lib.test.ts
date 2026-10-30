@@ -6,7 +6,7 @@ import { SUMMARY_MAX } from "../../src/lib/areas.ts";
 import { checkGame, checkGm, hasErrors } from "../../src/lib/checks.ts";
 import { contactMessage, decodeContact, encodeContact, messageLang, waLink } from "../../src/lib/contact.ts";
 import { formatDay, formatIdr, formatWhen, initialsOf } from "../../src/lib/format.ts";
-import { EMPTY_FILTERS, activeFilterCount, applyFilters, filterOptions, filtersToQuery, isLive, parseFilters, systemTiles, type GameView } from "../../src/lib/games.ts";
+import { EMPTY_FILTERS, activeFilterCount, applyFilters, filterOptions, filtersToQuery, isLive, parseFilters, systemTiles, allSystemTiles, type GameView } from "../../src/lib/games.ts";
 import { DICTIONARIES, makeT } from "../../src/lib/i18n/dict.ts";
 import { cleanDiscord, isGoogleMapsUrl, isPhone, parsePublicData, text } from "../../src/lib/public-data.ts";
 import { buildItems, canApprove, countByStatus, filterItems, previewGame, reasonText, siteBehind, whenLabel } from "../../src/lib/admin-view.ts";
@@ -124,6 +124,15 @@ test("system tiles: the most listed first, ties A to Z, the cover of the soonest
   assert.equal(tiles[0].cover, "/z-late.svg", "the soonest listing WITH a cover, skipping the sooner one that has none");
   assert.equal(tiles[1].cover, null);
   assert.deepEqual(systemTiles([]), []);
+});
+
+test("all system tiles: systems with games first, then every other known system with 0 games and no cover", () => {
+  const base = games()[0];
+  const mk = (system: string): GameView => ({ ...base, system, cover: "/x.svg", full: false });
+  const tiles = allSystemTiles([mk("Beta"), mk("Custom System"), mk("Beta")], ["Alpha", "Beta", "Gamma"]);
+  assert.deepEqual(tiles.map((x) => x.name + ":" + x.count), ["Beta:2", "Custom System:1", "Alpha:0", "Gamma:0"]);
+  assert.equal(tiles[2].cover, null);
+  assert.equal(allSystemTiles([], ["Alpha"]).length, 1, "with no games every known system still shows");
 });
 
 test("sorting: soonest first with full games last; cheapest; newest", () => {

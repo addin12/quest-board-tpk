@@ -86,6 +86,17 @@ export function systemTiles(games: readonly GameView[]): { name: string; count: 
   return [...bySystem].map(([name, v]) => ({ name, ...v })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }
 
+/**
+ * Every system in `known` plus any other system that has games: those with games first (as `systemTiles` ranks them), then the rest in the order
+ * of `known`, each with a count of 0 and no cover.
+ * @example allSystemTiles(games, SYSTEMS) // the /systems/ page
+ */
+export function allSystemTiles(games: readonly GameView[], known: readonly string[]): { name: string; count: number; cover: string | null }[] {
+  const listed = systemTiles(games);
+  const seen = new Set(listed.map((s) => s.name));
+  return [...listed, ...known.filter((name) => !seen.has(name)).map((name) => ({ name, count: 0, cover: null }))];
+}
+
 export function applyFilters<G extends GameView>(games: G[], f: Filters): G[] {
   return sortGames(
     games.filter((g) =>
