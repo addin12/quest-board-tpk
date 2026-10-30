@@ -140,12 +140,12 @@ test("the keyboard: J moves, A approves, R opens the rejection form", async ({ p
   await expect(page.getByTestId("reject-form")).toHaveCount(0);
 });
 
-test("featuring an approved game rebuilds the site; publishing now asks for one", async ({ page }) => {
+test("marking an approved game full rebuilds the site; publishing now asks for one", async ({ page }) => {
   const world = await open(page);
   await page.getByTestId("status-approved").click();
   await row(page, "Panen Harapan").click();
-  await page.getByRole("button", { name: "Feature", exact: true }).click();
-  await expect.poll(async () => (await world.sql("SELECT featured FROM games WHERE title = 'Panen Harapan'"))[0].featured).toBe(1);
+  await page.getByTestId("toggle-full").click();
+  await expect.poll(async () => (await world.sql("SELECT full FROM games WHERE title = 'Panen Harapan'"))[0].full).toBe(1);
   expect((await world.state()).hooks).toBe(1);
   await page.getByTestId("publish-now").click();
   await expect(page.getByTestId("toast")).toContainText("Publishing.");

@@ -20,7 +20,6 @@ type Props = {
   items: Item[];
   nowIso: string;
   onReview: (items: Item[], status: Status, opts: Opts) => void;
-  onFeature: (item: Item, featured: boolean) => void;
   onFull: (item: Item, full: boolean) => void;
   onNote: (item: Item, note: string) => Promise<boolean>;
   onMerge: (fromId: string, intoId: string) => Promise<boolean>;
@@ -30,7 +29,7 @@ const levelIcon = { error: "cross-circle", warn: "triangle-warning", info: "info
 const levelClass = { error: "text-danger", warn: "text-gold", info: "text-muted" } as const;
 
 /** The list of submissions (by status, searchable) beside the one being reviewed. */
-export function ReviewPane({ items, nowIso, onReview, onFeature, onFull, onNote, onMerge }: Props) {
+export function ReviewPane({ items, nowIso, onReview, onFull, onNote, onMerge }: Props) {
   const { t, lang } = useI18n();
   const [status, setStatus] = useState<Status>("pending");
   const [q, setQ] = useState("");
@@ -113,7 +112,7 @@ export function ReviewPane({ items, nowIso, onReview, onFeature, onFull, onNote,
         <div className={!selected ? "max-lg:hidden" : ""}>
           {selected ? (
             <Detail key={selected.id} item={selected} nowIso={nowIso} lang={lang} notify={notify} setNotify={setNotify} rejecting={rejecting} setRejecting={setRejecting}
-              onBack={() => select(null)} onDecide={(next, reason) => decide(selected, next, reason)} onFeature={(f) => onFeature(selected, f)} onFull={(v) => onFull(selected, v)} onNote={(n) => onNote(selected, n)} onMerge={(from, into) => onMerge(from, into)} />
+              onBack={() => select(null)} onDecide={(next, reason) => decide(selected, next, reason)} onFull={(v) => onFull(selected, v)} onNote={(n) => onNote(selected, n)} onMerge={(from, into) => onMerge(from, into)} />
           ) : (
             <p className="card hidden p-10 text-center text-muted lg:block">{t("admin.pick")}</p>
           )}
@@ -149,7 +148,6 @@ function Row({ item, selected, checkbox, checked, lang, onSelect, onCheck }: { i
             <span className="text-muted">{formatWhen(item.rec.submittedAt || new Date().toISOString(), lang, "WIB")}</span>
             {errors > 0 && <span className="rounded bg-danger-soft px-1.5 py-0.5 font-semibold text-danger">{t("admin.level.error")}: {errors}</span>}
             {warns > 0 && <span className="rounded bg-accent-soft px-1.5 py-0.5 font-semibold text-text">{t("admin.level.warn")}: {warns}</span>}
-            {item.rec.featured && <Icon name="star" solid className="text-gold" label={t("game.featured")} />}
           </span>
         </span>
       </button>
@@ -163,9 +161,9 @@ function checkText(c: Check, t: T): string {
   return t(c.key, vars);
 }
 
-function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting, onBack, onDecide, onFeature, onFull, onNote, onMerge }: {
+function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting, onBack, onDecide, onFull, onNote, onMerge }: {
   item: Item; nowIso: string; lang: Lang; notify: boolean; setNotify: (v: boolean) => void; rejecting: boolean; setRejecting: (v: boolean) => void;
-  onBack: () => void; onDecide: (status: Status, reason?: string) => void; onFeature: (featured: boolean) => void; onFull: (full: boolean) => void; onNote: (note: string) => Promise<boolean>; onMerge: (fromId: string, intoId: string) => Promise<boolean>;
+  onBack: () => void; onDecide: (status: Status, reason?: string) => void; onFull: (full: boolean) => void; onNote: (note: string) => Promise<boolean>; onMerge: (fromId: string, intoId: string) => Promise<boolean>;
 }) {
   const { t } = useI18n();
   const rec = item.rec;
@@ -235,9 +233,6 @@ function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting
               {rec.status !== "approved" && <button type="button" className="btn-primary" disabled={blocked} onClick={() => onDecide("approved")} data-testid="approve"><Icon name="check" /> {t("admin.approve")}</button>}
               {rec.status !== "rejected" && <button type="button" className="btn-secondary" onClick={() => setRejecting(true)} data-testid="reject"><Icon name="cross-circle" /> {t("admin.reject")}</button>}
               {rec.status !== "pending" && <button type="button" className="btn-ghost" onClick={() => onDecide("pending")}><Icon name="undo" /> {t("admin.toPending")}</button>}
-              {item.kind === "game" && rec.status === "approved" && (
-                <button type="button" className="btn-secondary" aria-pressed={rec.featured} onClick={() => onFeature(!rec.featured)}><Icon name="star" solid={rec.featured} /> {t(rec.featured ? "admin.unfeature" : "admin.feature")}</button>
-              )}
               {item.kind === "game" && rec.status === "approved" && (
                 <button type="button" className="btn-secondary" aria-pressed={rec.full} onClick={() => onFull(!rec.full)} data-testid="toggle-full">{t(rec.full ? "admin.reopen" : "admin.markFull")}</button>
               )}

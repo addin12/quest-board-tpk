@@ -30,7 +30,7 @@ export async function buildPublic(ctx: Ctx): Promise<RawPublicData> {
       id: g.id, slug: g.slug, gmId: g.profile_id, title: g.title, system: g.system, summary: g.summary, description: g.description, format: g.format, locationType: g.location_type,
       platform: g.platform, city: g.city, venueName: g.venue_name, venueMapsUrl: isGoogleMapsUrl(g.venue_maps_raw) ? g.venue_maps_raw : "", startsAt: g.starts_at, zone: g.zone,
       scheduleNote: g.schedule_note, expiresAt: g.expires_at, priceIdr: g.price_idr, seats: g.seats, language: g.language, level: g.level, minAge: g.min_age,
-      contentWarnings: g.content_warnings, safetyTools: g.safety_tools, genres: parseList(g.genres), styles: parseList(g.styles), coverId: g.cover_key, featured: g.featured === 1, full: g.full === 1,
+      contentWarnings: g.content_warnings, safetyTools: g.safety_tools, genres: parseList(g.genres), styles: parseList(g.styles), coverId: g.cover_key, full: g.full === 1,
       listedAt: g.reviewed_at || g.created_at,
     })),
     goneGames: gone(games, liveIds, (g) => g.expires_at),

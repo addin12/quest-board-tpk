@@ -166,7 +166,6 @@ test("a GM marks their own game full without a review, and removes it; the addre
   assert.equal((await w.call("POST", `/games/${id}/full`, { cookie: gm, body: { full: true } })).status, 200);
   let pub = (await w.call("GET", `/public?key=${BUILD_KEY}`)).json;
   assert.equal(pub.games[0].full, true);
-  assert.equal(pub.games[0].featured, false);
 
   const stranger = await w.signIn("stranger@example.com");
   await w.call("PUT", "/profile", { cookie: stranger, body: { ...PROFILE, whatsapp: "0811-1111-1111" } });

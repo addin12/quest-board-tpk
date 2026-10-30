@@ -68,7 +68,7 @@ export function sortGames<G extends GameView>(games: G[], sort: SortKey): G[] {
   const copy = [...games];
   if (sort === "newest") return copy.sort((a, b) => notFullFirst(a, b) || Date.parse(b.listedAt) - Date.parse(a.listedAt) || byStart(a, b));
   if (sort === "priceAsc") return copy.sort((a, b) => notFullFirst(a, b) || a.priceIdr - b.priceIdr || byStart(a, b));
-  return copy.sort((a, b) => notFullFirst(a, b) || Number(b.featured) - Number(a.featured) || byStart(a, b)); // soonest, featured first
+  return copy.sort((a, b) => notFullFirst(a, b) || byStart(a, b)); // soonest first, full games last
 }
 
 export function applyFilters<G extends GameView>(games: G[], f: Filters): G[] {

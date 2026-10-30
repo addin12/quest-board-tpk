@@ -79,7 +79,6 @@ export function GameCard({ game, t, lang, preview = false, priority = false, hea
     <>
       <div className="relative">
         <Cover src={game.cover ? smallCover(game.cover) : null} seed={game.title} className="aspect-[4/5] w-full" priority={priority} />
-        {game.featured && <span className="absolute left-0 top-0 bg-accent px-3 py-1 text-sm font-bold text-accent-ink">{t("game.featured")}</span>}
         {game.full && <span className="absolute bottom-0 right-0 bg-ink px-3 py-1 text-sm font-bold text-paper">{t("game.full")}</span>}
       </div>
       <div className="mt-[var(--space-md)] flex flex-1 flex-col border-t-3 border-ink pt-[var(--space-sm)]">

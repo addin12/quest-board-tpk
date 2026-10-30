@@ -91,7 +91,6 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
           <div className="min-w-0 lg:col-span-8">
             <p className="flex flex-wrap items-center gap-[var(--space-xs)]">
               <span className="chip">{game.system}</span>
-              {game.featured && <span className="chip chip-spot">{t("game.featured")}</span>}
               {game.full && <span className="chip chip-spot" data-testid="full-chip">{t("game.full")}</span>}
             </p>
             <h1 className="mt-[var(--space-md)] max-w-none text-[length:var(--text-display-s)]">{game.title}</h1>

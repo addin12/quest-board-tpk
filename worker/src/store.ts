@@ -15,7 +15,7 @@ export type GameRow = {
   id: string; profile_id: string; slug: string; title: string; system: string; summary: string; description: string; format: GameRecord["format"]; location_type: GameRecord["locationType"];
   platform: string; city: string; venue_name: string; venue_maps_raw: string; starts_at: string; zone: GameRecord["zone"]; schedule_note: string; expires_at: string; price_idr: number; seats: number;
   language: GameRecord["language"]; level: GameRecord["level"]; min_age: number; content_warnings: string; safety_tools: string; genres: string; styles: string; cover_key: string; consent: number;
-  status: "pending" | "approved" | "rejected"; featured: number; full: number; admin_note: string; reviewed_by: string; reviewed_at: string; reject_reason: string; was_live: number; gone_at: string;
+  status: "pending" | "approved" | "rejected"; full: number; admin_note: string; reviewed_by: string; reviewed_at: string; reject_reason: string; was_live: number; gone_at: string;
   removed: number; created_at: string; updated_at: string; rowid?: number;
 };
 
@@ -27,7 +27,7 @@ export const profileOf = (ctx: Ctx, accountId: string) => one<ProfileRow>(ctx.db
 
 export function gmRecord(p: ProfileRow, email: string, shares: { id: string; name: string }[] = []): GmRecord {
   return {
-    kind: "gm", id: p.id, slug: p.slug, status: p.status, featured: false, full: false, adminNote: p.admin_note, reviewedBy: p.reviewed_by, reviewedAt: p.reviewed_at,
+    kind: "gm", id: p.id, slug: p.slug, status: p.status, full: false, adminNote: p.admin_note, reviewedBy: p.reviewed_by, reviewedAt: p.reviewed_at,
     rejectReason: p.reject_reason, superseded: false, submittedAt: p.created_at, email, row: p.rowid ?? 0,
     name: p.name, bio: p.bio, city: p.city, systems: parseList(p.systems), whatsapp: p.whatsapp, discord: p.discord, photoId: p.photo_key, consent: p.consent === 1, sharesPhoneWith: shares.map((s) => s.name), sharesPhoneIds: shares.map((s) => s.id),
   };
@@ -35,7 +35,7 @@ export function gmRecord(p: ProfileRow, email: string, shares: { id: string; nam
 
 export function gameRecord(g: GameRow, email: string): GameRecord {
   return {
-    kind: "game", id: g.id, slug: g.slug, status: g.status, featured: g.featured === 1, full: g.full === 1, adminNote: g.admin_note, reviewedBy: g.reviewed_by, reviewedAt: g.reviewed_at,
+    kind: "game", id: g.id, slug: g.slug, status: g.status, full: g.full === 1, adminNote: g.admin_note, reviewedBy: g.reviewed_by, reviewedAt: g.reviewed_at,
     rejectReason: g.reject_reason, superseded: false, submittedAt: g.created_at, email, row: g.rowid ?? 0,
     title: g.title, system: g.system, summary: g.summary, description: g.description, format: g.format, locationType: g.location_type, platform: g.platform, city: g.city,
     venueName: g.venue_name, venueMapsUrl: isGoogleMapsUrl(g.venue_maps_raw) ? g.venue_maps_raw : "", venueMapsRaw: g.venue_maps_raw, startsAt: g.starts_at, zone: g.zone,

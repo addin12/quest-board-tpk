@@ -96,7 +96,7 @@ Forms + Sheet stack was **retired in code** the same day (ADR-27); the Apps Scri
 1. Done 2026-10-30: the home page's "How it works" block is gone (R-05; the page `/how-it-works/` stays) and [design.md](../design.md) is written. The four Hallmark waivers stay stamped in `src/app/globals.css`; `design.md` records why. Whether the external Hallmark linter accepts `design.md` in place of the stamps has not been run.
 2. Visual leftovers: the home rail has no scroll cue beyond the next card peeking in (a fade mask would clip the focus ring), and the home hero fold was not reviewed.
 3. `public/images/tavern` and `public/textures` were unused and are deleted (still in git history before 2026-10-30). The Figma review file is outdated.
-4. Product decisions still open: how "featured" games are chosen and capped; a second Cloudflare account owner.
+4. Product decisions still open: a second Cloudflare account owner. (Featured games were removed on 2026-10-30, ADR-31; the unused `featured` column is still in the D1 `games` table.)
 5. Mail is the weakest link (one Gmail, 90 a day, no retry). A sending service needs a domain of the community's own; `worker/src/email.ts` is one file.
 
 ## How the owner works (applies to every session)

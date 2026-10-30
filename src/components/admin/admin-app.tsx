@@ -127,17 +127,6 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
     }
   }
 
-  async function feature(item: Item, featured: boolean) {
-    patchLocal(item.kind, [item.id], { featured });
-    try {
-      const r = await call<{ publishing: boolean }>("patch", { kind: item.kind, id: item.id, featured });
-      if (r.publishing) setQueue((q) => (q ? { ...q, deploy: { ...q.deploy, pending: true } } : q));
-    } catch (e) {
-      patchLocal(item.kind, [item.id], { featured: !featured });
-      say(t("admin.toast.error", { error: e instanceof ApiError ? e.code : "error" }));
-    }
-  }
-
   async function markFull(item: Item, full: boolean) {
     patchLocal(item.kind, [item.id], { full });
     try {
@@ -255,8 +244,8 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
             </div>
             <button type="button" className="btn-ghost ml-auto" onClick={() => void load()}><Icon name="refresh" /> {t("admin.refresh")}</button>
           </div>
-          {tab === "games" && <ReviewPane key="games" items={items.games} nowIso={queue.now} onReview={review} onFeature={feature} onFull={markFull} onNote={saveNote} onMerge={merge} />}
-          {tab === "gms" && <ReviewPane key="gms" items={items.gms} nowIso={queue.now} onReview={review} onFeature={feature} onFull={markFull} onNote={saveNote} onMerge={merge} />}
+          {tab === "games" && <ReviewPane key="games" items={items.games} nowIso={queue.now} onReview={review} onFull={markFull} onNote={saveNote} onMerge={merge} />}
+          {tab === "gms" && <ReviewPane key="gms" items={items.gms} nowIso={queue.now} onReview={review} onFull={markFull} onNote={saveNote} onMerge={merge} />}
           {tab === "admins" && <AdminsPane admins={queue.admins} owner={queue.owner} me={email} onAdd={addAdmin} onRemove={removeAdmin} />}
         </>
       )}

@@ -26,7 +26,6 @@ account is not an admin, ask the owner to add your email under **Admins**.
 - **Keyboard**: `J` / `K` next and previous, `A` approve, `R` reject, `Esc` closes the reject form.
 - **Several at once**: in the Waiting list, tick the games that have no problems and press *Approve … selected*.
 - **Search** finds a title, a GM's name or email.
-- **Featured**: on an approved game, *Feature* pins it first in the lists and gives it a badge.
 
 ## What Game Masters do themselves
 

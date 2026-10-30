@@ -87,10 +87,6 @@ export async function patch(ctx: Ctx, admin: string, req: Record<string, unknown
   const values: unknown[] = [];
   const said: string[] = [];
   let dirty = false;
-  if (kind === "game" && typeof req.featured === "boolean") {
-    sets.push("featured = ?"); values.push(req.featured ? 1 : 0); said.push(`featured → ${req.featured ? "yes" : "no"}`);
-    dirty = rec.row.status === "approved" && ((rec.row as GameRow).featured === 1) !== req.featured;
-  }
   if (kind === "game" && typeof req.full === "boolean") {
     sets.push("full = ?"); values.push(req.full ? 1 : 0); said.push(`full → ${req.full ? "yes" : "no"}`);
     dirty = dirty || (rec.row.status === "approved" && ((rec.row as GameRow).full === 1) !== req.full);

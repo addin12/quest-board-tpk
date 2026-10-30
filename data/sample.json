@@ -99,7 +99,6 @@
         "puzzle-mystery"
       ],
       "coverId": "local:/images/covers/mercusuar-di-pulau-kabut.svg",
-      "featured": true,
       "listedAt": "2026-10-03T00:00:00.000Z"
     },
     {
@@ -174,7 +173,6 @@
         "combat-light"
       ],
       "coverId": "local:/images/covers/naga-naga-hutan-bara-petualangan-pemula.svg",
-      "featured": false,
       "listedAt": "2026-10-03T00:00:00.000Z"
     },
     {
@@ -211,7 +209,6 @@
         "narrative"
       ],
       "coverId": "local:/images/covers/mahkota-yang-terbelah.svg",
-      "featured": false,
       "listedAt": "2026-10-03T00:00:00.000Z"
     },
     {
@@ -249,7 +246,6 @@
         "rule-of-cool"
       ],
       "coverId": "local:/images/covers/neon-run-satu-malam-di-neo-surabaya.svg",
-      "featured": false,
       "listedAt": "2026-10-03T00:00:00.000Z"
     },
     {
@@ -288,7 +284,6 @@
         "rule-of-cool"
       ],
       "coverId": "local:/images/covers/doskvol-setelah-gelap.svg",
-      "featured": false,
       "listedAt": "2026-10-03T00:00:00.000Z"
     },
     {
@@ -326,7 +321,6 @@
         "narrative"
       ],
       "coverId": "local:/images/covers/panen-harapan.svg",
-      "featured": true,
       "listedAt": "2026-10-03T00:00:00.000Z"
     },
     {
@@ -364,7 +358,6 @@
         "tactical"
       ],
       "coverId": "local:/images/covers/signal-from-tartarus-station.svg",
-      "featured": false,
       "listedAt": "2026-10-03T00:00:00.000Z"
     },
     {
@@ -401,7 +394,6 @@
         "rule-of-cool"
       ],
       "coverId": "local:/images/covers/starfall-salvage.svg",
-      "featured": false,
       "listedAt": "2026-10-03T00:00:00.000Z"
     },
     {
@@ -438,7 +430,6 @@
         "tactical"
       ],
       "coverId": "local:/images/covers/abomination-vaults.svg",
-      "featured": false,
       "listedAt": "2026-10-03T00:00:00.000Z"
     }
   ]
