@@ -116,11 +116,17 @@ if (relayUrl) vars.MAIL_RELAY_URL = secret(relayUrl);
 else console.log("(MAIL_RELAY_URL not set: no Apps Script web app address found)");
 if (appsScript.mailSecret) vars.MAIL_SECRET = secret(appsScript.mailSecret);
 else console.log("(MAIL_SECRET not set yet: run npm run script:deploy, then this again)");
+// First deploy: the new site's /api does not exist until it is deployed, so a build that reads from it would fail. With
+// --backend-only the build keeps reading the old source (TPK_API_URL); run again without the flag, then rebuild, to switch.
+if (process.argv.includes("--backend-only")) {
+  vars.TPK_API_BASE = null;
+  vars.TPK_BUILD_KEY = null;
+}
 if (local.turnstileSecret && local.turnstileSiteKey) {
   vars.TURNSTILE_SECRET = secret(local.turnstileSecret);
   vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY = plain(local.turnstileSiteKey);
 }
-console.log(`PATCH ${pages}: bindings DB -> ${DB_NAME}, IMAGES -> ${BUCKET}; variables ${Object.keys(vars).join(", ")}`);
+console.log(`PATCH ${pages}: bindings DB -> ${DB_NAME}, IMAGES -> ${BUCKET}; variables ${Object.entries(vars).map(([k, v]) => (v ? k : `${k} (removed)`)).join(", ")}`);
 must(
   await api("PATCH", pages, {
     deployment_configs: {
