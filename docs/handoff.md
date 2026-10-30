@@ -29,7 +29,7 @@ Only fakes were exercised. Check these first when going live:
 | `scripts/cloudflare-setup.mjs` | `npm run cloudflare:setup -- --dry` first | written blind; the by-hand fallback is in cutover.md |
 | Mail relay | `apps-script/Code.gs` (`mailRequest_`), `worker/src/email.ts` | real Gmail quota (90/day cap is ours), Apps Script redirects on POST, secret injected by `script:deploy` |
 | Turnstile | `verifyTurnstile`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | optional; CSP already allows `challenges.cloudflare.com` |
-| `wrangler.toml` vs dashboard variables | cutover.md step 2 | the dashboard may lock variables once the file exists; fallback is `[vars]` in the file |
+| Pages API settings | `scripts/cloudflare-setup.mjs` | bindings and variables are set by the API, not a committed `wrangler.toml` (that locks the dashboard and the repo is public); verify them in the dashboard after a run |
 | Indonesian pages | `src/lib/i18n/id.ts` | written by the agent, not looked at by eye on every page |
 
 ## Map of the new backend

@@ -33,7 +33,7 @@ npm run build          # data -> next build (static export to out/) -> fix-expor
 npm run preview        # serves out/ like Cloudflare Pages on :4173 ("/" -> "/en/", 404 page)
 npm run typecheck && npm run lint && npm test
 npm run test:e2e       # Playwright against a build with demo data and the real backend code on a test server (tests/support)
-npm run cloudflare:setup  # owner only: creates D1/R2, writes wrangler.toml and .cloudflare.local.json (use -- --dry first)
+npm run cloudflare:setup  # owner only: creates D1/R2, sets the Pages bindings and variables by API, writes .cloudflare.local.json (use -- --dry first)
 npm run form-options   # rewrite docs/form-options.md and the GENERATED labels in Code.gs after changing genres/styles/systems
 npm run icons          # after editing src/lib/icons.ts
 ```

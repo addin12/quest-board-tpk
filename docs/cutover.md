@@ -10,34 +10,34 @@ changed, tell me before step 6.
 ## 1. Create everything in Cloudflare (one command, after one login)
 
 ```
-npx wrangler login
-npm run cloudflare:setup -- --dry     read what it will do
+npx wrangler login                          a Cloudflare page opens: click Allow
+npm run cloudflare:setup -- --dry           read what it will do
 npm run cloudflare:setup
 ```
 
-It makes the D1 database `quest-board` and the R2 bucket `quest-board-images`, applies the migrations, writes `wrangler.toml` (the
-Pages project's bindings), and stores the secrets. It keeps the values you will need in `.cloudflare.local.json` (git-ignored).
-It was written without access to a Cloudflare account and has never run for real: if a step fails, do the same by hand:
+R2 must be switched on once first (dashboard → Storage & databases → R2 → enable; the free plan, it may ask for a payment method):
+Cloudflare does not allow that through the API, and the script stops with that message if it is off.
 
-- Dashboard → Storage → D1 → create `quest-board`; Storage → R2 → create `quest-board-images`.
-- Run the SQL in `worker/migrations/0001_init.sql` in the D1 console.
-- Pages project → Settings → Bindings: D1 `DB` → quest-board; R2 `IMAGES` → quest-board-images.
+The script makes the D1 database `quest-board` and the R2 bucket `quest-board-images`, applies the schema to an empty database, makes a
+deploy hook for the backend, and sets the Pages project's **bindings and variables through the Pages API**. There is deliberately no
+`wrangler.toml` in the repo: a config file there makes the dashboard lock its variables, and the repo is public. It keeps what it
+generated in `.cloudflare.local.json` (git-ignored). Run it again whenever you change something: it reuses what exists.
 
-## 2. Variables and secrets (Pages project → Settings)
+If a step fails, do the same by hand: create the D1 database and the R2 bucket in the dashboard, run
+`worker/migrations/0001_init.sql` in the D1 console, and under Pages project → Settings → Bindings add D1 `DB` and R2 `IMAGES`.
 
-| Name | Where | Value |
+## 2. Variables and secrets (the script sets these; this is the list)
+
+| Name | Kind | Value |
 |---|---|---|
-| `OWNER_EMAIL` | runtime variable | the owner's email: always an admin, can add and remove other admins |
-| `SITE_URL` | runtime variable | `https://quest-board-tpk.pages.dev` |
-| `BUILD_KEY` | runtime secret | the `buildKey` in `.cloudflare.local.json` |
-| `DEPLOY_HOOK` | runtime secret | the Pages deploy hook address (the one the Apps Script has as `DEPLOY_HOOK`) |
-| `MAIL_RELAY_URL`, `MAIL_SECRET` | runtime variable, secret | see step 3 |
-| `TURNSTILE_SECRET` | runtime secret | optional, see step 4 |
-| `TPK_API_BASE` | **build** variable | the site's address |
-| `TPK_BUILD_KEY` | **build** variable | the same `buildKey` |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | **build** variable | optional, see step 4 |
-
-(If the dashboard locks the runtime variables because `wrangler.toml` exists, put the plain ones under `[vars]` in that file.)
+| `OWNER_EMAIL` | encrypted | the owner's email (the Cloudflare account's, or `OWNER_EMAIL=… npm run cloudflare:setup`): always an admin |
+| `SITE_URL` | plain | `https://quest-board-tpk.pages.dev` |
+| `BUILD_KEY` | encrypted | the `buildKey` in `.cloudflare.local.json` |
+| `DEPLOY_HOOK` | encrypted | a deploy hook the script makes (named `backend`) |
+| `MAIL_RELAY_URL`, `MAIL_SECRET` | encrypted | the Apps Script web app address (already on the project) and the secret from step 3 |
+| `TPK_API_BASE` | plain, used by the build | the site's address |
+| `TPK_BUILD_KEY` | encrypted, used by the build | the same `buildKey` |
+| `TURNSTILE_SECRET`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | encrypted, plain | optional, see step 4 |
 
 ## 3. Email: sign-in links and decision mails go through your Apps Script
 
@@ -49,14 +49,13 @@ npm run script:deploy        pushes the relay and makes .apps-script.local.json'
 npm run cloudflare:setup     stores that secret as MAIL_SECRET
 ```
 
-Set `MAIL_RELAY_URL` to the Apps Script web app address (the `…/exec` one). Gmail's own sending limit applies; if the board grows
-past about 90 sign-ins and decisions a day, switch the mailer to a sending service (`worker/src/email.ts`: Resend's code was the first
-version and is a one-file change).
+Gmail's own sending limit applies; if the board grows past about 90 sign-ins and decisions a day, switch the mailer to a sending
+service (`worker/src/email.ts`: one file).
 
 ## 4. Turnstile (the robot check), optional but recommended
 
-Cloudflare dashboard → Turnstile → add a widget for the site. Its **site key** is `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, its **secret** is
-`TURNSTILE_SECRET`. Without them the sign-in form still works, with only the per-address and per-IP limits.
+Cloudflare dashboard → Turnstile → add a widget for the site. Put its site key and secret into `.cloudflare.local.json` as
+`turnstileSiteKey` and `turnstileSecret`, and run the setup again. Without them the sign-in form still works, with only the per-address and per-IP limits.
 
 ## 5. The timers
 
