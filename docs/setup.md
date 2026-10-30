@@ -1,5 +1,7 @@
 # Setting it up (free, about an hour)
 
+> **Status:** this page describes the Google Forms + Sheet + Apps Script setup, which is what is live today. Once the Cloudflare backend is switched on ([cutover.md](cutover.md), [backend.md](backend.md)) it is retired; see [handoff.md](handoff.md).
+
 Quest Board TPK costs nothing to run: Google Forms, Sheets and Apps Script for the data and the admin API,
 Cloudflare Pages for the website, GitHub for the code. There is no server and no credit card.
 

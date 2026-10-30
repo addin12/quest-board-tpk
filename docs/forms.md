@@ -1,5 +1,7 @@
 # The two Google Forms
 
+> **Status:** this page describes the two Google Forms, which is what is live today. Once the Cloudflare backend is switched on ([cutover.md](cutover.md), [backend.md](backend.md)) it is retired; see [handoff.md](handoff.md).
+
 Game Masters send their profile and their games through two Google Forms. You create them once, in your own Google
 account. The question titles below are **exact**: the Sheet's script finds each answer by its column title, and
 `setup()` tells you if one is missing or renamed. Capitals, spaces and punctuation don't matter ("Game Title" is fine),

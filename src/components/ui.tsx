@@ -92,10 +92,11 @@ export function GameCard({ game, t, lang, preview = false, priority = false, hea
           </span>
         </p>
         <p className="mt-[var(--space-xs)] text-muted">{game.summary}</p>
-        <dl className="mt-[var(--space-md)]">
+        {/* mt-auto: the facts sit at the foot of the card, so the rows line up across a row of cards whatever the title and summary lengths. */}
+        <dl className="mt-auto pt-[var(--space-md)]">
           {rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
         </dl>
-        <p className="mt-auto pt-[var(--space-sm)] text-sm text-muted">{t("common.by", { name: game.gmName })}</p>
+        <p className="pt-[var(--space-sm)] text-sm text-muted">{t("common.by", { name: game.gmName })}</p>
       </div>
     </>
   );

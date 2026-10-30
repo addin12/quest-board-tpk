@@ -60,7 +60,10 @@ Only fakes were exercised. Check these first when going live:
 
 ## Open items (none blocks cutover)
 
-1. Visual leftovers: card row alignment, phone tab bar clips "List your game", rail has no scroll cue, home hero fold.
+1. Visual leftovers: the home rail has no scroll cue beyond the next card peeking in (a fade mask would clip the focus ring, so it was
+   left), and the home hero fold was not reviewed. Fixed 2026-10-30: the phone tab bar now wraps its labels instead of scrolling
+   (measured at 390 px in EN and ID), and the fact rows of a game card sit at the card's foot so they line up across a row.
+   The Playwright suite was not re-run after these two CSS/markup changes; run it before the next push.
 2. Unused `public/images/tavern` and `public/textures`: delete only with the owner's OK.
 3. The Figma review file is outdated (pre-feedback design).
 4. Offer the owner a locked `design.md` to retire the four lint waivers.

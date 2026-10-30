@@ -1,5 +1,7 @@
 # Reviewing submissions (for admins)
 
+> **Status:** this page describes reviewing with Google sign-in; after the cutover admins sign in with an emailed link instead, and the review steps stay the same, which is what is live today. Once the Cloudflare backend is switched on ([cutover.md](cutover.md), [backend.md](backend.md)) it is retired; see [handoff.md](handoff.md).
+
 Open **`/en/admin/`** (or `/id/admin/`) on the site and sign in with your Google account. If it says your account is
 not an admin, ask the owner to add it under **Admins**.
 

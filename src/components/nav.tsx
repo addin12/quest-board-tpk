@@ -25,12 +25,13 @@ export function NavLinks({ variant }: { variant: "header" | "tabs" }) {
   const pathname = usePathname();
   if (variant === "tabs") {
     return (
-      <ul className="flex overflow-x-auto">
+      <ul className="flex">
         {ITEMS.map((i) => {
           const current = isCurrent(pathname, lang, i.prefix);
           return (
-            <li key={i.prefix} className="flex-1 shrink-0">
-              <Link href={i.href(lang)} aria-current={current ? "page" : undefined} className={`flex min-h-14 items-center justify-center whitespace-nowrap px-1.5 text-center text-sm ${current ? "font-bold text-ink underline decoration-accent decoration-[3px] underline-offset-[0.4em]" : "text-muted"}`}>
+            <li key={i.prefix} className="min-w-0 flex-1">
+              {/* Labels may wrap to two lines: a row that scrolls sideways hid the last tab ("List your game") on a 390px phone. */}
+              <Link href={i.href(lang)} aria-current={current ? "page" : undefined} className={`flex min-h-14 items-center justify-center px-1.5 text-center text-sm leading-tight ${current ? "font-bold text-ink underline decoration-accent decoration-[3px] underline-offset-[0.4em]" : "text-muted"}`}>
                 {t(i.label)}
               </Link>
             </li>
