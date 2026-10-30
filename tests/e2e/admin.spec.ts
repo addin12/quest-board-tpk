@@ -106,7 +106,7 @@ test("approving is blocked while something is wrong; rejecting writes the reason
   await page.getByTestId("reject-confirm").click();
   await expect(page.getByTestId("toast")).toContainText("Rejected “Date Unknown”.");
   await expect.poll(() => world.status("games", "Date Unknown")).toBe("rejected");
-  const reason = "The date or time is missing or has passed / Tanggal atau jamnya kosong atau sudah lewat — Which Saturday?";
+  const reason = "The date or time is missing or has passed / Tanggal atau jamnya kosong atau sudah lewat. Which Saturday?";
   expect((await world.sql("SELECT reject_reason FROM games WHERE title = 'Date Unknown'"))[0].reject_reason).toBe(reason);
   const state = await world.state();
   expect(state.mails.at(-1)).toMatchObject({ to: "raka@example.com" });
