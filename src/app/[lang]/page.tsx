@@ -25,12 +25,6 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   const beginner = sortGames(games.filter((g) => g.level === "beginner" && !soon.slice(0, 3).includes(g)), "soonest").slice(0, 3);
   const genres = GENRES.filter((g) => games.some((x) => x.genres.includes(g.key))).slice(0, 12);
 
-  const steps = [
-    { title: t("home.step1Title"), body: t("home.step1Body") },
-    { title: t("home.step2Title"), body: t("home.step2Body") },
-    { title: t("home.step3Title"), body: t("home.step3Body") },
-  ] as const;
-
   return (
     <>
       <JsonLd data={websiteJsonLd(lang, t("meta.description"))} />
@@ -99,20 +93,6 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
           </div>
         </section>
       )}
-
-      <section className="section pt-0" aria-labelledby="steps-h">
-        <div className="wrap grid gap-[var(--space-2xl)] lg:grid-cols-12">
-          <h2 id="steps-h" className="lg:col-span-4">{t("nav.how")}</h2>
-          <ol className="steps ruled lg:col-span-8">
-            {steps.map((s) => (
-              <li key={s.title} className="grid gap-[var(--space-xs)] py-[var(--space-lg)] sm:grid-cols-[5rem_minmax(0,1fr)] sm:gap-x-[var(--space-lg)]">
-                <h3 className="sm:col-start-2">{s.title}</h3>
-                <p className="text-ink-2 sm:col-start-2">{s.body}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
 
       <section className="band-ink section" aria-labelledby="gm-h">
         <div className="wrap grid items-center gap-[var(--space-2xl)] lg:grid-cols-12">

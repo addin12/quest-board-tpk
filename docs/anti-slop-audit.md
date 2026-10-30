@@ -37,9 +37,9 @@ hedging comments, no decorative dividers, no `else` after `return`, no filler wo
 ## Left for the owner (design judgement, not rule violations)
 
 1. **Home "How it works" block (R-05).** The home page repeats the numbered steps that already have their own page. It is the "three-step
-   how it works" template the rule names. Suggest removing it from the home page and linking the page. Not changed: it is a layout decision.
-2. **No direction file (R-37).** The direction lives in the stamp at the top of `src/app/globals.css`. A short `design.md` (audience,
-   visual language, the three dials: energy, rhythm, motion) would make it explicit and would let the four lint waivers be retired.
+   how it works" template the rule names. Removed from the home page on 2026-10-30 (the page `/how-it-works/` stays and is in the nav).
+2. **No direction file (R-37).** The direction lives in the stamp at the top of `src/app/globals.css`. [`design.md`](../design.md) now holds the audience,
+   visual language, the three dials (energy, rhythm, motion) and the reasons for the four waivers. The waivers themselves are still stamped in the CSS.
 3. **Not reviewed by eye:** R-14 identical cards (they are listings, so identical structure is by design), R-19 motion, R-20 identity,
    R-29 palette. The Halftone theme was chosen with Hallmark and passed its own gates; this audit did not re-judge it.
 4. **Not run:** the Playwright suite after these edits (the owner's rule is not to run it unasked; CI runs it on a push). Unit tests,

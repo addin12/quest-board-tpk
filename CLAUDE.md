@@ -21,6 +21,7 @@ This is the successor of Quest Board v1 (accounts, booking, payment tracking: re
 | The Anti-Slop audit: what was found, fixed, and left | [docs/anti-slop-audit.md](docs/anti-slop-audit.md) |
 | The backend (API, data, rules) | [docs/backend.md](docs/backend.md); going live: [docs/cutover.md](docs/cutover.md) |
 | How the parts fit | [docs/architecture.md](docs/architecture.md), then [DECISIONS.md](DECISIONS.md) for why |
+| How the site should look | [design.md](design.md): audience, Halftone language, three dials, waivers |
 | Operating it, when it breaks | [docs/runbook.md](docs/runbook.md) |
 | What admins do | [docs/curation.md](docs/curation.md) |
 | The mail relay | `apps-script/Code.gs` (and its tests: `tests/unit/mail-relay.test.ts`) |
