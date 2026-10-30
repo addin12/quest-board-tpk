@@ -145,7 +145,7 @@ test("a game stops showing when its time is up, and the filter choices come from
   assert.equal(isLive(g, Date.parse(g.expiresAt) - 1), true);
   assert.equal(isLive(g, Date.parse(g.expiresAt)), false);
   const o = filterOptions(games());
-  assert.ok(o.systems.includes("Call of Cthulhu"));
+  assert.ok(o.systems.includes("Call of Cthulhu 7e"));
 });
 
 // ── contacting a GM ──────────────────────────────────────────────────────────────────────────

@@ -12,7 +12,7 @@
       "discord": "raka_gm",
       "photoId": "local:/images/gms/raka.svg",
       "systems": [
-        "Call of Cthulhu",
+        "Call of Cthulhu 7e",
         "Mothership",
         "Blades in the Dark"
       ],
@@ -42,9 +42,9 @@
       "discord": "nadia.plays",
       "photoId": "local:/images/gms/nadia.svg",
       "systems": [
-        "Vampire: The Masquerade",
+        "Vampire: The Masquerade 5e",
         "Cyberpunk Red",
-        "Starfinder"
+        "Starfinder 1e"
       ],
       "bio": "Sci-fi and cyberpunk, mostly online. I like heists, factions and bad decisions."
     },
@@ -69,7 +69,7 @@
       "slug": "mercusuar-di-pulau-kabut-0m01",
       "gmId": "m0raka001",
       "title": "Mercusuar di Pulau Kabut",
-      "system": "Call of Cthulhu",
+      "system": "Call of Cthulhu 7e",
       "summary": "The lighthouse keeper stopped answering the radio. Horror on a foggy island.",
       "description": "Kamu dan empat orang lain menyeberang ke Pulau Kabut untuk mencari penjaga mercusuar yang hilang. Cuaca memburuk, radio mati, dan sesuatu di bawah mercusuar mulai bergerak.\n\nA classic Call of Cthulhu investigation for 3 to 5 players. Pre-generated investigators are provided; no experience needed.",
       "format": "one_shot",
@@ -106,7 +106,7 @@
       "slug": "darah-di-balik-tirai-beludru-0d01",
       "gmId": "m0raka001",
       "title": "Darah di Balik Tirai Beludru",
-      "system": "Vampire: The Masquerade",
+      "system": "Vampire: The Masquerade 5e",
       "summary": "Intrik politik antar vampir di Jakarta malam hari. Satu sesi.",
       "description": "Sebuah pesta tertutup di Menteng, seorang Prince yang tidak muncul, dan kamu yang baru saja di-Embrace. Satu malam untuk memilih sekutu.\n\nA social-horror one-shot in Indonesian. Characters are provided.",
       "format": "one_shot",
@@ -365,7 +365,7 @@
       "slug": "starfall-salvage-0s02",
       "gmId": "m0raka001",
       "title": "Starfall Salvage",
-      "system": "Starfinder",
+      "system": "Starfinder 1e",
       "summary": "A salvage crew, a crashed starship and a ticking clock.",
       "description": "Kalian kru salvage kecil yang menemukan kapal luar angkasa jatuh di tepi orbit. Siapa pun pemiliknya, mereka akan datang menjemput.\n\nA fast Starfinder one-shot with level 3 pregens.",
       "format": "one_shot",
