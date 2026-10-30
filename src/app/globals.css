@@ -1,7 +1,8 @@
-/* Direction: tavern at night (ADR-29, design.md). A listing board in a tavern: oak, iron, parchment sheets, one lantern-amber accent; dark is the primary stock, the light stock is a candle-lit parchment.
- * The Halftone stamps (Hallmark, ADR-22) were removed with that theme. The waivers below are kept for the Hallmark linter, which has not been run on this direction.
- * Hallmark · waive 44c · hero: Banner · the inner pages open straight on their list, listing or form under the beam, so there is no hero stage on them to fill the first screen
- * Hallmark · waive 79 · hero: Banner · the beam is the only chrome above the list, listing or form, which starts at once, so no dead band is left under it
+/* Direction: a minimal tavern (ADR-30, design.md). Warm paper, ink, one oxblood accent; the tavern is four quiet touches: an oak strip at the top and foot, a double rule under the masthead,
+ * a nail in each listing card, and a menu's dotted leaders; the headings are set in a 1600s English printer's face. Light is the primary stock, dark is the same room after hours.
+ * The Hallmark waivers below are kept for the Hallmark linter, which has not been run on this direction.
+ * Hallmark · waive 44c · hero: Banner · the inner pages open straight on their list, listing or form under the masthead, so there is no hero stage on them to fill the first screen
+ * Hallmark · waive 79 · hero: Banner · the masthead is the only chrome above the list, listing or form, which starts at once, so no dead band is left under it
  * Hallmark · waive 77 · hero: Banner · the listing's about, schedule and safety rows are plain reading text beside their heads, set as one ruled list across the page
  * Hallmark · waive 78 · heads are card titles · the games list has no section heads, each listing's title is its own h2 inside its link, set at item size so three fit across
  * Hallmark · dropped #f-city · the owner removed the city filter: the community plays in Jabodetabek and online only */
@@ -13,40 +14,33 @@
 :root {
   --font-display: var(--font-fell), "IM Fell English", ui-serif, Georgia, serif;
   --font-body: var(--font-chivo), "Chivo", ui-sans-serif, system-ui, sans-serif;
-  /* Colours on oak, the same in both stocks: lantern light on wood. */
-  --color-band-ink: oklch(93% 0.025 88);
-  --color-band-muted: oklch(78% 0.035 80);
-  --color-band-rule: oklch(40% 0.035 55);
-  --color-band-accent: oklch(77% 0.15 70); --color-band-accent-deep: oklch(83% 0.13 72); --color-band-accent-ink: oklch(18% 0.02 55);
 }
 
-/* Dark stock, the primary one: soot and oak with lantern amber. The light stock is the same room by candlelight.
+/* Dark stock: the same room after hours (warm soot, bone ink, the accent lifted to a brick red that reads on dark).
    The OS preference decides unless the person picked a theme (html[data-theme]). */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-paper: oklch(15.5% 0.014 55); --color-paper-2: oklch(19.5% 0.018 55); --color-paper-3: oklch(24.5% 0.022 55);
-  --color-ink: oklch(92% 0.025 88); --color-ink-2: oklch(86% 0.028 86); --color-muted: oklch(74% 0.03 78);
-  --color-rule: oklch(32% 0.028 55);
-  --color-accent: oklch(77% 0.15 70); --color-accent-deep: oklch(83% 0.13 72); --color-accent-ink: oklch(18% 0.02 55); --color-focus: oklch(83% 0.13 72);
-  --color-error: oklch(72% 0.16 27); --color-success: oklch(76% 0.13 150);
-  --color-oak: oklch(21% 0.036 47); --color-oak-seam: oklch(11% 0.022 45); --color-oak-grain: oklch(27% 0.042 50); --color-chalk: oklch(12% 0.014 45);
+  --color-paper: oklch(17% 0.01 55); --color-paper-2: oklch(21% 0.012 55); --color-paper-3: oklch(26% 0.015 55);
+  --color-ink: oklch(93% 0.02 88); --color-ink-2: oklch(86% 0.024 86); --color-muted: oklch(72% 0.025 78);
+  --color-rule: oklch(32% 0.02 55);
+  --color-accent: oklch(70% 0.14 32); --color-accent-deep: oklch(77% 0.12 34); --color-accent-ink: oklch(16% 0.015 50); --color-focus: oklch(77% 0.12 34);
+  --color-error: oklch(72% 0.16 27); --color-success: oklch(76% 0.13 150); --color-oak: oklch(38% 0.06 50);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --color-paper: oklch(15.5% 0.014 55); --color-paper-2: oklch(19.5% 0.018 55); --color-paper-3: oklch(24.5% 0.022 55);
-    --color-ink: oklch(92% 0.025 88); --color-ink-2: oklch(86% 0.028 86); --color-muted: oklch(74% 0.03 78);
-    --color-rule: oklch(32% 0.028 55);
-    --color-accent: oklch(77% 0.15 70); --color-accent-deep: oklch(83% 0.13 72); --color-accent-ink: oklch(18% 0.02 55); --color-focus: oklch(83% 0.13 72);
-    --color-error: oklch(72% 0.16 27); --color-success: oklch(76% 0.13 150);
-    --color-oak: oklch(21% 0.036 47); --color-oak-seam: oklch(11% 0.022 45); --color-oak-grain: oklch(27% 0.042 50); --color-chalk: oklch(12% 0.014 45);
+    --color-paper: oklch(17% 0.01 55); --color-paper-2: oklch(21% 0.012 55); --color-paper-3: oklch(26% 0.015 55);
+    --color-ink: oklch(93% 0.02 88); --color-ink-2: oklch(86% 0.024 86); --color-muted: oklch(72% 0.025 78);
+    --color-rule: oklch(32% 0.02 55);
+    --color-accent: oklch(70% 0.14 32); --color-accent-deep: oklch(77% 0.12 34); --color-accent-ink: oklch(16% 0.015 50); --color-focus: oklch(77% 0.12 34);
+    --color-error: oklch(72% 0.16 27); --color-success: oklch(76% 0.13 150); --color-oak: oklch(38% 0.06 50);
   }
 }
 :root:not([data-theme="dark"]) { color-scheme: light dark; }
 :root[data-theme="light"] { color-scheme: light; }
 
 /* The admin screens and a few older class names read these names: they point at the tavern tokens.
-   Small radii, as on worked wood and paper: wells and photographs stay square, tags and inputs soften a little. */
+   Small radii: photographs and wells stay square, tags and inputs soften a little. */
 @theme inline {
   --color-bg: var(--color-paper);
   --color-surface: var(--color-paper);
@@ -67,7 +61,7 @@
 }
 /* Tailwind's own text steps, held at the readable floor: 14px is the smallest text anywhere. */
 @theme {
-  --text-md: 1.0625rem; /* 17px body, as the Halftone theme sets it and as CLAUDE.md asks */
+  --text-md: 1.0625rem; /* 17px body, as CLAUDE.md asks */
   --text-xs: 0.875rem;
   --text-xs--line-height: 1.45;
 }
@@ -78,7 +72,7 @@
   html { scrollbar-gutter: stable; }
   body { min-height: 100dvh; display: flex; flex-direction: column; }
   ::selection { background: color-mix(in oklab, var(--color-accent) 30%, transparent); }
-  /* Links in running text: ink with a spot underline. */
+  /* Links in running text: ink with an accent underline. */
   :where(main p, main li, footer p) a:not([class]) { text-decoration: underline; text-decoration-color: var(--color-accent); text-decoration-thickness: 2px; }
   /* The admin works in one family: Chivo for heads, buttons and data (app scope). */
   .app-screen :is(h1, h2, h3) { font-family: var(--font-body); font-weight: 700; letter-spacing: 0; line-height: 1.2; }
@@ -86,7 +80,7 @@
 }
 
 @layer components {
-  /* Controls: 48px, 3px radius. The spot is the one filled button; the second action is typographic. */
+  /* Controls: 48px, 4px radius. The accent is the one filled button; the second action is typographic. */
   .btn, .btn-primary, .btn-secondary, .btn-ghost, .btn-danger { display: inline-flex; min-height: 3rem; align-items: center; justify-content: center; gap: var(--space-xs); padding: var(--space-sm) var(--space-lg); border: 0; border-radius: var(--radius-input); font: 700 var(--text-md)/1.2 var(--font-body); white-space: nowrap; text-decoration: none; cursor: pointer; transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
   .btn:active, .btn-primary:active, .btn-secondary:active, .btn-ghost:active, .btn-danger:active { transform: translateY(1px); }
   .btn:disabled, .btn[aria-disabled="true"], .btn-primary:disabled, .btn-primary[aria-disabled="true"], .btn-secondary:disabled, .btn-secondary[aria-disabled="true"], .btn-ghost:disabled, .btn-ghost[aria-disabled="true"], .btn-danger:disabled, .btn-danger[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; transform: none; }
@@ -97,7 +91,7 @@
   .btn-ghost { border-bottom-color: var(--color-rule); }
   .btn-danger { background: none; color: var(--color-error); border: var(--rule-hair) solid var(--color-error); }
   .btn-danger:hover:not(:disabled) { background: color-mix(in oklab, var(--color-error) 12%, var(--color-paper)); }
-  /* In the admin (an app screen) buttons are 40px outlined controls, the primary stays the spot. */
+  /* In the admin (an app screen) buttons are 44px outlined controls, the primary stays the accent. */
   .app-screen .btn, .app-screen .btn-primary, .app-screen .btn-secondary, .app-screen .btn-ghost, .app-screen .btn-danger { min-height: 2.75rem; padding: var(--space-xs) var(--space-md); font-size: var(--text-sm); position: relative; }
   .app-screen .btn::after, .app-screen .btn-primary::after, .app-screen .btn-secondary::after, .app-screen .btn-ghost::after, .app-screen .btn-danger::after { content: ""; position: absolute; inset: -0.25rem 0; }
   .app-screen .btn-secondary, .app-screen .btn-ghost { border: var(--rule-hair) solid var(--color-ink); border-radius: var(--radius-input); padding-inline: var(--space-md); }
@@ -113,7 +107,7 @@
   .label { display: block; margin-bottom: var(--space-xs); font: 700 var(--text-md)/1.3 var(--font-body); }
   .hint { margin-top: var(--space-xs); min-height: 1lh; font-size: var(--text-sm); color: var(--color-muted); }
 
-  /* The one boxed surface: a well, square, inside a bar of ink. Everything else is a rule. */
+  /* The one boxed surface: a well, a hairline and a tinted paper. Everything else is a rule. */
   .well { border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-card); background: var(--color-paper-2); padding: var(--space-lg); }
   .card { border: var(--rule-hair) solid var(--color-ink); background: var(--color-paper); }
   .chip { display: inline-flex; align-items: center; gap: var(--space-xs); padding: var(--space-3xs) var(--space-sm); border-radius: var(--radius-input); background: var(--color-paper-3); color: var(--color-ink); font-size: var(--text-sm); line-height: 1.5; white-space: nowrap; }
@@ -123,69 +117,18 @@
   .ruled { border-top: var(--rule-bar) solid var(--color-ink); }
   .ruled > * { border-bottom: var(--rule-hair) solid var(--color-rule); }
 
-  /* A photograph or a cover: square, a 1px ink hairline. */
-  .plate { position: relative; overflow: hidden; outline: var(--rule-hair) solid var(--color-ink); outline-offset: calc(-1 * var(--rule-hair)); background: var(--color-paper-3); }
+  /* A photograph or a cover: square, a 1px hairline. */
+  .plate { position: relative; overflow: hidden; outline: var(--rule-hair) solid var(--color-rule); outline-offset: calc(-1 * var(--rule-hair)); background: var(--color-paper-3); }
 
-
-  /* Oak. The board, the beam and the menu share one palette swap (cream ink on oak), so nothing inside needs its own colours. */
-  .board, .beam, .menu {
-    --color-paper: var(--color-oak); --color-paper-2: var(--color-oak); --color-ink: var(--color-band-ink); --color-ink-2: var(--color-band-ink);
-    --color-muted: var(--color-band-muted); --color-rule: var(--color-band-rule);
-    --color-accent: var(--color-band-accent); --color-accent-deep: var(--color-band-accent-deep); --color-accent-ink: var(--color-band-accent-ink); --color-focus: var(--color-band-accent-deep);
-    color: var(--color-band-ink);
-  }
-  /* Timber: grain running along the board, two lines at unrelated spacings so it never reads as a stripe pattern. */
-  .beam, .board, .menu-frame {
-    background:
-      repeating-linear-gradient(0deg, transparent 0 7px, color-mix(in oklab, var(--color-oak-grain) 60%, transparent) 7px 8px, transparent 8px 19px, color-mix(in oklab, var(--color-oak-grain) 35%, transparent) 19px 20px),
-      var(--color-oak);
-  }
-  /* The board: horizontal planks, each pair one tone apart, a dark seam and a lit edge between them. A quest board is a wall of notices. */
-  .board {
-    background:
-      repeating-linear-gradient(180deg, transparent 0 calc(var(--plank) - 4px), var(--color-oak-seam) calc(var(--plank) - 4px) calc(var(--plank) - 1px), color-mix(in oklab, var(--color-oak-grain) 80%, transparent) calc(var(--plank) - 1px) var(--plank)),
-      repeating-linear-gradient(180deg, transparent 0 var(--plank), color-mix(in oklab, var(--color-oak-grain) 22%, transparent) var(--plank) calc(2 * var(--plank))),
-      repeating-linear-gradient(0deg, transparent 0 7px, color-mix(in oklab, var(--color-oak-grain) 55%, transparent) 7px 8px, transparent 8px 23px, color-mix(in oklab, var(--color-oak-grain) 30%, transparent) 23px 24px),
-      var(--color-oak);
-  }
-  /* A board hung on a wall inside a page: iron-banded frame, the planks start inside it. */
-  .board-framed { border: 0.5rem solid var(--color-iron); box-shadow: inset 0 0 0 1px var(--color-oak-seam); }
-
-  /* The beam over every page: an iron rail, the sign hanging from it by two chains, a timber edge below. */
-  .beam { border-top: 0.5rem solid var(--color-iron); border-bottom: 3px solid var(--color-oak-seam); padding-top: 1.9rem; --chain: 1.9rem; }
-  .sign {
-    position: relative; display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0.4rem 1.5rem; text-decoration: none;
-    background: var(--sheet); color: var(--sheet-ink); border: 3px solid var(--color-oak-seam); border-radius: 3px;
-    box-shadow: inset 0 0 0 3px var(--sheet), inset 0 0 0 4px var(--sheet-ink);
-  }
-  .sign::before, .sign::after { content: ""; position: absolute; bottom: calc(100% + 3px); width: 10px; height: calc(var(--chain) + 3px); background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='16' viewBox='0 0 10 16'%3E%3Crect x='1.4' y='1' width='7.2' height='14' rx='3.6' fill='none' stroke='%23cfc5b3' stroke-width='1.8'/%3E%3C/svg%3E") 0 0 / 10px 12px repeat-y; }
-  .sign::before { left: 16%; }
-  .sign::after { right: 16%; }
-  .sign:hover { color: var(--sheet-accent-deep); }
-
-  /* A sheet pinned to oak: the page's own paper and ink, an iron nail, a shadow that says it stands off the board (the one elevation on the site). */
-  .pin {
-    --color-paper: var(--sheet); --color-paper-2: var(--sheet-2); --color-ink: var(--sheet-ink); --color-ink-2: var(--sheet-ink-2);
-    --color-muted: var(--sheet-muted); --color-rule: var(--sheet-rule);
-    --color-accent: var(--sheet-accent); --color-accent-deep: var(--sheet-accent-deep); --color-accent-ink: var(--sheet-accent-ink); --color-focus: var(--sheet-focus);
-    position: relative; background: var(--sheet); color: var(--sheet-ink);
-    padding: 1.6rem 0.75rem 0.75rem; box-shadow: 0 0 0 1px color-mix(in oklab, var(--sheet-ink) 22%, transparent), 0 1px 0 1px var(--color-oak-seam), 0 10px 14px -8px rgb(0 0 0 / 0.6);
-  }
-  .pin::before { content: ""; position: absolute; z-index: 2; top: 0.5rem; left: 50%; width: 0.8rem; height: 0.8rem; margin-left: -0.4rem; border-radius: 50%; background: radial-gradient(circle at 35% 30%, oklch(70% 0.01 70), var(--color-iron) 62%, oklch(16% 0.01 60)); box-shadow: 0 1px 2px rgb(0 0 0 / 0.55); }
-  .bill.pin { color: var(--sheet-ink); }
-  a.pin:focus-visible { outline: 3px solid var(--color-band-accent-deep); outline-offset: 4px; }
-  .board li:nth-child(3n + 1) > .pin { rotate: -0.4deg; }
-  .board li:nth-child(3n + 2) > .pin { rotate: 0.3deg; }
-  /* On a plain page a pinned notice (the contact box) keeps its ink bar and gains the nail. */
-  .well.pin { padding-top: 2.4rem; }
-
-  /* A picture frame: oak around a cover, so the listing's art hangs on the page. */
-  .plate.frame { border: 0.55rem solid var(--color-oak); outline: 1px solid var(--color-oak-seam); outline-offset: 0; box-shadow: inset 0 0 0 1px var(--color-oak-seam); }
-
-  /* The genre menu: a chalkboard in an oak frame; names in the display face, a dotted leader to the count, as on a tavern's menu. */
-  .menu-frame { border: 0.6rem solid var(--color-oak); outline: 1px solid var(--color-oak-seam); }
-  .menu { background: var(--color-chalk); padding: var(--space-xl) var(--space-lg); box-shadow: inset 0 0 0 1px var(--color-oak-seam); }
-  @media (max-width: 40rem) { .menu { padding: var(--space-lg) var(--space-md); } }
+  /* The tavern, in four quiet touches (design.md). One: a strip of oak at the very top and the very foot of every page. */
+  .oak-strip { height: 0.375rem; background: var(--color-oak); }
+  /* Two: a double rule under the masthead, as under the title of an old broadside. */
+  .rule-double { border-bottom: 4px double var(--color-ink); }
+  /* Three: a listing is a notice, so its card has a nail at the top. A hairline, a nail, nothing else: no shadow, no tilt. */
+  .tack { position: relative; padding: 1.75rem 0.875rem 0.875rem; border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-card); background: var(--color-paper); transition: border-color var(--dur-micro) var(--ease-out); }
+  .tack::before { content: ""; position: absolute; top: 0.6rem; left: 50%; width: 0.5rem; height: 0.5rem; margin-left: -0.25rem; border-radius: 50%; background: color-mix(in oklab, var(--color-ink) 62%, var(--color-paper)); }
+  .tack:hover { border-color: var(--color-ink); }
+  /* Four: a menu's dotted leader between a name and its number. */
   .leader { flex: 1 1 1rem; min-width: 1rem; align-self: flex-end; margin-bottom: 0.35em; border-bottom: 2px dotted var(--color-muted); }
 
   /* Sections part by the scaffold's steps. */
@@ -199,7 +142,7 @@
   .rail { display: flex; gap: var(--gap-columns); overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: var(--space-md); scrollbar-color: var(--color-muted) var(--color-paper-2); }
   .rail > * { flex: 0 0 min(20rem, 78vw); scroll-snap-align: start; min-width: 0; }
 
-  /* Steps: a real ordered list, the numeral set in Ultra by a counter. */
+  /* Steps: a real ordered list, the numeral set in the display face by a counter. */
   .steps { counter-reset: step; }
   .steps > li { counter-increment: step; position: relative; }
   .steps > li::before { content: counter(step); font: 400 var(--text-section)/1 var(--font-display); color: var(--color-accent-deep); }
@@ -208,7 +151,7 @@
   /* The page width: capped and centred; at 1920 the gutters grow and the grids do not. */
   .wrap { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: var(--gutter); }
 
-  /* A game as a playbill: the cover, then a ruled label panel. One signal on hover: the title takes the deep spot. */
+  /* A game as a notice: the cover, then a ruled label panel. One signal on hover: the title takes the deep accent. */
   .bill { display: flex; flex-direction: column; height: 100%; color: inherit; text-decoration: none; }
   .bill h2.bill-title, .bill h3.bill-title { font-size: var(--text-title); line-height: 1.15; }
   .bill-title { transition: color var(--dur-micro) var(--ease-out); }

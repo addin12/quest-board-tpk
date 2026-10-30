@@ -38,9 +38,9 @@ hedging comments, no decorative dividers, no `else` after `return`, no filler wo
 
 Checked against the rules while it was built; reasons per part are in [design.md](../design.md). Measured: R-03 (no overflow at 390 px after the sign was shrunk on phones), R-25 contrast (axe, both stocks, both languages: none), R-26 targets (only the skip link), R-40 (the rail's covers were lazy above the fold, now eager). R-07 (texture) and R-22 (illustration) are allowed with a written purpose: the planks are the board the notices hang on, and nothing was drawn beyond one chain link. R-29: two core colours plus one accent. R-23: no logo, mascot or avatar was created. Not run: the Playwright suite, the Hallmark linter, a review by the owner's eye in a real browser.
 
-## The tavern-at-night direction (ADR-29, same day)
+## The minimal-tavern direction (ADR-30, same day)
 
-Built after the owner chose it from four options (R-37: one decisive question). Reasons per part are in [design.md](../design.md). Measured again with the audit script (both languages, both stocks, 390 and 1280 px, axe): no overflow, no contrast failure, only the skip link under 44 px. R-06: facts never use Fell (old-style figures). R-11: tags are rectangles, not pills. R-29: soot and oak, bone ink, one amber. R-21: dark primary for a stated brand reason, with a working light stock and switch. R-23: nothing was drawn beyond one chain link. Not run: the Playwright suite, the Hallmark linter, review in a real browser.
+The owner tried three directions in a day and asked for a minimal one. Reasons per part are in [design.md](../design.md). Measured again with the audit script (both languages, both stocks, 390 and 1280 px, axe): no overflow, no contrast failure, only the skip link under 44 px. R-05/R-14: one rhythm break per section instead of a repeated template; cards are listings, so identical structure is by design. R-06: facts never use Fell (old-style figures). R-07/R-22: nothing is textured or drawn; the nail is one CSS dot. R-11: tags are rectangles, not pills. R-29: paper and ink, one accent. Not run: the Playwright suite, the Hallmark linter, a review in a real browser.
 
 ## Left for the owner (design judgement, not rule violations)
 

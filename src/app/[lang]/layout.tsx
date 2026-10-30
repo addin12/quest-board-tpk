@@ -52,20 +52,18 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
       <body className="overflow-x-clip max-lg:pb-16">
         <I18nProvider lang={lang} messages={publicMessages(lang)}>
           <a href="#main" className="btn btn-primary sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50">{t("nav.skip")}</a>
-          <header className="border-b-3 border-ink">
-            <div className="beam">
-              <div className="wrap flex items-end justify-between gap-x-4 pb-4 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:pb-5">
-                <Link href={paths.home(lang)} className="sign wordmark text-xl max-sm:px-3 max-sm:text-base lg:order-2 lg:text-4xl">{"Quest Board TPK"}</Link>
-                <div className="lg:order-1 lg:justify-self-start"><LanguageSwitcher /></div>
-                <div className="hidden lg:order-3 lg:block" />
+          <header>
+            <div className="oak-strip" />
+            <div className="rule-double">
+              <div className="wrap flex items-center justify-between gap-x-6 py-3 lg:py-4">
+                <Link href={paths.home(lang)} className="wordmark inline-flex min-h-11 items-center text-2xl lg:text-3xl">{"Quest Board TPK"}</Link>
+                <div className="hidden min-w-0 flex-1 lg:block"><NavLinks variant="header" /></div>
+                <LanguageSwitcher />
               </div>
-            </div>
-            <div className="hidden lg:block">
-              <div className="wrap"><NavLinks variant="header" /></div>
             </div>
           </header>
           <main id="main" className="flex-1">{children}</main>
-          <footer className="beam !pt-0 !border-t-0">
+          <footer className="border-t-4 border-double border-ink">
             <div className="wrap grid gap-[var(--space-xl)] py-[var(--space-3xl)] lg:grid-cols-12">
               <div className="lg:col-span-6">
                 <p className="font-display text-[length:var(--text-2xl)] leading-tight">{t("footer.tagline")}</p>
@@ -92,6 +90,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
                 <a href="https://www.flaticon.com/uicons" target="_blank" rel="noopener noreferrer" className="underline hover:text-ink">Uicons by Flaticon</a>
               </span>
             </div>
+            <div className="oak-strip" />
           </footer>
           <nav aria-label={t("nav.main")} className="fixed inset-x-0 bottom-0 z-40 border-t-3 border-ink bg-paper pb-[env(safe-area-inset-bottom)] lg:hidden">
             <NavLinks variant="tabs" />

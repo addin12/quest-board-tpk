@@ -16,23 +16,19 @@
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --color-error: oklch(48% 0.17 27);
   --color-success: oklch(46% 0.11 150);
-  --color-paper: oklch(95% 0.028 88);
-  --color-paper-2: oklch(91% 0.038 86);
-  --color-paper-3: oklch(86% 0.048 84);
-  --color-ink: oklch(22% 0.035 50);
-  --color-ink-2: oklch(32% 0.04 52);
-  --color-muted: oklch(43% 0.04 55);
-  --color-rule: oklch(80% 0.04 82);
-  --color-accent: oklch(47% 0.13 58);
-  --color-accent-deep: oklch(40% 0.12 55);
-  --color-accent-ink: oklch(97% 0.02 90);
-  --color-focus: oklch(40% 0.12 55);
-  /* The tavern (design.md): oak is the second core colour; the board, the beam and the menu are oak, the notices on them are parchment. */
-  --color-oak: oklch(26% 0.045 48);
-  --color-oak-seam: oklch(15% 0.03 45);
-  --color-oak-grain: oklch(33% 0.05 52);
-  --color-iron: oklch(30% 0.012 60);
-  --color-chalk: oklch(19% 0.018 45);
+  --color-paper: oklch(97.5% 0.012 90);
+  --color-paper-2: oklch(94.5% 0.02 88);
+  --color-paper-3: oklch(90% 0.03 86);
+  --color-ink: oklch(21% 0.02 50);
+  --color-ink-2: oklch(32% 0.025 52);
+  --color-muted: oklch(44% 0.03 55);
+  --color-rule: oklch(86% 0.025 82);
+  --color-accent: oklch(44% 0.14 28);
+  --color-accent-deep: oklch(37% 0.13 28);
+  --color-accent-ink: oklch(98% 0.01 90);
+  --color-focus: oklch(37% 0.13 28);
+  /* The oak strip at the top and foot of every page: the one piece of the tavern that is a colour of its own. */
+  --color-oak: oklch(27% 0.045 48);
   --font-display: "IM Fell English", ui-serif, Georgia, serif;
   --font-body: "Chivo", ui-sans-serif, sans-serif;
   --radius-card: 3px;
@@ -59,8 +55,8 @@
   --container: 1440px;
   --gutter: 64px;
   --gap-columns: 32px;
-  --section-gap-s: 120px;
-  --section-gap: 144px;
+  --section-gap-s: 96px;
+  --section-gap: 120px;
   --section-gap-l: 176px;
   --z-base: 1;
   --z-raised: 10;
@@ -73,18 +69,6 @@
   --rule-hair: 1px;
   --rule-bar: 2px;
   --display-weight: 400;
-  /* A sheet pinned on oak is parchment with dark ink in both stocks: paper nailed to wood by lantern light. Constants, so a swapped palette cannot reach it. */
-  --sheet: oklch(94.5% 0.034 88);
-  --sheet-2: oklch(90% 0.042 86);
-  --sheet-ink: oklch(22% 0.035 50);
-  --sheet-ink-2: oklch(32% 0.04 52);
-  --sheet-muted: oklch(43% 0.04 55);
-  --sheet-rule: oklch(78% 0.045 82);
-  --sheet-accent: oklch(47% 0.13 58);
-  --sheet-accent-deep: oklch(40% 0.12 55);
-  --sheet-accent-ink: oklch(97% 0.02 90);
-  --sheet-focus: oklch(40% 0.12 55);
-  --plank: 9.5rem;
 }
 @media (max-width: 60rem) { :root { --gutter: 24px; --section-gap-s: 80px; --section-gap: 96px; --section-gap-l: 120px; } }
 @media (max-width: 40rem) { :root { --gutter: 16px; --section-gap-s: 56px; --section-gap: 72px; --section-gap-l: 96px; --gap-columns: 16px; } }

@@ -63,9 +63,8 @@ export function whereLabel(g: Pick<GameView, "locationType" | "platform" | "city
  * A game as a playbill: the cover, then a ruled label panel. `preview` draws it without a link (the admin page shows cards
  * for games that are not on the site yet).
  * `priority`: the picture is among the first things a visitor sees, so it loads first. `headingLevel`: 2 where the page has no h2 above the cards.
- * `pinned`: the playbill is a sheet nailed to an oak board (the card sits on a `.board`).
  */
-export function GameCard({ game, t, lang, preview = false, priority = false, headingLevel = 3, pinned = false }: { game: GameView; t: T; lang: Lang; preview?: boolean; priority?: boolean; headingLevel?: 2 | 3; pinned?: boolean }) {
+export function GameCard({ game, t, lang, preview = false, priority = false, headingLevel = 3 }: { game: GameView; t: T; lang: Lang; preview?: boolean; priority?: boolean; headingLevel?: 2 | 3 }) {
   const Heading = headingLevel === 2 ? "h2" : "h3";
   const genre = game.genres.find(isGenre);
   const rows: [string, string][] = [
@@ -101,7 +100,7 @@ export function GameCard({ game, t, lang, preview = false, priority = false, hea
       </div>
     </>
   );
-  const cls = pinned ? "bill pin" : "bill";
+  const cls = "bill tack";
   return preview ? <div className={cls}>{body}</div> : <Link href={paths.game(lang, game.slug)} className={cls}>{body}</Link>;
 }
 

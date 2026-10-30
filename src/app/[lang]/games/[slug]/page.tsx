@@ -85,7 +85,7 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
 
         <div className="mt-[var(--space-lg)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] lg:grid-cols-12">
           <div className="min-w-0 lg:col-span-4">
-            <Cover src={game.cover} seed={game.title} priority sizes="(min-width: 1024px) 30vw, 100vw" className="frame aspect-[4/5] w-full max-sm:max-w-xs" />
+            <Cover src={game.cover} seed={game.title} priority sizes="(min-width: 1024px) 30vw, 100vw" className="aspect-[4/5] w-full max-sm:max-w-xs" />
           </div>
 
           <div className="min-w-0 lg:col-span-8">
@@ -102,7 +102,7 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
             </Link>
             <p className="mt-[var(--space-lg)] lg:hidden"><a href="#contact" className="btn btn-primary">{t("game.contactTitle")}</a></p>
 
-            <aside id="contact" className="well pin mt-[var(--space-xl)] scroll-mt-[var(--space-xl)]" aria-labelledby="contact-h">
+            <aside id="contact" className="well mt-[var(--space-xl)] scroll-mt-[var(--space-xl)]" aria-labelledby="contact-h">
               <h2 id="contact-h" className="max-w-none text-[length:var(--text-title)]">{t("game.contactTitle")}</h2>
               <p className="mt-[var(--space-sm)] text-ink-2">{t("game.contactBody")}</p>
               {game.full && <p className="mt-[var(--space-md)] bg-accent px-[var(--space-md)] py-[var(--space-sm)] font-bold text-accent-ink" data-testid="full-note">{t("game.fullNote")}</p>}

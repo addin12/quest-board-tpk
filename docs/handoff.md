@@ -5,7 +5,7 @@ don't tell you.
 
 ## State in one paragraph
 
-The site is a Next 16 static export on Cloudflare Pages (EN/ID), designed as a tavern at night (ADR-29; Halftone, ADR-22, was dropped), at
+The site is a Next 16 static export on Cloudflare Pages (EN/ID), designed as a minimal tavern (ADR-30; Halftone, ADR-22, the oak-board tavern and the tavern at night were all dropped), at
 <https://quest-board-tpk.pages.dev>. **The Cloudflare backend (D1 + R2, email-link accounts, ADR-25, [backend.md](backend.md)) went live on
 2026-10-30**, pushed as `6389a7a` with CI green; the build reads its data from it (0 games, 0 GMs: nothing existed to import). The Google
 Forms + Sheet stack was **retired in code** the same day (ADR-27); the Apps Script remains only as the mail relay. The commits after
@@ -24,7 +24,7 @@ Forms + Sheet stack was **retired in code** the same day (ADR-27); the Apps Scri
 
 ## What was done on 2026-10-30
 
-- **Tavern at night** (ADR-28 then ADR-29, [design.md](../design.md)): the owner asked for a medieval-tavern site, then said they disliked Halftone; they chose "tavern at night" from four directions. Dark-first oak and soot, lantern-amber accent, IM Fell English heads over Chivo, parchment sheets, no dot screen. Beam and hanging sign, oak board with pinned game sheets (home, games list), framed cover and nailed contact box (game page), chalkboard genre menu, Fell standfirst. Measured with the audit script in both languages, both stocks, 390 and 1280 px; the Playwright suite and the Hallmark linter were not run on it.
+- **Minimal tavern** (ADR-30, [design.md](../design.md)): after Halftone, an oak-board tavern and a tavern at night were each tried and disliked, the owner asked for "more minimalist but still a tavern touch". Warm paper, ink, one oxblood accent, Fell heads over Chivo; the tavern is an oak strip, a double rule, a nail per card, menu leaders and the printer's face. Measured with the audit script; the Playwright suite and the Hallmark linter were not run on it.
 
 - **Cutover** (log in [cutover.md](cutover.md)): `wrangler login`, R2 enabled by the owner (no API for that), `npm run cloudflare:setup` (D1, R2,
   schema, deploy hook, bindings and variables by Pages API, never a committed `wrangler.toml`), mail relay deployed, Turnstile widget made,
