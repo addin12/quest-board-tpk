@@ -23,18 +23,21 @@ The site is a Next 16 static export on Cloudflare Pages (EN/ID), redesigned as "
 
 ## Still open after the cutover
 
-- **The timers are not running.** Until one of the two is set up, nothing sends a waiting rebuild and no daily backup runs (see cutover.md
-  step 5). Either (a) `npm run cron:deploy` (a Cloudflare Worker, `cron/`, written and checked but **not deployed**: the permission
-  classifier refused creating a new Worker in the owner's account without explicit approval) or (b) the GitHub secret `BUILD_KEY`
-  (`.github/workflows/cron.yml` is in place and exits harmlessly without it). An attempt to set the GitHub secret with the stored Git
-  credential was also refused; do not retry either, ask the owner.
-- **Not confirmed by anyone**: that the sign-in mail arrived in the inbox, and one full sign-in by clicking the link (the agent cannot read the
+- **Timers: the Cloudflare Worker `quest-board-cron` is deployed** (`npm run cron:deploy`, `cron/`; crons `*/10 * * * *` and `30 18 * * *`, secret `BUILD_KEY`). Free plan. Its
+  two jobs were also called by hand and answered 200, and the daily job wrote a backup to R2 that reads back. A real scheduled firing was
+  being watched when this was written; confirm it in the dashboard (Workers → quest-board-cron → Metrics) before relying on it.
+  `.github/workflows/cron.yml` still exists but does nothing without a GitHub `BUILD_KEY` secret: do not set that secret, or both would call the
+  backend. The agent was refused twice by the permission classifier (reading the stored Git credential; creating the Worker before explicit
+  approval): do not retry such steps, ask the owner.- **Not confirmed by anyone**: that the sign-in mail arrived in the inbox, and one full sign-in by clicking the link (the agent cannot read the
   mailbox). Do this first: sign in at `/en/account/`, then open `/en/admin/`.
 - **Billing**: R2 and D1 are inside the free tier by design (see ADR-25), but the agent could not read the subscription (the token has no
   billing scope). The owner should check Cloudflare → Billing shows $0 and may add a usage notification.
-- Turnstile is not enabled (optional). Without it sign-in is protected only by the per-address and per-IP limits, and the relay is capped at
-  90 mails a day, so a bot could use up the daily mail budget. Enable it if that matters.
-- Retire the old stack when happy: delete the two Google Forms and the Apps Script timers (keep the script, it is the mail relay), remove
+- **Turnstile is enabled** (widget `Quest Board TPK sign-in`, managed mode, keys in `.cloudflare.local.json`, set as `TURNSTILE_SECRET` and
+  `NEXT_PUBLIC_TURNSTILE_SITE_KEY`). The server refuses a sign-in request without a token (`turnstile_failed`). **Not confirmed in a real browser:**
+  in automated Edge (headless and headed) the widget stayed on "Verifying…" for 30 s and the button, which waits for the token, stayed disabled; that
+  is probably bot detection but it is unproven. Open `/en/account/` in a normal browser: the button must enable. If it never does, sign-in is
+  blocked for everyone: remove `TURNSTILE_SECRET` and `NEXT_PUBLIC_TURNSTILE_SITE_KEY` from the Pages project (and the two keys from
+  `.cloudflare.local.json`), rebuild, and sign-in works with only the rate limits.- Retire the old stack when happy: delete the two Google Forms and the Apps Script timers (keep the script, it is the mail relay), remove
   `TPK_API_URL` and the unused `NEXT_PUBLIC_*_FORM_URL`/`GOOGLE_CLIENT_ID` variables from the project.
 - `wrangler` is not a dependency: the scripts run it with `npx wrangler@4`, and its login lives in the user profile, not the repo.
 
@@ -43,9 +46,9 @@ The site is a Next 16 static export on Cloudflare Pages (EN/ID), redesigned as "
 | Part | Status |
 |---|---|
 | D1 (schema, health, public data) | exercised live on 2026-10-30; the write paths (sign-up, profile, review) have not been used by a real person yet |
-| R2 (images, backups) | bucket exists; no picture was uploaded and no backup has run yet (the daily job needs the GitHub secret) |
+| R2 (images, backups) | a backup (JSON; the CSVs are empty with no data) was written and read back; no picture uploaded yet |
 | Mail relay | answered `{"ok":true}` and a live sign-in request returned ok; delivery to the inbox unconfirmed |
-| Turnstile | not enabled |
+| Turnstile | enabled; widget renders and the server enforces the token; completion in a real browser unconfirmed |
 | Indonesian pages | written by the agent, not looked at by eye on every page |
 
 ## Map of the new backend
@@ -56,7 +59,7 @@ The site is a Next 16 static export on Cloudflare Pages (EN/ID), redesigned as "
 - Site side: `src/app/[lang]/account/`, `src/components/account/*`, `src/lib/account-api.ts`, admin in `src/lib/admin-api.ts` +
   `admin-app.tsx` + `review-pane.tsx`.
 - Build: `scripts/build-data.mjs` reads `TPK_API_BASE` + `TPK_BUILD_KEY` (falls back to the old `TPK_API_URL`, then demo data).
-- Timers: `.github/workflows/cron.yml` calls `POST /api/cron?job=tick|daily` with the build key.
+- Timers: `cron/worker.ts` (a Cloudflare Worker with cron triggers) calls `POST /api/cron?job=tick|daily` with the build key; `.github/workflows/cron.yml` is the unused alternative.
 - Test harness: `tests/support/worker-env.ts` (unit world), `tests/support/test-server.ts` (real backend for Playwright, one world per
   test via the `tpk_world` cookie, `/__test/*` helpers for seeding, clock, mail and SQL).
 

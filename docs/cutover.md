@@ -54,8 +54,8 @@ service (`worker/src/email.ts`: one file).
 
 ## 4. Turnstile (the robot check), optional but recommended
 
-Cloudflare dashboard → Turnstile → add a widget for the site. Put its site key and secret into `.cloudflare.local.json` as
-`turnstileSiteKey` and `turnstileSecret`, and run the setup again. Without them the sign-in form still works, with only the per-address and per-IP limits.
+`npm run cloudflare:setup -- --turnstile` makes the widget (free) and stores its keys; rebuild afterwards (the site key is a build variable).
+Without it the sign-in form still works, with only the per-address and per-IP limits. Check the button on `/en/account/` enables in a normal browser.
 
 ## 5. The timers
 

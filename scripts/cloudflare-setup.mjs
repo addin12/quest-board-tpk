@@ -93,6 +93,18 @@ if (!local.deployHook) {
 }
 save();
 
+// 4b. Turnstile (the robot check on the sign-in form), only with --turnstile; free, and the keys stay in .cloudflare.local.json
+if (process.argv.includes("--turnstile") && !local.turnstileSecret) {
+  const widget = must(
+    await api("POST", `/accounts/${account}/challenges/widgets`, { name: "Quest Board TPK sign-in", domains: [`${PROJECT}.pages.dev`], mode: "managed", region: "world" }),
+    "Turnstile widget",
+  );
+  local.turnstileSiteKey = widget.sitekey ?? "";
+  local.turnstileSecret = widget.secret ?? "";
+  if ((!local.turnstileSiteKey || !local.turnstileSecret) && !DRY) fail(`the Turnstile widget was made but its keys were not in the answer: ${JSON.stringify(Object.keys(widget))}`);
+  save();
+}
+
 // 5. The project: bindings and variables
 const project = must(await api("GET", pages), "Pages project");
 const current = project.deployment_configs?.production?.env_vars ?? {};
