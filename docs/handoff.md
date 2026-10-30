@@ -13,11 +13,12 @@ Forms + Sheet stack was **retired in code** the same day (ADR-27); the Apps Scri
 
 ## Before you push (the local commits after 17cacd0)
 
-1. **Apply migration `0002_retention.sql` to the live D1 first** (`npm run cloudflare:setup`, which applies migrations not yet applied). The new
-   sign-in code writes `last_seen_at`; without the columns every sign-in would fail. The migration only adds columns, so the code that is live
-   keeps working with it.
-2. Run `npm run script:deploy` (the reduced relay; the old triggers in the Apps Script remove themselves within a minute) and the setup (it
-   removes the retired Pages variables). If these were already done, `/api/health` answers and the Apps Script web address answers `{"ok":true,...}` to a GET.
+1. **Done on 2026-10-30:** migration `0002_retention.sql` is applied to the live D1 (`npm run cloudflare:setup`; verified: the `accounts` table has
+   `last_seen_at` and `expiry_warned_at`). The new sign-in code writes `last_seen_at`, so this had to come first; it only adds columns, so the code
+   that is live keeps working with it. For a later migration, do the same: apply it, then push.
+2. **Done on 2026-10-30:** `npm run script:deploy` put the reduced relay live as Apps Script version 11 (ping answers, an old Sheet action is
+   refused, a wrong secret is refused, a real mail was sent), and the setup removed the retired Pages variables. Still to check by eye: the
+   Apps Script **Triggers** page should be empty within a minute of the deploy (the stubs delete them when they fire).
 3. The Playwright suite has **not** been run since the audit fixes and the retirement (the owner's rule is not to run it unasked); CI runs it on the push.
    Watch CI after pushing (public Actions API, times in UTC).
 
