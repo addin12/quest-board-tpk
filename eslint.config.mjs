@@ -14,7 +14,7 @@ const eslintConfig = defineConfig([
         noStrings: false,
         ignoreProps: true,
         allowedStrings: ["·", "—", "–", "/", "|", "(", ")", "+", "-", ":", "×", "…", "*", "→", "&", "Rp", "GM", "Quest Board", "WhatsApp", "Discord", "TPK", "The Pandemonium Kollektive", "English", "Bahasa Indonesia",
-          ".", "#", "“", "”", "· GM", "ref:", "20", "Uicons by Flaticon"],
+          ".", "#", "“", "”", "· GM", "ref:", "20"],
       }],
     },
   },

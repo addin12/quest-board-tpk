@@ -9,7 +9,6 @@ export const id: Record<MsgKey, string> = {
   "lang.gameId": "Bahasa Indonesia",
   "lang.gameEn": "English",
   "lang.gameBoth": "Indonesia & English",
-  "footer.iconsBy": "Ikon:",
   "common.free": "Gratis",
   "common.working": "Memproses…",
   "format.one_shot": "One-shot",

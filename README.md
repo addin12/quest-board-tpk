@@ -70,7 +70,7 @@ npm run preview      # http://localhost:4173, served like Cloudflare Pages
 | `npm test` | Unit tests (`node:test`): the backend through its HTTP handler on an in-memory SQLite, the site's logic, and the mail relay's `Code.gs` in a sandbox |
 | `npm run test:e2e` | Builds with demo data and runs the real backend code on a test server, then Playwright (Chromium, Firefox, WebKit) |
 | `npm run cloudflare:setup` · `npm run cron:deploy` · `npm run script:deploy` | Owner only: create the Cloudflare resources, deploy the timer Worker, push the mail relay (see [docs/cutover.md](docs/cutover.md)) |
-| `npm run icons` | Rebuilds the icon font after editing `src/lib/icons.ts` |
+| `npm run icons` | Copies the icons listed in `src/lib/icons.ts` out of Phosphor Icons (MIT) into the site |
 
 ## Configuration
 
@@ -100,4 +100,4 @@ Start with [CONTRIBUTING.md](CONTRIBUTING.md) and [CLAUDE.md](CLAUDE.md). A secu
 
 ---
 
-<sub>Icons: [Uicons by Flaticon](https://www.flaticon.com/uicons). Illustrations are original and drawn in code. Quest Board TPK is a community project and takes no payments: players and Game Masters arrange everything between themselves. Code under the [MIT License](LICENSE); the Flaticon icons keep their own license (attribution required).</sub>
+<sub>Icons: [Phosphor Icons](https://phosphoricons.com) (MIT, see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)). Illustrations are original and drawn in code. Quest Board TPK is a community project and takes no payments: players and Game Masters arrange everything between themselves. Code under the [MIT License](LICENSE).</sub>

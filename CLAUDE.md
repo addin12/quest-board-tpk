@@ -36,7 +36,7 @@ npm run preview        # serves out/ like Cloudflare Pages on :4173 ("/" -> "/en
 npm run typecheck && npm run lint && npm test
 npm run test:e2e       # Playwright against a build with demo data and the real backend code on a test server (tests/support)
 node scripts/audit-frontend.mjs  # with npm run preview running: Anti-Slop measurable rules over every page (see docs/anti-slop-audit.md)
-npm run icons          # after editing src/lib/icons.ts
+npm run icons          # after editing src/lib/icons.ts (copies outlines from Phosphor Icons, MIT, into src/components/icon-data.ts)
 # owner only (need the owner's Cloudflare / Google logins; see docs/cutover.md):
 npm run cloudflare:setup   # D1/R2, schema migrations, Pages bindings and variables by API, .cloudflare.local.json (use -- --dry first)
 npm run cron:deploy        # the timers Worker
@@ -74,7 +74,7 @@ npm run script:deploy      # the mail relay in Apps Script
 - **No secret in a log, an error or the repo.** Only hashes of login links and sessions are stored; `Origin` is checked on every write.
 - **Apps Script is not Node**: no `URL`, no `fetch`, no `import`. Keep Google calls out of the pure helpers (names ending `_`) so the tests can load them in a sandbox.
 - **Don't write words in JSX**: use `t("key")` (the lint rule enforces it).
-- **Keep the footer credit "Uicons by Flaticon"** (icon licence).
+- **Icons are inline Phosphor outlines (MIT)**: the notice lives in THIRD_PARTY_NOTICES.md, no credit line is needed in the page. Add an icon in `src/lib/icons.ts`, then `npm run icons`.
 - **A build that can't get good data must fail**, not publish an empty or demo site (`scripts/build-data.mjs`).
 
 ## Engineering rules (the owner's rule files, adapted)

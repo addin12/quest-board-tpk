@@ -13,7 +13,7 @@ export function ThemeSwitcher() {
 
   return (
     <button type="button" onClick={() => setThemeChoice(next)} className="btn-secondary" aria-label={t("theme.switch", { current: name(theme), next: name(next) })}>
-      <Icon name={theme === "system" ? "circle-half-stroke" : theme === "light" ? "sun" : "candle-holder"} />
+      <Icon name={theme === "system" ? "circle-half-stroke" : theme === "light" ? "sun" : "moon"} />
       {t("theme.current", { current: name(theme) })}
     </button>
   );

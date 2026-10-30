@@ -8,7 +8,7 @@ import { formatWhen } from "@/lib/format";
 import { adminPictureUrl } from "@/lib/pictures";
 import { STATUSES, type GameRecord, type GmRecord, type Lang, type Status } from "@/lib/types";
 import type { MsgKey, T } from "@/lib/i18n/core";
-import { genreIcon, genreLabelKey, isGenre, isStyle, styleIcon, styleLabelKey } from "@/lib/categories";
+import { genreLabelKey, isGenre, isStyle, styleLabelKey } from "@/lib/categories";
 import { Icon } from "../icon";
 import { useI18n } from "../i18n-provider";
 import { Avatar, Cover, GameCard, languageLabel, priceLabel, whereLabel } from "../ui";
@@ -262,9 +262,9 @@ function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting
             {item.kind === "game" && <p className="font-semibold">{t("admin.gmOf", { name: gm.name })}</p>}
             <p className="flex flex-wrap items-center gap-3">
               <span className="tabular-nums">{gm.whatsapp ? `+${gm.whatsapp}` : "–"}</span>
-              {gm.whatsapp && <a href={waLink(gm.whatsapp, contactMessage({ name: gm.name }, null, lang))} target="_blank" rel="noopener noreferrer" className="btn-secondary"><Icon name="whatsapp" brand /> {t("admin.testWhatsapp")}</a>}
+              {gm.whatsapp && <a href={waLink(gm.whatsapp, contactMessage({ name: gm.name }, null, lang))} target="_blank" rel="noopener noreferrer" className="btn-secondary"><Icon name="whatsapp" /> {t("admin.testWhatsapp")}</a>}
             </p>
-            {gm.discord && <p className="flex items-center gap-2"><Icon name="discord" brand /> <span className="tabular-nums">{gm.discord}</span></p>}
+            {gm.discord && <p className="flex items-center gap-2"><Icon name="discord" /> <span className="tabular-nums">{gm.discord}</span></p>}
           </div>
         ) : (
           <p className="mt-2 text-muted">{t("admin.noGm")}</p>
@@ -318,8 +318,8 @@ function GameDetails({ rec, t, lang }: { rec: GameRecord; t: T; lang: Lang }) {
       {(rec.genres.length > 0 || rec.styles.length > 0) && (
         <Field label={t("games.genre")}>
           <span className="flex flex-wrap gap-1.5">
-            {rec.genres.filter(isGenre).map((g) => <span key={g} className="chip"><Icon name={genreIcon(g)} />{t(genreLabelKey(g))}</span>)}
-            {rec.styles.filter(isStyle).map((s) => <span key={s} className="chip"><Icon name={styleIcon(s)} />{t(styleLabelKey(s))}</span>)}
+            {rec.genres.filter(isGenre).map((g) => <span key={g} className="chip">{t(genreLabelKey(g))}</span>)}
+            {rec.styles.filter(isStyle).map((s) => <span key={s} className="chip">{t(styleLabelKey(s))}</span>)}
           </span>
         </Field>
       )}

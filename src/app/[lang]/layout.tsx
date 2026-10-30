@@ -11,7 +11,6 @@ import { paths } from "@/lib/hrefs";
 import { SITE_URL } from "@/lib/site";
 import { LANGS, isLang } from "@/lib/types";
 import "../globals.css";
-import "../icons/icons.css";
 
 // Typography: EB Garamond for heads and the wordmark (a 1500s old-style serif, the book face of a tavern's menu and broadside), Chivo for everything
 // people read. Self-hosted at build time. Garamond has a small x-height, so heads are set larger; facts (dates, prices, seats) are always Chivo.
@@ -85,11 +84,6 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
             </div>
             <div className="wrap flex flex-wrap items-center justify-between gap-[var(--space-md)] border-t border-rule py-[var(--space-md)] text-sm text-muted">
               <ThemeSwitcher />
-              <span>
-                {/* Required attribution for free use of Flaticon UIcons. */}
-                {t("footer.iconsBy")}{" "}
-                <a href="https://www.flaticon.com/uicons" target="_blank" rel="noopener noreferrer" className="underline hover:text-ink">Uicons by Flaticon</a>
-              </span>
             </div>
             <div className="oak-strip" />
           </footer>

@@ -8,7 +8,6 @@ export const en = {
   "lang.gameId": "Bahasa Indonesia",
   "lang.gameEn": "English",
   "lang.gameBoth": "Indonesian & English",
-  "footer.iconsBy": "Icons:",
   "common.free": "Free",
   "common.working": "Working…",
   "format.one_shot": "One-shot",
