@@ -5,7 +5,7 @@ Delivery Gate) and **b4r7x's anti-slop code skill** (`b4r7x/agent-skills`: seven
 their public files on 2026-10-30; only summaries of the rule text were available to the agent, so a rule may have more detail than is
 applied here. Run in "After" mode: findings first, then fixes.
 
-Tools: `scripts/audit-frontend.cjs` (rendered pages: both languages, both colour schemes, 390 px and 1280 px, plus axe) and a cross-file scan
+Tools: `scripts/audit-frontend.mjs` (rendered pages: both languages, both colour schemes, 390 px and 1280 px, plus axe) and a cross-file scan
 for unused exports, single-caller helpers, redundant `else`, dividers, restating comments and hedging words.
 
 ## Result in one line

@@ -32,7 +32,7 @@ npm run build          # data -> next build (static export to out/) -> fix-expor
 npm run preview        # serves out/ like Cloudflare Pages on :4173 ("/" -> "/en/", 404 page)
 npm run typecheck && npm run lint && npm test
 npm run test:e2e       # Playwright against a build with demo data and the real backend code on a test server (tests/support)
-node scripts/audit-frontend.cjs  # with npm run preview running: Anti-Slop measurable rules over every page (see docs/anti-slop-audit.md)
+node scripts/audit-frontend.mjs  # with npm run preview running: Anti-Slop measurable rules over every page (see docs/anti-slop-audit.md)
 npm run cloudflare:setup  # owner only: creates D1/R2, sets the Pages bindings and variables by API, writes .cloudflare.local.json (use -- --dry first)
 npm run form-options   # rewrite docs/form-options.md and the GENERATED labels in Code.gs after changing genres/styles/systems
 npm run icons          # after editing src/lib/icons.ts

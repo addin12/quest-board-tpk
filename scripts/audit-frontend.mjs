@@ -1,10 +1,10 @@
 // Front-end audit of the built site against the measurable Anti-Slop rules (R-02 R-03 R-15 R-16 R-24 R-26 R-39 R-40) plus axe
 // for contrast (R-25). Every page, both languages, both colour schemes, a phone and a desktop width. Prints findings grouped by rule.
 //   npm run build && npm run preview     (in one terminal)
-//   node scripts/audit-frontend.cjs      (in another; AUDIT_BASE and AUDIT_BROWSER=msedge are optional)
+//   node scripts/audit-frontend.mjs      (in another; AUDIT_BASE and AUDIT_BROWSER=msedge are optional)
 // Not covered (needs a person's eye): R-05 templated layouts, R-14 identical cards, R-19 motion, R-20 identity, R-29 palette.
-const { chromium } = require("playwright");
-const AxeBuilder = require("@axe-core/playwright").default;
+import { chromium } from "playwright";
+import AxeBuilder from "@axe-core/playwright";
 const BASE = process.env.AUDIT_BASE || "http://localhost:4173";
 const PAGES = ["", "games", "games/abomination-vaults-0a01", "gms", "gm/raka-pratama-0r01", "how-it-works", "list-your-game", "account", "admin"];
 const BUZZ = /\b(seamless(ly)?|revolutionary|cutting[- ]edge|next[- ]gen|unleash|supercharge|game[- ]changing|world[- ]class|robust|elevate|empower|leverage|delve|streamline|effortless(ly)?)\b/i;
@@ -43,7 +43,7 @@ const add = (rule, where, msg) => ((findings[rule] ??= new Set()).add(`${where}:
             const text = document.body.innerText;
             (text.match(/[^\n]{0,30}—[^\n]{0,30}/g) || []).forEach((m) => out.emdash.push(m.trim()));
             (text.match(new RegExp(BUZZ.source, "gi")) || []).forEach((m) => out.buzz.push(m));
-            document.querySelectorAll("img").forEach((img, i) => {
+            document.querySelectorAll("img").forEach((img) => {
               if (!vis(img)) return;
               if (!img.hasAttribute("alt")) out.img.push(`img ${img.getAttribute("src")?.slice(-30)} has no alt attribute`);
               if (!(img.getAttribute("width") && img.getAttribute("height")) && !getComputedStyle(img).aspectRatio.match(/\d/) && !img.closest("[style*=aspect], [class*=aspect]")) out.img.push(`img ${img.getAttribute("src")?.slice(-30)} has no width/height or aspect box`);
