@@ -27,8 +27,8 @@
       "discord": "",
       "photoId": "local:/images/gms/dewi.svg",
       "systems": [
-        "D&D 5.5e (2024)",
-        "D&D 5e (2014)",
+        "Dungeons & Dragons 5.5e 2024",
+        "Dungeons & Dragons 5e 2014",
         "Pathfinder 2e"
       ],
       "bio": "I teach D&D to people who have never rolled a d20. Friendly tables, clear rules, lots of snacks. I run in Bahasa Indonesia and English."
@@ -143,7 +143,7 @@
       "slug": "naga-naga-hutan-bara-0n01",
       "gmId": "m0dewi001",
       "title": "Naga-naga Hutan Bara: Petualangan Pemula",
-      "system": "D&D 5.5e (2024)",
+      "system": "Dungeons & Dragons 5.5e 2024",
       "summary": "Pertama kali main D&D? Ini mejamu. Aturan diajarkan sambil bermain.",
       "description": "Hutan Bara sedang terbakar dan hanya kalian yang bisa menyelamatkan desa. Tiga sesi pertama cocok untuk pemain baru; karakter dibuatkan bersama di awal.\n\nNo books, no dice, no problem: I bring everything. We play in Bahasa Indonesia, with English terms.",
       "format": "campaign",
@@ -180,7 +180,7 @@
       "slug": "mahkota-yang-terbelah-0m02",
       "gmId": "m0dewi001",
       "title": "Mahkota yang Terbelah",
-      "system": "D&D 5e (2014)",
+      "system": "Dungeons & Dragons 5e 2014",
       "summary": "Two heirs, one throne, and a kingdom that will not wait.",
       "description": "Raja telah wafat tanpa menunjuk pewaris. Dua faksi, satu mahkota, dan kalian berada di antaranya. Banyak roleplay, sedikit dungeon.\n\nFor players who already know the 5e rules. Level 5 characters, built before session one.",
       "format": "one_shot",

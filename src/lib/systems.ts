@@ -1,9 +1,9 @@
-// Game systems offered in the GM form (docs/forms.md lists the same words to paste into the form). Suggestions
+// Game systems offered in the GM form on the listing page. Suggestions
 // only: the form also has "Other". The first ten are the most played here; the rest are A to Z. Pure module.
 
 export const SYSTEMS = [
-  "D&D 5.5e (2024)",
-  "D&D 5e (2014)",
+  "Dungeons & Dragons 5.5e 2024",
+  "Dungeons & Dragons 5e 2014",
   "Pathfinder 2e",
   "Call of Cthulhu",
   "Daggerheart",
