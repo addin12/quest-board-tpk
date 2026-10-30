@@ -6,7 +6,7 @@ import { SUMMARY_MAX } from "../../src/lib/areas.ts";
 import { checkGame, checkGm, hasErrors } from "../../src/lib/checks.ts";
 import { contactMessage, decodeContact, encodeContact, messageLang, waLink } from "../../src/lib/contact.ts";
 import { formatDay, formatIdr, formatWhen, initialsOf } from "../../src/lib/format.ts";
-import { EMPTY_FILTERS, activeFilterCount, applyFilters, filterOptions, filtersToQuery, isLive, parseFilters, type GameView } from "../../src/lib/games.ts";
+import { EMPTY_FILTERS, activeFilterCount, applyFilters, filterOptions, filtersToQuery, isLive, parseFilters, systemTiles, type GameView } from "../../src/lib/games.ts";
 import { DICTIONARIES, makeT } from "../../src/lib/i18n/dict.ts";
 import { cleanDiscord, isGoogleMapsUrl, isPhone, parsePublicData, text } from "../../src/lib/public-data.ts";
 import { buildItems, canApprove, countByStatus, filterItems, previewGame, reasonText, siteBehind, whenLabel } from "../../src/lib/admin-view.ts";
@@ -111,6 +111,19 @@ test("filters narrow the list, together, and read from and write to the address"
   assert.equal(applyFilters(all, { ...EMPTY_FILTERS, q: "kumu" }).length, 1, "a venue name is searchable");
   assert.equal(applyFilters(all, { ...EMPTY_FILTERS, q: "RAKA cthulhu" }).length >= 1, true, "every word must match somewhere, in any order");
   assert.equal(applyFilters(all, { ...EMPTY_FILTERS, q: "zzzz" }).length, 0);
+});
+
+test("system tiles: the most listed first, ties A to Z, the cover of the soonest listing that has one", () => {
+  const base = games()[0];
+  const mk = (system: string, startsAt: string, cover: string | null): GameView => ({ ...base, system, startsAt, cover, full: false });
+  const tiles = systemTiles([
+    mk("Zeta", "2030-01-05T12:00:00Z", "/z-late.svg"), mk("Alpha", "2030-01-03T12:00:00Z", null), mk("Zeta", "2030-01-02T12:00:00Z", null),
+    mk("Beta", "2030-01-04T12:00:00Z", "/b.svg"), mk("Zeta", "2030-01-06T12:00:00Z", "/z-later.svg"),
+  ]);
+  assert.deepEqual(tiles.map((x) => x.name + ":" + x.count), ["Zeta:3", "Alpha:1", "Beta:1"], "most listed first, then A to Z");
+  assert.equal(tiles[0].cover, "/z-late.svg", "the soonest listing WITH a cover, skipping the sooner one that has none");
+  assert.equal(tiles[1].cover, null);
+  assert.deepEqual(systemTiles([]), []);
 });
 
 test("sorting: soonest first with full games last; cheapest; newest", () => {

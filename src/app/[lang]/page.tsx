@@ -5,7 +5,7 @@ import { JsonLd } from "@/components/json-ld";
 import { EmptyState, GameCard, GameRow, SystemTile } from "@/components/ui";
 import { GENRES, genreLabelKey } from "@/lib/categories";
 import { gameViews, loadSiteData } from "@/lib/data";
-import { sortGames } from "@/lib/games";
+import { sortGames, systemTiles } from "@/lib/games";
 import { paths } from "@/lib/hrefs";
 import { makeT } from "@/lib/i18n/dict";
 import { languageAlternates, websiteJsonLd } from "@/lib/seo";
@@ -23,15 +23,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   const games = gameViews(loadSiteData());
   const soon = sortGames(games, "soonest").slice(0, 6);
   const beginner = sortGames(games.filter((g) => g.level === "beginner" && !soon.slice(0, 3).includes(g)), "soonest").slice(0, 3);
-  // One tile per game system that has listings: the most listed first, the cover from its soonest listing that has one.
-  const bySystem = new Map<string, { count: number; cover: string | null }>();
-  for (const g of sortGames(games, "soonest")) {
-    const entry = bySystem.get(g.system) ?? { count: 0, cover: null };
-    entry.count += 1;
-    entry.cover ??= g.cover;
-    bySystem.set(g.system, entry);
-  }
-  const systems = [...bySystem].map(([name, v]) => ({ name, ...v })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)).slice(0, 10);
+  const systems = systemTiles(games).slice(0, 10);
   const genres = GENRES.filter((g) => games.some((x) => x.genres.includes(g.key))).slice(0, 12);
 
   return (
@@ -97,6 +89,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
             <ul className="mt-[var(--space-xl)] grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-5">
               {systems.map((s) => <li key={s.name}><SystemTile name={s.name} count={s.count} cover={s.cover} t={t} lang={lang} /></li>)}
             </ul>
+            <p className="mt-[var(--space-xl)]"><Link href={paths.systems(lang)} className="btn btn-secondary">{t("home.allSystems")}</Link></p>
           </div>
         </section>
       )}

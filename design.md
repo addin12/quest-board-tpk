@@ -39,7 +39,7 @@ the listings' own cover art as the only colour) and the tavern is carried by fou
 - **Shape.** Photographs and wells are square or nearly (radii 2 to 4 px); tags are small rectangles, not pills (R-11); ruled lists use a 2 px bar and hairlines.
 - **Nothing is drawn.** No planks, grain, chains, frames, shadows, gradients, dot screens or icons beside labels. The brand marks and genre icons stay.
 - **Masthead controls.** A light/dark toggle (it names the mode it switches to: a moon and "Dark" while the page is light; icon only under 1024 px) and the language switch in capitals, EN and ID. The footer keeps the three-way switch with Automatic; both read the one `data-theme` attribute, so they never disagree.
-- **Layout.** Home: a left-set head and the search; the next games as a rail of cards; the genres as a two-column list beside their heading; the game systems as a grid of tiles (the cover of the system's soonest listing that has one, never publisher art, with the system's name and how many games use it); beginner
+- **Layout.** Home: a left-set head and the search; the next games as a rail of cards; the genres as a two-column list beside their heading; the game systems as a grid of tiles (the cover of the system's soonest listing that has one, never publisher art, with the system's name and how many games use it; a text link under the grid opens the page with all of them); beginner
   games as rows beside a short text; a closing call under a double rule. Inner pages open straight on their list, listing or form under the masthead. A game
   page is a Split Studio: the cover beside the facts, the contact box a plain tinted well.
 

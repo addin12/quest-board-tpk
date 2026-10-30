@@ -71,6 +71,21 @@ export function sortGames<G extends GameView>(games: G[], sort: SortKey): G[] {
   return copy.sort((a, b) => notFullFirst(a, b) || byStart(a, b)); // soonest first, full games last
 }
 
+/**
+ * One entry per game system that has listings, the most listed first (ties A to Z), each with the cover of its soonest listing that has one.
+ * @example systemTiles(games).slice(0, 10) // the ten the home page shows
+ */
+export function systemTiles(games: readonly GameView[]): { name: string; count: number; cover: string | null }[] {
+  const bySystem = new Map<string, { count: number; cover: string | null }>();
+  for (const g of sortGames([...games], "soonest")) {
+    const entry = bySystem.get(g.system) ?? { count: 0, cover: null };
+    entry.count += 1;
+    entry.cover ??= g.cover;
+    bySystem.set(g.system, entry);
+  }
+  return [...bySystem].map(([name, v]) => ({ name, ...v })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+}
+
 export function applyFilters<G extends GameView>(games: G[], f: Filters): G[] {
   return sortGames(
     games.filter((g) =>
