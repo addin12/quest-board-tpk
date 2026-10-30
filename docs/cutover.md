@@ -59,9 +59,13 @@ Cloudflare dashboard → Turnstile → add a widget for the site. Put its site k
 
 ## 5. The timers
 
-GitHub → the repo → Settings → Secrets and variables → Actions → add the secret `BUILD_KEY` (the same value). The workflow
-`.github/workflows/cron.yml` then calls the backend every 10 minutes (sends a waiting build) and once a day (backs up to R2 as JSON and
-two CSV files you can open in a spreadsheet, tidies, rebuilds so ended listings leave).
+The backend needs something to call it every 10 minutes (sends a waiting build) and once a day (backs up to R2 as JSON and two CSV
+files you can open in a spreadsheet, tidies, rebuilds so ended listings leave). Pick **one**:
+
+- **Cloudflare Worker (recommended):** `npm run cron:deploy` deploys `cron/worker.ts` with its two cron triggers and stores the
+  `BUILD_KEY` secret. Free plan, no GitHub secret, and no GitHub rule that switches scheduled workflows off after 60 days without repo activity.
+- **GitHub Actions:** GitHub → the repo → Settings → Secrets and variables → Actions → add the secret `BUILD_KEY` (the same value as in
+  `.cloudflare.local.json`). `.github/workflows/cron.yml` then does the same calls. Do not use both.
 
 ## 6. The cutover
 

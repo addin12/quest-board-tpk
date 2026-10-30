@@ -1,0 +1,12 @@
+# The timers Worker (cron/worker.ts). Deploy it with `npm run cron:deploy`, which also stores the BUILD_KEY secret.
+# Not at the repo root on purpose: a wrangler.toml there would make Cloudflare lock the Pages project's variables.
+name = "quest-board-cron"
+main = "worker.ts"
+compatibility_date = "2026-10-01"
+workers_dev = false
+
+[vars]
+SITE_URL = "https://quest-board-tpk.pages.dev"
+
+[triggers]
+crons = ["*/10 * * * *", "30 18 * * *"]

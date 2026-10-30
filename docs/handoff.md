@@ -23,9 +23,11 @@ The site is a Next 16 static export on Cloudflare Pages (EN/ID), redesigned as "
 
 ## Still open after the cutover
 
-- **GitHub secret `BUILD_KEY`** (Settings → Secrets and variables → Actions; value = `buildKey` in `.cloudflare.local.json`). Until it is set,
-  `.github/workflows/cron.yml` exits without doing anything: no timed rebuild of a waiting change, no daily backup. An automated attempt to
-  set it with the stored Git credential was refused by the permission classifier; do not retry that, ask the owner.
+- **The timers are not running.** Until one of the two is set up, nothing sends a waiting rebuild and no daily backup runs (see cutover.md
+  step 5). Either (a) `npm run cron:deploy` (a Cloudflare Worker, `cron/`, written and checked but **not deployed**: the permission
+  classifier refused creating a new Worker in the owner's account without explicit approval) or (b) the GitHub secret `BUILD_KEY`
+  (`.github/workflows/cron.yml` is in place and exits harmlessly without it). An attempt to set the GitHub secret with the stored Git
+  credential was also refused; do not retry either, ask the owner.
 - **Not confirmed by anyone**: that the sign-in mail arrived in the inbox, and one full sign-in by clicking the link (the agent cannot read the
   mailbox). Do this first: sign in at `/en/account/`, then open `/en/admin/`.
 - **Billing**: R2 and D1 are inside the free tier by design (see ADR-25), but the agent could not read the subscription (the token has no
