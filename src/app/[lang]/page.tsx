@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/json-ld";
-import { EmptyState, GameCard, GameRow } from "@/components/ui";
+import { EmptyState, GameCard, GameRow, SystemTile } from "@/components/ui";
 import { GENRES, genreLabelKey } from "@/lib/categories";
 import { gameViews, loadSiteData } from "@/lib/data";
 import { sortGames } from "@/lib/games";
@@ -23,6 +23,15 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   const games = gameViews(loadSiteData());
   const soon = sortGames(games, "soonest").slice(0, 6);
   const beginner = sortGames(games.filter((g) => g.level === "beginner" && !soon.slice(0, 3).includes(g)), "soonest").slice(0, 3);
+  // One tile per game system that has listings: the most listed first, the cover from its soonest listing that has one.
+  const bySystem = new Map<string, { count: number; cover: string | null }>();
+  for (const g of sortGames(games, "soonest")) {
+    const entry = bySystem.get(g.system) ?? { count: 0, cover: null };
+    entry.count += 1;
+    entry.cover ??= g.cover;
+    bySystem.set(g.system, entry);
+  }
+  const systems = [...bySystem].map(([name, v]) => ({ name, ...v })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)).slice(0, 10);
   const genres = GENRES.filter((g) => games.some((x) => x.genres.includes(g.key))).slice(0, 12);
 
   return (
@@ -76,6 +85,17 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
                   </Link>
                 </li>
               ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      {systems.length > 0 && (
+        <section className="section pt-0" aria-labelledby="systems-h">
+          <div className="wrap">
+            <h2 id="systems-h">{t("home.systemsTitle")}</h2>
+            <ul className="mt-[var(--space-xl)] grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-5">
+              {systems.map((s) => <li key={s.name}><SystemTile name={s.name} count={s.count} cover={s.cover} t={t} lang={lang} /></li>)}
             </ul>
           </div>
         </section>

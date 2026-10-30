@@ -129,6 +129,7 @@ export const en = {
   "home.newBody": "These games welcome beginners. The GM teaches the rules as you play.",
   "home.moreBeginner": "More beginner-friendly games",
   "home.genresTitle": "Browse by genre",
+  "home.systemsTitle": "Browse by system",
   "home.gmCtaTitle": "Run games? List yours.",
   "home.gmCtaBody": "Sign in with your email and fill in your profile and your game. An admin checks your listing, then it appears here.",
   "home.empty": "No games are listed right now. Check back soon, or list your own.",

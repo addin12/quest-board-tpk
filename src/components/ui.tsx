@@ -103,6 +103,20 @@ export function GameCard({ game, t, lang, preview = false, priority = false, hea
   return preview ? <div className={cls}>{body}</div> : <Link href={paths.game(lang, game.slug)} className={cls}>{body}</Link>;
 }
 
+/**
+ * A game system as a tile: the cover of the soonest listing that has one (never publisher art), the system's name, how many games use it.
+ * With no cover the tile is a solid field with the name set big, like a game's own card.
+ */
+export function SystemTile({ name, count, cover, t, lang }: { name: string; count: number; cover: string | null; t: T; lang: Lang }) {
+  return (
+    <Link href={paths.games(lang, `?system=${encodeURIComponent(name)}`)} className="bill">
+      <Cover src={cover ? smallCover(cover) : null} seed={name} className="aspect-[4/5] w-full" sizes="(min-width: 1024px) 18vw, (min-width: 640px) 30vw, 46vw" />
+      <h3 className="bill-title mt-[var(--space-sm)]">{name}</h3>
+      <p className="mt-[var(--space-3xs)] text-sm text-muted">{t("games.count", { n: count })}</p>
+    </Link>
+  );
+}
+
 /** A game as one row of an index: a small cover, the title and its facts, the price at the edge. */
 export function GameRow({ game, t, lang }: { game: GameView; t: T; lang: Lang }) {
   return (

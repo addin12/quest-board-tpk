@@ -130,6 +130,7 @@ export const id: Record<MsgKey, string> = {
   "home.newBody": "Game-game ini ramah untuk pemula. GM-nya mengajarkan aturan sambil bermain.",
   "home.moreBeginner": "Game ramah pemula lainnya",
   "home.genresTitle": "Cari berdasarkan genre",
+  "home.systemsTitle": "Cari berdasarkan sistem",
   "home.gmCtaTitle": "Menjalankan game? Pasang di sini.",
   "home.gmCtaBody": "Masuk dengan emailmu lalu isi profil dan game-mu. Admin memeriksa listing-mu, setelah itu tampil di sini.",
   "home.empty": "Belum ada game yang terpasang. Cek lagi nanti, atau pasang game-mu sendiri.",
