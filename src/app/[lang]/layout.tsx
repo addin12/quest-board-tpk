@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Chivo, IM_Fell_English, Ultra } from "next/font/google";
+import { Chivo, IM_Fell_English } from "next/font/google";
 import { I18nProvider } from "@/components/i18n-provider";
 import { LanguageSwitcher, NavLinks } from "@/components/nav";
 import { ThemeSwitcher } from "@/components/theme-switcher";
@@ -12,14 +12,13 @@ import { LANGS, isLang } from "@/lib/types";
 import "../globals.css";
 import "../icons/icons.css";
 
-// Halftone typography: Ultra for heads and the wordmark (a fat face, as a painted tavern sign is lettered), IM Fell English for the
-// standfirst under a head (a 1600s English printer's type), Chivo for everything people read. Self-hosted at build time.
-const ultra = Ultra({ variable: "--font-ultra", subsets: ["latin"], weight: "400" });
-const fell = IM_Fell_English({ variable: "--font-fell", subsets: ["latin"], weight: "400" });
+// Typography: IM Fell English for heads and the wordmark (a 1600s English printer's type: a tavern's broadside), Chivo for everything people
+// read. Self-hosted at build time. Fell has one weight and a small x-height, so heads are set larger and small titles that must scan fast stay in Chivo.
+const fell = IM_Fell_English({ variable: "--font-fell", subsets: ["latin"], weight: ["400"], style: ["normal", "italic"] });
 const chivo = Chivo({ variable: "--font-chivo", subsets: ["latin"], weight: ["400", "700"] });
 
 export const dynamicParams = false;
-export const viewport: Viewport = { themeColor: [{ media: "(prefers-color-scheme: light)", color: "#faf4de" }, { media: "(prefers-color-scheme: dark)", color: "#1b1613" }] };
+export const viewport: Viewport = { themeColor: [{ media: "(prefers-color-scheme: light)", color: "#f5efdc" }, { media: "(prefers-color-scheme: dark)", color: "#16110d" }] };
 
 export function generateStaticParams() {
   return LANGS.map((lang) => ({ lang }));
@@ -46,7 +45,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
   if (!isLang(lang)) notFound();
   const t = makeT(lang);
   return (
-    <html lang={lang} suppressHydrationWarning className={`${ultra.variable} ${fell.variable} ${chivo.variable} h-full overflow-x-clip antialiased`}>
+    <html lang={lang} suppressHydrationWarning className={`${fell.variable} ${chivo.variable} h-full overflow-x-clip antialiased`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
       </head>

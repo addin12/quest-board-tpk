@@ -21,7 +21,7 @@ This is the successor of Quest Board v1 (accounts, booking, payment tracking: re
 | The Anti-Slop audit: what was found, fixed, and left | [docs/anti-slop-audit.md](docs/anti-slop-audit.md) |
 | The backend (API, data, rules) | [docs/backend.md](docs/backend.md); going live: [docs/cutover.md](docs/cutover.md) |
 | How the parts fit | [docs/architecture.md](docs/architecture.md), then [DECISIONS.md](DECISIONS.md) for why |
-| How the site should look | [design.md](design.md): audience, Halftone language, three dials, waivers |
+| How the site should look | [design.md](design.md): audience, tavern-at-night language, three dials, waivers |
 | Operating it, when it breaks | [docs/runbook.md](docs/runbook.md) |
 | What admins do | [docs/curation.md](docs/curation.md) |
 | The mail relay | `apps-script/Code.gs` (and its tests: `tests/unit/mail-relay.test.ts`) |
@@ -61,7 +61,7 @@ npm run script:deploy      # the mail relay in Apps Script
 - Never read or use the owner's stored credentials (git, clasp, wrangler files) except through the sanctioned scripts; ask instead.
 - Ask the owner about Indonesian wording (native speaker); the glossary is the v1 one (GM, one-shot, safety tools stay English).
 - UI rules for real users are mandatory: body text 17 px (nothing under 14 px), controls at least 44 px, labels above fields,
-  one accent, words next to colours, visible focus, both themes. The look is Halftone (a Hallmark redesign, ADR-22): butter-cream and brown-black, one vermilion, Ultra over Chivo, covers as the only full colour. The stamp at the top of `src/app/globals.css` records its decisions; keep it current.
+  one accent, words next to colours, visible focus, both themes. The look is a tavern at night (ADR-29, [design.md](design.md)): oak and soot, parchment sheets, one lantern-amber accent, IM Fell English heads over Chivo (facts such as dates and prices are always Chivo), covers as the only full colour. Keep design.md current when you change a part of it.
 
 ## Hard rules
 

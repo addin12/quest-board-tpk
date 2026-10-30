@@ -1,59 +1,52 @@
-/* Hallmark · shape: Split Studio (game page), Rail and Index (home, lists) · genre: playful · theme: Halftone (deal 3/3, seed free-community-board-where-d0f3·4d8b804d·2026-10-28·r0) · redesign: full · draw: 37f29c · job: attend
- * hero: Banner (the list or the listing leads on every route but home), Corridor (/en), Corridor (/id) · nav: masthead · footer: statement · imagery: the listings' own cover art · signature: each game printed as a playbill, its cover over a ruled label panel · halftone: cream, with a derived dark stock (modes: light+dark)
- * axes: light/slab-serif/warm · posture: committed · contrast: pass · fold: pass · v2.0.0 */
-/* Hallmark · dropped arrow-right, calendar-clock, comment, dice-d20, eye, filter, flag, language, lock, marker, megaphone, paper-plane, search, seedling, shield-check, hero.webp · the icons beside labels and the tavern hero picture give way to type and the listings' own covers; the brand marks and genre icons stay */
-/* Tavern layer · ADR-28, design.md · a notice board over Halftone: .beam and .sign (masthead, footer), .board and .pin (home, games), .menu (genres), .plate.frame (a game's cover), IM Fell English for .lead · oak + parchment core, vermilion the only accent · no pictures made, textures are CSS */
-/* Hallmark · dropped #f-city · the owner removed the city filter: the community plays in Jabodetabek and online only */
-/* Hallmark · waive 44c · hero: Banner · the inner pages open straight on their list, listing or form under the masthead, so there is no hero stage on them to fill the first screen */
-/* Hallmark · waive 79 · hero: Banner · the masthead is the only chrome above the list, listing or form, which starts at once, so no dead band is left under it */
-/* Hallmark · waive 77 · hero: Banner · the listing's about, schedule and safety rows are plain reading text beside their heads, set as one ruled list across the page */
-/* Hallmark · waive 78 · heads are card titles · the games list has no section heads, each listing's title is its own h2 inside its link, set at item size so four fit across */
-/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: S, the hero had no picture of its own; led with the real listings (cover rail directly under the search) instead of a stock photograph */
+/* Direction: tavern at night (ADR-29, design.md). A listing board in a tavern: oak, iron, parchment sheets, one lantern-amber accent; dark is the primary stock, the light stock is a candle-lit parchment.
+ * The Halftone stamps (Hallmark, ADR-22) were removed with that theme. The waivers below are kept for the Hallmark linter, which has not been run on this direction.
+ * Hallmark · waive 44c · hero: Banner · the inner pages open straight on their list, listing or form under the beam, so there is no hero stage on them to fill the first screen
+ * Hallmark · waive 79 · hero: Banner · the beam is the only chrome above the list, listing or form, which starts at once, so no dead band is left under it
+ * Hallmark · waive 77 · hero: Banner · the listing's about, schedule and safety rows are plain reading text beside their heads, set as one ruled list across the page
+ * Hallmark · waive 78 · heads are card titles · the games list has no section heads, each listing's title is its own h2 inside its link, set at item size so three fit across
+ * Hallmark · dropped #f-city · the owner removed the city filter: the community plays in Jabodetabek and online only */
 @import "tailwindcss";
 @import "./tokens.css";
 @import "./base.css" layer(base);
 
 /* The faces come from next/font (self-hosted at build time); their variables are set on <html> in the layout. */
 :root {
-  --font-display: var(--font-ultra), "Ultra", ui-serif, Georgia, serif;
+  --font-display: var(--font-fell), "IM Fell English", ui-serif, Georgia, serif;
   --font-body: var(--font-chivo), "Chivo", ui-sans-serif, system-ui, sans-serif;
-  --font-voice: var(--font-fell), "IM Fell English", ui-serif, Georgia, serif;
-  --color-band: oklch(23% 0.040 38);
-  --color-band-ink: oklch(96.2% 0.032 94);
-  --color-band-muted: oklch(82% 0.045 85);
-  --color-band-rule: oklch(42% 0.03 45);
-  --color-band-accent: oklch(66% 0.19 33); --color-band-accent-deep: oklch(73% 0.17 33); --color-band-accent-ink: oklch(18% 0.02 38);
+  /* Colours on oak, the same in both stocks: lantern light on wood. */
+  --color-band-ink: oklch(93% 0.025 88);
+  --color-band-muted: oklch(78% 0.035 80);
+  --color-band-rule: oklch(40% 0.035 55);
+  --color-band-accent: oklch(77% 0.15 70); --color-band-accent-deep: oklch(83% 0.13 72); --color-band-accent-ink: oklch(18% 0.02 55);
 }
 
-/* Dark stock, derived from the light one (the hue never moves, the accent loses chroma and gains lightness).
+/* Dark stock, the primary one: soot and oak with lantern amber. The light stock is the same room by candlelight.
    The OS preference decides unless the person picked a theme (html[data-theme]). */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-paper: oklch(17% 0.012 38); --color-paper-2: oklch(21% 0.016 38); --color-paper-3: oklch(25.5% 0.02 38);
-  --color-ink: oklch(94% 0.016 90); --color-ink-2: oklch(86% 0.02 88); --color-muted: oklch(74% 0.03 80);
-  --color-rule: oklch(34% 0.025 50);
-  --color-accent: oklch(66% 0.19 33); --color-accent-deep: oklch(73% 0.17 33); --color-accent-ink: oklch(18% 0.02 38); --color-focus: oklch(73% 0.17 33);
-  --color-error: oklch(72% 0.17 27); --color-success: oklch(76% 0.14 150);
-  --color-band: oklch(27% 0.03 38);
-  --color-oak: oklch(21% 0.036 47); --color-oak-seam: oklch(11% 0.022 45); --color-oak-grain: oklch(27% 0.042 50); --color-chalk: oklch(12% 0.014 45); --sheet: var(--color-paper-3); --sheet-2: var(--color-paper-2);
+  --color-paper: oklch(15.5% 0.014 55); --color-paper-2: oklch(19.5% 0.018 55); --color-paper-3: oklch(24.5% 0.022 55);
+  --color-ink: oklch(92% 0.025 88); --color-ink-2: oklch(86% 0.028 86); --color-muted: oklch(74% 0.03 78);
+  --color-rule: oklch(32% 0.028 55);
+  --color-accent: oklch(77% 0.15 70); --color-accent-deep: oklch(83% 0.13 72); --color-accent-ink: oklch(18% 0.02 55); --color-focus: oklch(83% 0.13 72);
+  --color-error: oklch(72% 0.16 27); --color-success: oklch(76% 0.13 150);
+  --color-oak: oklch(21% 0.036 47); --color-oak-seam: oklch(11% 0.022 45); --color-oak-grain: oklch(27% 0.042 50); --color-chalk: oklch(12% 0.014 45);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --color-paper: oklch(17% 0.012 38); --color-paper-2: oklch(21% 0.016 38); --color-paper-3: oklch(25.5% 0.02 38);
-    --color-ink: oklch(94% 0.016 90); --color-ink-2: oklch(86% 0.02 88); --color-muted: oklch(74% 0.03 80);
-    --color-rule: oklch(34% 0.025 50);
-    --color-accent: oklch(66% 0.19 33); --color-accent-deep: oklch(73% 0.17 33); --color-accent-ink: oklch(18% 0.02 38); --color-focus: oklch(73% 0.17 33);
-    --color-error: oklch(72% 0.17 27); --color-success: oklch(76% 0.14 150);
-    --color-band: oklch(27% 0.03 38);
-    --color-oak: oklch(21% 0.036 47); --color-oak-seam: oklch(11% 0.022 45); --color-oak-grain: oklch(27% 0.042 50); --color-chalk: oklch(12% 0.014 45); --sheet: var(--color-paper-3); --sheet-2: var(--color-paper-2);
+    --color-paper: oklch(15.5% 0.014 55); --color-paper-2: oklch(19.5% 0.018 55); --color-paper-3: oklch(24.5% 0.022 55);
+    --color-ink: oklch(92% 0.025 88); --color-ink-2: oklch(86% 0.028 86); --color-muted: oklch(74% 0.03 78);
+    --color-rule: oklch(32% 0.028 55);
+    --color-accent: oklch(77% 0.15 70); --color-accent-deep: oklch(83% 0.13 72); --color-accent-ink: oklch(18% 0.02 55); --color-focus: oklch(83% 0.13 72);
+    --color-error: oklch(72% 0.16 27); --color-success: oklch(76% 0.13 150);
+    --color-oak: oklch(21% 0.036 47); --color-oak-seam: oklch(11% 0.022 45); --color-oak-grain: oklch(27% 0.042 50); --color-chalk: oklch(12% 0.014 45);
   }
 }
 :root:not([data-theme="dark"]) { color-scheme: light dark; }
 :root[data-theme="light"] { color-scheme: light; }
 
-/* The admin screens and a few older class names read these names: they now point at the Halftone tokens.
-   Squarer radii than Tailwind's defaults, to match the print material: wells and photographs are square. */
+/* The admin screens and a few older class names read these names: they point at the tavern tokens.
+   Small radii, as on worked wood and paper: wells and photographs stay square, tags and inputs soften a little. */
 @theme inline {
   --color-bg: var(--color-paper);
   --color-surface: var(--color-paper);
@@ -67,8 +60,8 @@
   --color-danger-soft: color-mix(in oklab, var(--color-error) 12%, var(--color-paper));
   --font-sans: var(--font-body);
   --radius-sm: 2px;
-  --radius-md: 3px;
-  --radius-lg: 3px;
+  --radius-md: 4px;
+  --radius-lg: 4px;
   --radius-xl: 0;
   --radius-2xl: 0;
 }
@@ -121,9 +114,9 @@
   .hint { margin-top: var(--space-xs); min-height: 1lh; font-size: var(--text-sm); color: var(--color-muted); }
 
   /* The one boxed surface: a well, square, inside a bar of ink. Everything else is a rule. */
-  .well { border: var(--rule-bar) solid var(--color-ink); background: var(--color-paper-2); padding: var(--space-lg); }
+  .well { border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-card); background: var(--color-paper-2); padding: var(--space-lg); }
   .card { border: var(--rule-hair) solid var(--color-ink); background: var(--color-paper); }
-  .chip { display: inline-flex; align-items: center; gap: var(--space-xs); padding: var(--space-3xs) var(--space-sm); border-radius: var(--radius-pill); background: var(--color-paper-3); color: var(--color-ink); font-size: var(--text-sm); line-height: 1.5; white-space: nowrap; }
+  .chip { display: inline-flex; align-items: center; gap: var(--space-xs); padding: var(--space-3xs) var(--space-sm); border-radius: var(--radius-input); background: var(--color-paper-3); color: var(--color-ink); font-size: var(--text-sm); line-height: 1.5; white-space: nowrap; }
   .chip-spot { background: var(--color-accent); color: var(--color-accent-ink); font-weight: 700; }
 
   /* A ruled list: a bar of ink above, hairlines between the rows. */
@@ -133,20 +126,6 @@
   /* A photograph or a cover: square, a 1px ink hairline. */
   .plate { position: relative; overflow: hidden; outline: var(--rule-hair) solid var(--color-ink); outline-offset: calc(-1 * var(--rule-hair)); background: var(--color-paper-3); }
 
-  /* The screen: spot dots on a 12px cell, fading from solid to nothing. One per section, never under type or a photograph. */
-  .halftone { position: relative; isolation: isolate; }
-  .halftone::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(var(--color-dot) var(--halftone-dot), transparent calc(var(--halftone-dot) + 0.5px)) 0 0 / var(--halftone-size) var(--halftone-size); mask: linear-gradient(110deg, transparent 45%, var(--color-ink) 95%); }
-  .halftone-up::before { mask: linear-gradient(0deg, var(--color-ink), transparent 85%); }
-
-  /* Bands: a change of paper. */
-  /* A dark band swaps the whole palette inside it, so nothing in it needs its own colours. */
-  .band-ink {
-    --color-paper: var(--color-band); --color-paper-2: var(--color-band); --color-ink: var(--color-band-ink); --color-ink-2: var(--color-band-ink);
-    --color-muted: var(--color-band-muted); --color-rule: var(--color-band-rule);
-    --color-accent: var(--color-band-accent); --color-accent-deep: var(--color-band-accent-deep); --color-accent-ink: var(--color-band-accent-ink); --color-focus: var(--color-band-accent-deep);
-    background: var(--color-band); color: var(--color-band-ink);
-  }
-  .band-tint { background: var(--color-paper-2); }
 
   /* Oak. The board, the beam and the menu share one palette swap (cream ink on oak), so nothing inside needs its own colours. */
   .board, .beam, .menu {
@@ -213,7 +192,7 @@
   .section { padding-block: var(--section-gap-s); }
   .section-l { padding-block: var(--section-gap); }
 
-  /* A figure as a poster: the number in Ultra, solid spot. */
+  /* A figure as a poster: the number in the display face, solid accent. */
   .poster { font: 400 clamp(5rem, 14vw, 11rem)/0.9 var(--font-display); letter-spacing: -0.02em; color: var(--color-accent); font-variant-numeric: tabular-nums; }
 
   /* A horizontal run past the container's edge, with snap points; scrollable by touch and keyboard. */
@@ -231,23 +210,22 @@
 
   /* A game as a playbill: the cover, then a ruled label panel. One signal on hover: the title takes the deep spot. */
   .bill { display: flex; flex-direction: column; height: 100%; color: inherit; text-decoration: none; }
-  .bill h2.bill-title, .bill h3.bill-title { font-size: var(--text-lg); line-height: 1.2; }
+  .bill h2.bill-title, .bill h3.bill-title { font-size: var(--text-title); line-height: 1.15; }
   .bill-title { transition: color var(--dur-micro) var(--ease-out); }
   .bill:hover .bill-title { color: var(--color-accent-deep); }
   .bill dl > div { display: flex; justify-content: space-between; gap: var(--space-md); padding-block: var(--space-xs); border-bottom: var(--rule-hair) solid var(--color-rule); }
   .bill dt { color: var(--color-muted); font-size: var(--text-sm); }
   .bill dd { margin: 0; font-weight: 700; font-size: var(--text-sm); text-align: right; min-width: 0; overflow-wrap: anywhere; }
 
-  /* The label panel of a game or a profile: a bar of ink, the name in Chivo, the value in Ultra. */
+  /* The label panel of a game or a profile: a bar of ink, then name and value in Chivo (Fell's old-style figures make a date or a price hard to read, so facts never use it). */
   .panel { border-top: var(--rule-bar) solid var(--color-ink); }
   .panel > div { display: grid; grid-template-columns: minmax(0, 8rem) minmax(0, 1fr); gap: var(--space-md); align-items: baseline; padding-block: var(--space-md); border-bottom: var(--rule-hair) solid var(--color-rule); }
   .panel dt { font-weight: 700; font-size: var(--text-md); }
-  .panel dd { margin: 0; font: 400 var(--text-lg)/1.25 var(--font-display); overflow-wrap: break-word; min-width: 0; }
+  .panel dd { margin: 0; font: 700 var(--text-md)/1.35 var(--font-body); overflow-wrap: break-word; min-width: 0; }
   .panel dd small { display: block; margin-top: var(--space-2xs); font: 400 var(--text-sm)/1.4 var(--font-body); color: var(--color-muted); }
   @media (max-width: 40rem) { .panel > div { grid-template-columns: minmax(0, 1fr); gap: var(--space-2xs); } }
 
-  /* The standfirst under a head is set in a Fell face: the English printers' type of the 1600s, as on a tavern's broadside. Reading text stays Chivo. */
-  .lead { font-family: var(--font-voice); font-size: calc(var(--text-lead) * 1.08); line-height: 1.4; }
+  .lead { font-size: var(--text-lead); line-height: 1.5; }
 
   /* The wordmark and the page head's underline. */
   .wordmark { font-family: var(--font-display); font-weight: 400; letter-spacing: var(--tracking-display); line-height: 1; white-space: nowrap; }

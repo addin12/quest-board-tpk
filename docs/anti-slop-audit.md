@@ -38,6 +38,10 @@ hedging comments, no decorative dividers, no `else` after `return`, no filler wo
 
 Checked against the rules while it was built; reasons per part are in [design.md](../design.md). Measured: R-03 (no overflow at 390 px after the sign was shrunk on phones), R-25 contrast (axe, both stocks, both languages: none), R-26 targets (only the skip link), R-40 (the rail's covers were lazy above the fold, now eager). R-07 (texture) and R-22 (illustration) are allowed with a written purpose: the planks are the board the notices hang on, and nothing was drawn beyond one chain link. R-29: two core colours plus one accent. R-23: no logo, mascot or avatar was created. Not run: the Playwright suite, the Hallmark linter, a review by the owner's eye in a real browser.
 
+## The tavern-at-night direction (ADR-29, same day)
+
+Built after the owner chose it from four options (R-37: one decisive question). Reasons per part are in [design.md](../design.md). Measured again with the audit script (both languages, both stocks, 390 and 1280 px, axe): no overflow, no contrast failure, only the skip link under 44 px. R-06: facts never use Fell (old-style figures). R-11: tags are rectangles, not pills. R-29: soot and oak, bone ink, one amber. R-21: dark primary for a stated brand reason, with a working light stock and switch. R-23: nothing was drawn beyond one chain link. Not run: the Playwright suite, the Hallmark linter, review in a real browser.
+
 ## Left for the owner (design judgement, not rule violations)
 
 1. **Home "How it works" block (R-05).** The home page repeats the numbered steps that already have their own page. It is the "three-step
@@ -45,7 +49,7 @@ Checked against the rules while it was built; reasons per part are in [design.md
 2. **No direction file (R-37).** The direction lives in the stamp at the top of `src/app/globals.css`. [`design.md`](../design.md) now holds the audience,
    visual language, the three dials (energy, rhythm, motion) and the reasons for the four waivers. The waivers themselves are still stamped in the CSS.
 3. **Not reviewed by eye:** R-14 identical cards (they are listings, so identical structure is by design), R-19 motion, R-20 identity,
-   R-29 palette. The Halftone theme was chosen with Hallmark and passed its own gates; this audit did not re-judge it.
+   R-29 palette. The Halftone theme this audit saw was later dropped (ADR-29); the tavern-at-night direction is in [design.md](../design.md).
 4. **Not run:** the Playwright suite after these edits (the owner's rule is not to run it unasked; CI runs it on a push). Unit tests,
    typecheck, lint and the build pass.
 

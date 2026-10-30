@@ -6,41 +6,40 @@
   --text-xl: 1.5625rem;
   --text-2xl: 1.953rem;
   --text-3xl: 2.441rem;
-  --text-display-s: clamp(2.25rem, 4vw + 0.5rem, 3.75rem);
-  --text-display: clamp(2.75rem, 5vw + 1rem, 5.25rem);
-  --text-section: clamp(2rem, 2.5vw + 1rem, 3.5rem);
-  --text-title: clamp(1.25rem, 0.75vw + 0.875rem, 1.625rem);
+  --text-display-s: clamp(2.5rem, 4.5vw + 0.5rem, 4.25rem);
+  --text-display: clamp(3rem, 5.5vw + 1rem, 5.75rem);
+  --text-section: clamp(2.25rem, 2.75vw + 1rem, 3.75rem);
+  --text-title: clamp(1.375rem, 0.75vw + 1rem, 1.875rem);
   --text-lead: clamp(1.125rem, 0.35vw + 1rem, 1.375rem);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --color-error: oklch(52% 0.19 27);
-  --color-success: oklch(50% 0.12 150);
-  --color-paper: oklch(96.2% 0.032 94);
-  --color-paper-2: oklch(92.6% 0.046 92);
-  --color-paper-3: oklch(87.5% 0.058 90);
-  --color-ink: oklch(23% 0.040 38);
-  --color-ink-2: oklch(33% 0.045 40);
-  --color-muted: oklch(44% 0.048 44);
-  --color-rule: oklch(82% 0.042 82);
-  --color-accent: oklch(54.5% 0.215 33);
-  --color-accent-deep: oklch(46% 0.19 31);
-  --color-accent-ink: oklch(97% 0.022 94);
-  --color-focus: oklch(46% 0.19 31);
-  --color-dot: var(--color-accent);
-  /* The tavern layer (design.md): oak is the second core colour; the board, the beam and the menu are oak, the notices on them stay paper. */
+  --color-error: oklch(48% 0.17 27);
+  --color-success: oklch(46% 0.11 150);
+  --color-paper: oklch(95% 0.028 88);
+  --color-paper-2: oklch(91% 0.038 86);
+  --color-paper-3: oklch(86% 0.048 84);
+  --color-ink: oklch(22% 0.035 50);
+  --color-ink-2: oklch(32% 0.04 52);
+  --color-muted: oklch(43% 0.04 55);
+  --color-rule: oklch(80% 0.04 82);
+  --color-accent: oklch(47% 0.13 58);
+  --color-accent-deep: oklch(40% 0.12 55);
+  --color-accent-ink: oklch(97% 0.02 90);
+  --color-focus: oklch(40% 0.12 55);
+  /* The tavern (design.md): oak is the second core colour; the board, the beam and the menu are oak, the notices on them are parchment. */
   --color-oak: oklch(26% 0.045 48);
   --color-oak-seam: oklch(15% 0.03 45);
   --color-oak-grain: oklch(33% 0.05 52);
   --color-iron: oklch(30% 0.012 60);
   --color-chalk: oklch(19% 0.018 45);
-  --font-display: "Ultra", ui-serif, Georgia, serif;
+  --font-display: "IM Fell English", ui-serif, Georgia, serif;
   --font-body: "Chivo", ui-sans-serif, sans-serif;
-  --radius-card: 0;
-  --radius-input: 3px;
+  --radius-card: 3px;
+  --radius-input: 4px;
   --radius-pill: 999px;
   --shadow-card: none;
-  --tracking-display: 0.005em;
+  --tracking-display: 0;
 }
 :root {
   color-scheme: light;
@@ -71,22 +70,20 @@
   --z-modal: 400;
   --z-toast: 500;
   --z-tooltip: 600;
-  --halftone-size: 12px;
-  --halftone-dot: 3px;
   --rule-hair: 1px;
-  --rule-bar: 3px;
+  --rule-bar: 2px;
   --display-weight: 400;
-  /* A sheet pinned on oak keeps the page's own paper and ink: resolved here on :root, so a dark band's swapped tokens cannot reach it. */
-  --sheet: var(--color-paper);
-  --sheet-2: var(--color-paper-2);
-  --sheet-ink: var(--color-ink);
-  --sheet-ink-2: var(--color-ink-2);
-  --sheet-muted: var(--color-muted);
-  --sheet-rule: var(--color-rule);
-  --sheet-accent: var(--color-accent);
-  --sheet-accent-deep: var(--color-accent-deep);
-  --sheet-accent-ink: var(--color-accent-ink);
-  --sheet-focus: var(--color-focus);
+  /* A sheet pinned on oak is parchment with dark ink in both stocks: paper nailed to wood by lantern light. Constants, so a swapped palette cannot reach it. */
+  --sheet: oklch(94.5% 0.034 88);
+  --sheet-2: oklch(90% 0.042 86);
+  --sheet-ink: oklch(22% 0.035 50);
+  --sheet-ink-2: oklch(32% 0.04 52);
+  --sheet-muted: oklch(43% 0.04 55);
+  --sheet-rule: oklch(78% 0.045 82);
+  --sheet-accent: oklch(47% 0.13 58);
+  --sheet-accent-deep: oklch(40% 0.12 55);
+  --sheet-accent-ink: oklch(97% 0.02 90);
+  --sheet-focus: oklch(40% 0.12 55);
   --plank: 9.5rem;
 }
 @media (max-width: 60rem) { :root { --gutter: 24px; --section-gap-s: 80px; --section-gap: 96px; --section-gap-l: 120px; } }

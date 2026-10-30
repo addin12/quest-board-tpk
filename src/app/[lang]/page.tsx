@@ -98,14 +98,14 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
         </section>
       )}
 
-      <section className="band-ink section" aria-labelledby="gm-h">
-        <div className="wrap grid items-center gap-[var(--space-2xl)] lg:grid-cols-12">
-          <div className="lg:col-span-7">
-            <h2 id="gm-h">{t("home.gmCtaTitle")}</h2>
+      {/* The closing call: a sheet of its own pinned to the board, so the Game Masters' action is the same object as a listing. */}
+      <section className="board section" aria-labelledby="gm-h">
+        <div className="wrap">
+          <div className="pin mx-auto max-w-3xl px-[var(--space-xl)] pb-[var(--space-xl)] pt-[var(--space-2xl)]">
+            <h2 id="gm-h" className="max-w-none">{t("home.gmCtaTitle")}</h2>
             <p className="lead mt-[var(--space-md)]">{t("home.gmCtaBody")}</p>
             <p className="mt-[var(--space-xl)]"><Link href={paths.list(lang)} className="btn btn-primary">{t("nav.list")}</Link></p>
           </div>
-          <div className="halftone hidden min-h-64 lg:col-span-4 lg:col-start-9 lg:block" aria-hidden />
         </div>
       </section>
     </>
