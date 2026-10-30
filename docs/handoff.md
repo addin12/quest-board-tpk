@@ -5,13 +5,25 @@ don't tell you.
 
 ## State in one paragraph
 
-The site is a Next 16 static export on Cloudflare Pages (EN/ID), designed as a minimal tavern (ADR-30; Halftone, ADR-22, the oak-board tavern and the tavern at night were all dropped), at
-<https://quest-board-tpk.pages.dev>. **The Cloudflare backend (D1 + R2, email-link accounts, ADR-25, [backend.md](backend.md)) went live on
-2026-10-30**, pushed as `6389a7a` with CI green; the build reads its data from it (0 games, 0 GMs: nothing existed to import). The Google
-Forms + Sheet stack was **retired in code** the same day (ADR-27); the Apps Script remains only as the mail relay. The commits after
-`17cacd0` (audit fixes, the retirement, monitoring and retention) are local and **not pushed** until the owner says so; read "Before you push" first.
+The site is a Next 16 static export on Cloudflare Pages (EN/ID) at <https://quest-board-tpk.pages.dev>. The Cloudflare backend (D1 + R2, email-link
+accounts, ADR-25, [backend.md](backend.md)) went live on 2026-10-30 and the Google Forms + Sheet stack was retired in code (ADR-27); the Apps Script
+is only the mail relay. **What is live is the commit `0d898d3`** (the oak-board tavern look, CI green). **13 commits after it are local and NOT pushed**
+(see "Local, not pushed" below); the owner says "push" when they want them live. The live site has 0 games and 0 GMs.
 
-## Before you push (the local commits after 17cacd0)
+## Local, not pushed (13 commits after 0d898d3, written 2026-10-30 evening)
+
+Design: Halftone, the oak-board tavern and the tavern at night were each dropped; the direction is now the **minimal tavern** (ADR-30, [design.md](../design.md))
+with EB Garamond headings. In order: tavern at night (ADR-29, since superseded), minimal tavern, EB Garamond, header light/dark toggle and EN/ID capitals,
+featured games removed (ADR-31), Phosphor inline icons and the Flaticon credit removed (ADR-32, [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md)),
+the "Browse by system" home block and the `/systems/` page, the systems list (130 entries, every edition its own entry), system tiles kept to one line.
+
+Not yet verified by anyone: **the Playwright suite has not been run on any of these** (the owner's rule is not to run it unasked; CI runs it on the push), so the
+first push is also the first e2e run on the new header, the tiles, the changed Feature test (now "marking an approved game full") and the form option
+`Call of Cthulhu 7e`. Watch CI after pushing (public Actions API, UTC). Nothing needs a database migration; the unused `featured` column stays in D1.
+The editions in `src/lib/systems.ts` were written from memory: the owner should check Cairn 2e, the Traveller names and the Hunter/Changeling splits.
+The audit script (`scripts/audit-frontend.mjs`, with `npm run preview` running) was clean after every step except the skip link.
+
+## Done before the first push of 2026-10-30 (kept for the record)
 
 1. **Done on 2026-10-30:** migration `0002_retention.sql` is applied to the live D1 (`npm run cloudflare:setup`; verified: the `accounts` table has
    `last_seen_at` and `expiry_warned_at`). The new sign-in code writes `last_seen_at`, so this had to come first; it only adds columns, so the code
