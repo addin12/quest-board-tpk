@@ -24,8 +24,8 @@ The site is a Next 16 static export on Cloudflare Pages (EN/ID), redesigned as "
 ## Still open after the cutover
 
 - **Timers: the Cloudflare Worker `quest-board-cron` is deployed** (`npm run cron:deploy`, `cron/`; crons `*/10 * * * *` and `30 18 * * *`, secret `BUILD_KEY`). Free plan. Its
-  two jobs were also called by hand and answered 200, and the daily job wrote a backup to R2 that reads back. A real scheduled firing was
-  being watched when this was written; confirm it in the dashboard (Workers → quest-board-cron → Metrics) before relying on it.
+  two jobs were also called by hand and answered 200, and the daily job wrote a backup to R2 that reads back. A real scheduled firing of the 10-minute trigger was
+  caught with `wrangler tail` on 2026-10-30 (outcome ok, no exceptions); the daily trigger has not fired on its own yet (01:30 Jakarta).
   `.github/workflows/cron.yml` still exists but does nothing without a GitHub `BUILD_KEY` secret: do not set that secret, or both would call the
   backend. The agent was refused twice by the permission classifier (reading the stored Git credential; creating the Worker before explicit
   approval): do not retry such steps, ask the owner.- **Not confirmed by anyone**: that the sign-in mail arrived in the inbox, and one full sign-in by clicking the link (the agent cannot read the
