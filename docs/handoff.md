@@ -1,36 +1,50 @@
-# Handoff: where the project stands (2026-10-29)
+# Handoff: where the project stands (2026-10-30)
 
 For the next agent or person. Read this first, then [CLAUDE.md](../CLAUDE.md). Facts here are the ones the code and git history
 don't tell you.
 
 ## State in one paragraph
 
-The site is a Next 16 static export on Cloudflare Pages (EN/ID), redesigned as "Halftone" (ADR-22) and live at
-<https://quest-board-tpk.pages.dev> on the **old** Google Forms + Sheet + Apps Script stack (0 real games listed). A complete
-replacement backend, Cloudflare Pages Functions + D1 + R2 with email-link accounts (ADR-25, [backend.md](backend.md)), is built and tested
-locally but **not deployed and not pushed**. Local `main` is two commits ahead of `origin/main`: `673760b` (phase 1) and `9e8ecfc`
-(phases 2 and 3). 73 unit tests and 178 Playwright tests pass.
+The site is a Next 16 static export on Cloudflare Pages (EN/ID), redesigned as "Halftone" (ADR-22), at
+<https://quest-board-tpk.pages.dev>. **The Cloudflare backend (D1 + R2, email-link accounts, ADR-25, [backend.md](backend.md)) went live on
+2026-10-30** and the build now reads its data from it (0 games, 0 GMs: nothing existed to import). It was pushed (`6389a7a`), CI was green and
+`/api/health` answers. The old Google Forms + Sheet still exist but nothing reads them (`TPK_API_URL` is still set on the project, harmless).
+73 unit tests and 178 Playwright tests passed before the push; CI (which runs the suite) was green on `6389a7a`.
 
-## Do not push without the owner saying "push"
+## What was done on 2026-10-30 (cutover log)
 
-Pushing deploys `functions/api/[[path]].ts` to Pages **without** the D1/R2 bindings, so `/api` would answer errors, and the build would
-read the wrong data source. The owner has to do [cutover.md](cutover.md) steps 1 to 5 first (Cloudflare login, `npm run cloudflare:setup`,
-variables and secrets, mail relay, GitHub `BUILD_KEY` secret). Nothing in the repo can do these: they need the owner's Cloudflare,
-GitHub and Google accounts. Then the owner says "push", and you follow cutover.md step 6, checking `/api/health` and CI afterwards
-(see "Check CI" below).
+1. `wrangler login` (OAuth, one Allow click), the owner enabled R2 in the dashboard (free tier; Cloudflare gives no API for that).
+2. `npm run cloudflare:setup` (rewritten that day, see below): D1 `quest-board`, R2 `quest-board-images`, schema applied, a deploy hook named
+   `backend`, Pages bindings DB/IMAGES and variables set through the Pages API. Secrets live in the project as encrypted variables and in
+   `.cloudflare.local.json` (git-ignored). The first run used `--backend-only` so the first build did not read an `/api` that did not exist yet;
+   the second run switched `TPK_API_BASE` and `TPK_BUILD_KEY` on and a deploy-hook call rebuilt the site.
+3. `npm run script:deploy`: the mail relay is Apps Script version 10; a relay test mail and a live sign-in mail were sent to the owner.
+4. Verified live: `/api/health?key=` (counts 0, `deployConfigured` true), `/api/public?key=`, `/api/me` 401, bad email 400, account pages 200.
 
-## Never run against real services
+## Still open after the cutover
 
-Only fakes were exercised. Check these first when going live:
+- **GitHub secret `BUILD_KEY`** (Settings → Secrets and variables → Actions; value = `buildKey` in `.cloudflare.local.json`). Until it is set,
+  `.github/workflows/cron.yml` exits without doing anything: no timed rebuild of a waiting change, no daily backup. An automated attempt to
+  set it with the stored Git credential was refused by the permission classifier; do not retry that, ask the owner.
+- **Not confirmed by anyone**: that the sign-in mail arrived in the inbox, and one full sign-in by clicking the link (the agent cannot read the
+  mailbox). Do this first: sign in at `/en/account/`, then open `/en/admin/`.
+- **Billing**: R2 and D1 are inside the free tier by design (see ADR-25), but the agent could not read the subscription (the token has no
+  billing scope). The owner should check Cloudflare → Billing shows $0 and may add a usage notification.
+- Turnstile is not enabled (optional). Without it sign-in is protected only by the per-address and per-IP limits, and the relay is capped at
+  90 mails a day, so a bot could use up the daily mail budget. Enable it if that matters.
+- Retire the old stack when happy: delete the two Google Forms and the Apps Script timers (keep the script, it is the mail relay), remove
+  `TPK_API_URL` and the unused `NEXT_PUBLIC_*_FORM_URL`/`GOOGLE_CLIENT_ID` variables from the project.
+- `wrangler` is not a dependency: the scripts run it with `npx wrangler@4`, and its login lives in the user profile, not the repo.
 
-| Part | Where | Risk |
-|---|---|---|
-| Cloudflare D1/R2 behaviour | `functions/api/[[path]].ts`, `worker/src/db.ts` | tests use `node:sqlite` and an in-memory bucket behind the same `Db`/`Bucket` interfaces; real D1 may differ on batch/`last_row_id`/error shapes |
-| `scripts/cloudflare-setup.mjs` | `npm run cloudflare:setup -- --dry` first | written blind; the by-hand fallback is in cutover.md |
-| Mail relay | `apps-script/Code.gs` (`mailRequest_`), `worker/src/email.ts` | real Gmail quota (90/day cap is ours), Apps Script redirects on POST, secret injected by `script:deploy` |
-| Turnstile | `verifyTurnstile`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | optional; CSP already allows `challenges.cloudflare.com` |
-| Pages API settings | `scripts/cloudflare-setup.mjs` | bindings and variables are set by the API, not a committed `wrangler.toml` (that locks the dashboard and the repo is public); verify them in the dashboard after a run |
-| Indonesian pages | `src/lib/i18n/id.ts` | written by the agent, not looked at by eye on every page |
+## Never run against real services (status after the cutover)
+
+| Part | Status |
+|---|---|
+| D1 (schema, health, public data) | exercised live on 2026-10-30; the write paths (sign-up, profile, review) have not been used by a real person yet |
+| R2 (images, backups) | bucket exists; no picture was uploaded and no backup has run yet (the daily job needs the GitHub secret) |
+| Mail relay | answered `{"ok":true}` and a live sign-in request returned ok; delivery to the inbox unconfirmed |
+| Turnstile | not enabled |
+| Indonesian pages | written by the agent, not looked at by eye on every page |
 
 ## Map of the new backend
 

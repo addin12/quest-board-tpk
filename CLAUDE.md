@@ -4,12 +4,10 @@ A free noticeboard for tabletop RPG games in Jabodetabek and online, run by **Th
 Players browse and contact the GM directly (WhatsApp, optionally Discord). **No bookings, no payments.** English by default,
 Bahasa Indonesia at `/id/`. The site itself is a static export.
 
-**Two stacks exist in the repo; check [docs/handoff.md](docs/handoff.md) for which one is live.**
-
-- *Live today:* Game Masters submit through Google Forms, a Sheet and an Apps Script hold the data, admins review on `/admin`.
-- *Built, tested, not deployed (ADR-25):* Cloudflare Pages Functions + D1 + R2 in `worker/` and `functions/`, with email-link accounts
-  (one verified email = one account, one GM profile, many games), self-service edit/mark full/remove/erase, admin review and merge,
-  nightly backups. Going live is [docs/cutover.md](docs/cutover.md) and needs the owner's accounts. **Do not push until the owner says so.**
+**Live since 2026-10-30 (ADR-25): Cloudflare Pages Functions + D1 + R2** in `worker/` and `functions/`, with email-link accounts
+(one verified email = one account, one GM profile, many games), self-service edit/mark full/remove/erase, admin review and merge,
+nightly backups. Read [docs/handoff.md](docs/handoff.md) for what is still open (GitHub secret, first real sign-in, billing check).
+The old Google Forms + Sheet + Apps Script stack is retired from the data path; the Apps Script remains only as the mail relay.
 
 This is the successor of Quest Board v1 (accounts, booking, payment tracking: repo `addin12/Quest-Board`, tag
 `v1.0-booking`). Don't bring v1's server features back.

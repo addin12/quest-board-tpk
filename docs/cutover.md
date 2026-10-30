@@ -1,8 +1,8 @@
 # Going live on the Cloudflare backend
 
-The backend (ADR-25, [backend.md](backend.md)) is built and tested, but **nothing has been deployed**: it needs a D1 database, an R2
-bucket, a few secrets and one email relay in your own accounts, which only you can create. This page is the shortest path. The live
-site keeps running on the Google Sheet until the last step, so nothing breaks while you do this.
+The backend (ADR-25, [backend.md](backend.md)) was switched on with these steps on 2026-10-30 (the log is in [handoff.md](handoff.md)). It needs a D1 database, an R2
+bucket, a few secrets and one email relay in the owner's own accounts. This page is the shortest path, kept for a rebuild from scratch.
+The site keeps running on its old data source until the build is switched (step 6), so nothing breaks in between.
 
 There was no real data in the Sheet when this was written (the live site listed 0 games), so there is nothing to import. If that has
 changed, tell me before step 6.

@@ -1,7 +1,8 @@
 # The Cloudflare backend (D1 + R2)
 
 Replaces Google Forms, the Google Sheet and Apps Script (ADR-25). **It is built and tested (73 unit and 178 browser tests, run against
-the real code on an in-memory SQLite database) but not deployed: going live is [cutover.md](cutover.md).** Everything lives in
+the real code on an in-memory SQLite database) and has been live since 2026-10-30: how it was switched on is [cutover.md](cutover.md), the
+state is [handoff.md](handoff.md).** Everything lives in
 `worker/` and one Pages Function, `functions/api/[[path]].ts`, which only wires the bindings to `handle()` in `worker/src/handler.ts`.
 The site's side is `src/app/[lang]/account/` (sign-in, profile, games), `src/components/account/`, and the admin page, which now
 signs in the same way and calls `/api/admin`.
