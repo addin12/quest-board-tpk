@@ -25,7 +25,7 @@ export default async function SystemsPage({ params }: PageProps<"/[lang]/systems
       {systems.length === 0 ? (
         <EmptyState title={t("systems.empty")} />
       ) : (
-        <ul className="grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-5">
+        <ul className="grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {systems.map((s) => <li key={s.name}><SystemTile name={s.name} count={s.count} cover={s.cover} t={t} lang={lang} /></li>)}
         </ul>
       )}

@@ -86,7 +86,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
         <section className="section pt-0" aria-labelledby="systems-h">
           <div className="wrap">
             <h2 id="systems-h">{t("home.systemsTitle")}</h2>
-            <ul className="mt-[var(--space-xl)] grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-5">
+            <ul className="mt-[var(--space-xl)] grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {systems.map((s) => <li key={s.name}><SystemTile name={s.name} count={s.count} cover={s.cover} t={t} lang={lang} /></li>)}
             </ul>
             <p className="mt-[var(--space-xl)]"><Link href={paths.systems(lang)} className="btn btn-secondary">{t("home.allSystems")}</Link></p>
