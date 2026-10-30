@@ -40,7 +40,7 @@ Checked against the rules while it was built; reasons per part are in [design.md
 
 ## The minimal-tavern direction (ADR-30, same day)
 
-The owner tried three directions in a day and asked for a minimal one. Reasons per part are in [design.md](../design.md). Measured again with the audit script (both languages, both stocks, 390 and 1280 px, axe): no overflow, no contrast failure, only the skip link under 44 px. R-05/R-14: one rhythm break per section instead of a repeated template; cards are listings, so identical structure is by design. R-06: facts never use Fell (old-style figures). R-07/R-22: nothing is textured or drawn; the nail is one CSS dot. R-11: tags are rectangles, not pills. R-29: paper and ink, one accent. Not run: the Playwright suite, the Hallmark linter, a review in a real browser.
+The owner tried three directions in a day and asked for a minimal one. Reasons per part are in [design.md](../design.md). Measured again with the audit script (both languages, both stocks, 390 and 1280 px, axe): no overflow, no contrast failure, only the skip link under 44 px. R-05/R-14: one rhythm break per section instead of a repeated template; cards are listings, so identical structure is by design. R-06: heads in EB Garamond (chosen by the owner from seven faces), facts and running text in Chivo. R-07/R-22: nothing is textured or drawn; the nail is one CSS dot. R-11: tags are rectangles, not pills. R-29: paper and ink, one accent. Not run: the Playwright suite, the Hallmark linter, a review in a real browser.
 
 ## Left for the owner (design judgement, not rule violations)
 

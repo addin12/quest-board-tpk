@@ -61,7 +61,7 @@ npm run script:deploy      # the mail relay in Apps Script
 - Never read or use the owner's stored credentials (git, clasp, wrangler files) except through the sanctioned scripts; ask instead.
 - Ask the owner about Indonesian wording (native speaker); the glossary is the v1 one (GM, one-shot, safety tools stay English).
 - UI rules for real users are mandatory: body text 17 px (nothing under 14 px), controls at least 44 px, labels above fields,
-  one accent, words next to colours, visible focus, both themes. The look is a minimal tavern (ADR-30, [design.md](design.md)): warm paper, ink, one oxblood accent, IM Fell English heads over Chivo (facts such as dates and prices are always Chivo), covers as the only full colour, and five tavern touches (an oak strip, a double rule, a nail on each card, menu leaders, the printer's face). A sixth touch needs a reason written in design.md first.
+  one accent, words next to colours, visible focus, both themes. The look is a minimal tavern (ADR-30, [design.md](design.md)): warm paper, ink, one oxblood accent, EB Garamond heads over Chivo (facts such as dates and prices are always Chivo), covers as the only full colour, and five tavern touches (an oak strip, a double rule, a nail on each card, menu leaders, the book face). A sixth touch needs a reason written in design.md first.
 
 ## Hard rules
 

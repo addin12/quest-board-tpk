@@ -24,7 +24,7 @@ Forms + Sheet stack was **retired in code** the same day (ADR-27); the Apps Scri
 
 ## What was done on 2026-10-30
 
-- **Minimal tavern** (ADR-30, [design.md](../design.md)): after Halftone, an oak-board tavern and a tavern at night were each tried and disliked, the owner asked for "more minimalist but still a tavern touch". Warm paper, ink, one oxblood accent, Fell heads over Chivo; the tavern is an oak strip, a double rule, a nail per card, menu leaders and the printer's face. Measured with the audit script; the Playwright suite and the Hallmark linter were not run on it.
+- **Minimal tavern** (ADR-30, [design.md](../design.md)): after Halftone, an oak-board tavern and a tavern at night were each tried and disliked, the owner asked for "more minimalist but still a tavern touch". Warm paper, ink, one oxblood accent, EB Garamond heads over Chivo (the owner chose it from a seven-face specimen; Fell was dropped); the tavern is an oak strip, a double rule, a nail per card, menu leaders and the book face. Measured with the audit script; the Playwright suite and the Hallmark linter were not run on it.
 
 - **Cutover** (log in [cutover.md](cutover.md)): `wrangler login`, R2 enabled by the owner (no API for that), `npm run cloudflare:setup` (D1, R2,
   schema, deploy hook, bindings and variables by Pages API, never a committed `wrangler.toml`), mail relay deployed, Turnstile widget made,

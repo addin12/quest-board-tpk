@@ -12,7 +12,7 @@
 
 /* The faces come from next/font (self-hosted at build time); their variables are set on <html> in the layout. */
 :root {
-  --font-display: var(--font-fell), "IM Fell English", ui-serif, Georgia, serif;
+  --font-display: var(--font-garamond), "EB Garamond", ui-serif, Georgia, serif;
   --font-body: var(--font-chivo), "Chivo", ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -160,7 +160,7 @@
   .bill dt { color: var(--color-muted); font-size: var(--text-sm); }
   .bill dd { margin: 0; font-weight: 700; font-size: var(--text-sm); text-align: right; min-width: 0; overflow-wrap: anywhere; }
 
-  /* The label panel of a game or a profile: a bar of ink, then name and value in Chivo (Fell's old-style figures make a date or a price hard to read, so facts never use it). */
+  /* The label panel of a game or a profile: a bar of ink, then name and value in Chivo (facts such as a date or a price stay in the body face, with tabular figures). */
   .panel { border-top: var(--rule-bar) solid var(--color-ink); }
   .panel > div { display: grid; grid-template-columns: minmax(0, 8rem) minmax(0, 1fr); gap: var(--space-md); align-items: baseline; padding-block: var(--space-md); border-bottom: var(--rule-hair) solid var(--color-rule); }
   .panel dt { font-weight: 700; font-size: var(--text-md); }
@@ -171,7 +171,7 @@
   .lead { font-size: var(--text-lead); line-height: 1.5; }
 
   /* The wordmark and the page head's underline. */
-  .wordmark { font-family: var(--font-display); font-weight: 400; letter-spacing: var(--tracking-display); line-height: 1; white-space: nowrap; }
+  .wordmark { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--tracking-display); line-height: 1; white-space: nowrap; }
   .link-spot { text-decoration: none; border-bottom: var(--rule-bar) solid var(--color-accent); }
   .link-spot:hover { border-bottom-color: var(--color-ink); }
 

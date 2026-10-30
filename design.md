@@ -25,15 +25,16 @@ the listings' own cover art as the only colour) and the tavern is carried by fou
 | **Double rule** (`.rule-double`, `border-double`) | A thin double line under the masthead, above the footer and above the closing call | How an old broadside is ruled under its title: it separates without a heavy bar, and it is the only "ornament" |
 | **Nail** (`.tack`) | Each game card is a hairline box with a small nail at the top: a notice on a board | The product is a board of notices; one dot says so, with no shadow, tilt or texture |
 | **Menu leader** (`.leader`) | A dotted line between a genre and its count | A tavern's menu is "name, dots, number": it makes a row of counts readable |
-| **Printer's face** (IM Fell English) | Headings and the wordmark are set in a 1600s English printer's type | The voice of a tavern's broadside, in the one place type can carry it without costing readability |
+| **Book face** (EB Garamond) | Headings and the wordmark are set in a Garamond, a 1500s old-style serif | The voice of a tavern's menu and broadside, in the one place type can carry it without costing readability |
 
 ## Visual language
 
 - **Palette (R-29).** Warm paper and ink (the two core colours) and one accent, oxblood (the red of a wax seal and a painted sign). The accent is
   a deep oxblood on paper (7:1 or better for text and buttons) and a lifted brick on the dark stock. Oak appears only in the strip and is the nail's colour
   family. Light is the primary stock; dark is the same room after hours. The OS preference decides unless the person picks a theme (`html[data-theme]`).
-- **Type.** IM Fell English for heads and the wordmark; Chivo for everything people read. Fell has one weight, a small x-height and old-style figures,
-  so heads are set larger, and **facts never use it**: a date, a price, a seat count or a time is Chivo (R-06, readability). 14 px is the smallest text;
+- **Type.** EB Garamond (medium) for heads and the wordmark; Chivo for everything people read. Garamond has a small x-height, so heads are set larger, and
+  facts stay in Chivo: a date, a price, a seat count or a time (R-06, readability, tabular figures). It was chosen by the owner from seven options (IM Fell English,
+  Alegreya, EB Garamond, Lora, Besley, Almendra, Young Serif); Fell was dropped for its one thin weight and old-style figures. 14 px is the smallest text;
   running text stays near 65 characters wide.
 - **Shape.** Photographs and wells are square or nearly (radii 2 to 4 px); tags are small rectangles, not pills (R-11); ruled lists use a 2 px bar and hairlines.
 - **Nothing is drawn.** No planks, grain, chains, frames, shadows, gradients, dot screens or icons beside labels. The brand marks and genre icons stay.

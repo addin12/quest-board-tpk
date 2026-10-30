@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Chivo, IM_Fell_English } from "next/font/google";
+import { Chivo, EB_Garamond } from "next/font/google";
 import { I18nProvider } from "@/components/i18n-provider";
 import { LanguageSwitcher, NavLinks } from "@/components/nav";
 import { ThemeSwitcher } from "@/components/theme-switcher";
@@ -12,9 +12,9 @@ import { LANGS, isLang } from "@/lib/types";
 import "../globals.css";
 import "../icons/icons.css";
 
-// Typography: IM Fell English for heads and the wordmark (a 1600s English printer's type: a tavern's broadside), Chivo for everything people
-// read. Self-hosted at build time. Fell has one weight and a small x-height, so heads are set larger and small titles that must scan fast stay in Chivo.
-const fell = IM_Fell_English({ variable: "--font-fell", subsets: ["latin"], weight: ["400"], style: ["normal", "italic"] });
+// Typography: EB Garamond for heads and the wordmark (a 1500s old-style serif, the book face of a tavern's menu and broadside), Chivo for everything
+// people read. Self-hosted at build time. Garamond has a small x-height, so heads are set larger; facts (dates, prices, seats) are always Chivo.
+const garamond = EB_Garamond({ variable: "--font-garamond", subsets: ["latin"], weight: ["400", "500"] });
 const chivo = Chivo({ variable: "--font-chivo", subsets: ["latin"], weight: ["400", "700"] });
 
 export const dynamicParams = false;
@@ -45,7 +45,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
   if (!isLang(lang)) notFound();
   const t = makeT(lang);
   return (
-    <html lang={lang} suppressHydrationWarning className={`${fell.variable} ${chivo.variable} h-full overflow-x-clip antialiased`}>
+    <html lang={lang} suppressHydrationWarning className={`${garamond.variable} ${chivo.variable} h-full overflow-x-clip antialiased`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
       </head>
