@@ -3,7 +3,7 @@
 import "server-only";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import type { SiteData, SiteGame, SiteGm } from "./types.ts";
+import type { SiteData, SiteGm } from "./types.ts";
 import type { GameView } from "./games.ts";
 
 let cache: SiteData | null = null;
@@ -22,4 +22,3 @@ export function gameViews(data: SiteData = loadSiteData()): GameView[] {
 }
 
 export const gmById = (data: SiteData, id: string): SiteGm | undefined => data.gms.find((g) => g.id === id);
-export const gamesOf = (data: SiteData, gmId: string): SiteGame[] => data.games.filter((g) => g.gmId === gmId).sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));

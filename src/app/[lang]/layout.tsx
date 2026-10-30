@@ -53,7 +53,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
           <a href="#main" className="btn btn-primary sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50">{t("nav.skip")}</a>
           <header className="border-b-3 border-ink">
             <div className="wrap flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-4 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:py-6">
-              <Link href={paths.home(lang)} className="wordmark text-xl lg:order-2 lg:text-4xl">{"Quest Board TPK"}</Link>
+              <Link href={paths.home(lang)} className="wordmark inline-flex min-h-11 items-center text-xl lg:order-2 lg:text-4xl">{"Quest Board TPK"}</Link>
               <div className="justify-self-end lg:order-1 lg:justify-self-start"><LanguageSwitcher /></div>
               <div className="hidden lg:order-3 lg:block" />
             </div>

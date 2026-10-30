@@ -49,7 +49,7 @@ export function reasonText(reasons: readonly Reason[], note: string, tEn: T, tId
   const say = (t: T) => reasons.map((r) => t(`admin.reason.${r}` as MsgKey)).join("; ");
   const parts = reasons.length ? `${say(tEn)} / ${say(tId)}` : "";
   const extra = note.trim();
-  return [parts, extra].filter(Boolean).join(" — ");
+  return [parts, extra].filter(Boolean).join(". ");
 }
 
 /** A game as the public card would show it, with the picture straight from Drive (it is not on the site yet). */

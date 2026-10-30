@@ -8,10 +8,14 @@ import { Field, errorText } from "./fields";
 
 type Turnstile = { render(el: HTMLElement, options: { sitekey: string; callback: (token: string) => void; "expired-callback": () => void }): string; reset(id?: string): void };
 
+declare global {
+  interface Window { turnstile?: Turnstile }
+}
+
 let loading: Promise<Turnstile> | null = null;
 /** Cloudflare's robot check script, loaded once (only when the site has a key for it). */
 function loadTurnstile(): Promise<Turnstile> {
-  const w = window as unknown as { turnstile?: Turnstile };
+  const w = window;
   if (w.turnstile) return Promise.resolve(w.turnstile);
   loading ??= new Promise<Turnstile>((resolve, reject) => {
     const s = document.createElement("script");
@@ -53,7 +57,7 @@ export function EmailSignIn({ heading, lead }: { heading: string; lead: string }
     if (r.ok) setSentTo(email.trim());
     else {
       setProblem(errorText(t, r.error));
-      const ts = (window as unknown as { turnstile?: Turnstile }).turnstile;
+      const ts = window.turnstile;
       if (ts && widget.current) { ts.reset(widget.current); setToken(""); }
     }
   }

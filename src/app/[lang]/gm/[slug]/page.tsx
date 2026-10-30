@@ -51,7 +51,7 @@ export default async function GmPage({ params }: PageProps<"/[lang]/gm/[slug]">)
       ]} />
       <Link href={paths.gms(lang)} className="link-spot inline-flex min-h-11 items-center font-bold">{t("gm.title")}</Link>
       <header className="mt-[var(--space-lg)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] lg:grid-cols-12">
-        <div className="min-w-0 lg:col-span-4"><Avatar name={gm.name} photo={gm.photo} size={416} /></div>
+        <div className="min-w-0 lg:col-span-4"><Avatar name={gm.name} photo={gm.photo} size={416} priority /></div>
         <div className="min-w-0 lg:col-span-8">
           <h1 className="max-w-none text-[length:var(--text-display-s)]">{gm.name}</h1>
           {gm.city && <p className="lead mt-[var(--space-sm)] text-ink-2">{gm.city}</p>}
@@ -70,7 +70,7 @@ export default async function GmPage({ params }: PageProps<"/[lang]/gm/[slug]">)
           <p className="mt-[var(--space-md)] text-muted">{t("gm.noGames")}</p>
         ) : (
           <ul className="mt-[var(--space-xl)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-2xl)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {games.map((g) => <li key={g.id}><GameCard game={g} t={t} lang={lang} /></li>)}
+            {games.map((g, i) => <li key={g.id}><GameCard game={g} t={t} lang={lang} priority={i < 3} /></li>)}
           </ul>
         )}
       </section>

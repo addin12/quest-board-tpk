@@ -236,7 +236,7 @@ test("a rejection's reason is written in both languages, with the admin's own wo
   const en = makeT("en");
   const id = makeT("id");
   assert.equal(reasonText(["date", "contact"], "", en, id), "The date or time is missing or has passed; The WhatsApp number or contact details look wrong / Tanggal atau jamnya kosong atau sudah lewat; Nomor WhatsApp atau kontaknya tampak salah");
-  assert.match(reasonText(["other"], "Please add the venue.", en, id), / — Please add the venue\.$/);
+  assert.match(reasonText(["other"], "Please add the venue.", en, id), /\. Please add the venue\.$/);
   assert.equal(reasonText([], "  ", en, id), "");
   assert.equal(reasonText([], "Only a note", en, id), "Only a note");
 });

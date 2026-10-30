@@ -156,8 +156,7 @@ save();
 
 console.log(`
 Done${DRY ? " (dry run: nothing was changed)" : ""}. Left for you (values are in .cloudflare.local.json, never in the repo):
-  - GitHub → repo → Settings → Secrets and variables → Actions → secret BUILD_KEY = the buildKey in .cloudflare.local.json
-    (it lets .github/workflows/cron.yml rebuild and back up on a timer).
+  - npm run cron:deploy   the timers Worker (rebuilds a waiting change, backs up daily).
   - Optional: a Turnstile widget (Cloudflare dashboard → Turnstile); put its keys in .cloudflare.local.json as turnstileSiteKey and
     turnstileSecret and run this again.
   - Then push: the next build has the bindings.`);

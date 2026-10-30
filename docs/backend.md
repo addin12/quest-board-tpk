@@ -47,7 +47,7 @@ build per two minutes however many changes arrive, plus one forced build a day (
 
 | Call | Who | Does |
 |---|---|---|
-| `POST /cron?job=tick\|daily&key=` | the timers (`.github/workflows/cron.yml`) | tick sends a waiting build; daily backs up to R2 (JSON of every table, plus games and profiles as CSV, kept 14 days), tidies sign-ins, rebuilds |
+| `POST /cron?job=tick\|daily&key=` | the timers (the Worker in `cron/`) | tick sends a waiting build; daily backs up to R2 (JSON of every table, plus games and profiles as CSV, kept 14 days), tidies sign-ins, rebuilds |
 
 ## What the tests cover
 

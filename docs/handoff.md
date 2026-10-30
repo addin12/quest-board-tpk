@@ -21,14 +21,20 @@ The site is a Next 16 static export on Cloudflare Pages (EN/ID), redesigned as "
 3. `npm run script:deploy`: the mail relay is Apps Script version 10; a relay test mail and a live sign-in mail were sent to the owner.
 4. Verified live: `/api/health?key=` (counts 0, `deployConfigured` true), `/api/public?key=`, `/api/me` 401, bad email 400, account pages 200.
 
+## Anti-Slop audit (2026-10-30)
+
+Done and written up in [anti-slop-audit.md](anti-slop-audit.md): em dashes in emails, tap targets, above-the-fold image loading, dead code
+and the duplicate GitHub timer were fixed (committed locally, not pushed, Playwright not re-run). Left for the owner: remove the home
+page's "How it works" block, write a `design.md`, and (after a real sign-in has worked) delete the retired Google stack code.
+
 ## Still open after the cutover
 
 - **Timers: the Cloudflare Worker `quest-board-cron` is deployed** (`npm run cron:deploy`, `cron/`; crons `*/10 * * * *` and `30 18 * * *`, secret `BUILD_KEY`). Free plan. Its
   two jobs were also called by hand and answered 200, and the daily job wrote a backup to R2 that reads back. A real scheduled firing of the 10-minute trigger was
   caught with `wrangler tail` on 2026-10-30 (outcome ok, no exceptions); the daily trigger has not fired on its own yet (01:30 Jakarta).
-  `.github/workflows/cron.yml` still exists but does nothing without a GitHub `BUILD_KEY` secret: do not set that secret, or both would call the
-  backend. The agent was refused twice by the permission classifier (reading the stored Git credential; creating the Worker before explicit
-  approval): do not retry such steps, ask the owner.- **Not confirmed by anyone**: that the sign-in mail arrived in the inbox, and one full sign-in by clicking the link (the agent cannot read the
+  The older GitHub Actions timer was deleted on 2026-10-30 (one timer, not two). The agent was refused twice by the permission classifier (reading the stored Git credential; creating the Worker before explicit
+  approval): do not retry such steps, ask the owner.
+- **Not confirmed by anyone**: that the sign-in mail arrived in the inbox, and one full sign-in by clicking the link (the agent cannot read the
   mailbox). Do this first: sign in at `/en/account/`, then open `/en/admin/`.
 - **Billing**: R2 and D1 are inside the free tier by design (see ADR-25), but the agent could not read the subscription (the token has no
   billing scope). The owner should check Cloudflare → Billing shows $0 and may add a usage notification.
@@ -59,7 +65,7 @@ The site is a Next 16 static export on Cloudflare Pages (EN/ID), redesigned as "
 - Site side: `src/app/[lang]/account/`, `src/components/account/*`, `src/lib/account-api.ts`, admin in `src/lib/admin-api.ts` +
   `admin-app.tsx` + `review-pane.tsx`.
 - Build: `scripts/build-data.mjs` reads `TPK_API_BASE` + `TPK_BUILD_KEY` (falls back to the old `TPK_API_URL`, then demo data).
-- Timers: `cron/worker.ts` (a Cloudflare Worker with cron triggers) calls `POST /api/cron?job=tick|daily` with the build key; `.github/workflows/cron.yml` is the unused alternative.
+- Timers: `cron/worker.ts` (a Cloudflare Worker with cron triggers) calls `POST /api/cron?job=tick|daily` with the build key.
 - Test harness: `tests/support/worker-env.ts` (unit world), `tests/support/test-server.ts` (real backend for Playwright, one world per
   test via the `tpk_world` cookie, `/__test/*` helpers for seeding, clock, mail and SQL).
 

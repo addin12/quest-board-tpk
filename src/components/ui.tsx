@@ -4,7 +4,7 @@ import type { GameView } from "@/lib/games";
 import type { T } from "@/lib/i18n/core";
 import type { Lang, SiteGm } from "@/lib/types";
 import { genreLabelKey, isGenre } from "@/lib/categories";
-import { formatIdr, formatShortDay, formatWhen, initialsOf } from "@/lib/format";
+import { formatIdr, formatShortDay, initialsOf } from "@/lib/format";
 import { paths, smallCover } from "@/lib/hrefs";
 import { Icon } from "./icon";
 
@@ -32,11 +32,11 @@ export function Cover({ src, seed, className = "", priority = false, sizes }: { 
 }
 
 /** A GM's photo (square), or their initials on a solid field. */
-export function Avatar({ name, photo, size = 36 }: { name: string; photo: string | null; size?: number }) {
+export function Avatar({ name, photo, size = 36, priority = false }: { name: string; photo: string | null; size?: number; priority?: boolean }) {
   if (photo) {
     return (
       <span aria-hidden className="plate inline-block shrink-0" style={{ width: size, maxWidth: "100%", aspectRatio: "1" }}>
-        <Picture src={photo} sizes={`${size}px`} />
+        <Picture src={photo} sizes={`${size}px`} priority={priority} />
       </span>
     );
   }
@@ -119,10 +119,10 @@ export function GameRow({ game, t, lang }: { game: GameView; t: T; lang: Lang })
 }
 
 /** A GM as one row of an index: their photo, their name set as a title, where they play and what. */
-export function GmCard({ gm, openGames, t, lang }: { gm: SiteGm; openGames: number; t: T; lang: Lang }) {
+export function GmCard({ gm, openGames, t, lang, priority = false }: { gm: SiteGm; openGames: number; t: T; lang: Lang; priority?: boolean }) {
   return (
     <Link href={paths.gm(lang, gm.slug)} className="bill !h-auto flex-row items-start gap-[var(--space-lg)] py-[var(--space-lg)]">
-      <Avatar name={gm.name} photo={gm.photo} size={88} />
+      <Avatar name={gm.name} photo={gm.photo} size={88} priority={priority} />
       <span className="min-w-0 flex-1">
         <span className="bill-title block font-display text-[length:var(--text-title)] leading-tight">{gm.name}</span>
         <span className="mt-[var(--space-2xs)] block text-muted">
@@ -132,11 +132,6 @@ export function GmCard({ gm, openGames, t, lang }: { gm: SiteGm; openGames: numb
       </span>
     </Link>
   );
-}
-
-/** "Sun 12 Oct, 19.00 WIB". */
-export function WhenLine({ iso, zone, lang }: { iso: string; zone: GameView["zone"]; lang: Lang }) {
-  return <span>{formatWhen(iso, lang, zone)}</span>;
 }
 
 /** A message in the page's own voice: a ruled box with its icon and text; the tone changes the edge, never the meaning. */

@@ -48,8 +48,8 @@ export function loginMail(to: string, link: string, minutes: number): Mail {
     to,
     subject: "Your sign-in link / Tautan masuk kamu",
     body:
-      `Hi,\n\nOpen this link to sign in to Quest Board TPK. It works once and expires in ${minutes} minutes.\n${link}\n\nIf you did not ask for it, ignore this email.\n\n— ${SIGN}\n\n—\n\n` +
-      `Halo,\n\nBuka tautan ini untuk masuk ke Quest Board TPK. Tautan hanya berlaku sekali dan kedaluwarsa dalam ${minutes} menit.\n${link}\n\nJika bukan kamu yang meminta, abaikan email ini.\n\n— ${SIGN}`,
+      `Hi,\n\nOpen this link to sign in to Quest Board TPK. It works once and expires in ${minutes} minutes.\n${link}\n\nIf you did not ask for it, ignore this email.\n\n${SIGN}\n\n* * *\n\n` +
+      `Halo,\n\nBuka tautan ini untuk masuk ke Quest Board TPK. Tautan hanya berlaku sekali dan kedaluwarsa dalam ${minutes} menit.\n${link}\n\nJika bukan kamu yang meminta, abaikan email ini.\n\n${SIGN}`,
   };
 }
 
@@ -63,8 +63,8 @@ export function decisionMail(to: string, status: "approved" | "rejected", kind: 
       to,
       subject: `Approved: ${t} / Disetujui: ${t}`,
       body:
-        `Hi,\n\n“${t}” was approved and will appear on the Quest Board within a few minutes.${link("en")}\n\nTo change something later, sign in at ${edit}; a change goes back to review.\n\n— ${SIGN}\n\n—\n\n` +
-        `Halo,\n\n“${t}” sudah disetujui dan akan tampil di Quest Board dalam beberapa menit.${link("id")}\n\nUntuk mengubah sesuatu nanti, masuk di ${edit}; perubahan ditinjau lagi.\n\n— ${SIGN}`,
+        `Hi,\n\n“${t}” was approved and will appear on the Quest Board within a few minutes.${link("en")}\n\nTo change something later, sign in at ${edit}; a change goes back to review.\n\n${SIGN}\n\n* * *\n\n` +
+        `Halo,\n\n“${t}” sudah disetujui dan akan tampil di Quest Board dalam beberapa menit.${link("id")}\n\nUntuk mengubah sesuatu nanti, masuk di ${edit}; perubahan ditinjau lagi.\n\n${SIGN}`,
     };
   }
   const why = reason ? clip(reason, 500) : "(no reason given / tanpa alasan)";
@@ -72,7 +72,7 @@ export function decisionMail(to: string, status: "approved" | "rejected", kind: 
     to,
     subject: `Not approved yet: ${t} / Belum disetujui: ${t}`,
     body:
-      `Hi,\n\n“${t}” was not approved yet.\n\nReason: ${why}\n\nSign in at ${edit} to fix it; it will be reviewed again.\n\n— ${SIGN}\n\n—\n\n` +
-      `Halo,\n\n“${t}” belum disetujui.\n\nAlasan: ${why}\n\nMasuk di ${edit} untuk memperbaikinya; nanti ditinjau lagi.\n\n— ${SIGN}`,
+      `Hi,\n\n“${t}” was not approved yet.\n\nReason: ${why}\n\nSign in at ${edit} to fix it; it will be reviewed again.\n\n${SIGN}\n\n* * *\n\n` +
+      `Halo,\n\n“${t}” belum disetujui.\n\nAlasan: ${why}\n\nMasuk di ${edit} untuk memperbaikinya; nanti ditinjau lagi.\n\n${SIGN}`,
   };
 }

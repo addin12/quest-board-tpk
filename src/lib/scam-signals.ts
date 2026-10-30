@@ -1,11 +1,9 @@
-// Pure: wording that often means a scam or spam, in Indonesian and English. A match never blocks
-// or hides a post: it files an automatic report for a moderator to look at (lib/moderation.ts
-// autoFlag). Tuned to stay quiet on ordinary table talk — a WhatsApp group link or a phone number
-// alone is normal; together with money it's worth a look.
+// Pure: wording that often means a scam or spam, in Indonesian and English. A match never blocks or hides a
+// post: checks.ts turns it into a "look closer" note for the admin. Tuned to stay quiet on ordinary table
+// talk: a WhatsApp group link or a phone number alone is normal; together with money it is worth a look.
 
 export const SCAM_SIGNALS = ["credentials", "gambling", "newAccount", "fee", "shortLink", "offPlatformPay"] as const;
 export type ScamSignal = (typeof SCAM_SIGNALS)[number];
-export const isScamSignal = (v: string): v is ScamSignal => (SCAM_SIGNALS as readonly string[]).includes(v);
 
 const RULES: [ScamSignal, RegExp[]][] = [
   // "Send me your OTP / PIN / password", "kode verifikasi".
@@ -20,7 +18,7 @@ const RULES: [ScamSignal, RegExp[]][] = [
     /\bpinjol\b/, /\bpinjaman\s+online\b/, /\bprofit\s+(harian|pasti)\b/, /\binvestasi\s+(pasti|untung|aman)\b/,
     /\b(guaranteed|daily)\s+profit\b/,
   ]],
-  // "Pay to a new / different account" — the classic switch.
+  // "Pay to a new / different account": the classic switch.
   ["newAccount", [
     /\b(rekening|norek|no\.?\s*rek)\s+(baru|lain|pengganti|yang\s+lain)\b/,
     /\b(ganti|pindah|ubah)\s+(nomor\s+)?(rekening|norek)\b/,

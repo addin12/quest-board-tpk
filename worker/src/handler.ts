@@ -76,7 +76,7 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
   if (method === "GET" && path === "/public") {
     return safeEqual(url.searchParams.get("key") ?? "", env.buildKey) && env.buildKey ? json(200, await buildPublic(ctx)) : err(403, "forbidden");
   }
-  // The timers (.github/workflows/cron.yml) call this with the build key: "tick" sends a waiting build, "daily" backs up and rebuilds.
+  // The timers (the Worker in cron/) call this with the build key: "tick" sends a waiting build, "daily" backs up and rebuilds.
   if (method === "POST" && path === "/cron") {
     if (!(env.buildKey && safeEqual(url.searchParams.get("key") ?? "", env.buildKey))) return err(403, "forbidden");
     if (url.searchParams.get("job") === "daily") {

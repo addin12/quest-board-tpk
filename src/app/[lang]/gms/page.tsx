@@ -27,7 +27,7 @@ export default async function GmsPage({ params }: PageProps<"/[lang]/gms">) {
         <EmptyState title={t("gm.empty")} />
       ) : (
         <ul className="ruled grid gap-x-[var(--gap-columns)] md:grid-cols-2">
-          {sorted.map((gm) => <li key={gm.id}><GmCard gm={gm} openGames={open(gm.id)} t={t} lang={lang} /></li>)}
+          {sorted.map((gm, i) => <li key={gm.id}><GmCard gm={gm} openGames={open(gm.id)} t={t} lang={lang} priority={i < 4} /></li>)}
         </ul>
       )}
     </div>
