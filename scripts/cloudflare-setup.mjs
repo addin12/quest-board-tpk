@@ -24,7 +24,12 @@ const BUCKET = "quest-board-images";
 const HOOK_NAME = "backend";
 const WRANGLER = "npx --yes wrangler@4";
 const LOCAL = path.join(ROOT, ".cloudflare.local.json");
-const SCHEMA = path.join(ROOT, "worker", "migrations", "0001_init.sql");
+const MIGRATIONS_DIR = path.join(ROOT, "worker", "migrations");
+// Each migration with a query that finds a row once it is applied: the SQL is not written to be applied twice, so this is the record.
+const MIGRATIONS = [
+  { file: "0001_init.sql", applied: "SELECT 1 FROM sqlite_master WHERE name = 'accounts'" },
+  { file: "0002_retention.sql", applied: "SELECT 1 FROM pragma_table_info('accounts') WHERE name = 'last_seen_at'" },
+];
 
 const sh = (command) => {
   console.log(`$ ${command}`);
@@ -78,12 +83,16 @@ if (!buckets.success) {
 }
 if (!(buckets.result?.buckets ?? []).some((b) => b.name === BUCKET)) sh(`${WRANGLER} r2 bucket create ${BUCKET}`);
 
-// 3. The schema, only into an empty database (the SQL is not written to be applied twice)
-if (!DRY) {
-  const probe = JSON.parse(sh(`${WRANGLER} d1 execute ${DB_NAME} --remote --json --command "SELECT name FROM sqlite_master WHERE name = 'accounts'"`));
-  if ((probe[0]?.results ?? []).length === 0) sh(`${WRANGLER} d1 execute ${DB_NAME} --remote --file "${SCHEMA}"`);
-  else console.log("(the schema is already there)");
-} else console.log(`$ ${WRANGLER} d1 execute ${DB_NAME} --remote --file worker/migrations/0001_init.sql   (only if empty)`);
+// 3. The schema: every migration not yet applied, in order
+for (const m of MIGRATIONS) {
+  if (DRY) {
+    console.log(`$ ${WRANGLER} d1 execute ${DB_NAME} --remote --file worker/migrations/${m.file}   (only if not applied)`);
+    continue;
+  }
+  const probe = JSON.parse(sh(`${WRANGLER} d1 execute ${DB_NAME} --remote --json --command "${m.applied}"`));
+  if ((probe[0]?.results ?? []).length === 0) sh(`${WRANGLER} d1 execute ${DB_NAME} --remote --file "${path.join(MIGRATIONS_DIR, m.file)}"`);
+  else console.log(`(${m.file} is already applied)`);
+}
 
 // 4. A deploy hook the backend uses to rebuild the site (the Apps Script has its own, left alone)
 if (!local.deployHook) {
@@ -110,7 +119,9 @@ const project = must(await api("GET", pages), "Pages project");
 const current = project.deployment_configs?.production?.env_vars ?? {};
 const appsScript = existsSync(path.join(ROOT, ".apps-script.local.json")) ? JSON.parse(readFileSync(path.join(ROOT, ".apps-script.local.json"), "utf8")) : {};
 const ownerEmail = process.env.OWNER_EMAIL || local.ownerEmail || accounts[0]?.name?.replace(/'s Account$/, "").toLowerCase();
-const relayUrl = local.mailRelayUrl || current.NEXT_PUBLIC_ADMIN_API_URL?.value || "";
+// The relay is the Apps Script web app; its address is kept in .cloudflare.local.json (a secret variable cannot be read back).
+const relayUrl = local.mailRelayUrl || (appsScript.deploymentId ? `https://script.google.com/macros/s/${appsScript.deploymentId}/exec` : "");
+if (relayUrl) local.mailRelayUrl = relayUrl;
 if (!ownerEmail?.includes("@")) fail("set OWNER_EMAIL=you@example.com for this run (the first admin)");
 local.ownerEmail = ownerEmail;
 const siteUrl = `https://${PROJECT}.pages.dev`;
@@ -128,11 +139,17 @@ if (relayUrl) vars.MAIL_RELAY_URL = secret(relayUrl);
 else console.log("(MAIL_RELAY_URL not set: no Apps Script web app address found)");
 if (appsScript.mailSecret) vars.MAIL_SECRET = secret(appsScript.mailSecret);
 else console.log("(MAIL_SECRET not set yet: run npm run script:deploy, then this again)");
-// First deploy: the new site's /api does not exist until it is deployed, so a build that reads from it would fail. With
-// --backend-only the build keeps reading the old source (TPK_API_URL); run again without the flag, then rebuild, to switch.
-if (process.argv.includes("--backend-only")) {
+// First deploy on a fresh project: the site's own /api does not exist until it is deployed, so a build that reads from it would fail.
+// With --backend-only the build uses the empty day-one data instead; run again without the flag, then rebuild, to switch.
+const backendOnly = process.argv.includes("--backend-only");
+vars.TPK_DATA_FILE = backendOnly ? plain("data/empty.json") : null;
+if (backendOnly) {
   vars.TPK_API_BASE = null;
   vars.TPK_BUILD_KEY = null;
+}
+// Settings of the retired Google Forms, Sheet and sign-in (ADR-27): removed when present, nothing reads them any more.
+for (const name of ["TPK_API_URL", "NEXT_PUBLIC_ADMIN_API_URL", "NEXT_PUBLIC_GAME_FORM_URL", "NEXT_PUBLIC_GM_FORM_URL", "NEXT_PUBLIC_GOOGLE_CLIENT_ID"]) {
+  if (name in current) vars[name] = null;
 }
 if (local.turnstileSecret && local.turnstileSiteKey) {
   vars.TURNSTILE_SECRET = secret(local.turnstileSecret);

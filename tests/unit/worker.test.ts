@@ -278,7 +278,7 @@ test("the health check needs the build key and reports counts only", async () =>
   const w = makeWorld();
   assert.equal((await w.call("GET", "/health")).status, 403);
   const h = await w.call("GET", `/health?key=${BUILD_KEY}`);
-  assert.deepEqual(h.json, { ok: true, accounts: 0, profiles: 0, games: 0, admins: 0, deployConfigured: true });
+  assert.deepEqual(h.json, { ok: true, accounts: 0, profiles: 0, games: 0, admins: 0, deployConfigured: true, lastBackupAt: null, backupError: null, lastMailOkAt: null, lastMailError: null });
 });
 
 test("the mail relay is called with the secret; an error from it is an error here", async () => {
@@ -336,4 +336,98 @@ test("the timers: only the build key may call /cron; tick sends a waiting build,
   const daily = await w.call("POST", `/cron?job=daily&key=${BUILD_KEY}`, { origin: null });
   assert.equal(daily.status, 200);
   assert.ok(w.bucket.keys().some((k) => k.startsWith("backups/")));
+});
+
+const DAY = 86_400_000;
+const health = async (w: ReturnType<typeof makeWorld>) => (await w.call("GET", `/health?key=${BUILD_KEY}`)).json;
+
+test("health shows when mail last worked and when it last failed, with the error but never the address", async () => {
+  const w = makeWorld();
+  const working = w.env.ctx.mailer;
+  w.env.ctx.mailer = { send: async () => { throw new Error("mail_failed_quota"); } };
+  await w.call("POST", "/login/request", { body: { email: "raka@example.com" } });
+  const failed = await health(w);
+  assert.equal(failed.lastMailOkAt, null);
+  assert.equal(failed.lastMailError.error, "mail_failed_quota");
+  assert.equal(JSON.stringify(failed).includes("raka@example.com"), false);
+  w.env.ctx.mailer = working;
+  await w.call("POST", "/login/request", { body: { email: "raka@example.com" } });
+  assert.ok((await health(w)).lastMailOkAt, "the next success is recorded");
+});
+
+test("a failed daily backup is recorded, emailed to the owner, does not stop the rebuild, and fails the timer", async () => {
+  const w = makeWorld();
+  const put = w.bucket.put;
+  w.bucket.put = async () => { throw new Error("r2 is down"); };
+  const { daily } = await import("../../worker/src/handler.ts");
+  await assert.rejects(() => daily(w.env), /r2 is down/);
+  const h = await health(w);
+  assert.match(h.backupError, /r2 is down/);
+  assert.equal(h.lastBackupAt, null);
+  assert.equal(w.mails.filter((m) => m.to === OWNER && /backup failed/.test(m.subject)).length, 1);
+  assert.equal(w.hook.length, 1, "the rebuild still went out");
+  w.bucket.put = put;
+  await daily(w.env);
+  const ok = await health(w);
+  assert.ok(ok.lastBackupAt);
+  assert.equal(ok.backupError, null, "a good backup clears the error");
+});
+
+test("the tick tells the owner once a day when no backup has been made for 36 hours, and stays quiet otherwise", async () => {
+  const w = makeWorld();
+  const tick = () => w.call("POST", `/cron?job=tick&key=${BUILD_KEY}`, { origin: null });
+  const alerts = () => w.mails.filter((m) => /no backup/i.test(m.subject)).length;
+  await tick();
+  w.clock.ms += 35 * 3_600_000;
+  await tick();
+  assert.equal(alerts(), 0, "not yet");
+  w.clock.ms += 2 * 3_600_000;
+  await tick();
+  await tick();
+  assert.equal(alerts(), 1, "once, however often the tick runs");
+  w.clock.ms += DAY;
+  await tick();
+  assert.equal(alerts(), 2, "and again the next day while it stays broken");
+  const { daily } = await import("../../worker/src/handler.ts");
+  await daily(w.env);
+  w.clock.ms += 10 * 3_600_000;
+  await tick();
+  assert.equal(alerts(), 2, "a good backup ends it");
+});
+
+test("an account nobody signs in to is warned after two years and erased a month later; signing in saves it", async () => {
+  const { daily } = await import("../../worker/src/handler.ts");
+  const w = makeWorld();
+  const count = (t: string) => (w.db.raw.prepare(`SELECT COUNT(*) AS n FROM ${t}`).get() as { n: number }).n;
+  const gone = await w.signIn("gone@example.com");
+  await w.call("PUT", "/profile", { cookie: gone, body: PROFILE });
+  const up = await w.call("POST", "/images?kind=cover", { cookie: gone, raw: WEBP });
+  await w.call("POST", "/games", { cookie: gone, body: { ...GAME, coverKey: up.json.key } });
+  await w.signIn("kept@example.com");
+  await w.signIn(OWNER);
+  const files = w.bucket.keys().length;
+  const warnings = () => w.mails.filter((m) => /will be erased/.test(m.subject));
+
+  w.clock.ms += 700 * DAY;
+  await daily(w.env);
+  assert.equal(warnings().length, 0, "not yet two years");
+  w.clock.ms += 31 * DAY;
+  await daily(w.env);
+  assert.deepEqual(warnings().map((m) => m.to).sort(), ["gone@example.com", "kept@example.com"], "the owner is never warned");
+  assert.equal(count("accounts"), 3, "warned, not erased");
+  assert.match(warnings()[0]!.body, /30 days/);
+
+  await w.signIn("kept@example.com");
+  w.clock.ms += 31 * DAY;
+  await daily(w.env);
+  assert.equal(count("accounts"), 2, "only the one that did not come back is erased");
+  const accountsOf = (email: string) => (w.db.raw.prepare("SELECT COUNT(*) AS n FROM accounts WHERE email = ?").get(email) as { n: number }).n;
+  assert.equal(accountsOf("gone@example.com"), 0);
+  assert.equal(count("games"), 0);
+  assert.ok(w.bucket.keys().filter((k) => k.startsWith("covers/")).length < files, "its picture is deleted");
+  const log = JSON.stringify(w.db.raw.prepare("SELECT * FROM activity WHERE kind IN ('expired', 'expiry_warned')").all());
+  assert.equal(log.includes("gone@example.com"), false, "the log keeps no email");
+  w.clock.ms += 800 * DAY;
+  await daily(w.env);
+  assert.equal(accountsOf(OWNER), 1, "the owner never expires");
 });

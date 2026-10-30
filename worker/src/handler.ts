@@ -9,8 +9,14 @@ import { isPublicImage, buildPublic } from "./public.ts";
 import { parseGame, parseProfile } from "./rules.ts";
 import { eraseAccount, mine, removeGame, saveGame, saveProfile, setFull } from "./store.ts";
 import { backup } from "./backup.ts";
-import { allow, pruneRateEvents, safeEqual } from "./util.ts";
+import { recordingMailer } from "./email.ts";
+import { expireInactive } from "./retention.ts";
+import { allow, iso, logEvent, metaGet, metaSet, pruneRateEvents, safeEqual } from "./util.ts";
+import { tellOwner, watchBackup } from "./watch.ts";
 import { one } from "./db.ts";
+
+/** The same context with a mailer that records whether mail last worked (shown by /api/health). */
+const logged = (c: Ctx): Ctx => ({ ...c, mailer: recordingMailer(c.mailer, c.db, c.now) });
 
 export type Env = {
   ctx: Ctx;
@@ -65,7 +71,7 @@ async function body(request: Request): Promise<Record<string, unknown> | null> {
 
 /** Handles one request. `after` receives work to finish after the answer is sent (on Workers: `waitUntil`). */
 export async function handle(request: Request, env: Env, after: (p: Promise<unknown>) => void = () => {}): Promise<Response> {
-  const { ctx } = env;
+  const ctx = logged(env.ctx);
   const url = new URL(request.url);
   const path = url.pathname.replace(/^\/api/, "").replace(/\/+$/, "") || "/";
   const method = request.method;
@@ -83,12 +89,14 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
       await daily(env);
       return json(200, { ok: true, job: "daily" });
     }
-    return json(200, { ok: true, job: "tick", result: await deployIfDue(ctx, env.deployHook, env.fetcher) });
+    const result = await deployIfDue(ctx, env.deployHook, env.fetcher);
+    await watchBackup(ctx);
+    return json(200, { ok: true, job: "tick", result });
   }
   if (method === "GET" && path === "/health") {
     if (!(env.buildKey && safeEqual(url.searchParams.get("key") ?? "", env.buildKey))) return err(403, "forbidden");
     const n = async (table: string) => (await one<{ n: number }>(ctx.db, `SELECT COUNT(*) AS n FROM ${table}`))?.n ?? 0;
-    return json(200, { ok: true, accounts: await n("accounts"), profiles: await n("profiles"), games: await n("games"), admins: await n("admins"), deployConfigured: Boolean(env.deployHook) });
+    return json(200, { ok: true, accounts: await n("accounts"), profiles: await n("profiles"), games: await n("games"), admins: await n("admins"), deployConfigured: Boolean(env.deployHook), lastBackupAt: (await metaGet(ctx.db, "backup_ok_at")) || null, backupError: (await metaGet(ctx.db, "backup_error")) || null, lastMailOkAt: (await metaGet(ctx.db, "mail_ok_at")) || null, lastMailError: (await metaGet(ctx.db, "mail_error_at")) ? { at: await metaGet(ctx.db, "mail_error_at"), error: await metaGet(ctx.db, "mail_error") } : null });
   }
   if (method === "GET" && path.startsWith("/img/")) {
     const key = decodeURIComponent(path.slice(5));
@@ -198,11 +206,27 @@ async function upload(request: Request, env: Env, session: Session, kind: ImageK
   return result.ok ? json(201, { ok: true, key: result.key }) : err(result.error === "too_large" ? 413 : 415, result.error);
 }
 
-/** The daily job: tidy what expires, and rebuild so listings whose time is up leave the site. */
+/**
+ * The daily job: tidy what expires, back up, erase accounts that have been unused for two years, and rebuild so listings whose time
+ * is up leave the site. A failed backup does not stop the rest, but it is recorded, emailed to the owner, and rethrown so the timer
+ * Worker shows an error.
+ */
 export async function daily(env: Env): Promise<void> {
-  const { ctx } = env;
+  const ctx = logged(env.ctx);
   await pruneAuth(ctx);
   await pruneRateEvents(ctx.db, ctx.now());
-  await backup(ctx, env.images);
+  let failure: unknown = null;
+  try {
+    await backup(ctx, env.images);
+    await metaSet(ctx.db, "backup_ok_at", iso(ctx.now()));
+    await metaSet(ctx.db, "backup_error", "");
+  } catch (e) {
+    failure = e;
+    const why = String(e instanceof Error ? e.message : e).slice(0, 200);
+    await metaSet(ctx.db, "backup_error", `${iso(ctx.now())}: ${why}`);
+    await tellOwner(ctx, "Quest Board TPK: the daily backup failed", `The daily backup did not complete: ${why}\n\nThe site keeps working. Check GET /api/health?key=… and the Worker "quest-board-cron" in the Cloudflare dashboard.`);
+  }
+  await expireInactive(ctx, async (keys) => { for (const key of keys) await env.images.delete(key); }).catch((e) => logEvent(ctx.db, ctx.now(), "expire_failed", "job", "", "", String(e instanceof Error ? e.message : e).slice(0, 120), "the daily job"));
   await deployIfDue(ctx, env.deployHook, env.fetcher, true);
+  if (failure) throw failure;
 }

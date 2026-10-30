@@ -1,11 +1,8 @@
 # Going live on the Cloudflare backend
 
 The backend (ADR-25, [backend.md](backend.md)) was switched on with these steps on 2026-10-30 (the log is in [handoff.md](handoff.md)). It needs a D1 database, an R2
-bucket, a few secrets and one email relay in the owner's own accounts. This page is the shortest path, kept for a rebuild from scratch.
-The site keeps running on its old data source until the build is switched (step 6), so nothing breaks in between.
-
-There was no real data in the Sheet when this was written (the live site listed 0 games), so there is nothing to import. If that has
-changed, tell me before step 6.
+bucket, a few secrets and one email relay in the owner's own accounts. This page is the shortest path, kept for a rebuild from scratch or a new owner.
+There was no real data to import when it went live (the old Sheet held 0 games).
 
 ## 1. Create everything in Cloudflare (one command, after one login)
 
@@ -66,11 +63,13 @@ scheduled workflows off after 60 days without repo activity.
 
 ## 6. The cutover
 
-1. Redeploy the Pages project (push, or retry the deployment) so `/api` exists and the build reads from it.
+1. Redeploy the Pages project (push, or retry the deployment) so `/api` exists and the build reads from it. **On a fresh project** the
+   build cannot read an `/api` that is not deployed yet, so run `npm run cloudflare:setup -- --backend-only` first (the build then uses
+   the empty day-one data), push, and when `/api/health` answers run the setup again without the flag and trigger a rebuild.
 2. Open `/en/account/`, sign in with the owner's email, and check you get the email. Open `/en/admin/`.
 3. Add the other admins there (their email addresses), and tell the Game Masters to sign in at `/en/list-your-game/`.
-4. When you are happy: delete the two Google Forms and the timers in the Apps Script (keep the script: it is the mail relay), and
-   remove `TPK_API_URL` from Cloudflare.
+4. The Google Forms and the Sheet are not read by anything: delete them in Google when you like. The Apps Script is kept (it is the mail
+   relay); its old triggers remove themselves within a minute of `npm run script:deploy`.
 
 ## If something goes wrong
 

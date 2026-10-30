@@ -1,99 +1,108 @@
 # Architecture
 
-Quest Board TPK is a **static website** whose data lives in a **Google Sheet**. There is no server and no database to run.
+Quest Board TPK is a **static website** with a small **Cloudflare backend** (D1 database, R2 bucket) behind one `/api`. A Game Master
+signs in with an emailed link, lists games, and an admin approves them; each approval rebuilds the site. The reasons behind the choices
+are in [DECISIONS.md](../DECISIONS.md) (ADR-25 to ADR-27); the API and data are in [backend.md](backend.md).
 
 ## The parts
 
 ```mermaid
 flowchart TB
-  subgraph Google["Google (the owner's account)"]
-    FG[GM profile form] --> SH[(Sheet:<br/>GM profiles · Games · Admins)]
-    FM[Game form] --> SH
-    SH --- AS["Apps Script (Code.gs)<br/>web app + 1-minute trigger"]
-    DR[(Drive: uploaded pictures)]
+  subgraph CF["Cloudflare (free plan)"]
+    PAGES["Pages: static site<br/>/en/… /id/… /en/account/ /en/admin/"]
+    FN["Pages Function /api<br/>worker/src/handler.ts"]
+    D1[(D1: accounts, profiles,<br/>games, admins, activity)]
+    R2[(R2: pictures,<br/>daily backups)]
+    CRON["Worker quest-board-cron<br/>every 10 min + daily"]
+    TS[Turnstile]
   end
-  subgraph CF["Cloudflare Pages"]
-    BUILD["npm run build<br/>scripts/build-data.mjs → next build → fix-export"]
-    SITE["Static site<br/>/en/… /id/… /en/admin/"]
-  end
-  AS -- "GET ?action=public<br/>(approved, unexpired, public fields)" --> BUILD
-  DR -- "picture thumbnails" --> BUILD
-  BUILD --> SITE
-  AS -- "POST deploy hook<br/>after a public change" --> BUILD
-  P[Player] --> SITE
-  P -- "WhatsApp / Discord" --> GM[Game Master]
-  A[Admin] -- "Google sign-in (ID token)" --> SITE
-  SITE -- "POST (text/plain JSON + token)" --> AS
+  GAS["Apps Script mail relay<br/>(the owner's Gmail)"]
+  GM[Game Master] -- "emailed one-time link" --> PAGES
+  PAGES -- "fetch /api (same origin)" --> FN
+  FN --- D1
+  FN --- R2
+  FN -- "robot check" --> TS
+  FN -- "POST mail" --> GAS
+  FN -- "deploy hook, at most one per 2 min" --> BUILD
+  CRON -- "POST /api/cron" --> FN
+  BUILD["npm run build<br/>build-data.mjs → next build"] -- "GET /api/public, /api/img (build key)" --> FN
+  BUILD --> PAGES
+  P[Player] --> PAGES
+  P -- "WhatsApp / Discord" --> GM
 ```
 
 | Part | Where | Job |
 |---|---|---|
-| Forms | Google Forms | The only way a GM enters data: sign-in, validation, file upload, edit link. |
-| Sheet | Google Sheets | The record: every response, its status, who decided and when. |
-| Script | `apps-script/Code.gs` | Gives responses ids, keeps statuses, serves the public JSON, answers the admin API, emails GMs and admins, asks Cloudflare to rebuild. |
+| Site | `src/` (Next.js static export) | Public pages in English and Indonesian, the sign-in and account pages, and the admin page. |
+| Backend | `worker/`, `functions/api/[[path]].ts` | Accounts, profiles, games, review, pictures, builds, backups. One handler with everything injected. |
 | Build | `scripts/build-data.mjs`, `fix-export.mjs` | Fetches and **re-validates** the public JSON, downloads and crops pictures, writes `src/generated/data.json`. |
-| Site | `src/` (Next.js static export) | Public pages in English and Indonesian, and the admin page. |
+| Timers | `cron/worker.ts` | A tick every 10 minutes (sends a waiting build); a daily job (backup, tidy, rebuild so ended listings leave). |
+| Mail relay | `apps-script/Code.gs` | Sends the backend's emails from the owner's Gmail (no domain of our own). At most 90 a day. |
 
 ## A listing's life
 
 ```mermaid
 stateDiagram-v2
-  [*] --> pending: GM submits the form
+  [*] --> pending: GM saves a game
   pending --> approved: admin approves
   pending --> rejected: admin rejects (GM emailed with reasons)
-  approved --> pending: GM edits the response, or admin undoes
-  rejected --> pending: GM edits the response, or admin undoes
+  approved --> pending: GM edits it, or admin undoes
+  rejected --> pending: GM edits it, or admin undoes
   rejected --> approved: admin approves
-  approved --> [*]: the date passes, the listing leaves the site
+  approved --> approved: GM marks it full, or admin features it
+  approved --> [*]: the date passes, or the GM removes it
 ```
 
-Only `approved` listings (of an `approved` GM profile, not expired) leave the Sheet through `?action=public`, and only for a request carrying the secret build key (`BUILD_KEY`): the web
-app's address is public (the admin page needs it), and this data holds the GMs' WhatsApp numbers.
+Only `approved` games of an `approved` GM, not expired, appear in `/api/public`, and only for a request carrying the secret build key.
+Marking a game full or removing it needs no review; every other change goes back to `pending`.
 
 ## An approval, step by step
 
 ```mermaid
 sequenceDiagram
   participant Ad as Admin page
-  participant S as Apps Script
-  participant G as Google
+  participant F as /api (Pages Function)
+  participant D as D1
   participant C as Cloudflare Pages
-  Ad->>S: POST {action: "review", token, ids, status: "approved"}
-  S->>G: verify the ID token (oauth2.googleapis.com/tokeninfo)
-  S->>S: is the email the owner, or on the Admins tab?
-  S->>S: set Status, ReviewedBy, ReviewedAt; share the picture by link
-  S-->>Ad: {ok, publishing: true}
-  S->>S: remember "something public changed"
-  Note over S: tick (every minute): changed ≥ 1 min ago, last build ≥ 5 min ago, fewer than 20 today
-  S->>C: POST the deploy hook
-  C->>S: GET ?action=public
+  Ad->>F: POST /api/admin {action: "review", ids, status: "approved"} (session cookie)
+  F->>D: is this session's email the owner or an admin?
+  F->>D: set status, reviewer, time; write an activity row
+  F-->>Ad: {ok, publishing: true}
+  F->>F: mark "something public changed"
+  Note over F: at most one build per 2 minutes (the tick sends a waiting one)
+  F->>C: POST the deploy hook
+  C->>F: GET /api/public?key=… and /api/img/…
   C->>C: build and publish the site
 ```
 
 ## Security, in short
 
-- **The public JSON never contains** emails, notes, rejected or pending rows: `buildPublic_` copies a fixed list of fields
-  (tested). The build checks the data again (`src/lib/public-data.ts`) and drops what is wrong.
-- **The admin API** needs a Google ID token on every call. The script asks Google to verify it (signature, expiry, that it was
-  issued to *this* site's client id, that the email is verified) and then looks the email up. The page can't be tricked into
-  admin powers by anything it holds: all checks are on the script's side.
-- **Visitors never load anything from Google** except the admin: pictures are downloaded at build time.
+- **The public JSON never contains** emails, notes, rejected or pending rows: it copies a fixed list of fields (tested). The build checks
+  the data again (`src/lib/public-data.ts`) and drops what is wrong.
+- **Sign-in** is a one-time emailed link (15 minutes); only hashes of links and sessions are stored; the session cookie is `HttpOnly`,
+  `SameSite=Lax`. Every write checks the site's own `Origin`. Sign-in and uploads are rate-limited and sit behind Turnstile.
+- **Admin power** comes only from the session's email being the owner or on the `admins` table: nothing the page sends can grant it.
+- **One rules module** (`src/lib/` imported by `worker/src/rules.ts`) validates a game for both the form and the server, so they cannot drift.
+- **Pictures** are identified by their bytes (WebP, JPEG, PNG), size-limited, and only approved ones are served publicly.
 - **WhatsApp numbers** are public by the GM's consent; they are not written plainly into the HTML (only a scraper-slowing encoding),
   but anyone who taps the button sees them.
-- **Content** is plain text: React escapes it, there is no HTML or link markup from GMs. Map links must be Google Maps, Discord
-  links must be Discord, anything else is dropped.
-- Headers (`public/_headers`) set a Content Security Policy that allows scripts only from the site and Google's sign-in.
+- **Content** is plain text: React escapes it, there is no HTML or link markup from GMs. Map links must be Google Maps, Discord links
+  must be Discord, anything else is dropped.
+- Headers (`public/_headers`) set a Content Security Policy that allows scripts only from the site and Turnstile.
 
 ## Where things are
 
 ```
-apps-script/        the Sheet's script (Code.gs) and its manifest
-docs/               setup, forms, curation guide, this file
-scripts/            build-data (the data), fix-export, preview, form-options, icons, e2e-build
-src/app/[lang]/     the pages: home, games, games/[slug], gms, gm/[slug], how-it-works, list-your-game, admin
-src/components/     UI pieces; admin/ is the curation page
-src/lib/            pure logic (types, data check, filters, contact, checks, admin view), i18n/
-tests/unit/         node:test, including Code.gs run in a sandbox
-tests/e2e/          Playwright, with Google and the Sheet replaced by tests/support/
-data/sample.json    demo data, used when neither TPK_API_BASE nor TPK_API_URL is set
+worker/             the backend: handler, rules, store, auth, images, backup, email; migrations/ is the schema
+functions/          the one Pages Function that wires D1 and R2 to the handler
+cron/               the timers Worker
+apps-script/        the mail relay (Code.gs) and its manifest
+docs/               this file, backend, cutover, runbook, curation guide, handoff, the audit
+scripts/            build-data, fix-export, preview, icons, e2e-build, cloudflare-setup, cron-deploy, push-apps-script, audit-frontend
+src/app/[lang]/     the pages: home, games, games/[slug], gms, gm/[slug], how-it-works, list-your-game, account, admin
+src/components/     UI pieces; account/ is the GM's pages, admin/ is the curation page
+src/lib/            pure logic (types, data check, rules, filters, contact, checks, admin view), i18n/
+tests/unit/         node:test: the backend through handle() on in-memory SQLite, site logic, the mail relay
+tests/e2e/          Playwright against the real backend code on a test server (tests/support/)
+data/sample.json    demo data, used when TPK_API_BASE is not set
 ```

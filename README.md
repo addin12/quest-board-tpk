@@ -4,8 +4,8 @@
 
 **Find your table. Message your Game Master.**
 
-A free, static noticeboard for tabletop RPG games run by **The Pandemonium Kollektive** (TPK), in English and Bahasa Indonesia.
-Game Masters list their games through Google Forms, admins review them on a page of the site, and players
+A free noticeboard for tabletop RPG games in Jabodetabek and online, run by **The Pandemonium Kollektive** (TPK), in English and Bahasa Indonesia.
+Game Masters sign in with their email and list their games, admins review them on a page of the site, and players
 message the GM directly on WhatsApp or Discord.
 
 [![CI](https://github.com/addin12/quest-board-tpk/actions/workflows/ci.yml/badge.svg)](https://github.com/addin12/quest-board-tpk/actions/workflows/ci.yml)
@@ -15,24 +15,24 @@ message the GM directly on WhatsApp or Discord.
 
 </div>
 
-> This is the community edition: **no bookings, no payments, no accounts, no server.** The earlier version with
-> accounts and seat booking is [Quest Board v1](https://github.com/addin12/Quest-Board) (tag `v1.0-booking`).
+> This is the community edition: **no bookings, no payments.** An account is only a verified email, so a Game Master can edit their own
+> listings. The earlier version with seat booking is [Quest Board v1](https://github.com/addin12/Quest-Board) (tag `v1.0-booking`).
 
 ## How it works
 
 ```
-GM fills a Google Form (signs in with Google)  →  Google Sheet  →  an admin approves it on /en/admin/
+GM signs in with an emailed link and fills in a game  →  an admin approves it on /en/admin/
         →  the site rebuilds (1–3 minutes)  →  players browse, filter and tap “Message on WhatsApp”
 ```
 
 - **For players:** browse and filter games (system, genre, online or in person, city, language, level, free), open a game,
   and tap the WhatsApp button: the chat opens with a message ready to send. Some GMs also share a Discord.
-- **For Game Masters:** two short forms (a profile once, then one per game), an email when an admin decides, and an edit link.
+- **For Game Masters:** one profile, then as many games as they run; an email when an admin decides; they can edit, mark a game full, remove it, or erase their account themselves.
 - **For admins:** a review page with a queue, a preview of the card, automatic checks (scam wording, missing date or
   number…), one-click approve or reject with reasons, undo, bulk approve and keyboard shortcuts. Adding another admin is one email address.
-- **Cost:** nothing. Google Forms/Sheets/Apps Script, Cloudflare Pages and GitHub, all on free plans.
+- **Cost:** nothing. Cloudflare (Pages, D1, R2, a timer Worker, Turnstile) and GitHub on free plans; email is sent through a small Google Apps Script from the owner's Gmail.
 
-More: [architecture](docs/architecture.md) · [setup](docs/setup.md) · [the forms](docs/forms.md) · [runbook](docs/runbook.md) · [for admins](docs/curation.md) · [decisions](DECISIONS.md)
+More: [architecture](docs/architecture.md) · [the backend](docs/backend.md) · [going live](docs/cutover.md) · [runbook](docs/runbook.md) · [for admins](docs/curation.md) · [decisions](DECISIONS.md)
 
 ## What it looks like
 
@@ -45,7 +45,7 @@ Made-up data, from a local build.
 
 ![A game's page on a phone, in Bahasa Indonesia](docs/images/game-page-id-phone.png)
 
-## Quick start (demo data, no Google needed)
+## Quick start (demo data, no accounts needed)
 
 You need **Node.js 22.13 or later**.
 
@@ -67,9 +67,9 @@ npm run preview      # http://localhost:4173, served like Cloudflare Pages
 | `npm run build` | The data → `next build` (static export to `out/`) → `fix-export` |
 | `npm run preview` | Serves `out/` the way Cloudflare Pages does (`/` → `/en/`, a 404 page) |
 | `npm run typecheck` · `npm run lint` | TypeScript (also checks that both languages have every string) · ESLint (also refuses words typed straight into JSX) |
-| `npm test` | Unit tests (`node:test`), including the Sheet's script `Code.gs` run in a sandbox |
-| `npm run test:e2e` | Builds with demo data and a fake admin backend, then Playwright (Chromium, Firefox, WebKit) |
-| `npm run form-options` | Rewrites `docs/form-options.md` and the generated labels in `Code.gs` |
+| `npm test` | Unit tests (`node:test`): the backend through its HTTP handler on an in-memory SQLite, the site's logic, and the mail relay's `Code.gs` in a sandbox |
+| `npm run test:e2e` | Builds with demo data and runs the real backend code on a test server, then Playwright (Chromium, Firefox, WebKit) |
+| `npm run cloudflare:setup` · `npm run cron:deploy` · `npm run script:deploy` | Owner only: create the Cloudflare resources, deploy the timer Worker, push the mail relay (see [docs/cutover.md](docs/cutover.md)) |
 | `npm run icons` | Rebuilds the icon font after editing `src/lib/icons.ts` |
 
 ## Configuration
@@ -79,19 +79,18 @@ Everything is read when the site is built. Without any of them the site builds w
 | Variable | Used for |
 |---|---|
 | `TPK_API_BASE`, `TPK_BUILD_KEY` | The site's own address and the secret build key: where the build gets the real data and pictures from the Cloudflare backend (`/api/public`). Both unset = demo data. Never `NEXT_PUBLIC_`. |
-| `TPK_API_URL` | The old Apps Script web app plus build key (`…/exec?key=…`), used until the cutover to the Cloudflare backend. |
 | `NEXT_PUBLIC_SITE_URL` | The site's address (sitemap, canonical links, emails). |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Cloudflare Turnstile's public site key (the robot check on the sign-in form). Empty = no check. |
 | `NEXT_PUBLIC_REPORT_URL` | Optional: where players can report a listing. |
 
-A full walk-through, with the Google and Cloudflare steps: [docs/setup.md](docs/setup.md).
+The backend's own settings (database, bucket, secrets) are bindings and encrypted variables of the Pages project, not files: see [docs/backend.md](docs/backend.md) and [docs/cutover.md](docs/cutover.md).
 
 ## Project layout
 
 ```
-apps-script/   the Sheet's script (the whole backend) · docs/   guides · scripts/   build and tooling
+worker/ functions/   the backend (D1, R2) · cron/   the timers Worker · apps-script/   the mail relay · docs/   guides · scripts/   build and tooling
 src/app/[lang]/   the pages (en, id) · src/components/   UI, admin/ is the review page · src/lib/   logic and strings
-tests/   unit, e2e, and support (an in-memory sheet) · data/sample.json   demo data
+tests/   unit, e2e, and support (an in-memory database and bucket) · data/sample.json   demo data
 ```
 
 ## Contributing

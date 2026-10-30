@@ -14,7 +14,7 @@ The cost: we can't tell whether a game is full.
 **Decision.** Next.js static export on Cloudflare Pages. Data: two Google Forms → one Sheet. A Google Apps Script bound to the Sheet is the only
 backend: it serves the public JSON and the admin API.
 **Consequences.** Free, and nothing to patch or back up (Google keeps the Sheet's history). The data is rebuilt into the site, so an approval is
-live after a build (about 1–3 minutes), not instantly. Apps Script has quotas (see docs/setup.md) that are far above what a community needs.
+live after a build (about 1–3 minutes), not instantly. Apps Script has quotas (see docs/runbook.md) that are far above what a community needs.
 
 ## ADR-3: Admins review on our own page, not in the Sheet (2026-10-26)
 **Context.** Curating in a spreadsheet means reading many columns, no preview, no checks, no email to the GM, no audit trail you can trust.
@@ -141,7 +141,7 @@ removed games, can still linger up to 7 days; the images can only be found throu
 ## ADR-24: Jabodetabek and online only; a short description of at most 80 characters (2026-10-28)
 **Context.** The community plays mostly in Jabodetabek. A city filter and a "across Indonesia" promise suggested a wider reach than it has, and long one-line summaries were cut mid-sentence on the cards.
 **Decision.** The forms offer the six Jabodetabek areas (and *Online only* for a GM's profile); the site's city filter is removed; the home copy says Jabodetabek. The short description (`One-line summary`) is limited to 80 characters and the card shows all of it; the long one is `Full description`. The admin page warns about a city outside Jabodetabek and about a long short description, and blocks nothing.
-**Consequences.** The live forms are changed by hand (steps in [forms](docs/forms.md#scope-jabodetabek-and-online)); the script needs no redeploy. Older listings keep their longer text until their GM edits it.
+**Consequences.** The live forms were changed by hand (the forms are gone since ADR-27). Older listings keep their longer text until their GM edits it.
 
 ## ADR-25: Move to Cloudflare D1 + R2, with our own form and email-link accounts (2026-10-28)
 **Context.** Google Forms needs hand edits to change, needs every GM to sign in with Google, cannot enforce our rules on the server, and the whole system hangs on one Google account. The Sheet has no constraints and is slow for tokens and counters.
@@ -154,3 +154,8 @@ removed games, can still linger up to 7 days; the images can only be found throu
 **Consequences.** The Apps Script and the owner's Google account stay a dependency for mail (the Forms, the Sheet and the Google sign-in do not). Gmail's daily limit caps sign-ins plus decisions; a sending service is a one-file change.
 
 **Amendment (2026-10-30).** The timers now run as a Cloudflare Worker with cron triggers (`cron/`, `npm run cron:deploy`) instead of GitHub Actions: it needs no GitHub secret, is on the free plan, and GitHub switches scheduled workflows off after 60 days without repo activity. The workflow file was deleted so only one timer exists.
+
+## ADR-27: The Google Forms, Sheet and Sheet script are retired; the backend watches itself and expires unused accounts (2026-10-30)
+**Context.** Since the cutover nothing read the Sheet. About a third of the source (the 1,216-line `Code.gs`, its 491-line test, the fake Sheet, the Forms builder and its option generator, two guides, the `TPK_API_URL` and Drive-picture paths in the build) described a system that no longer ran, and kept a second source of truth for the rules. An audit also found three small gaps: a failed mail or backup was not visible to the owner, a dead timer would go unnoticed, and accounts were kept forever.
+**Decision.** (1) The Sheet stack is deleted (the last commit that has it is tagged `legacy-google-sheet`). `Code.gs` becomes the mail relay only (about 100 lines, scopes cut to sending mail and managing its own triggers). The three old time triggers are still installed in the owner's project, so `tick`, `nightly` and `backup` remain as stubs that delete every trigger when first called; they can be deleted once no trigger is listed. The retired Pages variables (`TPK_API_URL`, the form addresses, the Google client id, the Sheet web address variable) are removed by the setup script. (2) Mail results are recorded (`meta`: last success, last error) and shown in `/api/health`; the daily job records a failed backup, emails the owner and fails the timer; the 10-minute tick emails the owner, at most once a day, when no backup has succeeded for 36 hours. (3) An account with no sign-in for 24 months is emailed a warning and erased 30 days later unless the person signs in; admins and the owner never expire; at most 20 accounts per run so a first run cannot use up the mail relay's daily limit. A sign-in is the only activity that counts.
+**Consequences.** There is no path back to the Sheet except the tag. The rules live in one place. Alerts go by email, so if the mail relay is the thing that broke the alert cannot be sent: `/api/health` is then the only place that shows it. Retention is a policy the owner can change by editing two constants in `worker/src/retention.ts`. Sending from a sending service instead of Gmail stays a one-file change but needs a domain of the community's own.

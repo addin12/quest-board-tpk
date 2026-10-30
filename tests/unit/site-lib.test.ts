@@ -2,7 +2,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { GENRES, MAX_PER_GAME, STYLES } from "../../src/lib/categories.ts";
 import { SUMMARY_MAX } from "../../src/lib/areas.ts";
 import { checkGame, checkGm, hasErrors } from "../../src/lib/checks.ts";
 import { contactMessage, decodeContact, encodeContact, messageLang, waLink } from "../../src/lib/contact.ts";
@@ -14,7 +13,6 @@ import { buildItems, canApprove, countByStatus, filterItems, previewGame, reason
 import { flatName } from "../../scripts/fix-export.mjs";
 import { parseConfig } from "../../scripts/push-apps-script.mjs";
 import { PLACEHOLDER_SLUG, slugParams } from "../../src/lib/static-params.ts";
-import { constant, loadScript, plain } from "../support/fake-sheet.ts";
 import type { GameRecord, GmRecord, SiteGame } from "../../src/lib/types.ts";
 
 const sample = JSON.parse(readFileSync(new URL("../../data/sample.json", import.meta.url), "utf8"));
@@ -65,12 +63,6 @@ test("phone numbers, Discord names and map links are checked on this side as wel
   assert.equal(cleanDiscord("https://discord.gg.evil.example/abc"), "");
   assert.equal(isGoogleMapsUrl("https://maps.app.goo.gl/x"), true);
   assert.equal(isGoogleMapsUrl("https://google.com.evil.example/maps/x"), false);
-});
-
-test("the script limits a game to as many genres and styles as the site does", () => {
-  assert.equal(constant<number>(loadScript(), "MAX_PER_GAME"), MAX_PER_GAME);
-  assert.ok(GENRES.length > 0 && STYLES.length > 0);
-  assert.equal(makeT("en")("genre.urban"), "Urban fantasy");
 });
 
 // ── languages ────────────────────────────────────────────────────────────────────────────────
@@ -170,7 +162,7 @@ const record = (over: Partial<GameRecord> = {}): GameRecord => ({
   submittedAt: "2026-10-01T03:00:00.000Z", email: "gm@example.com", row: 2, title: "Mercusuar", system: "Call of Cthulhu", summary: "A horror one-shot.", description: "x".repeat(200),
   format: "one_shot", locationType: "in_person", platform: "", city: "Depok", venueName: "Kumu", venueMapsUrl: "https://maps.app.goo.gl/k", startsAt: "2026-10-12T12:00:00.000Z",
   zone: "WIB", scheduleNote: "", expiresAt: "2026-10-13T12:00:00.000Z", priceIdr: 75000, seats: 5, language: "both", level: "beginner", minAge: 16, contentWarnings: "", safetyTools: "",
-  genres: ["horror"], styles: [], coverId: "1AbCdEfGhIjKl", venueMapsRaw: "", consent: true, ...over,
+  genres: ["horror"], styles: [], coverId: "covers/1AbCdEfGhIjKl.webp", venueMapsRaw: "", consent: true, ...over,
 });
 const gmRecord = (over: Partial<GmRecord> = {}): GmRecord => ({
   kind: "gm", id: "m1abc1234", slug: "raka-abcd", status: "approved", featured: false, full: false, adminNote: "", reviewedBy: "", reviewedAt: "", rejectReason: "", superseded: false,
@@ -243,12 +235,12 @@ test("a rejection's reason is written in both languages, with the admin's own wo
 
 test("the preview shows a game as the card would, with the picture straight from Drive and a date even when it is unreadable", () => {
   const p = previewGame(record(), gmRecord(), "2026-10-05T00:00:00.000Z");
-  assert.equal(p.cover, "https://drive.google.com/thumbnail?id=1AbCdEfGhIjKl&sz=w480");
+  assert.equal(p.cover, "/api/img/covers/1AbCdEfGhIjKl.webp");
   assert.equal(p.gmName, "Raka");
   assert.equal(previewGame(record({ startsAt: "", expiresAt: "" }), undefined, "2026-10-05T00:00:00.000Z").startsAt, "2026-10-05T00:00:00.000Z");
   assert.match(whenLabel(NOW - 5 * 60_000, "en", NOW), /5 minutes ago/);
   assert.match(whenLabel(NOW - 3 * 3600_000, "id", NOW), /3 jam/);
-  assert.equal(plain(whenLabel(null, "en", NOW)), "");
+  assert.equal(whenLabel(null, "en", NOW), "");
 });
 
 // ── the export fix ───────────────────────────────────────────────────────────────────────────

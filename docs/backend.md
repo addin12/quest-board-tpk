@@ -1,6 +1,6 @@
 # The Cloudflare backend (D1 + R2)
 
-Replaces Google Forms, the Google Sheet and Apps Script (ADR-25). **It is built and tested (73 unit and 178 browser tests, run against
+Replaced Google Forms, the Google Sheet and the Sheet script (ADR-25, ADR-27). **It is built and tested (73 unit and 178 browser tests, run against
 the real code on an in-memory SQLite database) and has been live since 2026-10-30: how it was switched on is [cutover.md](cutover.md), the
 state is [handoff.md](handoff.md).** Everything lives in
 `worker/` and one Pages Function, `functions/api/[[path]].ts`, which only wires the bindings to `handle()` in `worker/src/handler.ts`.
@@ -37,8 +37,8 @@ any number of **games**. Also: `admins`, `activity` (the audit trail), `login_to
 | `POST /games/:id/full {full}`, `DELETE /games/:id`, `DELETE /account` | owner of it | self-service |
 | `POST /images?kind=cover\|photo` | signed in | WebP, JPEG or PNG read from the bytes; cover up to 1.5 MB, photo up to 600 KB |
 | `GET /img/<key>` | anyone | only pictures of approved things; the build key sees all |
-| `POST /admin {action, …}` | admins | `whoami`, `queue`, `review`, `patch`, `admin.add`, `admin.remove`, `merge`, `deploy` (same names and answers as the old script) |
-| `GET /public?key=`, `GET /health?key=` | the build | public data in the old shape, counts only |
+| `POST /admin {action, …}` | admins | `whoami`, `queue`, `review`, `patch`, `admin.add`, `admin.remove`, `merge`, `deploy` (the old script's names) |
+| `GET /public?key=`, `GET /health?key=` | the build, the owner | public data; health: counts, `lastBackupAt`, `backupError`, `lastMailOkAt`, `lastMailError` (no personal data) |
 
 Every write needs the site's own `Origin` and JSON. Sign-in and uploads are rate-limited in D1. Deploys are coalesced: at most one
 build per two minutes however many changes arrive, plus one forced build a day (`daily`).
@@ -57,5 +57,16 @@ database, bucket, mailbox and clock).
 
 ## Not proven
 
-Never run against a real Cloudflare account, a real Resend or Apps Script relay, or real Turnstile: those parts are thin wiring
-(`functions/api/[[path]].ts`, `worker/src/email.ts`, `verifyTurnstile`, `scripts/cloudflare-setup.mjs`). Check them first when going live.
+The tests use SQLite and an in-memory bucket behind the same `Db` and `Bucket` interfaces as D1 and R2; the live database, bucket, mail relay
+and Turnstile were exercised only by the cutover checks in [handoff.md](handoff.md). If something differs in production, look first at the thin
+wiring: `functions/api/[[path]].ts`, `worker/src/email.ts`, `verifyTurnstile`.
+
+## Watching itself, and expiring unused accounts (ADR-27)
+
+- **Mail:** every send goes through `recordingMailer` (`worker/src/email.ts`), which keeps the last success and the last error in `meta`;
+  `/api/health` shows them. The error is the relay's code (`mail_failed_quota`, `mail_failed_unauthorized`…), never an address.
+- **Backups:** the daily job records `backup_ok_at` or `backup_error`; on failure it emails the owner, still runs the rest, and fails the
+  timer call. The 10-minute tick (`watchBackup`, `worker/src/watch.ts`) emails the owner once a day while no backup has succeeded for 36 hours.
+- **Retention** (`worker/src/retention.ts`, run by the daily job): an account with no sign-in for 730 days is emailed; if still unused 30
+  days later it is erased with its profile, games and pictures. Signing in (`last_seen_at`, `expiry_warned_at` in `0002_retention.sql`) cancels it.
+  Admins and the owner never expire. At most 20 per step per run.

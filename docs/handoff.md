@@ -1,4 +1,4 @@
-# Handoff: where the project stands (2026-10-30)
+# Handoff: where the project stands (2026-10-30, end of day)
 
 For the next agent or person. Read this first, then [CLAUDE.md](../CLAUDE.md). Facts here are the ones the code and git history
 don't tell you.
@@ -7,97 +7,93 @@ don't tell you.
 
 The site is a Next 16 static export on Cloudflare Pages (EN/ID), redesigned as "Halftone" (ADR-22), at
 <https://quest-board-tpk.pages.dev>. **The Cloudflare backend (D1 + R2, email-link accounts, ADR-25, [backend.md](backend.md)) went live on
-2026-10-30** and the build now reads its data from it (0 games, 0 GMs: nothing existed to import). It was pushed (`6389a7a`), CI was green and
-`/api/health` answers. The old Google Forms + Sheet still exist but nothing reads them (`TPK_API_URL` is still set on the project, harmless).
-73 unit tests and 178 Playwright tests passed before the push; CI (which runs the suite) was green on `6389a7a`.
+2026-10-30**, pushed as `6389a7a` with CI green; the build reads its data from it (0 games, 0 GMs: nothing existed to import). The Google
+Forms + Sheet stack was **retired in code** the same day (ADR-27); the Apps Script remains only as the mail relay. The commits after
+`17cacd0` (audit fixes, the retirement, monitoring and retention) are local and **not pushed** until the owner says so; read "Before you push" first.
 
-## What was done on 2026-10-30 (cutover log)
+## Before you push (the local commits after 17cacd0)
 
-1. `wrangler login` (OAuth, one Allow click), the owner enabled R2 in the dashboard (free tier; Cloudflare gives no API for that).
-2. `npm run cloudflare:setup` (rewritten that day, see below): D1 `quest-board`, R2 `quest-board-images`, schema applied, a deploy hook named
-   `backend`, Pages bindings DB/IMAGES and variables set through the Pages API. Secrets live in the project as encrypted variables and in
-   `.cloudflare.local.json` (git-ignored). The first run used `--backend-only` so the first build did not read an `/api` that did not exist yet;
-   the second run switched `TPK_API_BASE` and `TPK_BUILD_KEY` on and a deploy-hook call rebuilt the site.
-3. `npm run script:deploy`: the mail relay is Apps Script version 10; a relay test mail and a live sign-in mail were sent to the owner.
-4. Verified live: `/api/health?key=` (counts 0, `deployConfigured` true), `/api/public?key=`, `/api/me` 401, bad email 400, account pages 200.
+1. **Apply migration `0002_retention.sql` to the live D1 first** (`npm run cloudflare:setup`, which applies migrations not yet applied). The new
+   sign-in code writes `last_seen_at`; without the columns every sign-in would fail. The migration only adds columns, so the code that is live
+   keeps working with it.
+2. Run `npm run script:deploy` (the reduced relay; the old triggers in the Apps Script remove themselves within a minute) and the setup (it
+   removes the retired Pages variables). If these were already done, `/api/health` answers and the Apps Script web address answers `{"ok":true,...}` to a GET.
+3. The Playwright suite has **not** been run since the audit fixes and the retirement (the owner's rule is not to run it unasked); CI runs it on the push.
+   Watch CI after pushing (public Actions API, times in UTC).
 
-## Anti-Slop audit (2026-10-30)
+## What was done on 2026-10-30
 
-Done and written up in [anti-slop-audit.md](anti-slop-audit.md): em dashes in emails, tap targets, above-the-fold image loading, dead code
-and the duplicate GitHub timer were fixed (committed locally, not pushed, Playwright not re-run). Left for the owner: remove the home
-page's "How it works" block, write a `design.md`, and (after a real sign-in has worked) delete the retired Google stack code.
+- **Cutover** (log in [cutover.md](cutover.md)): `wrangler login`, R2 enabled by the owner (no API for that), `npm run cloudflare:setup` (D1, R2,
+  schema, deploy hook, bindings and variables by Pages API, never a committed `wrangler.toml`), mail relay deployed, Turnstile widget made,
+  timers Worker `quest-board-cron` deployed (`npm run cron:deploy`; a scheduled firing was seen), first backup written and read back.
+- **Anti-Slop audit** ([anti-slop-audit.md](anti-slop-audit.md)): em dashes out of emails, 44 px targets, priority images, dead code, the duplicate GitHub timer.
+- **Retirement of the Google stack** (ADR-27): `Code.gs` 1,216 lines to about 100 (mail relay + three self-cleaning trigger stubs), `CreateForms.gs`,
+  the form-options generator, `docs/forms.md`, `form-options.md`, `setup.md`, the fake Sheet and its tests, the `TPK_API_URL` and Drive-picture paths.
+  The last commit that has the Sheet stack is tagged `legacy-google-sheet` (local tag; push it with `git push origin legacy-google-sheet` if wanted).
+- **Monitoring and retention** (ADR-27, [backend.md](backend.md)): `/api/health` shows last mail success and error and the last backup; a failed backup
+  emails the owner; the tick emails the owner once a day if no backup for 36 hours; accounts unused for 24 months are warned and erased 30 days later.
 
-## Still open after the cutover
+## Still open
 
-- **Timers: the Cloudflare Worker `quest-board-cron` is deployed** (`npm run cron:deploy`, `cron/`; crons `*/10 * * * *` and `30 18 * * *`, secret `BUILD_KEY`). Free plan. Its
-  two jobs were also called by hand and answered 200, and the daily job wrote a backup to R2 that reads back. A real scheduled firing of the 10-minute trigger was
-  caught with `wrangler tail` on 2026-10-30 (outcome ok, no exceptions); the daily trigger has not fired on its own yet (01:30 Jakarta).
-  The older GitHub Actions timer was deleted on 2026-10-30 (one timer, not two). The agent was refused twice by the permission classifier (reading the stored Git credential; creating the Worker before explicit
-  approval): do not retry such steps, ask the owner.
-- **Not confirmed by anyone**: that the sign-in mail arrived in the inbox, and one full sign-in by clicking the link (the agent cannot read the
+- **Never confirmed by anyone:** that the sign-in mail arrives in the inbox, and one full sign-in by clicking the link (the agent cannot read the
   mailbox). Do this first: sign in at `/en/account/`, then open `/en/admin/`.
-- **Billing**: R2 and D1 are inside the free tier by design (see ADR-25), but the agent could not read the subscription (the token has no
-  billing scope). The owner should check Cloudflare → Billing shows $0 and may add a usage notification.
-- **Turnstile is enabled** (widget `Quest Board TPK sign-in`, managed mode, keys in `.cloudflare.local.json`, set as `TURNSTILE_SECRET` and
-  `NEXT_PUBLIC_TURNSTILE_SITE_KEY`). The server refuses a sign-in request without a token (`turnstile_failed`). **Not confirmed in a real browser:**
-  in automated Edge (headless and headed) the widget stayed on "Verifying…" for 30 s and the button, which waits for the token, stayed disabled; that
-  is probably bot detection but it is unproven. Open `/en/account/` in a normal browser: the button must enable. If it never does, sign-in is
-  blocked for everyone: remove `TURNSTILE_SECRET` and `NEXT_PUBLIC_TURNSTILE_SITE_KEY` from the Pages project (and the two keys from
-  `.cloudflare.local.json`), rebuild, and sign-in works with only the rate limits.- Retire the old stack when happy: delete the two Google Forms and the Apps Script timers (keep the script, it is the mail relay), remove
-  `TPK_API_URL` and the unused `NEXT_PUBLIC_*_FORM_URL`/`GOOGLE_CLIENT_ID` variables from the project.
+- **Turnstile is enabled but not confirmed in a real browser.** In automated Edge the widget stayed on "Verifying…" and the button, which waits for
+  the token, stayed disabled; probably bot detection, unproven. Open `/en/account/` in a normal browser: the button must turn solid. If it never
+  does, sign-in is blocked for everyone: remove `TURNSTILE_SECRET` and `NEXT_PUBLIC_TURNSTILE_SITE_KEY` from the Pages project (and both keys from
+  `.cloudflare.local.json`), rebuild.
+- **Billing** is unverified: the agent's token has no billing scope. The owner should check Cloudflare → Billing shows $0 and may add a usage notification.
+- **Old triggers in the Apps Script**: check Triggers in the script editor after `script:deploy`; once none is listed, delete the four stubs at the end of `Code.gs`.
+- **The old Google Forms and Sheet** still exist in the owner's Google account; nothing reads them. Delete when ready (the agent has no access).
 - `wrangler` is not a dependency: the scripts run it with `npx wrangler@4`, and its login lives in the user profile, not the repo.
+- The agent was refused by the permission classifier for reading the stored Git credential and for creating the Worker before explicit approval:
+  do not retry such steps, ask the owner.
 
-## Never run against real services (status after the cutover)
+## Never run against real services (status)
 
 | Part | Status |
 |---|---|
-| D1 (schema, health, public data) | exercised live on 2026-10-30; the write paths (sign-up, profile, review) have not been used by a real person yet |
-| R2 (images, backups) | a backup (JSON; the CSVs are empty with no data) was written and read back; no picture uploaded yet |
-| Mail relay | answered `{"ok":true}` and a live sign-in request returned ok; delivery to the inbox unconfirmed |
+| D1 (schema, health, public data) | exercised live; the write paths (sign-up, profile, review) have not been used by a real person yet |
+| R2 (images, backups) | a backup was written and read back; no picture uploaded yet |
+| Mail relay | answered `{"ok":true}` to a test and a live sign-in request; delivery to an inbox unconfirmed |
+| Retention and the backup watch | tested on SQLite only; they run for real on the first daily job after the next deploy |
 | Turnstile | enabled; widget renders and the server enforces the token; completion in a real browser unconfirmed |
 | Indonesian pages | written by the agent, not looked at by eye on every page |
 
-## Map of the new backend
+## Map of the backend
 
-- `worker/migrations/0001_init.sql`: schema. `worker/src/handler.ts`: the one router (`handle(req, env)`) with everything injected
+- `worker/migrations/*.sql`: schema (0001 init, 0002 retention). `worker/src/handler.ts`: the one router (`handle(req, env)`) with everything injected
   (db, bucket, mailer, clock, fetcher), which is why it is testable without mocks.
-- `worker/src/{auth,store,admin,public,deploy,images,backup,rules,email,util,db}.ts`: one concern each; see backend.md for the rules table.
-- Site side: `src/app/[lang]/account/`, `src/components/account/*`, `src/lib/account-api.ts`, admin in `src/lib/admin-api.ts` +
-  `admin-app.tsx` + `review-pane.tsx`.
-- Build: `scripts/build-data.mjs` reads `TPK_API_BASE` + `TPK_BUILD_KEY` (falls back to the old `TPK_API_URL`, then demo data).
-- Timers: `cron/worker.ts` (a Cloudflare Worker with cron triggers) calls `POST /api/cron?job=tick|daily` with the build key.
-- Test harness: `tests/support/worker-env.ts` (unit world), `tests/support/test-server.ts` (real backend for Playwright, one world per
-  test via the `tpk_world` cookie, `/__test/*` helpers for seeding, clock, mail and SQL).
+- `worker/src/{auth,store,admin,public,deploy,images,backup,retention,watch,rules,email,util,db}.ts`: one concern each; see backend.md.
+- Site side: `src/app/[lang]/account/`, `src/components/account/*`, `src/lib/account-api.ts`, admin in `src/lib/admin-api.ts` + `admin-app.tsx` + `review-pane.tsx`.
+- Build: `scripts/build-data.mjs` reads `TPK_API_BASE` + `TPK_BUILD_KEY`, or `TPK_DATA_FILE`, or the demo data when none is set.
+- Timers: `cron/worker.ts` (a Worker with cron triggers) calls `POST /api/cron?job=tick|daily` with the build key.
+- Test harness: `tests/support/worker-env.ts` (unit world: applies every migration), `tests/support/test-server.ts` (real backend for Playwright, one
+  world per test via the `tpk_world` cookie, `/__test/*` helpers for seeding, clock, mail and SQL).
 
 ## Gotchas that cost time (don't relearn them)
 
-- **Git Bash eats backslashes.** Write edit scripts with the Write tool (`.cjs`) and use Edit for regex lines; never heredoc a regex.
-- **Hash-only navigation** (`#anchor` links) tripped an e2e test once; the details are in the session transcript, so prefer asserting on real URLs and visible content.
+- **Git Bash eats backslashes.** Write edit scripts with the Write tool (`.cjs`), use Edit for lines with backslashes, and quote heredocs (`<<'EOF'`).
+- **A `| tail` hides the exit code** of the command before it: use `${PIPESTATUS[0]}` or run without the pipe when a `&&` chain depends on it.
+- **`npm run build` typechecks the tests** more strictly than `npm run typecheck` appears to: run the build before committing.
+- **Hash-only navigation** (`#anchor` links) tripped an e2e test once; prefer asserting on real URLs and visible content.
 - **`getByLabel` strict mode**: labels that prefix-match two fields break it; use exact names or roles.
 - **Mailbox pollution in e2e**: the test server's mailbox is per world; read the *latest* mail, not the first.
-- **Cover/photo limits are enforced from the bytes** (sniffed), not from the declared type or filename. Keep it so.
-- **Public image route serves only approved images**; admins and the build key see all. Don't loosen it.
+- **Cover/photo limits are enforced from the bytes** (sniffed). **The public image route serves only approved images**; admins and the build key see all. Don't loosen either.
 - **Build coalescing**: at most one deploy per 120 s plus a "dirty" flag; the tick timer sends the waiting one. Tests move the clock instead of sleeping.
-- **HtmlService / Apps Script is not Node**: no `fetch`/`URL` in pure helpers (names ending `_`).
-- **Stale servers and ports** break e2e on Windows: kill leftover `node` processes (PowerShell) before re-running.
+- **A secret variable in Pages cannot be read back** through the API: values the setup needs again are kept in `.cloudflare.local.json`.
+- **Turnstile never finishes in automated browsers**, and `networkidle` never settles on a page with it: wait for `load`.
+- **Apps Script is not Node**: no `fetch`/`URL` in pure helpers (names ending `_`).
+- **Stale servers and ports** break e2e on Windows: kill leftover `node` processes (PowerShell) before re-running. The bundled Playwright Chromium may be missing: `npx playwright install`, or use Edge (`AUDIT_BROWSER=msedge`).
 - **Hallmark waivers**: four sloplint waivers are deliberate (44c, 79, 77, 78) and recorded in `src/app/globals.css`.
 - **Check CI after a push**: GitHub CI was once silently red for rounds. Poll the public Actions API; times are UTC.
 
-## Open items (none blocks cutover)
+## Open items (none blocks use)
 
-1. Visual leftovers: the home rail has no scroll cue beyond the next card peeking in (a fade mask would clip the focus ring, so it was
-   left), and the home hero fold was not reviewed. Fixed 2026-10-30: the phone tab bar now wraps its labels instead of scrolling
-   (measured at 390 px in EN and ID), and the fact rows of a game card sit at the card's foot so they line up across a row.
-   The Playwright suite was not re-run after these two CSS/markup changes; run it before the next push.
-2. Unused `public/images/tavern` and `public/textures`: delete only with the owner's OK.
-3. The Figma review file is outdated (pre-feedback design).
-4. Offer the owner a locked `design.md` to retire the four lint waivers.
-5. Product decisions still open: how "featured" games are chosen and capped, retention/erasure policy (self-erase exists, no
-   automatic expiry), a second Cloudflare account owner.
-6. After cutover: delete the two Google Forms and the old timers (keep the script: it is the mail relay), remove `TPK_API_URL`,
-   consider `clasp logout` and revoking its token. `docs/forms.md` and the Sheet-based parts of `docs/setup.md`/`docs/curation.md`
-   describe the retiring system until then.
-7. The owner's older items: owner clean-up and launch of the community listing.
+1. Remove the home page's "How it works" block (R-05, a design call), and write a `design.md` (also retires the four lint waivers). See [anti-slop-audit.md](anti-slop-audit.md).
+2. Visual leftovers: the home rail has no scroll cue beyond the next card peeking in (a fade mask would clip the focus ring), and the home hero fold was not reviewed.
+3. Unused `public/images/tavern` and `public/textures`: delete only with the owner's OK. The Figma review file is outdated.
+4. Product decisions still open: how "featured" games are chosen and capped; a second Cloudflare account owner.
+5. Mail is the weakest link (one Gmail, 90 a day, no retry). A sending service needs a domain of the community's own; `worker/src/email.ts` is one file.
 
 ## How the owner works (applies to every session)
 

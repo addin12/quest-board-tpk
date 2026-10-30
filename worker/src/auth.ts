@@ -55,6 +55,8 @@ export async function verifyLogin(ctx: Ctx, token: unknown): Promise<{ ok: true;
     account = { id, merged_into: null };
   }
   const accountId = account.merged_into ?? account.id;
+  // Signing in is the proof the account is still wanted: it restarts the inactivity clock and cancels an expiry warning.
+  await exec(ctx.db, "UPDATE accounts SET last_seen_at = ?, expiry_warned_at = NULL WHERE id = ?", iso(now), accountId);
   const session = randomToken();
   await exec(ctx.db, "INSERT INTO sessions (token_hash, account_id, created_at, expires_at) VALUES (?, ?, ?, ?)", await sha256Hex(session), accountId, iso(now), iso(now + SESSION_DAYS * DAY_MS));
   const owner = await one<{ email: string }>(ctx.db, "SELECT email FROM accounts WHERE id = ?", accountId);

@@ -138,9 +138,9 @@ function Row({ item, selected, checkbox, checked, lang, onSelect, onCheck }: { i
       )}
       <button type="button" onClick={onSelect} aria-current={selected ? "true" : undefined} className={`card flex min-w-0 flex-1 items-center gap-3 p-3 text-left transition-colors hover:border-accent/50 ${selected ? "border-accent! bg-accent-soft" : ""}`} data-testid="admin-row">
         {item.kind === "game" ? (
-          <Cover src={item.rec.coverId ? adminPictureUrl(item.rec.coverId, 160) : null} seed={title} className="aspect-[4/5] w-11 shrink-0 rounded-md" sizes="44px" />
+          <Cover src={item.rec.coverId ? adminPictureUrl(item.rec.coverId) : null} seed={title} className="aspect-[4/5] w-11 shrink-0 rounded-md" sizes="44px" />
         ) : (
-          <Avatar name={title} photo={item.rec.photoId ? adminPictureUrl(item.rec.photoId, 120) : null} size={44} />
+          <Avatar name={title} photo={item.rec.photoId ? adminPictureUrl(item.rec.photoId) : null} size={44} />
         )}
         <span className="min-w-0 flex-1">
           <span className="block truncate font-semibold">{title}</span>
@@ -340,7 +340,7 @@ function GameDetails({ rec, t, lang }: { rec: GameRecord; t: T; lang: Lang }) {
 function GmDetails({ rec, t }: { rec: GmRecord; t: T }) {
   return (
     <div className="mt-3 flex flex-col gap-4 sm:flex-row">
-      <Avatar name={rec.name || "?"} photo={rec.photoId ? adminPictureUrl(rec.photoId, 240) : null} size={96} />
+      <Avatar name={rec.name || "?"} photo={rec.photoId ? adminPictureUrl(rec.photoId) : null} size={96} />
       <dl className="min-w-0 flex-1 space-y-2 text-sm" data-testid="gm-details">
         <Field label={t("gm.title")}>{rec.name || "–"}</Field>
         <Field label={t("games.city")}>{rec.city || "–"}</Field>

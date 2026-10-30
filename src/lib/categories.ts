@@ -1,5 +1,5 @@
 // Game categories: genres and play styles, a fixed translated taxonomy (labels: t(`genre.${key}`), t(`style.${key}`)).
-// The Google Form lists the same labels, and apps-script/Code.gs maps them back to these keys (a test keeps them equal).
+// The same keys are checked by the backend (worker/src/rules.ts imports this file), so the form and the server cannot drift.
 // Pure module (type-only imports).
 
 import type { RegularIcon } from "./icons";

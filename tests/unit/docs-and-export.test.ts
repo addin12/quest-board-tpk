@@ -7,17 +7,9 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { fixExport } from "../../scripts/fix-export.mjs";
-import { ADMIN_COLS, GAME_COLS, GM_COLS } from "../support/fake-sheet.ts";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const read = (f: string) => readFileSync(path.join(root, f), "utf8");
-
-test("docs/forms.md names every question the script reads, and the columns the script adds", () => {
-  const guide = read("docs/forms.md");
-  const missing = [...Object.values(GAME_COLS), ...Object.values(GM_COLS)].filter((title) => !guide.includes(`\`${title}\``));
-  assert.deepEqual(missing, [], "add these questions to docs/forms.md (or the script reads a column the guide doesn't ask for)");
-  for (const col of ADMIN_COLS) assert.ok(guide.includes(`\`${col}\``), `docs/forms.md should list the Sheet column ${col}`);
-});
 
 test("every relative link in the README and the guides points at a file that exists", () => {
   const files = ["README.md", "CLAUDE.md", "DECISIONS.md", ...readdirSync(path.join(root, "docs")).filter((f) => f.endsWith(".md")).map((f) => `docs/${f}`)];
@@ -32,7 +24,7 @@ test("every relative link in the README and the guides points at a file that exi
 });
 
 test("the public pages' environment settings are all in .env.example and the README", () => {
-  const used = new Set([...read("src/lib/site.ts").matchAll(/process\.env\.([A-Z_]+)/g)].map((m) => m[1]).concat("TPK_API_URL", "TPK_API_BASE", "TPK_BUILD_KEY"));
+  const used = new Set([...read("src/lib/site.ts").matchAll(/process\.env\.([A-Z_]+)/g)].map((m) => m[1]).concat("TPK_API_BASE", "TPK_BUILD_KEY"));
   const example = read(".env.example");
   const readme = read("README.md");
   for (const name of used) {

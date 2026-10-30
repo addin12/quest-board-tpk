@@ -1,25 +1,28 @@
 # Runbook
 
-What to do when something needs doing, or something breaks. Setup from scratch is in [setup.md](setup.md); how the
-parts fit together is in [architecture.md](architecture.md); why they are the way they are is in
+What to do when something needs doing, or something breaks. Going live from scratch is [cutover.md](cutover.md); how the parts fit
+together is [architecture.md](architecture.md); the API and data are [backend.md](backend.md); why they are the way they are is
 [../DECISIONS.md](../DECISIONS.md).
 
 ## The parts, and where each one lives
 
 | Part | Where | You open it to |
 |---|---|---|
-| The website | https://quest-board-tpk.pages.dev, built by Cloudflare Pages from the `main` branch of the GitHub repo | see what players see |
-| The admin page | `/en/admin/` on the site | approve, reject, feature, add admins, publish now |
-| The Sheet (the database) | Google Sheets, the file *Quest Board TPK* | read the rows (decide on the admin page, not here) |
-| The script | the Sheet's own Apps Script project: Sheet → Extensions → Apps Script | change code, read **Executions**, run `setup`, `backup`, `rotateBuildKey` |
-| The two forms (and the report form) | Google Forms, owned by the Google account that owns the Sheet | change a question, see responses |
-| Builds and the deploy hook | Cloudflare → Workers & Pages → the project | read a build log, retry, roll back |
-| Google sign-in | Google Cloud console → the *Quest Board TPK* project → Google Auth Platform | Test users, the OAuth client |
+| The website and `/api` | https://quest-board-tpk.pages.dev, built by Cloudflare Pages from the `main` branch of the GitHub repo | see what players see; read a build log, retry, roll back |
+| The admin page | `/en/admin/` on the site | approve, reject, feature, add admins, merge, publish now |
+| The database | Cloudflare → Storage & databases → D1 → `quest-board` | read or fix rows (decide on the admin page, not here) |
+| Pictures and backups | Cloudflare → R2 → `quest-board-images` (`covers/`, `photos/`, `backups/`) | download a backup |
+| The timers | Cloudflare → Workers & Pages → `quest-board-cron` | read its logs and error count |
+| The mail relay | the Apps Script project (`apps-script/Code.gs`), script.google.com | read **Executions** if mail stops |
+| A look inside | `GET /api/health?key=<build key>` | counts, last backup, last mail success and failure |
 
-Everything runs on free tiers. The script runs three timers: `tick` every minute (new responses, admin email, rebuild
-after a change), `nightly` around 00:30 Jakarta (a rebuild, so ended games leave), `backup` on Mondays around 03:00.
-A change goes live in 2–5 minutes: the script waits a minute after the last change, builds at most once every 5 minutes
-and at most 20 times a day. Cloudflare's free plan allows 500 builds a month.
+Everything runs on free plans. A change goes live in 2 to 5 minutes: the backend asks Pages to rebuild at most once every two minutes
+(the 10-minute tick sends a waiting one), and the Worker forces one build a day so ended listings leave. Cloudflare's free plan allows
+500 builds a month.
+
+The build key and the other secrets are in `.cloudflare.local.json` (git-ignored, on the owner's computer) and in the Pages project's
+encrypted variables. Losing the file is recoverable: `npm run cloudflare:setup` makes a new key and sets it on the project, then
+`npm run cron:deploy` sets it on the Worker.
 
 ## Everyday jobs
 
@@ -27,112 +30,92 @@ and at most 20 times a day. Cloudflare's free plan allows 500 builds a month.
 |---|---|
 | Approve or reject a listing | `/en/admin/` → open it → Approve, or Reject with the reasons. The GM is emailed in both languages. **Approve the Game Master before their game.** |
 | Put a change live now | Admin page → **Publish now** |
-| Add an admin | Their Gmail in Google Cloud → Audience → **Test users**, **and** the admin page → Admins → Add admin. Both are needed. |
-| Remove an admin | Admin page → Admins → Remove (and take them off Test users) |
+| Add an admin | Admin page → Admins → Add admin (their email address; they sign in with an emailed link) |
+| Remove an admin | Admin page → Admins → Remove (only the owner can) |
 | Feature a game | Admin page → open an approved game → Feature |
-| Mark a game full | Admin page → open an approved game → Mark as full (Reopen to undo), then Publish now |
-| Take a listing down | Reject it (or set an end date earlier), then **Publish now**. See *A listing must come down now* below. |
-| Change what a form asks | Edit the form. A new wording is read as it is; a renamed question needs an entry in `COLUMN_ALIASES` in `Code.gs` ([forms.md](forms.md)). |
+| Merge two profiles of one person | Admin page → open the profile that should go → *Merge into…* |
+| Read what happened | D1 console: `SELECT * FROM activity ORDER BY id DESC LIMIT 50` |
 
 ## Changing the code
 
-**The site** (anything but `apps-script/`): commit to `main` and push. GitHub CI runs the audit, typecheck, lint, unit
-tests, the demo and the empty-Sheet builds, and the browser tests in three browsers. Cloudflare builds the site from the
-same push. Do not merge on red.
+Commit to `main` and push. GitHub CI runs the audit, typecheck, lint, unit tests, the demo and empty builds, and the browser tests in
+three browsers. Cloudflare builds and deploys the site and `/api` from the same push. Do not merge on red.
 
-**The script** (`apps-script/Code.gs`) is not deployed by the push. One command does it, with Google's `clasp`:
-
-```bash
-npm run script:deploy          # pushes Code.gs and the manifest, moves the web app to a new version (same address)
-npm run script:deploy -- --dry # only stages the files
-```
-
-Set it up once: `npx @google/clasp@3.4.1 login` (a Google consent page), switch on the Apps Script API at
-https://script.google.com/home/usersettings, and put the Script ID and the deployment id (`npx @google/clasp@3.4.1
-list-deployments`: the one that is not @HEAD) in `.apps-script.local.json` (git-ignored). The login is kept in
-`.clasprc.json` in your user folder: anything running as you can read it. To end it: `npx @google/clasp@3.4.1 logout`
-and revoke it at https://myaccount.google.com/permissions. `CreateForms.gs` is never pushed. If a `setup` run is
-needed (a new column or timer), run it by hand in the editor afterwards.
-
-Or by hand:
-
-1. Open the file, copy all of it. In the Sheet: Extensions → Apps Script → `Code.gs` → select all → paste → save.
-2. If the change adds a Sheet column or a timer, run `setup` (it is safe to run again; it keeps the build key).
-3. Deploy → Manage deployments → the pencil → Version: **New version** → Deploy. The web address stays the same.
-
-The timers use the saved code at once; the web address (`doGet`, `doPost`) uses the deployed version.
+- **A schema change** is a new file in `worker/migrations/`. Apply it to the live database **before** pushing the code that uses it
+  (`npm run cloudflare:setup` applies the ones not yet applied, and adds them to its list in `scripts/cloudflare-setup.mjs`).
+- **The mail relay** (`apps-script/Code.gs`) is not deployed by the push: `npm run script:deploy` does it (needs `clasp`, see the top of
+  `scripts/push-apps-script.mjs`). Its login lives in `.clasprc.json` in your user folder; end it with `npx @google/clasp@3.4.1 logout`
+  and revoke it at https://myaccount.google.com/permissions.
+- **The timers Worker** (`cron/`): `npm run cron:deploy`.
 
 ## Rolling back
 
-- **The site:** Cloudflare → the project → Deployments → an earlier successful production deployment → Rollback to this
-  deployment. Or revert the commit on `main` and push. Remember that the data is read at build time: a rollback serves
-  the old pages and the old data together.
-- **The script:** Deploy → Manage deployments → the pencil → Version: pick the earlier one → Deploy. The saved code that
-  the timers use is only changed by pasting the old file back.
+- **The site and `/api`:** Cloudflare → the project → Deployments → an earlier successful production deployment → Rollback to this
+  deployment. Or revert the commit on `main` and push. The data is read at build time, so a rollback serves old pages with old data.
+- **The database** is not rolled back by a deployment. A migration is added columns only, so older code keeps working with it.
 
 ## When something breaks
 
 ### A build failed
-You get an email from Cloudflare, and the admin page says *the last publish is not in this page yet*. The site that is
-live stays up as it was. Open Cloudflare → Deployments → the failed one → its log.
+You get an email from Cloudflare, and the admin page says *the last publish is not in this page yet*. The site that is live stays up as
+it was. Open Cloudflare → Deployments → the failed one → its log.
 
 | The log says | Cause and fix |
 |---|---|
-| `The data script answered 405` / `did not answer with JSON` / `forbidden` | `TPK_API_URL` in Cloudflare is wrong. It must be one line: the web address ending in `/exec`, then `?key=` and the build key. Nothing else in it. Fix it, retry. |
-| `forbidden` with a good-looking value | The key changed. Run `setup` (it logs the current key) and put that key in `TPK_API_URL`. |
-| `[data] warning:` lines | A record was unusable and dropped; the build kept the good ones. Read the line (it names the game or Game Master) and ask the GM to fix it with their edit link. |
-| `could not download the cover` | A picture is not shared by link or is not an image. The card shows a colour instead. Open the row in the Sheet, check the Drive link opens when signed out. |
-| `generateStaticParams ... empty array` | Fixed in the code (a placeholder page). If it comes back, someone removed `src/lib/static-params.ts`. |
+| `The backend answered 403` / `did not answer with JSON` | `TPK_BUILD_KEY` and `BUILD_KEY` differ. Run `npm run cloudflare:setup` (it sets both from `.cloudflare.local.json`), retry. |
+| `The backend answered 5xx` | The backend is down or the database binding is missing. Check `GET /api/health?key=…` and Pages → Settings → Bindings (`DB`, `IMAGES`). |
+| `[data] warning:` lines | A record was unusable and dropped; the build kept the good ones. Read the line (it names the game or Game Master) and ask the GM to fix it. |
+| `could not download the cover` | The picture is missing from R2. The card shows a colour instead. Ask the GM to upload it again. |
 | Something about `npm` or `node` | Cloudflare uses `NODE_VERSION` = 24. Check that variable. |
 
 Retry: Deployments → the failed one → Retry deployment. A build with bad data fails on purpose rather than publish it.
 
-### Responses do not appear in the Sheet, or get no Id
-1. Is the form still linked to the Sheet? Form → Responses → the Sheets icon. The tabs must be called *Games* and *GM profiles* (capitals do not matter).
-2. In the script editor, open **Executions**: a failed `tick` shows its error. Run `setup` and read the log: it lists missing columns or properties.
-3. Open the **Triggers** page: `tick`, `nightly` and `backup` must be listed. If not, run `setup`.
+### Nobody can sign in (no email arrives)
+1. `GET /api/health?key=…` → `lastMailError` says why the last send failed (for example `mail_failed_quota`: Gmail's daily limit, it
+   clears the next day; `mail_failed_unauthorized`: the secret in the Apps Script and in `MAIL_SECRET` differ, run `npm run script:deploy`
+   then `npm run cloudflare:setup`). Open the Apps Script **Executions** page for Google's own error.
+2. If Turnstile is on and the button on `/en/account/` never turns solid, the widget is blocked: check the browser console. To switch Turnstile
+   off, remove `TURNSTILE_SECRET` and `NEXT_PUBLIC_TURNSTILE_SITE_KEY` from the Pages variables and rebuild; the rate limits remain.
+3. The owner can always sign in with `OWNER_EMAIL`; if that variable is wrong nobody is an admin.
+
+### The owner got "no backup for N hours" or "the daily backup failed"
+The tick emails this at most once a day. Open the Worker `quest-board-cron` → Logs: a failing `daily` run shows the error. Common causes: the
+Worker was deleted or its `BUILD_KEY` secret no longer matches (run `npm run cron:deploy`), R2 is over its free limit or switched off, or the
+site was down at 01:30 Jakarta. Run the job by hand to test: `POST /api/cron?job=daily&key=<build key>` with an `Origin` header of the site.
+`GET /api/health?key=…` then shows `lastBackupAt` and `backupError`.
 
 ### A status changed and nobody knows why
-Open the **Activity** tab of the Sheet. Every decision, every edit the script noticed, every change on the admin page, every
-admin added or removed, every rebuild, backup and `setup` run is one line there: when, what, which listing, and who (an
-admin's email, or *script*). A status that changed with **no line** in the Activity tab was changed by hand in the Sheet,
-or by Version history or undo. Compare the time with File → Version history. The tab keeps the latest 5,000 lines.
-
-### An admin cannot sign in
-- *Access blocked*: their Gmail is not under Google Cloud → Audience → **Test users**.
-- *origin_mismatch*: the site's address is not an authorized origin on the OAuth client (it must be exactly `https://quest-board-tpk.pages.dev`). Google can take a few minutes to accept a change.
-- *Your sign-in expired*: sign in again (the token lasts an hour).
-- *This account is not an admin*: add the Gmail on the Admins tab of the admin page.
+D1 console → `SELECT * FROM activity ORDER BY id DESC LIMIT 100`. Every decision, every change a GM made, every admin added or removed,
+every merge, erasure and expiry is one row: when, what, which listing, and who (an admin's email, or *the daily job*). A row with no
+matching entry was changed in the D1 console by hand.
 
 ### A listing must come down now
 1. Admin page → reject it (a Game Master's profile is rejected on the Game Masters tab) → **Publish now**.
-2. Within a few minutes the lists, the sitemap and the data no longer have it, and its own address shows *no longer
-   listed* (no details, no contact). Before this was built the old page could linger for up to 7 days
-   ([ADR-11](../DECISIONS.md)); pages removed earlier still can, and so can cover images of removed games.
-3. If it is a scam, also tell the GM's contacts if you know them, and keep the row: the reason is recorded in the Sheet.
+2. Within a few minutes the lists, the sitemap and the data no longer have it, and its own address shows *no longer listed* (no details,
+   no contact). Cover images of removed games can linger in caches ([ADR-11](../DECISIONS.md)).
+3. If it is a scam, keep the row: the reason is recorded.
 
 ### The build key or the deploy hook was shown somewhere
-- **Build key:** in the script editor run `rotateBuildKey`, copy the key it logs, put it in Cloudflare's `TPK_API_URL`
-  (`…/exec?key=…`), retry the deployment.
-- **Deploy hook:** Cloudflare → Settings → Builds → Deploy hooks → delete the old one, create a new one, then set the
-  script property `DEPLOY_HOOK` to the new address (Project Settings → Script properties; if you cannot find it, a
-  one-line function that calls `PropertiesService.getScriptProperties().setProperty('DEPLOY_HOOK', '…')`, run once and
-  deleted again, does the same).
+- **Build key:** delete `buildKey` from `.cloudflare.local.json`, run `npm run cloudflare:setup`, then `npm run cron:deploy` and retry the
+  deployment. Both the project and the Worker get the new key.
+- **Deploy hook:** Cloudflare → the project → Settings → Builds → Deploy hooks → delete the hook named `backend`; delete `deployHook`
+  from `.cloudflare.local.json` and run `npm run cloudflare:setup`: it makes a new one and sets it.
 
-### The Sheet was damaged or deleted
-Every Monday the script copies the whole Sheet into the Drive folder *Quest Board TPK backups* (the newest 8 are kept).
-Open the newest copy; in the live Sheet paste its `Games` and `GM profiles` rows back under the headers (same columns,
-including the admin ones, so statuses and ids survive), then run `setup` and wait a minute. A copy contains personal
-data: it is in the same Drive account, do not share the folder.
+### The database was damaged or deleted
+Every night the Worker copies every table to R2 as `backups/<date>.json`, and the games and profiles as CSV you can open in a spreadsheet
+(the newest 14 days are kept). Download the newest JSON. To restore, create a new D1 database, apply the migrations
+(`npm run cloudflare:setup` does it), and load each table's rows back with `wrangler d1 execute` (the JSON holds `tables.<name>` as arrays of
+rows). Then `npm run cloudflare:setup` again to point the project at it. A backup contains personal data: it is in the same Cloudflare
+account; do not share it.
 
-### Emails stop arriving
-Apps Script can send 100 emails a day on a free account. The script bundles the admin notices and sends one decision
-email per decision; a burst of more than ~90 decisions in a day is the only way to hit it. The next day it works again.
-Open **Executions** to see the quota error.
+### Mail is over the limit
+Apps Script allows about 100 emails a day on a free Gmail account and the relay stops at 90. Sign-in links and decisions share that
+budget. The next day it works again. If the board outgrows it, move `worker/src/email.ts` to a sending service on a domain of the
+community's own (one file).
 
 ### The whole site is down
-It is static files on Cloudflare: check https://www.cloudflarestatus.com first. Nothing on the site needs the script
-to be up (only a build does), so a script outage does not take the site down.
+It is static files on Cloudflare: check https://www.cloudflarestatus.com first. A visitor needs nothing but the static files; only signing
+in, the account pages, the admin page and builds need `/api`.
 
 ## What watches the system
 
@@ -140,15 +123,17 @@ to be up (only a build does), so a script outage does not take the site down.
 |---|---|
 | Cloudflare notification *Project updates → Deployment failed* | a build failed (email) |
 | The admin page's *last publish is not in this page yet* | a publish did not reach the site |
+| An email "no backup for N hours" or "the daily backup failed" | the timer or the backup is broken (at most one a day) |
+| The Worker `quest-board-cron` error count in the dashboard | a tick or daily call failed |
+| `GET /api/health?key=<build key>` | counts, `lastBackupAt`, `backupError`, `lastMailOkAt`, `lastMailError` (no personal data) |
 | GitHub CI on every push | the code breaks something |
 | Dependabot (weekly) | outdated dependencies; its eslint major is ignored on purpose |
-| `…/exec?action=health&key=<build key>` | a read-only look inside the script: tabs, timers, properties, row counts, the last rebuild and the backup folder, as names and counts only. Calling it writes one *health check* line to the Activity tab. |
-| The Activity tab of the Sheet | what changed, when and by whom, for every listing and admin (see *A status changed and nobody knows why*) |
-| The weekly Drive backup | nothing, until you need it: look at the folder now and then |
+
+If mail itself is what broke, the alert email cannot be sent: look at `/api/health` now and then, or after any report of a missing email.
 
 ## Limits worth knowing
 
-- The Google app stays in *Testing*: at most 100 test users, and admins see Google's "has not verified this app" screen
-  once ([ADR-12](../DECISIONS.md)).
-- The web address of the script is public (the admin page needs it); the data behind it is only given to the build key.
-- A page that was removed before the tombstone change can linger up to 7 days; every listing approved since cannot.
+- The public data and pictures are given only to a request with the build key; the API address itself is public.
+- Free-plan limits: Pages 500 builds a month; D1 and R2 are far above this site's size (10 GB of pictures is thousands of listings); the
+  Worker makes about 145 requests a day against 100,000.
+- Accounts unused for two years are warned, then erased 30 days later (admins and the owner never). The daily job does at most 20 a run.

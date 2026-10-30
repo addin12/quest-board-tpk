@@ -8,17 +8,16 @@ You need Node 22.13 or newer.
 
 ```bash
 npm ci
-npm run dev        # http://localhost:3000, with demo data: no Google account needed
+npm run dev        # http://localhost:3000, with demo data: no accounts needed
 ```
 
 | Command | What it does |
 |---|---|
 | `npm run typecheck` | TypeScript, with no emit |
 | `npm run lint` | ESLint |
-| `npm test` | the unit tests (the real `Code.gs` runs in a sandbox over an in-memory Sheet) |
+| `npm test` | the unit tests (the real backend runs through its HTTP handler on an in-memory SQLite database and bucket; `Code.gs` runs in a sandbox) |
 | `npm run test:e2e` | the browser tests in Chromium, Firefox and WebKit (they build the site first) |
-| `npm run build` | the production build (add `TPK_DATA_FILE=data/empty.json` to build the empty-Sheet state) |
-| `npm run form-options` | regenerates the option lists in `Code.gs`, `CreateForms.gs` and `docs/form-options.md` |
+| `npm run build` | the production build (add `TPK_DATA_FILE=data/empty.json` to build the empty day-one state) |
 
 ## Before you open a pull request
 
@@ -30,15 +29,17 @@ npm run dev        # http://localhost:3000, with demo data: no Google account ne
    readable for real people: labels above fields, large tap targets, one accent colour.
 5. Nothing secret and no real person's data in the repository, tests or screenshots.
 
-## Changing the Google script
+## Changing the backend
 
-`apps-script/Code.gs` is pasted into the Sheet's script by hand; a merge does not deploy it. So:
+The backend is `worker/` (one handler, `handle()`, with the database, bucket, mailer, clock and fetch injected) behind one Pages Function in
+`functions/`. A push to `main` deploys it with the site; the database and bucket are bindings of the Pages project (see [docs/backend.md](docs/backend.md)).
 
-- `npm run script:deploy` pushes it to the live project and moves the web app to a new version (setup in [docs/runbook.md](docs/runbook.md)).
-- Keep Google calls out of the helpers whose names end in `_`: those are unit-tested in a sandbox without Google.
-- If you add a Sheet column, add it to `ADMIN_COLUMNS` and to [docs/forms.md](docs/forms.md) (a test checks), and say in
-  the pull request that the owner must paste the file, run `setup()` and deploy a new version.
-- Changing a form question? `CreateForms.gs` and the docs must change with it (a test compares them with `Code.gs`).
+- A schema change is a new file in `worker/migrations/`, applied by the owner (see [docs/cutover.md](docs/cutover.md)); say so in the pull request.
+- Rules that both the form and the server need (areas, genres, phone and link checks) live in `src/lib/` and are imported by `worker/src/rules.ts`:
+  change them once.
+- Test through `handle()` (`tests/support/worker-env.ts` gives a world with a database, bucket, mailbox and clock); do not mock the handler's internals.
+- `apps-script/Code.gs` is only the mail relay. `npm run script:deploy` pushes it (the owner does this). Keep Google calls out of the helpers whose
+  names end in `_`: those are unit-tested in a sandbox without Google.
 
 ## Reporting a problem
 

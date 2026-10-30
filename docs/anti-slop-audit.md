@@ -11,7 +11,7 @@ for unused exports, single-caller helpers, redundant `else`, dividers, restating
 ## Result in one line
 
 The code and the copy were already close to clean. Real findings were few: dead code, em dashes in emails, tap targets under 44 px,
-images lazy-loaded above the fold, and a second timer left behind. All were fixed. Two design calls and one large cleanup are left to the owner.
+images lazy-loaded above the fold, and a second timer left behind. All were fixed. Two design calls were left to the owner; the large cleanup and the three smaller system points were done afterwards (see the end).
 
 ## Fixed
 
@@ -51,18 +51,18 @@ What holds up: one rules module shared by the site and the backend (`worker/src/
 server cannot drift; everything external injected into `handle()`, so the real code runs in unit and browser tests; one timer; one
 mail path; tokens stored only as hashes; free tier throughout.
 
-What to change, in order of value:
+What was recommended, and what happened (same day, after the owner asked for it):
 
-1. **Retire the Google stack code (largest win, do it once a real sign-in has worked).** About 2,200 of 6,600 source lines no longer run:
-   `apps-script/Code.gs` (1,216 lines, of which only the mail relay is used), `tests/unit/apps-script.test.ts` (491), `tests/support/fake-sheet.ts`,
-   `tests/support/admin-stubs.ts`, `docs/forms.md`, `docs/form-options.md`, `scripts/push-apps-script.mjs`'s Sheet parts, the
-   `TPK_API_URL` path in `scripts/build-data.mjs`, and the `NEXT_PUBLIC_*_FORM_URL`, `GOOGLE_CLIENT_ID` and `ADMIN_API_URL` settings. The
-   Apps Script would shrink to a mail relay of well under 100 lines. It is held back only because `TPK_API_URL` is the rollback path.
-2. **Mail is the weakest link.** It rides on one Gmail account and its 90-a-day cap; a failed send is surfaced to the caller but not
-   retried or alerted. If sign-ins grow, move the one-file mailer (`worker/src/email.ts`) to a sending service on a domain of the community's own.
-3. **No alert when a timer or a backup fails.** The Worker throws and Cloudflare counts the error, but nobody is told. A cheap fix: the
-   daily job emails the owner when it fails (the mailer exists).
-4. **Retention.** There is self-service erasure but no automatic expiry of inactive accounts. Decide a rule (for example, 24 months) before it matters.
+1. **Retire the Google stack code: done** (ADR-27). About 2,200 of 6,600 source lines went: `Code.gs` is a mail relay of about 100 lines,
+   the Forms builder, the generator, the fake Sheet, their tests and two guides are deleted, the `TPK_API_URL` and Drive-picture paths are
+   gone from the build. The last commit with the Sheet stack is tagged `legacy-google-sheet`.
+2. **Mail is the weakest link: made visible, not fixed.** Every send now records its last success and last error (shown in `/api/health`).
+   It still rides on one Gmail account with a 90-a-day cap and no retry (a retry could send a decision twice). The real fix is a sending
+   service on a domain of the community's own, which does not exist yet; `worker/src/email.ts` is one file.
+3. **Alerts: done.** A failed daily backup emails the owner and fails the timer; the 10-minute tick emails the owner, at most daily, when no
+   backup has succeeded for 36 hours. If the mail relay is what broke, the email cannot be sent: `/api/health` is then the only place that shows it.
+4. **Retention: done.** An account with no sign-in for 24 months is warned and erased 30 days later; admins and the owner never expire.
+   The numbers are two constants in `worker/src/retention.ts`.
 
-None of these blocks use. Items 1 and 3 are the ones worth doing next. (Losing `.cloudflare.local.json` is recoverable: the setup makes a
-new build key and sets it on the project, and `npm run cron:deploy` sets it on the Worker.)
+(Losing `.cloudflare.local.json` is recoverable: the setup makes a new build key and sets it on the project, and `npm run cron:deploy`
+sets it on the Worker.)

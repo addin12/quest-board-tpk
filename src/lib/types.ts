@@ -1,8 +1,8 @@
 // The shapes of the data. Pure module (no imports), shared by the site, the build script, the admin page and tests.
 //
-// Where the data comes from: the Google Sheet's script (apps-script/Code.gs) answers
-//   GET  ?action=public  -> RawPublicData   (approved, unexpired, public fields only; pictures are Drive file ids)
-//   POST {action:"queue"} -> GameRecord[] and GmRecord[]  (admins only; everything, including emails and notes)
+// Where the data comes from: the Cloudflare backend (worker/) answers
+//   GET  /api/public?key=      -> RawPublicData   (approved, unexpired, public fields only; pictures are bucket keys)
+//   POST /api/admin {action:"queue"} -> GameRecord[] and GmRecord[]  (admins only; everything, including emails and notes)
 // scripts/build-data.mjs turns RawPublicData into SiteData (pictures downloaded, resized and referenced by path).
 
 export type Lang = "en" | "id";

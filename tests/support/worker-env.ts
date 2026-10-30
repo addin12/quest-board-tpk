@@ -2,12 +2,14 @@
 // The backend (worker/src) wired to Node's built-in SQLite, an in-memory bucket and a mailer that records its mails,
 // so the tests run the real code, the real migration and the real HTTP handler without Cloudflare.
 import { DatabaseSync } from "node:sqlite";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import type { Bucket, Db, Stmt } from "../../worker/src/db.ts";
 import type { Mail, Mailer } from "../../worker/src/email.ts";
 import { handle, type Env } from "../../worker/src/handler.ts";
 
-const MIGRATION = readFileSync(new URL("../../worker/migrations/0001_init.sql", import.meta.url), "utf8");
+const MIGRATIONS = new URL("../../worker/migrations/", import.meta.url);
+/** Every migration, in order: the tests run the schema exactly as the live database has it. */
+const MIGRATION = readdirSync(MIGRATIONS).filter((f) => f.endsWith(".sql")).sort().map((f) => readFileSync(new URL(f, MIGRATIONS), "utf8")).join("\n");
 
 export function sqliteDb(): Db & { raw: DatabaseSync } {
   const raw = new DatabaseSync(":memory:");

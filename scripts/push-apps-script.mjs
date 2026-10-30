@@ -1,5 +1,5 @@
 // Pushes apps-script/Code.gs and appsscript.json to the live Apps Script project and moves the web app's deployment to a
-// new version (its address stays the same), with Google's clasp. CreateForms.gs is never pushed: it is not the backend.
+// new version (its address stays the same), with Google's clasp. The script is the mail relay (ADR-27).
 //
 //   npm run script:deploy            push and deploy
 //   npm run script:deploy -- --dry   only stage the files and say what would happen
@@ -56,7 +56,7 @@ function main() {
     console.log(run(`${CLASP} push --force`, stage));
     const stamp = new Date().toISOString().slice(0, 16).replace("T", " ");
     console.log(run(`${CLASP} deploy -i ${deploymentId} -d "npm run script:deploy, ${stamp} UTC"`, stage));
-    console.log("Done. The web address is unchanged; the timers already use the new code.");
+    console.log("Done. The web address is unchanged. Any trigger left from the Sheet days removes itself when it next fires.");
   } finally {
     rmSync(stage, { recursive: true, force: true });
   }

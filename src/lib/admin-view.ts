@@ -60,7 +60,7 @@ export function previewGame(rec: GameRecord, gm: GmRecord | undefined, nowIso: s
     format: rec.format, locationType: rec.locationType, platform: rec.platform, city: rec.city, venueName: rec.venueName, venueMapsUrl: rec.venueMapsUrl,
     startsAt, zone: rec.zone, scheduleNote: rec.scheduleNote, expiresAt: rec.expiresAt || startsAt, priceIdr: rec.priceIdr, seats: rec.seats, language: rec.language,
     level: rec.level, minAge: rec.minAge, contentWarnings: rec.contentWarnings, safetyTools: rec.safetyTools, genres: rec.genres, styles: rec.styles,
-    cover: rec.coverId ? adminPictureUrl(rec.coverId, 480) : null, featured: rec.featured, full: rec.full, listedAt: rec.submittedAt || startsAt,
+    cover: rec.coverId ? adminPictureUrl(rec.coverId) : null, featured: rec.featured, full: rec.full, listedAt: rec.submittedAt || startsAt,
   };
 }
 

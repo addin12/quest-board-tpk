@@ -6,7 +6,6 @@ execSync("npm run build", {
   stdio: "inherit",
   env: {
     ...process.env,
-    TPK_API_URL: "",
     TPK_API_BASE: "",
     NEXT_PUBLIC_SITE_URL: "http://localhost:4174",
     NEXT_PUBLIC_REPORT_URL: "https://forms.example/report",

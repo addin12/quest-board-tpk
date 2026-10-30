@@ -2,7 +2,7 @@
   "name": "quest-board-tpk",
   "version": "0.1.0",
   "private": true,
-  "description": "Quest Board for The Pandemonium Kollektive: a free, static listing board for tabletop RPG games. GMs submit through Google Forms, an admin curates, players contact the GM directly.",
+  "description": "Quest Board for The Pandemonium Kollektive: a free listing board for tabletop RPG games. GMs sign in with their email and list games, an admin curates, players contact the GM directly.",
   "scripts": {
     "data": "node scripts/build-data.mjs",
     "dev": "node scripts/build-data.mjs && next dev",
@@ -13,7 +13,6 @@
     "test": "node --conditions=react-server --import ./tests/loader.mjs --test \"tests/unit/*.test.ts\"",
     "test:e2e": "npm run build && playwright test",
     "icons": "node scripts/build-icons.mjs",
-    "form-options": "node scripts/build-form-options.mjs",
     "script:deploy": "node scripts/push-apps-script.mjs",
     "cloudflare:setup": "node scripts/cloudflare-setup.mjs",
     "cron:deploy": "node scripts/cron-deploy.mjs"

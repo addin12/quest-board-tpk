@@ -1,23 +1,20 @@
 // Prepares what the site is built from: src/generated/data.json (+ pictures in public/media/).
 //
 //   TPK_API_BASE=https://quest-board-tpk.pages.dev TPK_BUILD_KEY=…  npm run data     the real data (the Cloudflare backend)
-//   TPK_API_URL=https://script.google.com/macros/s/…/exec  npm run data     the real data (the old Google Sheet script, until the cutover)
-//   npm run data                                                            the demo data (data/sample.json)
-//   TPK_DATA_FILE=data/empty.json  npm run data                             data from a local file (CI builds the day-one empty site)
+//   npm run data                                                                      the demo data (data/sample.json)
+//   TPK_DATA_FILE=data/empty.json  npm run data                                       data from a local file (CI builds the day-one empty site)
 //
-// The real data is the Google Sheet script's public JSON: only approved, unexpired games and their approved
-// GMs. It is checked again here (src/lib/public-data.ts); bad records are dropped with a warning. If the script
-// can't be reached or answers nonsense the build FAILS, so the site that is live stays as it is, instead of
-// being replaced by an empty one. Pictures are downloaded from Drive, cropped (covers 4:5, photos square) and
-// saved as WebP, so visitors never touch Drive.
+// The real data is the backend's public JSON: only approved, unexpired games and their approved GMs. It is checked again here
+// (src/lib/public-data.ts); bad records are dropped with a warning. If the backend can't be reached or answers nonsense the build
+// FAILS, so the site that is live stays as it is, instead of being replaced by an empty one. Pictures are downloaded from the
+// backend with the build key, cropped (covers 4:5, photos square) and saved as WebP, so visitors never touch it.
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
 import { parsePublicData } from "../src/lib/public-data.ts";
-import { driveThumbUrl, localPicture } from "../src/lib/pictures.ts";
+import { localPicture } from "../src/lib/pictures.ts";
 
 const ROOT = path.join(import.meta.dirname, "..");
-const API = (process.env.TPK_API_URL ?? "").trim();
 const BASE = (process.env.TPK_API_BASE ?? "").trim().replace(/\/+$/, "");
 const BUILD_KEY = (process.env.TPK_BUILD_KEY ?? "").trim();
 const MEDIA = path.join(ROOT, "public", "media");
@@ -35,19 +32,8 @@ async function loadRaw() {
       throw new Error("The backend did not answer with JSON.");
     }
   }
-  if (!API) {
-    console.log("[data] TPK_API_BASE and TPK_API_URL are not set: using data/sample.json (demo data, dates moved to the present)");
-    return rebase(JSON.parse(readFileSync(path.join(ROOT, "data", "sample.json"), "utf8")));
-  }
-  const url = `${API}${API.includes("?") ? "&" : "?"}action=public`;
-  const res = await fetch(url, { redirect: "follow", signal: AbortSignal.timeout(90_000) });
-  if (!res.ok) throw new Error(`The data script answered ${res.status} for ${API}`);
-  const body = await res.text();
-  try {
-    return JSON.parse(body);
-  } catch {
-    throw new Error(`The data script did not answer with JSON (is the web app deployed for "Anyone"?): ${body.slice(0, 120)}`);
-  }
+  console.log("[data] TPK_API_BASE is not set: using data/sample.json (demo data, dates moved to the present)");
+  return rebase(JSON.parse(readFileSync(path.join(ROOT, "data", "sample.json"), "utf8")));
 }
 
 /** Demo data: move every date so the earliest game starts in two days. */
@@ -59,9 +45,9 @@ function rebase(data) {
   return { ...data, generatedAt: new Date().toISOString(), games: data.games.map((g) => ({ ...g, startsAt: move(g.startsAt), expiresAt: move(g.expiresAt), listedAt: move(g.listedAt) })) };
 }
 
-async function download(fileId, width) {
-  // Our own bucket (covers/…, photos/…) through the backend with the build key; older rows are Drive files.
-  const url = BASE && /^(?:covers|photos)\//.test(fileId) ? `${BASE}/api/img/${fileId}?key=${encodeURIComponent(BUILD_KEY)}` : driveThumbUrl(fileId, width);
+async function download(fileId) {
+  if (!BASE || !/^(?:covers|photos)\//.test(fileId)) return null;
+  const url = `${BASE}/api/img/${fileId}?key=${encodeURIComponent(BUILD_KEY)}`;
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       const res = await fetch(url, { redirect: "follow", signal: AbortSignal.timeout(30_000) });
@@ -99,7 +85,7 @@ async function main() {
   await pool(data.games.filter((g) => g.coverId), 4, async (g) => {
     const local = localPicture(g.coverId);
     if (local) return void covers.set(g.id, local);
-    const buf = await download(g.coverId, 1200);
+    const buf = await download(g.coverId);
     if (!buf) return console.warn(`[data] warning: could not download the cover of "${g.title}" (${g.coverId}): the card shows a colour instead`);
     try {
       const base = sharp(buf).rotate().resize(1080, 1350, { fit: "cover", position: "attention" });
@@ -113,7 +99,7 @@ async function main() {
   await pool(data.gms.filter((g) => g.photoId), 4, async (g) => {
     const local = localPicture(g.photoId);
     if (local) return void photos.set(g.id, local);
-    const buf = await download(g.photoId, 600);
+    const buf = await download(g.photoId);
     if (!buf) return console.warn(`[data] warning: could not download the photo of ${g.name} (${g.photoId})`);
     try {
       await sharp(buf).rotate().resize(320, 320, { fit: "cover", position: "attention" }).webp({ quality: 80 }).toFile(path.join(MEDIA, "gm", `${g.id}.webp`));
@@ -132,7 +118,7 @@ async function main() {
   };
   mkdirSync(path.join(ROOT, "src", "generated"), { recursive: true });
   writeFileSync(path.join(ROOT, "src", "generated", "data.json"), `${JSON.stringify(site, null, 2)}\n`);
-  console.log(`[data] ${site.games.length} games, ${site.gms.length} Game Masters, ${covers.size} covers, ${photos.size} photos${API || BASE || process.env.TPK_DATA_FILE ? "" : " (demo data)"}`);
+  console.log(`[data] ${site.games.length} games, ${site.gms.length} Game Masters, ${covers.size} covers, ${photos.size} photos${BASE || process.env.TPK_DATA_FILE ? "" : " (demo data)"}`);
 }
 
 main().catch((err) => {

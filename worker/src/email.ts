@@ -1,5 +1,6 @@
 // Email addresses, and the messages the backend sends (English and Indonesian together, as before).
-import { clip } from "./util.ts";
+import type { Db } from "./db.ts";
+import { clip, iso, metaSet } from "./util.ts";
 
 /**
  * The one form of an address the accounts are keyed on: lower case, "googlemail" read as "gmail", and for Gmail the dots
@@ -17,9 +18,29 @@ export function normalizeEmail(raw: unknown): string {
 
 export type Mail = { to: string; subject: string; body: string };
 
-/** Sends one email. The Worker uses Resend (or another sender with the same shape); tests record the mails. */
+/** Sends one email. The Worker uses the Apps Script relay below (a sending service would have the same shape); tests record the mails. */
 export interface Mailer {
   send(mail: Mail): Promise<void>;
+}
+
+/**
+ * Wraps a mailer so the last success and the last failure are kept in the "meta" table, where /api/health shows them: a relay that
+ * has stopped working (the Gmail limit, a revoked script) is otherwise only seen when a Game Master complains. The error is
+ * rethrown, so the callers behave as before.
+ */
+export function recordingMailer(inner: Mailer, db: Db, now: () => number): Mailer {
+  return {
+    async send(mail) {
+      try {
+        await inner.send(mail);
+        await metaSet(db, "mail_ok_at", iso(now()));
+      } catch (e) {
+        await metaSet(db, "mail_error_at", iso(now()));
+        await metaSet(db, "mail_error", String(e instanceof Error ? e.message : e).slice(0, 80));
+        throw e;
+      }
+    },
+  };
 }
 
 /**
@@ -74,5 +95,17 @@ export function decisionMail(to: string, status: "approved" | "rejected", kind: 
     body:
       `Hi,\n\n“${t}” was not approved yet.\n\nReason: ${why}\n\nSign in at ${edit} to fix it; it will be reviewed again.\n\n${SIGN}\n\n* * *\n\n` +
       `Halo,\n\n“${t}” belum disetujui.\n\nAlasan: ${why}\n\nMasuk di ${edit} untuk memperbaikinya; nanti ditinjau lagi.\n\n${SIGN}`,
+  };
+}
+
+/** The warning before an unused account is erased: sign in within the grace period and nothing happens. */
+export function expiryMail(to: string, graceDays: number, siteUrl: string): Mail {
+  const where = `${siteUrl.replace(/\/$/, "")}/en/account/`;
+  return {
+    to,
+    subject: "Your Quest Board TPK account will be erased / Akun Quest Board TPK kamu akan dihapus",
+    body:
+      `Hi,\n\nYou have not signed in to Quest Board TPK for a long time. In ${graceDays} days we will erase your account, your Game Master profile, your games and your pictures.\n\nTo keep them, sign in once at ${where}. That is all.\n\n${SIGN}\n\n* * *\n\n` +
+      `Halo,\n\nKamu sudah lama tidak masuk ke Quest Board TPK. Dalam ${graceDays} hari kami akan menghapus akunmu, profil Game Master, game, dan gambarmu.\n\nUntuk menyimpannya, masuk sekali di ${where}. Itu saja.\n\n${SIGN}`,
   };
 }
