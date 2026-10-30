@@ -29,9 +29,10 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
     <>
       <JsonLd data={websiteJsonLd(lang, t("meta.description"))} />
 
-      {/* Corridor: one centred column, the search is the action. The screen at the foot is the only decoration, and it sits under no type. */}
-      <section className="relative flex min-h-[calc(100dvh-9rem)] max-lg:min-h-0">
-        <div className="wrap relative z-10 flex flex-col items-center justify-center py-[var(--space-3xl)] text-center">
+      {/* The board: the hero and the next games hang on one wall of oak. The search is the action; the notices are the listings themselves. */}
+      <div className="board">
+      <section className="relative">
+        <div className="wrap relative z-10 flex flex-col items-center justify-center pb-[var(--space-xl)] pt-[var(--space-3xl)] text-center">
           <h1 className="mx-auto max-w-[16ch] text-[length:var(--text-display-s)]">{t("home.title1")} {t("home.title2")}</h1>
           <p className="lead mt-[var(--space-lg)] text-ink-2">{t("home.lead")}</p>
           <form action={paths.games(lang)} method="get" role="search" className="mt-[var(--space-xl)] flex w-full max-w-2xl flex-col gap-[var(--space-sm)] text-left sm:flex-row sm:items-end">
@@ -42,10 +43,9 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
             <button type="submit" className="btn btn-primary">{t("games.search")}</button>
           </form>
         </div>
-        <div className="halftone halftone-up pointer-events-none absolute inset-x-0 bottom-0 h-[var(--space-3xl)]" aria-hidden />
       </section>
 
-      <section className="section" aria-labelledby="soon-h">
+      <section className="section pt-[var(--space-xl)]" aria-labelledby="soon-h">
         <div className="wrap">
           <div className="flex flex-wrap items-end justify-between gap-[var(--space-md)]">
             <h2 id="soon-h">{t("home.soon")}</h2>
@@ -55,26 +55,30 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
             <div className="mt-[var(--space-xl)]"><EmptyState title={t("home.empty")}><Link href={paths.list(lang)} className="btn btn-primary">{t("nav.list")}</Link></EmptyState></div>
           ) : (
             <ul className="rail mt-[var(--space-xl)]" tabIndex={0} aria-label={t("home.soon")}>
-              {soon.map((g, i) => <li key={g.id}><GameCard game={g} t={t} lang={lang} priority={i < 3} /></li>)}
+              {soon.map((g) => <li key={g.id}><GameCard game={g} t={t} lang={lang} priority pinned /></li>)}
             </ul>
           )}
         </div>
       </section>
+      </div>
 
       {genres.length > 0 && (
-        <section className="section band-tint" aria-labelledby="genres-h">
+        <section className="section" aria-labelledby="genres-h">
           <div className="wrap">
+            <div className="menu-frame"><div className="menu">
             <h2 id="genres-h">{t("home.genresTitle")}</h2>
-            <ul className="ruled mt-[var(--space-xl)] grid gap-x-[var(--gap-columns)] sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="ruled mt-[var(--space-xl)] grid gap-x-[var(--space-2xl)] md:grid-cols-2">
               {genres.map((g) => (
                 <li key={g.key}>
                   <Link href={paths.games(lang, `?genre=${g.key}`)} className="flex min-h-16 items-baseline justify-between gap-[var(--space-md)] py-[var(--space-md)] hover:text-accent-deep">
-                    <span className="font-display text-[length:var(--text-title)] leading-tight">{t(genreLabelKey(g.key))}</span>
+                    <span className="font-display text-[length:var(--text-title)] leading-tight max-sm:text-[length:var(--text-md)]">{t(genreLabelKey(g.key))}</span>
+                    <span className="leader" aria-hidden />
                     <span className="shrink-0 text-sm text-muted">{t("games.count", { n: games.filter((x) => x.genres.includes(g.key)).length })}</span>
                   </Link>
                 </li>
               ))}
             </ul>
+            </div></div>
           </div>
         </section>
       )}

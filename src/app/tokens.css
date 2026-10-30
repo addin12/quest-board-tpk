@@ -28,6 +28,12 @@
   --color-accent-ink: oklch(97% 0.022 94);
   --color-focus: oklch(46% 0.19 31);
   --color-dot: var(--color-accent);
+  /* The tavern layer (design.md): oak is the second core colour; the board, the beam and the menu are oak, the notices on them stay paper. */
+  --color-oak: oklch(26% 0.045 48);
+  --color-oak-seam: oklch(15% 0.03 45);
+  --color-oak-grain: oklch(33% 0.05 52);
+  --color-iron: oklch(30% 0.012 60);
+  --color-chalk: oklch(19% 0.018 45);
   --font-display: "Ultra", ui-serif, Georgia, serif;
   --font-body: "Chivo", ui-sans-serif, sans-serif;
   --radius-card: 0;
@@ -70,6 +76,18 @@
   --rule-hair: 1px;
   --rule-bar: 3px;
   --display-weight: 400;
+  /* A sheet pinned on oak keeps the page's own paper and ink: resolved here on :root, so a dark band's swapped tokens cannot reach it. */
+  --sheet: var(--color-paper);
+  --sheet-2: var(--color-paper-2);
+  --sheet-ink: var(--color-ink);
+  --sheet-ink-2: var(--color-ink-2);
+  --sheet-muted: var(--color-muted);
+  --sheet-rule: var(--color-rule);
+  --sheet-accent: var(--color-accent);
+  --sheet-accent-deep: var(--color-accent-deep);
+  --sheet-accent-ink: var(--color-accent-ink);
+  --sheet-focus: var(--color-focus);
+  --plank: 9.5rem;
 }
 @media (max-width: 60rem) { :root { --gutter: 24px; --section-gap-s: 80px; --section-gap: 96px; --section-gap-l: 120px; } }
 @media (max-width: 40rem) { :root { --gutter: 16px; --section-gap-s: 56px; --section-gap: 72px; --section-gap-l: 96px; --gap-columns: 16px; } }

@@ -63,8 +63,9 @@ export function whereLabel(g: Pick<GameView, "locationType" | "platform" | "city
  * A game as a playbill: the cover, then a ruled label panel. `preview` draws it without a link (the admin page shows cards
  * for games that are not on the site yet).
  * `priority`: the picture is among the first things a visitor sees, so it loads first. `headingLevel`: 2 where the page has no h2 above the cards.
+ * `pinned`: the playbill is a sheet nailed to an oak board (the card sits on a `.board`).
  */
-export function GameCard({ game, t, lang, preview = false, priority = false, headingLevel = 3 }: { game: GameView; t: T; lang: Lang; preview?: boolean; priority?: boolean; headingLevel?: 2 | 3 }) {
+export function GameCard({ game, t, lang, preview = false, priority = false, headingLevel = 3, pinned = false }: { game: GameView; t: T; lang: Lang; preview?: boolean; priority?: boolean; headingLevel?: 2 | 3; pinned?: boolean }) {
   const Heading = headingLevel === 2 ? "h2" : "h3";
   const genre = game.genres.find(isGenre);
   const rows: [string, string][] = [
@@ -84,7 +85,7 @@ export function GameCard({ game, t, lang, preview = false, priority = false, hea
       </div>
       <div className="mt-[var(--space-md)] flex flex-1 flex-col border-t-3 border-ink pt-[var(--space-sm)]">
         <Heading className="bill-title">{game.title}</Heading>
-        <p className="mt-[var(--space-xs)] flex items-baseline justify-between gap-[var(--space-md)]">
+        <p className="mt-[var(--space-xs)] flex flex-wrap items-baseline justify-between gap-x-[var(--space-md)]">
           <span className="min-w-0 font-bold">{game.system}</span>
           <span className="shrink-0 text-right font-bold">
             {priceLabel(game.priceIdr, t)}
@@ -100,7 +101,8 @@ export function GameCard({ game, t, lang, preview = false, priority = false, hea
       </div>
     </>
   );
-  return preview ? <div className="bill">{body}</div> : <Link href={paths.game(lang, game.slug)} className="bill">{body}</Link>;
+  const cls = pinned ? "bill pin" : "bill";
+  return preview ? <div className={cls}>{body}</div> : <Link href={paths.game(lang, game.slug)} className={cls}>{body}</Link>;
 }
 
 /** A game as one row of an index: a small cover, the title and its facts, the price at the edge. */

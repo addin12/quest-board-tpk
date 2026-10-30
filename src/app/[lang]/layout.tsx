@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Chivo, Ultra } from "next/font/google";
+import { Chivo, IM_Fell_English, Ultra } from "next/font/google";
 import { I18nProvider } from "@/components/i18n-provider";
 import { LanguageSwitcher, NavLinks } from "@/components/nav";
 import { ThemeSwitcher } from "@/components/theme-switcher";
@@ -12,8 +12,10 @@ import { LANGS, isLang } from "@/lib/types";
 import "../globals.css";
 import "../icons/icons.css";
 
-// Halftone typography: Ultra for heads and the wordmark, Chivo for everything else. Self-hosted at build time.
+// Halftone typography: Ultra for heads and the wordmark (a fat face, as a painted tavern sign is lettered), IM Fell English for the
+// standfirst under a head (a 1600s English printer's type), Chivo for everything people read. Self-hosted at build time.
 const ultra = Ultra({ variable: "--font-ultra", subsets: ["latin"], weight: "400" });
+const fell = IM_Fell_English({ variable: "--font-fell", subsets: ["latin"], weight: "400" });
 const chivo = Chivo({ variable: "--font-chivo", subsets: ["latin"], weight: ["400", "700"] });
 
 export const dynamicParams = false;
@@ -44,7 +46,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
   if (!isLang(lang)) notFound();
   const t = makeT(lang);
   return (
-    <html lang={lang} suppressHydrationWarning className={`${ultra.variable} ${chivo.variable} h-full overflow-x-clip antialiased`}>
+    <html lang={lang} suppressHydrationWarning className={`${ultra.variable} ${fell.variable} ${chivo.variable} h-full overflow-x-clip antialiased`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
       </head>
@@ -52,17 +54,19 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
         <I18nProvider lang={lang} messages={publicMessages(lang)}>
           <a href="#main" className="btn btn-primary sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50">{t("nav.skip")}</a>
           <header className="border-b-3 border-ink">
-            <div className="wrap flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-4 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:py-6">
-              <Link href={paths.home(lang)} className="wordmark inline-flex min-h-11 items-center text-xl lg:order-2 lg:text-4xl">{"Quest Board TPK"}</Link>
-              <div className="justify-self-end lg:order-1 lg:justify-self-start"><LanguageSwitcher /></div>
-              <div className="hidden lg:order-3 lg:block" />
+            <div className="beam">
+              <div className="wrap flex items-end justify-between gap-x-4 pb-4 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:pb-5">
+                <Link href={paths.home(lang)} className="sign wordmark text-xl max-sm:px-3 max-sm:text-base lg:order-2 lg:text-4xl">{"Quest Board TPK"}</Link>
+                <div className="lg:order-1 lg:justify-self-start"><LanguageSwitcher /></div>
+                <div className="hidden lg:order-3 lg:block" />
+              </div>
             </div>
-            <div className="hidden border-t border-rule lg:block">
+            <div className="hidden lg:block">
               <div className="wrap"><NavLinks variant="header" /></div>
             </div>
           </header>
           <main id="main" className="flex-1">{children}</main>
-          <footer className="band-tint border-t-3 border-ink">
+          <footer className="beam !pt-0 !border-t-0">
             <div className="wrap grid gap-[var(--space-xl)] py-[var(--space-3xl)] lg:grid-cols-12">
               <div className="lg:col-span-6">
                 <p className="font-display text-[length:var(--text-2xl)] leading-tight">{t("footer.tagline")}</p>

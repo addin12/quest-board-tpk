@@ -34,6 +34,10 @@ by construction, since the public data has no email field), R-34 (both themes pa
 hedging comments, no decorative dividers, no `else` after `return`, no filler words in comments. The accepted exception is the skip link,
 1 px wide until focused (the standard pattern).
 
+## The tavern look (ADR-28, same day)
+
+Checked against the rules while it was built; reasons per part are in [design.md](../design.md). Measured: R-03 (no overflow at 390 px after the sign was shrunk on phones), R-25 contrast (axe, both stocks, both languages: none), R-26 targets (only the skip link), R-40 (the rail's covers were lazy above the fold, now eager). R-07 (texture) and R-22 (illustration) are allowed with a written purpose: the planks are the board the notices hang on, and nothing was drawn beyond one chain link. R-29: two core colours plus one accent. R-23: no logo, mascot or avatar was created. Not run: the Playwright suite, the Hallmark linter, a review by the owner's eye in a real browser.
+
 ## Left for the owner (design judgement, not rule violations)
 
 1. **Home "How it works" block (R-05).** The home page repeats the numbered steps that already have their own page. It is the "three-step

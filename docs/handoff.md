@@ -24,6 +24,8 @@ Forms + Sheet stack was **retired in code** the same day (ADR-27); the Apps Scri
 
 ## What was done on 2026-10-30
 
+- **Tavern look** (ADR-28, [design.md](../design.md)): the owner asked for a more medieval-tavern site combined with Halftone and checked against Anti-Slop. Beam and hanging sign, oak board with pinned game sheets (home, games list), framed cover and nailed contact box (game page), chalkboard genre menu, Fell standfirst. Measured with the audit script in both languages, both stocks, 390 and 1280 px; the Playwright suite and the Hallmark linter were not run on it.
+
 - **Cutover** (log in [cutover.md](cutover.md)): `wrangler login`, R2 enabled by the owner (no API for that), `npm run cloudflare:setup` (D1, R2,
   schema, deploy hook, bindings and variables by Pages API, never a committed `wrangler.toml`), mail relay deployed, Turnstile widget made,
   timers Worker `quest-board-cron` deployed (`npm run cron:deploy`; a scheduled firing was seen), first backup written and read back.

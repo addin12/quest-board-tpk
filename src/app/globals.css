@@ -2,6 +2,7 @@
  * hero: Banner (the list or the listing leads on every route but home), Corridor (/en), Corridor (/id) · nav: masthead · footer: statement · imagery: the listings' own cover art · signature: each game printed as a playbill, its cover over a ruled label panel · halftone: cream, with a derived dark stock (modes: light+dark)
  * axes: light/slab-serif/warm · posture: committed · contrast: pass · fold: pass · v2.0.0 */
 /* Hallmark · dropped arrow-right, calendar-clock, comment, dice-d20, eye, filter, flag, language, lock, marker, megaphone, paper-plane, search, seedling, shield-check, hero.webp · the icons beside labels and the tavern hero picture give way to type and the listings' own covers; the brand marks and genre icons stay */
+/* Tavern layer · ADR-28, design.md · a notice board over Halftone: .beam and .sign (masthead, footer), .board and .pin (home, games), .menu (genres), .plate.frame (a game's cover), IM Fell English for .lead · oak + parchment core, vermilion the only accent · no pictures made, textures are CSS */
 /* Hallmark · dropped #f-city · the owner removed the city filter: the community plays in Jabodetabek and online only */
 /* Hallmark · waive 44c · hero: Banner · the inner pages open straight on their list, listing or form under the masthead, so there is no hero stage on them to fill the first screen */
 /* Hallmark · waive 79 · hero: Banner · the masthead is the only chrome above the list, listing or form, which starts at once, so no dead band is left under it */
@@ -16,6 +17,7 @@
 :root {
   --font-display: var(--font-ultra), "Ultra", ui-serif, Georgia, serif;
   --font-body: var(--font-chivo), "Chivo", ui-sans-serif, system-ui, sans-serif;
+  --font-voice: var(--font-fell), "IM Fell English", ui-serif, Georgia, serif;
   --color-band: oklch(23% 0.040 38);
   --color-band-ink: oklch(96.2% 0.032 94);
   --color-band-muted: oklch(82% 0.045 85);
@@ -33,6 +35,7 @@
   --color-accent: oklch(66% 0.19 33); --color-accent-deep: oklch(73% 0.17 33); --color-accent-ink: oklch(18% 0.02 38); --color-focus: oklch(73% 0.17 33);
   --color-error: oklch(72% 0.17 27); --color-success: oklch(76% 0.14 150);
   --color-band: oklch(27% 0.03 38);
+  --color-oak: oklch(21% 0.036 47); --color-oak-seam: oklch(11% 0.022 45); --color-oak-grain: oklch(27% 0.042 50); --color-chalk: oklch(12% 0.014 45); --sheet: var(--color-paper-3); --sheet-2: var(--color-paper-2);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -43,6 +46,7 @@
     --color-accent: oklch(66% 0.19 33); --color-accent-deep: oklch(73% 0.17 33); --color-accent-ink: oklch(18% 0.02 38); --color-focus: oklch(73% 0.17 33);
     --color-error: oklch(72% 0.17 27); --color-success: oklch(76% 0.14 150);
     --color-band: oklch(27% 0.03 38);
+    --color-oak: oklch(21% 0.036 47); --color-oak-seam: oklch(11% 0.022 45); --color-oak-grain: oklch(27% 0.042 50); --color-chalk: oklch(12% 0.014 45); --sheet: var(--color-paper-3); --sheet-2: var(--color-paper-2);
   }
 }
 :root:not([data-theme="dark"]) { color-scheme: light dark; }
@@ -144,6 +148,67 @@
   }
   .band-tint { background: var(--color-paper-2); }
 
+  /* Oak. The board, the beam and the menu share one palette swap (cream ink on oak), so nothing inside needs its own colours. */
+  .board, .beam, .menu {
+    --color-paper: var(--color-oak); --color-paper-2: var(--color-oak); --color-ink: var(--color-band-ink); --color-ink-2: var(--color-band-ink);
+    --color-muted: var(--color-band-muted); --color-rule: var(--color-band-rule);
+    --color-accent: var(--color-band-accent); --color-accent-deep: var(--color-band-accent-deep); --color-accent-ink: var(--color-band-accent-ink); --color-focus: var(--color-band-accent-deep);
+    color: var(--color-band-ink);
+  }
+  /* Timber: grain running along the board, two lines at unrelated spacings so it never reads as a stripe pattern. */
+  .beam, .board, .menu-frame {
+    background:
+      repeating-linear-gradient(0deg, transparent 0 7px, color-mix(in oklab, var(--color-oak-grain) 60%, transparent) 7px 8px, transparent 8px 19px, color-mix(in oklab, var(--color-oak-grain) 35%, transparent) 19px 20px),
+      var(--color-oak);
+  }
+  /* The board: horizontal planks, each pair one tone apart, a dark seam and a lit edge between them. A quest board is a wall of notices. */
+  .board {
+    background:
+      repeating-linear-gradient(180deg, transparent 0 calc(var(--plank) - 4px), var(--color-oak-seam) calc(var(--plank) - 4px) calc(var(--plank) - 1px), color-mix(in oklab, var(--color-oak-grain) 80%, transparent) calc(var(--plank) - 1px) var(--plank)),
+      repeating-linear-gradient(180deg, transparent 0 var(--plank), color-mix(in oklab, var(--color-oak-grain) 22%, transparent) var(--plank) calc(2 * var(--plank))),
+      repeating-linear-gradient(0deg, transparent 0 7px, color-mix(in oklab, var(--color-oak-grain) 55%, transparent) 7px 8px, transparent 8px 23px, color-mix(in oklab, var(--color-oak-grain) 30%, transparent) 23px 24px),
+      var(--color-oak);
+  }
+  /* A board hung on a wall inside a page: iron-banded frame, the planks start inside it. */
+  .board-framed { border: 0.5rem solid var(--color-iron); box-shadow: inset 0 0 0 1px var(--color-oak-seam); }
+
+  /* The beam over every page: an iron rail, the sign hanging from it by two chains, a timber edge below. */
+  .beam { border-top: 0.5rem solid var(--color-iron); border-bottom: 3px solid var(--color-oak-seam); padding-top: 1.9rem; --chain: 1.9rem; }
+  .sign {
+    position: relative; display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0.4rem 1.5rem; text-decoration: none;
+    background: var(--sheet); color: var(--sheet-ink); border: 3px solid var(--color-oak-seam); border-radius: 3px;
+    box-shadow: inset 0 0 0 3px var(--sheet), inset 0 0 0 4px var(--sheet-ink);
+  }
+  .sign::before, .sign::after { content: ""; position: absolute; bottom: calc(100% + 3px); width: 10px; height: calc(var(--chain) + 3px); background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='16' viewBox='0 0 10 16'%3E%3Crect x='1.4' y='1' width='7.2' height='14' rx='3.6' fill='none' stroke='%23cfc5b3' stroke-width='1.8'/%3E%3C/svg%3E") 0 0 / 10px 12px repeat-y; }
+  .sign::before { left: 16%; }
+  .sign::after { right: 16%; }
+  .sign:hover { color: var(--sheet-accent-deep); }
+
+  /* A sheet pinned to oak: the page's own paper and ink, an iron nail, a shadow that says it stands off the board (the one elevation on the site). */
+  .pin {
+    --color-paper: var(--sheet); --color-paper-2: var(--sheet-2); --color-ink: var(--sheet-ink); --color-ink-2: var(--sheet-ink-2);
+    --color-muted: var(--sheet-muted); --color-rule: var(--sheet-rule);
+    --color-accent: var(--sheet-accent); --color-accent-deep: var(--sheet-accent-deep); --color-accent-ink: var(--sheet-accent-ink); --color-focus: var(--sheet-focus);
+    position: relative; background: var(--sheet); color: var(--sheet-ink);
+    padding: 1.6rem 0.75rem 0.75rem; box-shadow: 0 0 0 1px color-mix(in oklab, var(--sheet-ink) 22%, transparent), 0 1px 0 1px var(--color-oak-seam), 0 10px 14px -8px rgb(0 0 0 / 0.6);
+  }
+  .pin::before { content: ""; position: absolute; z-index: 2; top: 0.5rem; left: 50%; width: 0.8rem; height: 0.8rem; margin-left: -0.4rem; border-radius: 50%; background: radial-gradient(circle at 35% 30%, oklch(70% 0.01 70), var(--color-iron) 62%, oklch(16% 0.01 60)); box-shadow: 0 1px 2px rgb(0 0 0 / 0.55); }
+  .bill.pin { color: var(--sheet-ink); }
+  a.pin:focus-visible { outline: 3px solid var(--color-band-accent-deep); outline-offset: 4px; }
+  .board li:nth-child(3n + 1) > .pin { rotate: -0.4deg; }
+  .board li:nth-child(3n + 2) > .pin { rotate: 0.3deg; }
+  /* On a plain page a pinned notice (the contact box) keeps its ink bar and gains the nail. */
+  .well.pin { padding-top: 2.4rem; }
+
+  /* A picture frame: oak around a cover, so the listing's art hangs on the page. */
+  .plate.frame { border: 0.55rem solid var(--color-oak); outline: 1px solid var(--color-oak-seam); outline-offset: 0; box-shadow: inset 0 0 0 1px var(--color-oak-seam); }
+
+  /* The genre menu: a chalkboard in an oak frame; names in the display face, a dotted leader to the count, as on a tavern's menu. */
+  .menu-frame { border: 0.6rem solid var(--color-oak); outline: 1px solid var(--color-oak-seam); }
+  .menu { background: var(--color-chalk); padding: var(--space-xl) var(--space-lg); box-shadow: inset 0 0 0 1px var(--color-oak-seam); }
+  @media (max-width: 40rem) { .menu { padding: var(--space-lg) var(--space-md); } }
+  .leader { flex: 1 1 1rem; min-width: 1rem; align-self: flex-end; margin-bottom: 0.35em; border-bottom: 2px dotted var(--color-muted); }
+
   /* Sections part by the scaffold's steps. */
   .section { padding-block: var(--section-gap-s); }
   .section-l { padding-block: var(--section-gap); }
@@ -180,6 +245,9 @@
   .panel dd { margin: 0; font: 400 var(--text-lg)/1.25 var(--font-display); overflow-wrap: break-word; min-width: 0; }
   .panel dd small { display: block; margin-top: var(--space-2xs); font: 400 var(--text-sm)/1.4 var(--font-body); color: var(--color-muted); }
   @media (max-width: 40rem) { .panel > div { grid-template-columns: minmax(0, 1fr); gap: var(--space-2xs); } }
+
+  /* The standfirst under a head is set in a Fell face: the English printers' type of the 1600s, as on a tavern's broadside. Reading text stays Chivo. */
+  .lead { font-family: var(--font-voice); font-size: calc(var(--text-lead) * 1.08); line-height: 1.4; }
 
   /* The wordmark and the page head's underline. */
   .wordmark { font-family: var(--font-display); font-weight: 400; letter-spacing: var(--tracking-display); line-height: 1; white-space: nowrap; }
