@@ -7,20 +7,18 @@ don't tell you.
 
 The site is a Next 16 static export on Cloudflare Pages (EN/ID) at <https://quest-board-tpk.pages.dev>. The Cloudflare backend (D1 + R2, email-link
 accounts, ADR-25, [backend.md](backend.md)) went live on 2026-10-30 and the Google Forms + Sheet stack was retired in code (ADR-27); the Apps Script
-is only the mail relay. **What is live is the commit `0d898d3`** (the oak-board tavern look, CI green). **13 commits after it are local and NOT pushed**
-(see "Local, not pushed" below); the owner says "push" when they want them live. The live site has 0 games and 0 GMs.
+is only the mail relay. **Everything up to `edb7fb4` is pushed and live, CI green including the full Playwright suite** (the first e2e run on the minimal-tavern
+design, the header toggle, the systems pages and the removal of featured games). The live site has 0 games and 0 GMs, so the home "Browse by system" block
+is hidden there until a game is listed; `/systems/` shows all 130 systems with 0 games.
 
-## Local, not pushed (13 commits after 0d898d3, written 2026-10-30 evening)
+## What was done on 2026-10-30 evening (all pushed)
 
-Design: Halftone, the oak-board tavern and the tavern at night were each dropped; the direction is now the **minimal tavern** (ADR-30, [design.md](../design.md))
-with EB Garamond headings. In order: tavern at night (ADR-29, since superseded), minimal tavern, EB Garamond, header light/dark toggle and EN/ID capitals,
-featured games removed (ADR-31), Phosphor inline icons and the Flaticon credit removed (ADR-32, [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md)),
-the "Browse by system" home block and the `/systems/` page, the systems list (130 entries, every edition its own entry), system tiles kept to one line.
+Design: Halftone, the oak-board tavern and the tavern at night were each dropped; the direction is the **minimal tavern** (ADR-30, [design.md](../design.md))
+with EB Garamond headings. Also: header light/dark toggle and EN/ID in capitals; featured games removed (ADR-31); Phosphor inline icons and no footer credit
+(ADR-32, [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md)); the "Browse by system" home block and the `/systems/` page; a 130-entry systems list with every edition
+its own entry; system tiles kept to one line. Nothing needs a database migration; the unused `featured` column stays in D1.
 
-Not yet verified by anyone: **the Playwright suite has not been run on any of these** (the owner's rule is not to run it unasked; CI runs it on the push), so the
-first push is also the first e2e run on the new header, the tiles, the changed Feature test (now "marking an approved game full") and the form option
-`Call of Cthulhu 7e`. Watch CI after pushing (public Actions API, UTC). Nothing needs a database migration; the unused `featured` column stays in D1.
-The editions in `src/lib/systems.ts` were written from memory: the owner should check Cairn 2e, the Traveller names and the Hunter/Changeling splits.
+Still for the owner to check: the editions in `src/lib/systems.ts` were written from memory (Cairn 2e, the Traveller names, the Hunter and Changeling splits).
 The audit script (`scripts/audit-frontend.mjs`, with `npm run preview` running) was clean after every step except the skip link.
 
 ## Done before the first push of 2026-10-30 (kept for the record)
