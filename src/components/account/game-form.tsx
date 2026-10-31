@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { call, zonedParts } from "@/lib/account-api";
 import { AREAS, SUMMARY_MAX } from "@/lib/areas";
-import { GENRES, MAX_PER_GAME, STYLES, genreLabelKey, styleLabelKey } from "@/lib/categories";
+import { GENRES, MAX_PER_GAME, MECHANICS, STYLES, genreLabelKey, mechanicLabelKey, styleLabelKey } from "@/lib/categories";
 import { OTHER_SYSTEM, SYSTEMS } from "@/lib/systems";
 import { ZONES, type GameRecord } from "@/lib/types";
 import { useI18n } from "../i18n-provider";
@@ -12,12 +12,12 @@ import { Check, Field, PictureField, errorText, field } from "./fields";
 type Values = {
   title: string; system: string; otherSystem: string; summary: string; description: string; format: string; locationType: string; platform: string; city: string;
   venueName: string; venueMapsRaw: string; date: string; time: string; zone: string; scheduleNote: string; keepUntil: string; priceIdr: string; seats: string;
-  language: string; level: string; minAge: string; contentWarnings: string; safetyTools: string; genres: string[]; styles: string[]; coverKey: string; consent: boolean;
+  language: string; level: string; minAge: string; contentWarnings: string; safetyTools: string; genres: string[]; styles: string[]; mechanics: string[]; coverKey: string; consent: boolean;
 };
 
 const EMPTY: Values = {
   title: "", system: "", otherSystem: "", summary: "", description: "", format: "", locationType: "", platform: "", city: "", venueName: "", venueMapsRaw: "", date: "", time: "19:00",
-  zone: "WIB", scheduleNote: "", keepUntil: "", priceIdr: "0", seats: "5", language: "", level: "", minAge: "", contentWarnings: "", safetyTools: "", genres: [], styles: [], coverKey: "", consent: false,
+  zone: "WIB", scheduleNote: "", keepUntil: "", priceIdr: "0", seats: "5", language: "", level: "", minAge: "", contentWarnings: "", safetyTools: "", genres: [], styles: [], mechanics: [], coverKey: "", consent: false,
 };
 
 /** The form's values for a game that exists. A "keep until" date shows only if the GM set one (the default is a day after the start). */
@@ -29,7 +29,7 @@ function valuesOf(g: GameRecord): Values {
     title: g.title, system: known ? g.system : OTHER_SYSTEM, otherSystem: known ? "" : g.system, summary: g.summary, description: g.description, format: g.format, locationType: g.locationType,
     platform: g.platform, city: g.city, venueName: g.venueName, venueMapsRaw: g.venueMapsRaw, date: start.date, time: start.time, zone: g.zone, scheduleNote: g.scheduleNote,
     keepUntil: Date.parse(g.expiresAt) - Date.parse(g.startsAt) === 86_400_000 ? "" : end.date, priceIdr: String(g.priceIdr), seats: String(g.seats), language: g.language, level: g.level,
-    minAge: g.minAge ? String(g.minAge) : "", contentWarnings: g.contentWarnings, safetyTools: g.safetyTools, genres: g.genres, styles: g.styles, coverKey: g.coverId, consent: g.consent,
+    minAge: g.minAge ? String(g.minAge) : "", contentWarnings: g.contentWarnings, safetyTools: g.safetyTools, genres: g.genres, styles: g.styles, mechanics: g.mechanics, coverKey: g.coverId, consent: g.consent,
   };
 }
 
@@ -111,6 +111,12 @@ export function GameForm({ game, onSaved, onCancel }: { game: GameRecord | null;
         <legend className="label">{t("acct.f.styles")}</legend>
         <div className="grid gap-x-[var(--space-lg)] sm:grid-cols-2 lg:grid-cols-3">
           {STYLES.map((s) => <Check key={s.key} id={`g-style-${s.key}`} checked={v.styles.includes(s.key)} disabled={!v.styles.includes(s.key) && v.styles.length >= MAX_PER_GAME} onChange={(on) => set({ styles: pick(v.styles, s.key, on, MAX_PER_GAME) })}>{t(styleLabelKey(s.key))}</Check>)}
+        </div>
+      </fieldset>
+      <fieldset className="grid gap-[var(--space-xs)]">
+        <legend className="label">{t("acct.f.mechanics")}</legend>
+        <div className="grid gap-x-[var(--space-lg)] sm:grid-cols-2 lg:grid-cols-3">
+          {MECHANICS.map((m) => <Check key={m.key} id={`g-mechanic-${m.key}`} checked={v.mechanics.includes(m.key)} disabled={!v.mechanics.includes(m.key) && v.mechanics.length >= MAX_PER_GAME} onChange={(on) => set({ mechanics: pick(v.mechanics, m.key, on, MAX_PER_GAME) })}>{t(mechanicLabelKey(m.key))}</Check>)}
         </div>
       </fieldset>
 

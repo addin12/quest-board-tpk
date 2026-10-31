@@ -48,6 +48,7 @@ export type GameFields = {
   safetyTools: string;
   genres: string[];
   styles: string[];
+  mechanics: string[];
 };
 
 /** What a GM writes about themself. */

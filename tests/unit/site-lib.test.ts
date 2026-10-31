@@ -192,7 +192,7 @@ const record = (over: Partial<GameRecord> = {}): GameRecord => ({
   submittedAt: "2026-10-01T03:00:00.000Z", email: "gm@example.com", row: 2, title: "Mercusuar", system: "Call of Cthulhu", summary: "A horror one-shot.", description: "x".repeat(200),
   format: "one_shot", locationType: "in_person", platform: "", city: "Depok", venueName: "Kumu", venueMapsUrl: "https://maps.app.goo.gl/k", startsAt: "2026-10-12T12:00:00.000Z",
   zone: "WIB", scheduleNote: "", expiresAt: "2026-10-13T12:00:00.000Z", priceIdr: 75000, seats: 5, language: "both", level: "beginner", minAge: 16, contentWarnings: "", safetyTools: "",
-  genres: ["horror"], styles: [], coverId: "covers/1AbCdEfGhIjKl.webp", venueMapsRaw: "", consent: true, ...over,
+  genres: ["horror"], styles: [], mechanics: [], coverId: "covers/1AbCdEfGhIjKl.webp", venueMapsRaw: "", consent: true, ...over,
 });
 const gmRecord = (over: Partial<GmRecord> = {}): GmRecord => ({
   kind: "gm", id: "m1abc1234", slug: "raka-abcd", status: "approved", full: false, adminNote: "", reviewedBy: "", reviewedAt: "", rejectReason: "", superseded: false,

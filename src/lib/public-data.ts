@@ -2,10 +2,11 @@
 // promised: a bad record is dropped with a warning (it never breaks the build or the page), and every
 // string is cut to a sane length. Pure module (explicit .ts imports: scripts/build-data.mjs runs it directly).
 import { ZONES, type GameLanguage, type Level, type RawGame, type RawGm, type RawPublicData, type Zone } from "./types.ts";
-import { GENRES, STYLES } from "./categories.ts";
+import { GENRES, MECHANICS, STYLES } from "./categories.ts";
 
 const GENRE_KEYS: readonly string[] = GENRES.map((g) => g.key);
 const STYLE_KEYS: readonly string[] = STYLES.map((s) => s.key);
+const MECHANIC_KEYS: readonly string[] = MECHANICS.map((m) => m.key);
 const MAX_GAMES = 500;
 const MAX_GMS = 300;
 
@@ -113,7 +114,7 @@ function parseGame(raw: unknown, gmIds: ReadonlySet<string>, warn: (m: string) =
     format: r.format, locationType: r.locationType, platform: text(r.platform, 80), city: text(r.city, 60), venueName: text(r.venueName, 80), venueMapsUrl,
     startsAt, zone, scheduleNote: text(r.scheduleNote, 400, true), expiresAt, priceIdr, seats, language, level, minAge,
     contentWarnings: text(r.contentWarnings, 400, true), safetyTools: text(r.safetyTools, 200),
-    genres: pickKeys(r.genres, GENRE_KEYS), styles: pickKeys(r.styles, STYLE_KEYS),
+    genres: pickKeys(r.genres, GENRE_KEYS), styles: pickKeys(r.styles, STYLE_KEYS), mechanics: pickKeys(r.mechanics, MECHANIC_KEYS),
     coverId: typeof r.coverId === "string" && PICTURE.test(r.coverId) ? r.coverId : "", full: r.full === true, listedAt: isoOrNull(r.listedAt) ?? startsAt,
   };
 }

@@ -8,7 +8,7 @@ import { formatWhen } from "@/lib/format";
 import { adminPictureUrl } from "@/lib/pictures";
 import { STATUSES, type GameRecord, type GmRecord, type Lang, type Status } from "@/lib/types";
 import type { MsgKey, T } from "@/lib/i18n/core";
-import { genreLabelKey, isGenre, isStyle, styleLabelKey } from "@/lib/categories";
+import { genreLabelKey, isGenre, isMechanic, isStyle, mechanicLabelKey, styleLabelKey } from "@/lib/categories";
 import { Icon } from "../icon";
 import { useI18n } from "../i18n-provider";
 import { Avatar, Cover, GameCard, languageLabel, priceLabel, whereLabel } from "../ui";
@@ -315,11 +315,12 @@ function GameDetails({ rec, t, lang }: { rec: GameRecord; t: T; lang: Lang }) {
       <Field label={t("game.format")}>{t(rec.format === "campaign" ? "format.campaign" : "format.one_shot")} · {t("common.seats", { n: rec.seats })}</Field>
       <Field label={t("game.price")}>{priceLabel(rec.priceIdr, t)}</Field>
       <Field label={t("game.language")}>{languageLabel(rec.language, t)} · {t(rec.level === "beginner" ? "level.beginner" : rec.level === "experienced" ? "level.experienced" : "level.any")}{rec.minAge > 0 && <> · {t("game.ages", { n: rec.minAge })}</>}</Field>
-      {(rec.genres.length > 0 || rec.styles.length > 0) && (
+      {(rec.genres.length > 0 || rec.styles.length > 0 || rec.mechanics.length > 0) && (
         <Field label={t("games.genre")}>
           <span className="flex flex-wrap gap-1.5">
             {rec.genres.filter(isGenre).map((g) => <span key={g} className="chip">{t(genreLabelKey(g))}</span>)}
             {rec.styles.filter(isStyle).map((s) => <span key={s} className="chip">{t(styleLabelKey(s))}</span>)}
+            {rec.mechanics.filter(isMechanic).map((m) => <span key={m} className="chip">{t(mechanicLabelKey(m))}</span>)}
           </span>
         </Field>
       )}

@@ -59,7 +59,7 @@ export function previewGame(rec: GameRecord, gm: GmRecord | undefined, nowIso: s
     id: rec.id, slug: rec.slug, gmId: gm?.id ?? "", gmName: gm?.name ?? "", title: rec.title, system: rec.system, summary: rec.summary, description: rec.description,
     format: rec.format, locationType: rec.locationType, platform: rec.platform, city: rec.city, venueName: rec.venueName, venueMapsUrl: rec.venueMapsUrl,
     startsAt, zone: rec.zone, scheduleNote: rec.scheduleNote, expiresAt: rec.expiresAt || startsAt, priceIdr: rec.priceIdr, seats: rec.seats, language: rec.language,
-    level: rec.level, minAge: rec.minAge, contentWarnings: rec.contentWarnings, safetyTools: rec.safetyTools, genres: rec.genres, styles: rec.styles,
+    level: rec.level, minAge: rec.minAge, contentWarnings: rec.contentWarnings, safetyTools: rec.safetyTools, genres: rec.genres, styles: rec.styles, mechanics: rec.mechanics,
     cover: rec.coverId ? adminPictureUrl(rec.coverId) : null, full: rec.full, listedAt: rec.submittedAt || startsAt,
   };
 }

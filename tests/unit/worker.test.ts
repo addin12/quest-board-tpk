@@ -36,6 +36,11 @@ test("a game must fit Jabodetabek and online, and its short description 80 chara
   assert.equal(bad({ seats: 0 }).seats, "invalid_number");
   assert.equal(bad({ genres: ["horror", "sci-fi", "mystery", "cozy"] }).genres, "invalid");
   assert.equal(bad({ genres: ["not-a-genre"] }).genres, "invalid");
+  assert.equal(bad({ mechanics: ["d20", "pbta"] }).mechanics, undefined, "up to three known mechanics are fine");
+  assert.equal(bad({ mechanics: ["d20", "d100", "2d6", "pbta"] }).mechanics, "invalid");
+  assert.equal(bad({ mechanics: ["roll-under-the-moon"] }).mechanics, "invalid");
+  const saved = parseGame({ ...GAME, mechanics: ["d20"] }, now);
+  assert.deepEqual(saved.ok ? saved.value.mechanics : null, ["d20"]);
   assert.equal(bad({ venueMapsRaw: "https://evil.example" }).venueMapsRaw, "invalid_link");
   assert.equal(bad({ date: "2026-10-01" }).date, "in_the_past");
   assert.equal(bad({ consent: false }).consent, "required");
@@ -129,6 +134,7 @@ test("an admin approves; the public data shows only approved things of an approv
   assert.equal(pub.gms.length, 1);
   assert.equal(pub.games.length, 1);
   assert.equal(pub.games[0].gmId, profileId);
+  assert.deepEqual(pub.games[0].mechanics, ["d100"], "mechanics survive the database and reach the public data");
   assert.equal(JSON.stringify(pub).includes("raka@example.com"), false, "no email in the public data");
   assert.equal(JSON.stringify(pub).includes("adminNote"), false);
   const parsed = parsePublicData(pub);

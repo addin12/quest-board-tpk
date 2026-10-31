@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/json-ld";
-import { BrowseTile, EmptyState, GameCard, GameRow } from "@/components/ui";
-import { GENRES, genreCover, genreLabelKey, type GenreKey } from "@/lib/categories";
+import { BrowseSection } from "@/components/browse";
+import { EmptyState, GameCard, GameRow } from "@/components/ui";
+import { GENRES, MECHANICS, STYLES, genreCover, genreLabelKey, mechanicLabelKey, styleLabelKey, type GenreKey, type MechanicKey, type StyleKey } from "@/lib/categories";
 import { gameViews, loadSiteData } from "@/lib/data";
-import { genreTiles, sortGames, systemTiles } from "@/lib/games";
+import { genreTiles, mechanicTiles, sortGames, styleTiles, systemTiles } from "@/lib/games";
 import { paths } from "@/lib/hrefs";
 import { makeT } from "@/lib/i18n/dict";
 import { languageAlternates, websiteJsonLd } from "@/lib/seo";
@@ -25,6 +26,9 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   const beginner = sortGames(games.filter((g) => g.level === "beginner" && !soon.slice(0, 3).includes(g)), "soonest").slice(0, 3);
   const systems = systemTiles(games).slice(0, 10);
   const genres = genreTiles(games, GENRES.map((g) => g.key)).slice(0, 10);
+  const styles = styleTiles(games, STYLES.map((s) => s.key)).slice(0, 10);
+  const mechanics = mechanicTiles(games, MECHANICS.map((m) => m.key)).slice(0, 10);
+  const filterHref = (key: string) => (name: string) => paths.games(lang, `?${key}=${encodeURIComponent(name)}`);
 
   return (
     <>
@@ -63,29 +67,10 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
         </div>
       </section>
 
-      {systems.length > 0 && (
-        <section className="section pt-0" aria-labelledby="systems-h">
-          <div className="wrap">
-            <h2 id="systems-h">{t("home.systemsTitle")}</h2>
-            <ul className="mt-[var(--space-xl)] grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {systems.map((s) => <li key={s.name}><BrowseTile name={s.name} count={s.count} cover={s.cover} href={paths.games(lang, `?system=${encodeURIComponent(s.name)}`)} t={t} /></li>)}
-            </ul>
-            <p className="mt-[var(--space-xl)]"><Link href={paths.systems(lang)} className="btn btn-soft">{t("home.allSystems")}</Link></p>
-          </div>
-        </section>
-      )}
-
-      {genres.length > 0 && (
-        <section className="section pt-0" aria-labelledby="genres-h">
-          <div className="wrap">
-            <h2 id="genres-h">{t("home.genresTitle")}</h2>
-            <ul className="mt-[var(--space-xl)] grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {genres.map((g) => <li key={g.name}><BrowseTile name={t(genreLabelKey(g.name as GenreKey))} count={g.count} cover={genreCover(g.name as GenreKey)} href={paths.games(lang, `?genre=${g.name}`)} t={t} /></li>)}
-            </ul>
-            <p className="mt-[var(--space-xl)]"><Link href={paths.genres(lang)} className="btn btn-soft">{t("home.allGenres")}</Link></p>
-          </div>
-        </section>
-      )}
+      <BrowseSection id="systems-h" title={t("home.systemsTitle")} tiles={systems} href={filterHref("system")} allHref={paths.systems(lang)} allLabel={t("home.allSystems")} t={t} />
+      <BrowseSection id="genres-h" title={t("home.genresTitle")} tiles={genres} href={filterHref("genre")} label={(k) => t(genreLabelKey(k as GenreKey))} cover={(k) => genreCover(k as GenreKey)} allHref={paths.genres(lang)} allLabel={t("home.allGenres")} t={t} />
+      <BrowseSection id="styles-h" title={t("home.stylesTitle")} tiles={styles} href={filterHref("style")} label={(k) => t(styleLabelKey(k as StyleKey))} allHref={paths.styles(lang)} allLabel={t("home.allStyles")} t={t} />
+      <BrowseSection id="mechanics-h" title={t("home.mechanicsTitle")} tiles={mechanics} href={filterHref("mechanic")} label={(k) => t(mechanicLabelKey(k as MechanicKey))} allHref={paths.mechanics(lang)} allLabel={t("home.allMechanics")} t={t} />
 
       {beginner.length > 0 && (
         <section className="section pt-0" aria-labelledby="new-h">

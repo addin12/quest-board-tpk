@@ -67,6 +67,20 @@ export const STYLES = [
   { key: "play-by-post" },
 ] as const satisfies readonly { key: string }[];
 
+/** How a game resolves things: the dice or cards behind the rules. A game carries at most MAX_PER_GAME of them. */
+export const MECHANICS = [
+  { key: "d20" },
+  { key: "d100" },
+  { key: "2d6" },
+  { key: "dice-pool" },
+  { key: "fate-dice" },
+  { key: "pbta" },
+  { key: "fitd" },
+  { key: "osr" },
+  { key: "card-based" },
+  { key: "no-dice" },
+] as const satisfies readonly { key: string }[];
+
 export type GenreKey = (typeof GENRES)[number]["key"];
 export type StyleKey = (typeof STYLES)[number]["key"];
 
@@ -74,6 +88,9 @@ export type StyleKey = (typeof STYLES)[number]["key"];
 export const MAX_PER_GAME = 3;
 
 export const isGenre = (k: string): k is GenreKey => GENRES.some((g) => g.key === k);
+export type MechanicKey = (typeof MECHANICS)[number]["key"];
+export const isMechanic = (k: string): k is MechanicKey => MECHANICS.some((m) => m.key === k);
+export const mechanicLabelKey = (k: MechanicKey) => `mechanic.${k}` as MsgKey;
 export const isStyle = (k: string): k is StyleKey => STYLES.some((s) => s.key === k);
 
 export const genreLabelKey = (k: GenreKey) => `genre.${k}` as MsgKey;

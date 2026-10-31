@@ -7,6 +7,8 @@ export type Filters = {
   q: string;
   system: string;
   genre: string;
+  style: string;
+  mechanic: string;
   format: "" | GameFormat;
   where: "" | LocationType;
   level: "" | Level;
@@ -15,7 +17,7 @@ export type Filters = {
   sort: SortKey;
 };
 
-export const EMPTY_FILTERS: Filters = { q: "", system: "", genre: "", format: "", where: "", level: "", language: "", free: false, sort: "soonest" };
+export const EMPTY_FILTERS: Filters = { q: "", system: "", genre: "", style: "", mechanic: "", format: "", where: "", level: "", language: "", free: false, sort: "soonest" };
 
 const oneOf = <T extends string>(v: string | null, allowed: readonly T[], fallback: T): T => (allowed.includes(v as T) ? (v as T) : fallback);
 
@@ -26,6 +28,8 @@ export function parseFilters(search: string): Filters {
     q: (p.get("q") ?? "").slice(0, 80),
     system: (p.get("system") ?? "").slice(0, 80),
     genre: (p.get("genre") ?? "").slice(0, 40),
+    style: (p.get("style") ?? "").slice(0, 40),
+    mechanic: (p.get("mechanic") ?? "").slice(0, 40),
     format: oneOf(p.get("format"), ["", "one_shot", "campaign"] as const, ""),
     where: oneOf(p.get("where"), ["", "online", "in_person"] as const, ""),
     level: oneOf(p.get("level"), ["", "beginner", "any", "experienced"] as const, ""),
@@ -38,7 +42,7 @@ export function parseFilters(search: string): Filters {
 /** The query string for filters ("" when nothing differs from the defaults). @example filtersToQuery({ ...EMPTY_FILTERS, q: "horror" }) // "?q=horror" */
 export function filtersToQuery(f: Filters): string {
   const p = new URLSearchParams();
-  (["q", "system", "genre", "format", "where", "level", "language"] as const).forEach((k) => { if (f[k]) p.set(k, f[k]); });
+  (["q", "system", "genre", "style", "mechanic", "format", "where", "level", "language"] as const).forEach((k) => { if (f[k]) p.set(k, f[k]); });
   if (f.free) p.set("free", "1");
   if (f.sort !== "soonest") p.set("sort", f.sort);
   const s = p.toString();
@@ -47,7 +51,7 @@ export function filtersToQuery(f: Filters): string {
 
 /** How many filters are on (the sort doesn't count). */
 export function activeFilterCount(f: Filters): number {
-  return (["q", "system", "genre", "format", "where", "level", "language"] as const).filter((k) => f[k]).length + (f.free ? 1 : 0);
+  return (["q", "system", "genre", "style", "mechanic", "format", "where", "level", "language"] as const).filter((k) => f[k]).length + (f.free ? 1 : 0);
 }
 
 export type GameView = SiteGame & { gmName: string };
@@ -102,6 +106,12 @@ export const allSystemTiles = (games: readonly GameView[], known: readonly strin
 /** Genre tiles by genre key; only the keys in `known` (the site's taxonomy) are kept. */
 export const genreTiles = (games: readonly GameView[], known: readonly string[]): Tile[] => rankTiles(games, (g) => g.genres).filter((t) => known.includes(t.name));
 
+/** Style and mechanic tiles by key, only the keys in `known`; the all-versions list the rest at 0. */
+export const styleTiles = (games: readonly GameView[], known: readonly string[]): Tile[] => rankTiles(games, (g) => g.styles).filter((t) => known.includes(t.name));
+export const allStyleTiles = (games: readonly GameView[], known: readonly string[]): Tile[] => withUnlisted(styleTiles(games, known), known);
+export const mechanicTiles = (games: readonly GameView[], known: readonly string[]): Tile[] => rankTiles(games, (g) => g.mechanics).filter((t) => known.includes(t.name));
+export const allMechanicTiles = (games: readonly GameView[], known: readonly string[]): Tile[] => withUnlisted(mechanicTiles(games, known), known);
+
 /** Every genre in `known`: those with games first, then the rest in the order of `known`. */
 export const allGenreTiles = (games: readonly GameView[], known: readonly string[]): Tile[] => withUnlisted(genreTiles(games, known), known);
 
@@ -111,6 +121,8 @@ export function applyFilters<G extends GameView>(games: G[], f: Filters): G[] {
       matchesText(g, f.q) &&
       (!f.system || g.system === f.system) &&
       (!f.genre || g.genres.includes(f.genre)) &&
+      (!f.style || g.styles.includes(f.style)) &&
+      (!f.mechanic || g.mechanics.includes(f.mechanic)) &&
       (!f.format || g.format === f.format) &&
       (!f.where || g.locationType === f.where) &&
       (!f.level || g.level === f.level) &&
@@ -130,5 +142,7 @@ export function filterOptions(games: readonly SiteGame[]) {
   return {
     systems: uniq(games.map((g) => g.system)),
     genres: [...new Set(games.flatMap((g) => g.genres))],
+    styles: [...new Set(games.flatMap((g) => g.styles))],
+    mechanics: [...new Set(games.flatMap((g) => g.mechanics))],
   };
 }

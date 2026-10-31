@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { BrowseTile } from "@/components/ui";
-import { paths } from "@/lib/hrefs";
-import { gameViews, loadSiteData } from "@/lib/data";
+import { BrowsePage } from "@/components/browse";
 import { allSystemTiles } from "@/lib/games";
+import { SYSTEMS } from "@/lib/systems";
+import { gameViews, loadSiteData } from "@/lib/data";
+import { paths } from "@/lib/hrefs";
 import { makeT } from "@/lib/i18n/dict";
 import { languageAlternates } from "@/lib/seo";
-import { SYSTEMS } from "@/lib/systems";
 import { isLang } from "@/lib/types";
 
 export async function generateMetadata({ params }: PageProps<"/[lang]/systems">): Promise<Metadata> {
@@ -19,14 +19,8 @@ export default async function SystemsPage({ params }: PageProps<"/[lang]/systems
   const { lang } = await params;
   if (!isLang(lang)) notFound();
   const t = makeT(lang);
-  const systems = allSystemTiles(gameViews(loadSiteData()), SYSTEMS);
+  const tiles = allSystemTiles(gameViews(loadSiteData()), SYSTEMS);
   return (
-    <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-2xl)]">
-      <h1 className="max-w-none text-[length:var(--text-display-s)]">{t("systems.title")}</h1>
-      <p className="lead mb-[var(--space-xl)] mt-[var(--space-sm)] text-ink-2">{t("systems.lead")}</p>
-      <ul className="grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {systems.map((s) => <li key={s.name}><BrowseTile name={s.name} count={s.count} cover={s.cover} href={paths.games(lang, `?system=${encodeURIComponent(s.name)}`)} t={t} /></li>)}
-        </ul>
-    </div>
+    <BrowsePage title={t("systems.title")} lead={t("systems.lead")} tiles={tiles} href={(n) => paths.games(lang, `?system=${encodeURIComponent(n)}`)} t={t} />
   );
 }

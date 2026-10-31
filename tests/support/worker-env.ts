@@ -104,7 +104,7 @@ export const PROFILE = { name: "Raka Pratama", bio: "Horror GM.", city: "Depok",
 export const GAME = {
   title: "Mercusuar di Pulau Kabut", system: "Call of Cthulhu", summary: "The lighthouse keeper stopped answering the radio.", description: "A classic Call of Cthulhu investigation for three to five players.",
   format: "one_shot", locationType: "in_person", city: "Depok", venueName: "Kumu Ground Coffee", venueMapsRaw: "https://maps.app.goo.gl/abc123", date: "2026-11-08", time: "19:00", zone: "WIB",
-  priceIdr: 75000, seats: 5, language: "both", level: "beginner", minAge: 16, genres: ["horror"], styles: ["roleplay-heavy"], consent: true,
+  priceIdr: 75000, seats: 5, language: "both", level: "beginner", minAge: 16, genres: ["horror"], styles: ["roleplay-heavy"], mechanics: ["d100"], consent: true,
 };
 
 /** A few bytes that pass for a WebP file. */

@@ -5,7 +5,7 @@ import { ContactButtons } from "@/components/contact-buttons";
 import { Gone, goneMetadata } from "@/components/gone";
 import { JsonLd } from "@/components/json-ld";
 import { Avatar, Cover, languageLabel, priceLabel, whereLabel } from "@/components/ui";
-import { genreLabelKey, isGenre, isStyle, styleLabelKey } from "@/lib/categories";
+import { genreLabelKey, isGenre, isMechanic, isStyle, mechanicLabelKey, styleLabelKey } from "@/lib/categories";
 import { contactMessage, encodeContact } from "@/lib/contact";
 import { gmById, loadSiteData } from "@/lib/data";
 import { formatDay, formatWhen } from "@/lib/format";
@@ -48,6 +48,7 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
   const t = makeT(lang);
   const genres = game.genres.filter(isGenre);
   const styles = game.styles.filter(isStyle);
+  const mechanics = game.mechanics.filter(isMechanic);
 
   const facts: { label: string; value: React.ReactNode }[] = [
     { label: t("game.when"), value: formatWhen(game.startsAt, lang, game.zone) },
@@ -122,10 +123,11 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
             </dl>
 
 
-            {(genres.length > 0 || styles.length > 0) && (
+            {(genres.length > 0 || styles.length > 0 || mechanics.length > 0) && (
               <ul className="mt-[var(--space-xl)] flex flex-wrap gap-[var(--space-xs)]">
                 {genres.map((g) => <li key={g} className="chip">{t(genreLabelKey(g))}</li>)}
                 {styles.map((s) => <li key={s} className="chip">{t(styleLabelKey(s))}</li>)}
+                {mechanics.map((m) => <li key={m} className="chip">{t(mechanicLabelKey(m))}</li>)}
               </ul>
             )}
           </div>
