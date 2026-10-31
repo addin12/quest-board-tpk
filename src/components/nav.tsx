@@ -46,7 +46,7 @@ export function NavLinks({ variant }: { variant: "header" | "tabs" }) {
         const current = isCurrent(pathname, lang, i.prefix);
         const action = n === ITEMS.length - 1;
         return (
-          <Link key={i.prefix} href={i.href(lang)} aria-current={current ? "page" : undefined} className={`inline-flex min-h-12 items-center ${action ? "ml-auto font-bold" : ""} ${current || action ? "border-b-2 border-accent" : "border-b-2 border-transparent hover:border-rule"}`}>
+          <Link key={i.prefix} href={i.href(lang)} aria-current={current ? "page" : undefined} className={`inline-flex min-h-12 items-center ${action ? "ml-auto font-bold" : ""} ${current || action ? "border-b-2 border-accent" : "-mx-3 rounded-[var(--radius-input)] border-b-2 border-transparent bg-clip-padding px-3 hover:bg-paper-3"}`}>
             {t(i.label)}
           </Link>
         );
