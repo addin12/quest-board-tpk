@@ -101,8 +101,11 @@ The audit script (`scripts/audit-frontend.mjs`, with `npm run preview` running) 
 - **Turnstile never finishes in automated browsers**, and `networkidle` never settles on a page with it: wait for `load`.
 - **Apps Script is not Node**: no `fetch`/`URL` in pure helpers (names ending `_`).
 - **Stale servers and ports** break e2e on Windows: kill leftover `node` processes (PowerShell) before re-running. The bundled Playwright Chromium may be missing: `npx playwright install`, or use Edge (`AUDIT_BROWSER=msedge`).
-- **Hallmark waivers**: four sloplint waivers are deliberate (44c, 79, 77, 78) and recorded in `src/app/globals.css`.
 - **Check CI after a push**: GitHub CI was once silently red for rounds. Poll the public Actions API; times are UTC.
+
+## Performance, measured once (2026-10-31, Lighthouse 12, Edge, the local preview)
+
+Accessibility 98 to 100, best practices 100, SEO 100 on the home page, a game page and /systems/ (the one miss, a skipped heading level on the browse pages, is fixed). Performance: desktop 97; **mobile 64 to 65** (LCP 6.4 to 7.5 s, TBT 420 to 500 ms) under Lighthouse's slow-4G, 4x-CPU profile. The local server does not compress, which Lighthouse counts as 2.7 to 3.3 s; Cloudflare Pages does, so the real figure is better and **not yet measured on the live site**. What is real: about 390 KB of client JavaScript (React and Next, 244 KB of it unused on a static page) and the whole public text dictionary shipped inside every page's HTML (the home page is 110 KB before compression). Next steps, biggest first: pass each client component only the texts it uses instead of the whole dictionary; load the theme toggle and the language switch with the smallest client bundle possible; re-measure on the live URL.
 
 ## Open items (none blocks use)
 

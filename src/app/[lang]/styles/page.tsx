@@ -21,6 +21,6 @@ export default async function StylesPage({ params }: PageProps<"/[lang]/styles">
   const t = makeT(lang);
   const tiles = allStyleTiles(gameViews(loadSiteData()), STYLES.map((s) => s.key));
   return (
-    <BrowsePage title={t("styles.title")} lead={t("styles.lead")} tiles={tiles} href={(n) => paths.games(lang, `?style=${encodeURIComponent(n)}`)} label={(k) => t(styleLabelKey(k as StyleKey))} variant="card" t={t} />
+    <BrowsePage home={paths.home(lang)} path={paths.styles(lang)} title={t("styles.title")} lead={t("styles.lead")} tiles={tiles} href={(n) => paths.games(lang, `?style=${encodeURIComponent(n)}`)} label={(k) => t(styleLabelKey(k as StyleKey))} variant="card" t={t} />
   );
 }

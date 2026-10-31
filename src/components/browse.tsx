@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { JsonLd } from "@/components/json-ld";
+import { breadcrumbJsonLd } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site";
 import type { T } from "@/lib/i18n/core";
 import { BrowseCard, BrowseTile } from "./ui";
 
@@ -13,19 +16,21 @@ type Common = {
   cover?: (name: string) => string | null;
   /** "card" is a rounded rectangle with the name only (no picture); the default is a picture tile. */
   variant?: "tile" | "card";
+  /** The heading level of each tile: 3 under a section heading (the default), 2 straight under the page title. */
+  level?: 2 | 3;
   t: T;
 };
 
 const GRID = "grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
 const CARD_GRID = "grid grid-cols-2 gap-[var(--space-md)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
 
-function Tiles({ tiles, href, label, cover, variant = "tile", t }: Common) {
+function Tiles({ tiles, href, label, cover, variant = "tile", level, t }: Common) {
   if (variant === "card") {
-    return <ul className={CARD_GRID}>{tiles.map((x) => <li key={x.name} className="flex"><BrowseCard name={label ? label(x.name) : x.name} count={x.count} href={href(x.name)} t={t} /></li>)}</ul>;
+    return <ul className={CARD_GRID}>{tiles.map((x) => <li key={x.name} className="flex"><BrowseCard name={label ? label(x.name) : x.name} count={x.count} href={href(x.name)} t={t} level={level} /></li>)}</ul>;
   }
   return (
     <ul className={GRID}>
-      {tiles.map((x) => <li key={x.name}><BrowseTile name={label ? label(x.name) : x.name} count={x.count} cover={cover ? cover(x.name) : x.cover} href={href(x.name)} t={t} /></li>)}
+      {tiles.map((x) => <li key={x.name}><BrowseTile name={label ? label(x.name) : x.name} count={x.count} cover={cover ? cover(x.name) : x.cover} href={href(x.name)} t={t} level={level} /></li>)}
     </ul>
   );
 }
@@ -46,13 +51,25 @@ export function BrowseSection({ id, title, allHref, allLabel, ...rest }: Common 
   );
 }
 
-/** A page that lists every tile of one kind (all systems, all genres, ...). */
-export function BrowsePage({ title, lead, ...rest }: Common & { title: string; lead: string }) {
+/**
+ * A page that lists every tile of one kind (all systems, all genres, ...), with a breadcrumb for search engines. With `emptyHeading` the tiles that
+ * have no games are not drawn as pictures: they follow under that heading as compact cards, so a long list of blanks does not push the real ones away.
+ */
+export function BrowsePage({ title, lead, home, path, emptyHeading, ...rest }: Common & { title: string; lead: string; home: string; path: string; emptyHeading?: string }) {
+  const listed = emptyHeading ? rest.tiles.filter((x) => x.count > 0) : rest.tiles;
+  const unlisted = emptyHeading ? rest.tiles.filter((x) => x.count === 0) : [];
   return (
     <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-2xl)]">
+      <JsonLd data={breadcrumbJsonLd([{ name: "Quest Board TPK", url: `${SITE_URL}${home}` }, { name: title, url: `${SITE_URL}${path}` }])} />
       <h1 className="max-w-none text-[length:var(--text-display-s)]">{title}</h1>
       <p className="lead mb-[var(--space-xl)] mt-[var(--space-sm)] text-ink-2">{lead}</p>
-      <Tiles {...rest} />
+      {listed.length > 0 && <Tiles {...rest} tiles={listed} level={2} />}
+      {unlisted.length > 0 && (
+        <section className={listed.length > 0 ? "mt-[var(--space-3xl)]" : ""}>
+          <h2 className="mb-[var(--space-lg)] max-w-none text-[length:var(--text-2xl)]">{emptyHeading}</h2>
+          <Tiles {...rest} tiles={unlisted} variant="card" level={3} />
+        </section>
+      )}
     </div>
   );
 }

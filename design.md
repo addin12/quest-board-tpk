@@ -2,7 +2,7 @@
 
 The one page to read before changing how the site looks. The decisions behind it are in [DECISIONS.md](DECISIONS.md) (ADR-30; ADR-22, 28 and 29
 are earlier directions that were dropped); the mandatory rules for any screen real people use are in [CLAUDE.md](CLAUDE.md). The tokens live in
-`src/app/tokens.css` (light) and `src/app/globals.css` (dark, components, the Hallmark waivers).
+`src/app/tokens.css` (light) and `src/app/globals.css` (dark and components).
 
 Design Read: a listing board for tabletop players in Jabodetabek and the Game Masters who run for them, in a **minimal tavern** language: warm paper,
 ink, one oxblood accent, and three quiet tavern touches and one typeface. Dial: ENERGY 1 / RHYTHM 2 / MOTION 1.
@@ -64,16 +64,11 @@ the listings' own cover art as the only colour) and the tavern is carried by thr
 6. No em dashes in copy or emails.
 7. The first screen on a phone shows what the page is for, not a banner.
 
-## Exceptions on the record
+## Decisions on the record (2026-10-31)
 
-Four Hallmark checks are waived on purpose; each is noted at the top of `src/app/globals.css` and explained here so the next person knows they are
-decisions and not oversights. They date from the Halftone design; the Hallmark linter has not been run on this direction.
-
-| Check | Why it is waived |
-|---|---|
-| 44c, 79 | The inner pages have no hero stage: the list, listing or form starts right under the masthead, so there is no empty first screen to fill and no dead band under it. |
-| 77 | A listing's about, schedule and safety rows are plain reading text beside their heads, set as one ruled list across the page. |
-| 78 | The games list has no section heads: each listing's title is its own `h2` inside its link, set at item size so three fit across. |
+- **The theme follows the visitor's device by default**, and the header toggle then pins light or dark. Dark is not forced on everyone: the page is read mostly on phones in daylight and the light stock is the primary one. The footer keeps the three-way switch because it is the only way back to Automatic.
+- **The tavern stays at three touches and a typeface** (oak strip, double rule, a nail on each card, Garamond). It is deliberately quiet after three heavier directions were rejected. Turning it up later means adding one touch at a time, each with a reason in the table above.
+- **Play styles and mechanics are optional and collapsed** in the GM's listing form (genres stay open): they are long and most GMs will skip them.
 
 ## How to change it
 

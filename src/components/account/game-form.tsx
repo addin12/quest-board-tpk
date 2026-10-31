@@ -40,6 +40,7 @@ export function GameForm({ game, onSaved, onCancel }: { game: GameRecord | null;
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [problem, setProblem] = useState("");
   const [busy, setBusy] = useState(false);
+  const [moreOpen] = useState(() => v.styles.length + v.mechanics.length > 0);
   const set = (patch: Partial<Values>) => setV((old) => ({ ...old, ...patch }));
   const err = (key: string) => field(errors, key, t);
   const inPerson = v.locationType === "in_person";
@@ -107,7 +108,9 @@ export function GameForm({ game, onSaved, onCancel }: { game: GameRecord | null;
         </div>
         {err("genres") && <p role="alert" className="text-sm font-bold text-danger">{err("genres")}</p>}
       </fieldset>
-      <fieldset className="grid gap-[var(--space-xs)]">
+      <details open={moreOpen} className="grid gap-[var(--space-lg)]">
+        <summary className="label cursor-pointer">{t("acct.f.more")}</summary>
+      <fieldset className="mt-[var(--space-md)] grid gap-[var(--space-xs)]">
         <legend className="label">{t("acct.f.styles")}</legend>
         <div className="grid gap-x-[var(--space-lg)] sm:grid-cols-2 lg:grid-cols-3">
           {STYLES.map((s) => <Check key={s.key} id={`g-style-${s.key}`} checked={v.styles.includes(s.key)} disabled={!v.styles.includes(s.key) && v.styles.length >= MAX_PER_GAME} onChange={(on) => set({ styles: pick(v.styles, s.key, on, MAX_PER_GAME) })}>{t(styleLabelKey(s.key))}</Check>)}
@@ -119,6 +122,7 @@ export function GameForm({ game, onSaved, onCancel }: { game: GameRecord | null;
           {MECHANICS.map((m) => <Check key={m.key} id={`g-mechanic-${m.key}`} checked={v.mechanics.includes(m.key)} disabled={!v.mechanics.includes(m.key) && v.mechanics.length >= MAX_PER_GAME} onChange={(on) => set({ mechanics: pick(v.mechanics, m.key, on, MAX_PER_GAME) })}>{t(mechanicLabelKey(m.key))}</Check>)}
         </div>
       </fieldset>
+      </details>
 
       <fieldset className="grid gap-[var(--space-xs)]">
         <legend className="label">{t("acct.f.where")}</legend>

@@ -1,11 +1,6 @@
 /* Direction: a minimal tavern (ADR-30, design.md). Warm paper, ink, one oxblood accent; the tavern is three quiet touches: an oak strip at the top and foot, a double rule under the masthead,
  * and a nail in each listing card; the headings are set in a Garamond. Light is the primary stock, dark is the same room after hours.
- * The Hallmark waivers below are kept for the Hallmark linter, which has not been run on this direction.
- * Hallmark · waive 44c · hero: Banner · the inner pages open straight on their list, listing or form under the masthead, so there is no hero stage on them to fill the first screen
- * Hallmark · waive 79 · hero: Banner · the masthead is the only chrome above the list, listing or form, which starts at once, so no dead band is left under it
- * Hallmark · waive 77 · hero: Banner · the listing's about, schedule and safety rows are plain reading text beside their heads, set as one ruled list across the page
- * Hallmark · waive 78 · heads are card titles · the games list has no section heads, each listing's title is its own h2 inside its link, set at item size so three fit across
- * Hallmark · dropped #f-city · the owner removed the city filter: the community plays in Jabodetabek and online only */
+ * The owner removed the city filter: the community plays in Jabodetabek and online only. */
 @import "tailwindcss";
 @import "./tokens.css";
 @import "./base.css" layer(base);
@@ -137,7 +132,6 @@
 
   /* Sections part by the scaffold's steps. */
   .section { padding-block: var(--section-gap-s); }
-  .section-l { padding-block: var(--section-gap); }
 
   /* A figure as a poster: the number in the display face, solid accent. */
   .poster { font: 400 clamp(5rem, 14vw, 11rem)/0.9 var(--font-display); letter-spacing: -0.02em; color: var(--color-accent); font-variant-numeric: tabular-nums; }

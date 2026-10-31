@@ -21,6 +21,6 @@ export default async function GenresPage({ params }: PageProps<"/[lang]/genres">
   const t = makeT(lang);
   const tiles = allGenreTiles(gameViews(loadSiteData()), GENRES.map((g) => g.key));
   return (
-    <BrowsePage title={t("genres.title")} lead={t("genres.lead")} tiles={tiles} href={(n) => paths.games(lang, `?genre=${encodeURIComponent(n)}`)} label={(k) => t(genreLabelKey(k as GenreKey))} cover={(k) => genreCover(k as GenreKey)} t={t} />
+    <BrowsePage home={paths.home(lang)} path={paths.genres(lang)} title={t("genres.title")} lead={t("genres.lead")} tiles={tiles} href={(n) => paths.games(lang, `?genre=${encodeURIComponent(n)}`)} label={(k) => t(genreLabelKey(k as GenreKey))} cover={(k) => genreCover(k as GenreKey)} t={t} />
   );
 }
