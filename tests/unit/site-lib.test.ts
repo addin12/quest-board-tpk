@@ -6,7 +6,7 @@ import { SUMMARY_MAX } from "../../src/lib/areas.ts";
 import { checkGame, checkGm, hasErrors } from "../../src/lib/checks.ts";
 import { contactMessage, decodeContact, encodeContact, messageLang, waLink } from "../../src/lib/contact.ts";
 import { formatDay, formatIdr, formatWhen, initialsOf } from "../../src/lib/format.ts";
-import { EMPTY_FILTERS, activeFilterCount, applyFilters, filterOptions, filtersToQuery, isLive, parseFilters, systemTiles, allSystemTiles, type GameView } from "../../src/lib/games.ts";
+import { EMPTY_FILTERS, activeFilterCount, applyFilters, filterOptions, filtersToQuery, isLive, parseFilters, systemTiles, allSystemTiles, genreTiles, allGenreTiles, type GameView } from "../../src/lib/games.ts";
 import { DICTIONARIES, makeT } from "../../src/lib/i18n/dict.ts";
 import { cleanDiscord, isGoogleMapsUrl, isPhone, parsePublicData, text } from "../../src/lib/public-data.ts";
 import { buildItems, canApprove, countByStatus, filterItems, previewGame, reasonText, siteBehind, whenLabel } from "../../src/lib/admin-view.ts";
@@ -124,6 +124,16 @@ test("system tiles: the most listed first, ties A to Z, the cover of the soonest
   assert.equal(tiles[0].cover, "/z-late.svg", "the soonest listing WITH a cover, skipping the sooner one that has none");
   assert.equal(tiles[1].cover, null);
   assert.deepEqual(systemTiles([]), []);
+});
+
+test("genre tiles: a game counts once under each of its genres; only the site's genres are kept; all genres list the rest at 0", () => {
+  const base = games()[0];
+  const mk = (genres: string[], startsAt: string, cover: string | null): GameView => ({ ...base, genres, startsAt, cover, full: false });
+  const list = [mk(["horror", "mystery", "not-a-genre"], "2030-01-02T12:00:00Z", "/a.svg"), mk(["horror"], "2030-01-01T12:00:00Z", null)];
+  const tiles = genreTiles(list, ["fantasy", "horror", "mystery"]);
+  assert.deepEqual(tiles.map((x) => x.name + ":" + x.count), ["horror:2", "mystery:1"]);
+  assert.equal(tiles[0].cover, "/a.svg", "the soonest listing with a cover");
+  assert.deepEqual(allGenreTiles(list, ["fantasy", "horror", "mystery"]).map((x) => x.name + ":" + x.count), ["horror:2", "mystery:1", "fantasy:0"]);
 });
 
 test("all system tiles: systems with games first, then every other known system with 0 games and no cover", () => {

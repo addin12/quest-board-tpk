@@ -71,31 +71,39 @@ export function sortGames<G extends GameView>(games: G[], sort: SortKey): G[] {
   return copy.sort((a, b) => notFullFirst(a, b) || byStart(a, b)); // soonest first, full games last
 }
 
-/**
- * One entry per game system that has listings, the most listed first (ties A to Z), each with the cover of its soonest listing that has one.
- * @example systemTiles(games).slice(0, 10) // the ten the home page shows
- */
-export function systemTiles(games: readonly GameView[]): { name: string; count: number; cover: string | null }[] {
-  const bySystem = new Map<string, { count: number; cover: string | null }>();
+type Tile = { name: string; count: number; cover: string | null };
+
+/** One tile per key that has listings, the most listed first (ties A to Z), with the cover of its soonest listing that has one. */
+function rankTiles(games: readonly GameView[], keysOf: (g: GameView) => readonly string[]): Tile[] {
+  const byKey = new Map<string, { count: number; cover: string | null }>();
   for (const g of sortGames([...games], "soonest")) {
-    const entry = bySystem.get(g.system) ?? { count: 0, cover: null };
-    entry.count += 1;
-    entry.cover ??= g.cover;
-    bySystem.set(g.system, entry);
+    for (const key of new Set(keysOf(g))) {
+      const entry = byKey.get(key) ?? { count: 0, cover: null };
+      entry.count += 1;
+      entry.cover ??= g.cover;
+      byKey.set(key, entry);
+    }
   }
-  return [...bySystem].map(([name, v]) => ({ name, ...v })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  return [...byKey].map(([name, v]) => ({ name, ...v })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }
 
-/**
- * Every system in `known` plus any other system that has games: those with games first (as `systemTiles` ranks them), then the rest in the order
- * of `known`, each with a count of 0 and no cover.
- * @example allSystemTiles(games, SYSTEMS) // the /systems/ page
- */
-export function allSystemTiles(games: readonly GameView[], known: readonly string[]): { name: string; count: number; cover: string | null }[] {
-  const listed = systemTiles(games);
-  const seen = new Set(listed.map((s) => s.name));
+/** Every key in `known` after the ones with listings, each with a count of 0 and no cover. */
+const withUnlisted = (listed: Tile[], known: readonly string[]): Tile[] => {
+  const seen = new Set(listed.map((t) => t.name));
   return [...listed, ...known.filter((name) => !seen.has(name)).map((name) => ({ name, count: 0, cover: null }))];
-}
+};
+
+/** @example systemTiles(games).slice(0, 10) // the ten the home page shows */
+export const systemTiles = (games: readonly GameView[]): Tile[] => rankTiles(games, (g) => [g.system]);
+
+/** Every system in `known` plus any other system that has games: those with games first, then the rest in the order of `known`. */
+export const allSystemTiles = (games: readonly GameView[], known: readonly string[]): Tile[] => withUnlisted(systemTiles(games), known);
+
+/** Genre tiles by genre key; only the keys in `known` (the site's taxonomy) are kept. */
+export const genreTiles = (games: readonly GameView[], known: readonly string[]): Tile[] => rankTiles(games, (g) => g.genres).filter((t) => known.includes(t.name));
+
+/** Every genre in `known`: those with games first, then the rest in the order of `known`. */
+export const allGenreTiles = (games: readonly GameView[], known: readonly string[]): Tile[] => withUnlisted(genreTiles(games, known), known);
 
 export function applyFilters<G extends GameView>(games: G[], f: Filters): G[] {
   return sortGames(

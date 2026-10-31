@@ -1,5 +1,5 @@
-/* Direction: a minimal tavern (ADR-30, design.md). Warm paper, ink, one oxblood accent; the tavern is four quiet touches: an oak strip at the top and foot, a double rule under the masthead,
- * a nail in each listing card, and a menu's dotted leaders; the headings are set in a 1600s English printer's face. Light is the primary stock, dark is the same room after hours.
+/* Direction: a minimal tavern (ADR-30, design.md). Warm paper, ink, one oxblood accent; the tavern is three quiet touches: an oak strip at the top and foot, a double rule under the masthead,
+ * and a nail in each listing card; the headings are set in a Garamond. Light is the primary stock, dark is the same room after hours.
  * The Hallmark waivers below are kept for the Hallmark linter, which has not been run on this direction.
  * Hallmark · waive 44c · hero: Banner · the inner pages open straight on their list, listing or form under the masthead, so there is no hero stage on them to fill the first screen
  * Hallmark · waive 79 · hero: Banner · the masthead is the only chrome above the list, listing or form, which starts at once, so no dead band is left under it
@@ -126,7 +126,7 @@
   /* A photograph or a cover: square, a 1px hairline. */
   .plate { position: relative; overflow: hidden; outline: var(--rule-hair) solid var(--color-rule); outline-offset: calc(-1 * var(--rule-hair)); background: var(--color-paper-3); }
 
-  /* The tavern, in four quiet touches (design.md). One: a strip of oak at the very top and the very foot of every page. */
+  /* The tavern, in a few quiet touches (design.md). One: a strip of oak at the very top and the very foot of every page. */
   .oak-strip { height: 0.375rem; background: var(--color-oak); }
   /* Two: a double rule under the masthead, as under the title of an old broadside. */
   .rule-double { border-bottom: 4px double var(--color-ink); }
@@ -134,8 +134,6 @@
   .tack { position: relative; padding: 1.75rem 0.875rem 0.875rem; border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-card); background: var(--color-paper); transition: border-color var(--dur-micro) var(--ease-out); }
   .tack::before { content: ""; position: absolute; top: 0.6rem; left: 50%; width: 0.5rem; height: 0.5rem; margin-left: -0.25rem; border-radius: 50%; background: color-mix(in oklab, var(--color-ink) 62%, var(--color-paper)); }
   .tack:hover { border-color: var(--color-ink); }
-  /* Four: a menu's dotted leader between a name and its number. */
-  .leader { flex: 1 1 1rem; min-width: 1rem; align-self: flex-end; margin-bottom: 0.35em; border-bottom: 2px dotted var(--color-muted); }
 
   /* Sections part by the scaffold's steps. */
   .section { padding-block: var(--section-gap-s); }

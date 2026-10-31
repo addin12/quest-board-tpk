@@ -7,6 +7,7 @@ export const paths = {
   games: (l: Lang, query = "") => `/${l}/games/${query}`,
   game: (l: Lang, slug: string) => `/${l}/games/${slug}/`,
   systems: (l: Lang) => `/${l}/systems/`,
+  genres: (l: Lang) => `/${l}/genres/`,
   gms: (l: Lang) => `/${l}/gms/`,
   gm: (l: Lang, slug: string) => `/${l}/gm/${slug}/`,
   how: (l: Lang) => `/${l}/how-it-works/`,

@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/json-ld";
-import { EmptyState, GameCard, GameRow, SystemTile } from "@/components/ui";
-import { GENRES, genreLabelKey } from "@/lib/categories";
+import { BrowseTile, EmptyState, GameCard, GameRow } from "@/components/ui";
+import { GENRES, genreLabelKey, type GenreKey } from "@/lib/categories";
 import { gameViews, loadSiteData } from "@/lib/data";
-import { sortGames, systemTiles } from "@/lib/games";
+import { genreTiles, sortGames, systemTiles } from "@/lib/games";
 import { paths } from "@/lib/hrefs";
 import { makeT } from "@/lib/i18n/dict";
 import { languageAlternates, websiteJsonLd } from "@/lib/seo";
@@ -24,7 +24,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   const soon = sortGames(games, "soonest").slice(0, 6);
   const beginner = sortGames(games.filter((g) => g.level === "beginner" && !soon.slice(0, 3).includes(g)), "soonest").slice(0, 3);
   const systems = systemTiles(games).slice(0, 10);
-  const genres = GENRES.filter((g) => games.some((x) => x.genres.includes(g.key))).slice(0, 12);
+  const genres = genreTiles(games, GENRES.map((g) => g.key)).slice(0, 10);
 
   return (
     <>
@@ -65,19 +65,12 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
 
       {genres.length > 0 && (
         <section className="section pt-0" aria-labelledby="genres-h">
-          <div className="wrap grid gap-[var(--space-xl)] lg:grid-cols-12">
-            <h2 id="genres-h" className="lg:col-span-4">{t("home.genresTitle")}</h2>
-            <ul className="ruled grid gap-x-[var(--space-2xl)] md:grid-cols-2 lg:col-span-8">
-              {genres.map((g) => (
-                <li key={g.key}>
-                  <Link href={paths.games(lang, `?genre=${g.key}`)} className="flex min-h-14 items-baseline gap-[var(--space-sm)] py-[var(--space-sm)] hover:text-accent-deep">
-                    <span className="font-display text-[length:var(--text-title)] leading-tight">{t(genreLabelKey(g.key))}</span>
-                    <span className="leader" aria-hidden />
-                    <span className="shrink-0 text-sm text-muted">{t("games.count", { n: games.filter((x) => x.genres.includes(g.key)).length })}</span>
-                  </Link>
-                </li>
-              ))}
+          <div className="wrap">
+            <h2 id="genres-h">{t("home.genresTitle")}</h2>
+            <ul className="mt-[var(--space-xl)] grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              {genres.map((g) => <li key={g.name}><BrowseTile name={t(genreLabelKey(g.name as GenreKey))} count={g.count} cover={g.cover} href={paths.games(lang, `?genre=${g.name}`)} t={t} /></li>)}
             </ul>
+            <p className="mt-[var(--space-xl)]"><Link href={paths.genres(lang)} className="btn btn-soft">{t("home.allGenres")}</Link></p>
           </div>
         </section>
       )}
@@ -87,7 +80,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
           <div className="wrap">
             <h2 id="systems-h">{t("home.systemsTitle")}</h2>
             <ul className="mt-[var(--space-xl)] grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {systems.map((s) => <li key={s.name}><SystemTile name={s.name} count={s.count} cover={s.cover} t={t} lang={lang} /></li>)}
+              {systems.map((s) => <li key={s.name}><BrowseTile name={s.name} count={s.count} cover={s.cover} href={paths.games(lang, `?system=${encodeURIComponent(s.name)}`)} t={t} /></li>)}
             </ul>
             <p className="mt-[var(--space-xl)]"><Link href={paths.systems(lang)} className="btn btn-soft">{t("home.allSystems")}</Link></p>
           </div>

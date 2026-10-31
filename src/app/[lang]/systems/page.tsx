@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { SystemTile } from "@/components/ui";
+import { BrowseTile } from "@/components/ui";
+import { paths } from "@/lib/hrefs";
 import { gameViews, loadSiteData } from "@/lib/data";
 import { allSystemTiles } from "@/lib/games";
 import { makeT } from "@/lib/i18n/dict";
@@ -24,7 +25,7 @@ export default async function SystemsPage({ params }: PageProps<"/[lang]/systems
       <h1 className="max-w-none text-[length:var(--text-display-s)]">{t("systems.title")}</h1>
       <p className="lead mb-[var(--space-xl)] mt-[var(--space-sm)] text-ink-2">{t("systems.lead")}</p>
       <ul className="grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {systems.map((s) => <li key={s.name}><SystemTile name={s.name} count={s.count} cover={s.cover} t={t} lang={lang} /></li>)}
+          {systems.map((s) => <li key={s.name}><BrowseTile name={s.name} count={s.count} cover={s.cover} href={paths.games(lang, `?system=${encodeURIComponent(s.name)}`)} t={t} /></li>)}
         </ul>
     </div>
   );

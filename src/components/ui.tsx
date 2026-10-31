@@ -104,12 +104,12 @@ export function GameCard({ game, t, lang, preview = false, priority = false, hea
 }
 
 /**
- * A game system as a tile: the cover of the soonest listing that has one (never publisher art), the system's name, how many games use it.
- * With no cover the tile is a solid field with the name set big, like a game's own card.
+ * A browse tile (a game system or a genre): the cover of the soonest listing that has one (never publisher art), the name, how many games.
+ * With no cover the tile is an empty tinted field.
  */
-export function SystemTile({ name, count, cover, t, lang }: { name: string; count: number; cover: string | null; t: T; lang: Lang }) {
+export function BrowseTile({ name, count, cover, href, t }: { name: string; count: number; cover: string | null; href: string; t: T }) {
   return (
-    <Link href={paths.games(lang, `?system=${encodeURIComponent(name)}`)} className="bill">
+    <Link href={href} className="bill">
       <Cover src={cover ? smallCover(cover) : null} seed={name} quiet className="aspect-[4/5] w-full" sizes="(min-width: 1024px) 18vw, (min-width: 640px) 30vw, 46vw" />
       <h3 className="bill-title mt-[var(--space-sm)] text-wrap text-[length:var(--text-lg)] max-sm:text-[length:var(--text-md)]">{name}</h3>
       <p className="mt-[var(--space-3xs)] text-sm text-muted">{t("games.count", { n: count })}</p>
