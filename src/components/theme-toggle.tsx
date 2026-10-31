@@ -18,10 +18,10 @@ export function ThemeToggle() {
       type="button"
       onClick={() => setThemeChoice(target)}
       aria-label={t(target === "dark" ? "theme.toDark" : "theme.toLight")}
-      className="inline-flex min-h-11 min-w-11 items-center justify-center gap-[var(--space-xs)] rounded-[var(--radius-input)] border border-ink px-2 text-sm font-bold text-ink hover:bg-paper-3 lg:px-3"
+      className="inline-flex min-h-11 min-w-11 items-center justify-center gap-[var(--space-xs)] rounded-[var(--radius-input)] border border-ink px-2 text-sm font-bold text-ink hover:bg-paper-3 xl:px-3"
     >
       <Icon name={target === "dark" ? "moon" : "sun"} />
-      <span className="max-lg:hidden">{t(target === "dark" ? "theme.darkShort" : "theme.lightShort")}</span>
+      <span className="max-xl:hidden">{t(target === "dark" ? "theme.darkShort" : "theme.lightShort")}</span>
     </button>
   );
 }

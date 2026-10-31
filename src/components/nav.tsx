@@ -41,7 +41,7 @@ export function NavLinks({ variant }: { variant: "header" | "tabs" }) {
     );
   }
   return (
-    <div className="flex items-center gap-[var(--space-xl)]">
+    <div className="flex items-center gap-[var(--space-md)] xl:gap-[var(--space-xl)]">
       {ITEMS.map((i, n) => {
         const current = isCurrent(pathname, lang, i.prefix);
         const action = n === ITEMS.length - 1;

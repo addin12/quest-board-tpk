@@ -57,8 +57,8 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
             <div className="oak-strip" />
             <div className="rule-double">
               <div className="wrap flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-3 sm:gap-x-6 lg:flex-nowrap lg:py-4">
-                <Link href={paths.home(lang)} className="wordmark inline-flex min-h-11 items-center gap-2 text-lg min-[400px]:text-xl sm:text-2xl lg:text-3xl"><DiceMark />{"Quest Board"}</Link>
-                <div className="hidden min-w-0 flex-1 lg:block"><NavLinks variant="header" /></div>
+                <Link href={paths.home(lang)} className="wordmark inline-flex min-h-11 items-center gap-2 text-lg min-[400px]:text-xl sm:text-2xl xl:text-3xl"><DiceMark />{"Quest Board"}</Link>
+                <div className="hidden min-w-0 flex-1 lg:block lg:pl-4 xl:pl-10"><NavLinks variant="header" /></div>
                 <div className="flex items-center gap-[var(--space-sm)]"><ThemeToggle /><LanguageSwitcher /></div>
               </div>
             </div>
