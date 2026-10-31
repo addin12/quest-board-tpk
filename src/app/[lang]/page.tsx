@@ -60,7 +60,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
           {soon.length === 0 ? (
             <div className="mt-[var(--space-xl)]"><EmptyState title={t("home.empty")}><Link href={paths.list(lang)} className="btn btn-primary">{t("nav.list")}</Link></EmptyState></div>
           ) : (
-            <ul className="rail mt-[var(--space-xl)]" tabIndex={0} aria-label={t("home.soon")}>
+            <ul className="mt-[var(--space-xl)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-2 lg:grid-cols-3">
               {soon.map((g) => <li key={g.id}><GameCard game={g} t={t} lang={lang} priority /></li>)}
             </ul>
           )}

@@ -142,10 +142,6 @@
   /* A figure as a poster: the number in the display face, solid accent. */
   .poster { font: 400 clamp(5rem, 14vw, 11rem)/0.9 var(--font-display); letter-spacing: -0.02em; color: var(--color-accent); font-variant-numeric: tabular-nums; }
 
-  /* A horizontal run past the container's edge, with snap points; scrollable by touch and keyboard. */
-  .rail { display: flex; gap: var(--gap-columns); overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: var(--space-md); scrollbar-color: var(--color-muted) var(--color-paper-2); }
-  .rail > * { flex: 0 0 min(20rem, 78vw); scroll-snap-align: start; min-width: 0; }
-
   /* Steps: a real ordered list, the numeral set in the display face by a counter. */
   .steps { counter-reset: step; }
   .steps > li { counter-increment: step; position: relative; }
