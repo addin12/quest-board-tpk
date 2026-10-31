@@ -51,7 +51,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
         <div className="wrap">
           <div className="flex flex-wrap items-end justify-between gap-[var(--space-md)]">
             <h2 id="soon-h">{t("home.soon")}</h2>
-            <Link href={paths.games(lang)} className="btn btn-secondary">{t("home.browseAll")}</Link>
+            <Link href={paths.games(lang)} className="btn btn-soft">{t("home.browseAll")}</Link>
           </div>
           {soon.length === 0 ? (
             <div className="mt-[var(--space-xl)]"><EmptyState title={t("home.empty")}><Link href={paths.list(lang)} className="btn btn-primary">{t("nav.list")}</Link></EmptyState></div>
@@ -89,7 +89,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
             <ul className="mt-[var(--space-xl)] grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {systems.map((s) => <li key={s.name}><SystemTile name={s.name} count={s.count} cover={s.cover} t={t} lang={lang} /></li>)}
             </ul>
-            <p className="mt-[var(--space-xl)]"><Link href={paths.systems(lang)} className="btn btn-secondary">{t("home.allSystems")}</Link></p>
+            <p className="mt-[var(--space-xl)]"><Link href={paths.systems(lang)} className="btn btn-soft">{t("home.allSystems")}</Link></p>
           </div>
         </section>
       )}

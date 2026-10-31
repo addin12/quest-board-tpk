@@ -92,6 +92,9 @@
   .btn-secondary, .btn-ghost { padding-inline: 0; border-radius: 0; background: none; color: var(--color-ink); border-bottom: var(--rule-bar) solid var(--color-accent); }
   .btn-secondary:hover:not(:disabled):not([aria-disabled="true"]), .btn-ghost:hover:not(:disabled) { border-bottom-color: var(--color-ink); }
   .btn-ghost { border-bottom-color: var(--color-rule); }
+  /* The calm second action ("Browse all ..."): the ink as a filled rounded rectangle, light on the dark theme and dark on the light one, no underline. */
+  .btn-soft { background: color-mix(in oklab, var(--color-ink) 88%, var(--color-paper)); color: var(--color-paper); }
+  .btn-soft:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--color-ink); }
   .btn-danger { background: none; color: var(--color-error); border: var(--rule-hair) solid var(--color-error); }
   .btn-danger:hover:not(:disabled) { background: color-mix(in oklab, var(--color-error) 12%, var(--color-paper)); }
   /* In the admin (an app screen) buttons are 44px outlined controls, the primary stays the accent. */
