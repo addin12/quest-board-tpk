@@ -46,7 +46,7 @@ export function NavLinks({ variant }: { variant: "header" | "tabs" }) {
         const current = isCurrent(pathname, lang, i.prefix);
         const action = n === ITEMS.length - 1;
         return (
-          <Link key={i.prefix} href={i.href(lang)} aria-current={current ? "page" : undefined} className={`inline-flex min-h-12 items-center rounded-[var(--radius-input)] border-b-2 border-transparent bg-clip-padding px-3 ${action ? "-mr-3 ml-auto font-bold" : "-mx-3"} ${current || action ? "bg-accent-soft hover:bg-[color-mix(in_oklab,var(--color-accent)_24%,var(--color-paper))]" : "hover:bg-paper-3"}`}>
+          <Link key={i.prefix} href={i.href(lang)} aria-current={current ? "page" : undefined} className={`inline-flex items-center rounded-[var(--radius-input)] ${action ? "ml-auto min-h-11 bg-accent px-4 font-bold text-accent-ink hover:bg-accent-deep" : `-mx-3 min-h-12 border-b-2 border-transparent bg-clip-padding px-3 ${current ? "bg-accent-soft hover:bg-[color-mix(in_oklab,var(--color-accent)_24%,var(--color-paper))]" : "hover:bg-paper-3"}`}`}>
             {t(i.label)}
           </Link>
         );
