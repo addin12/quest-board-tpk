@@ -69,8 +69,8 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
 
       <BrowseSection id="systems-h" title={t("home.systemsTitle")} tiles={systems} href={filterHref("system")} allHref={paths.systems(lang)} allLabel={t("home.allSystems")} t={t} />
       <BrowseSection id="genres-h" title={t("home.genresTitle")} tiles={genres} href={filterHref("genre")} label={(k) => t(genreLabelKey(k as GenreKey))} cover={(k) => genreCover(k as GenreKey)} allHref={paths.genres(lang)} allLabel={t("home.allGenres")} t={t} />
-      <BrowseSection id="styles-h" title={t("home.stylesTitle")} tiles={styles} href={filterHref("style")} label={(k) => t(styleLabelKey(k as StyleKey))} allHref={paths.styles(lang)} allLabel={t("home.allStyles")} t={t} />
-      <BrowseSection id="mechanics-h" title={t("home.mechanicsTitle")} tiles={mechanics} href={filterHref("mechanic")} label={(k) => t(mechanicLabelKey(k as MechanicKey))} allHref={paths.mechanics(lang)} allLabel={t("home.allMechanics")} t={t} />
+      <BrowseSection id="styles-h" title={t("home.stylesTitle")} tiles={styles} href={filterHref("style")} label={(k) => t(styleLabelKey(k as StyleKey))} variant="card" allHref={paths.styles(lang)} allLabel={t("home.allStyles")} t={t} />
+      <BrowseSection id="mechanics-h" title={t("home.mechanicsTitle")} tiles={mechanics} href={filterHref("mechanic")} label={(k) => t(mechanicLabelKey(k as MechanicKey))} variant="card" allHref={paths.mechanics(lang)} allLabel={t("home.allMechanics")} t={t} />
 
       {beginner.length > 0 && (
         <section className="section pt-0" aria-labelledby="new-h">

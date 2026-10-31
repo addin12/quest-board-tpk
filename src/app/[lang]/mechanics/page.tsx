@@ -21,6 +21,6 @@ export default async function MechanicsPage({ params }: PageProps<"/[lang]/mecha
   const t = makeT(lang);
   const tiles = allMechanicTiles(gameViews(loadSiteData()), MECHANICS.map((m) => m.key));
   return (
-    <BrowsePage title={t("mechanics.title")} lead={t("mechanics.lead")} tiles={tiles} href={(n) => paths.games(lang, `?mechanic=${encodeURIComponent(n)}`)} label={(k) => t(mechanicLabelKey(k as MechanicKey))} t={t} />
+    <BrowsePage title={t("mechanics.title")} lead={t("mechanics.lead")} tiles={tiles} href={(n) => paths.games(lang, `?mechanic=${encodeURIComponent(n)}`)} label={(k) => t(mechanicLabelKey(k as MechanicKey))} variant="card" t={t} />
   );
 }

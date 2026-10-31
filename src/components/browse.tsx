@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { T } from "@/lib/i18n/core";
-import { BrowseTile } from "./ui";
+import { BrowseCard, BrowseTile } from "./ui";
 
 type Tile = { name: string; count: number; cover: string | null };
 type Common = {
@@ -11,12 +11,18 @@ type Common = {
   label?: (name: string) => string;
   /** The picture when it is not the cover of the tile's soonest listing (the genres have their own engravings). */
   cover?: (name: string) => string | null;
+  /** "card" is a rounded rectangle with the name only (no picture); the default is a picture tile. */
+  variant?: "tile" | "card";
   t: T;
 };
 
 const GRID = "grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
+const CARD_GRID = "grid grid-cols-2 gap-[var(--space-md)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
 
-function Tiles({ tiles, href, label, cover, t }: Common) {
+function Tiles({ tiles, href, label, cover, variant = "tile", t }: Common) {
+  if (variant === "card") {
+    return <ul className={CARD_GRID}>{tiles.map((x) => <li key={x.name} className="flex"><BrowseCard name={label ? label(x.name) : x.name} count={x.count} href={href(x.name)} t={t} /></li>)}</ul>;
+  }
   return (
     <ul className={GRID}>
       {tiles.map((x) => <li key={x.name}><BrowseTile name={label ? label(x.name) : x.name} count={x.count} cover={cover ? cover(x.name) : x.cover} href={href(x.name)} t={t} /></li>)}

@@ -117,6 +117,16 @@ export function BrowseTile({ name, count, cover, href, t }: { name: string; coun
   );
 }
 
+/** A browse card with no picture (a play style or a mechanic): a rounded rectangle with the name and how many games. */
+export function BrowseCard({ name, count, href, t }: { name: string; count: number; href: string; t: T }) {
+  return (
+    <Link href={href} className="browse-card">
+      <h3 className="font-body text-[length:var(--text-md)] font-bold leading-snug">{name}</h3>
+      <p className="mt-[var(--space-3xs)] text-sm text-muted">{t("games.count", { n: count })}</p>
+    </Link>
+  );
+}
+
 /** A game as one row of an index: a small cover, the title and its facts, the price at the edge. */
 export function GameRow({ game, t, lang }: { game: GameView; t: T; lang: Lang }) {
   return (
