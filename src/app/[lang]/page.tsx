@@ -63,18 +63,6 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
         </div>
       </section>
 
-      {genres.length > 0 && (
-        <section className="section pt-0" aria-labelledby="genres-h">
-          <div className="wrap">
-            <h2 id="genres-h">{t("home.genresTitle")}</h2>
-            <ul className="mt-[var(--space-xl)] grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {genres.map((g) => <li key={g.name}><BrowseTile name={t(genreLabelKey(g.name as GenreKey))} count={g.count} cover={genreCover(g.name as GenreKey)} href={paths.games(lang, `?genre=${g.name}`)} t={t} /></li>)}
-            </ul>
-            <p className="mt-[var(--space-xl)]"><Link href={paths.genres(lang)} className="btn btn-soft">{t("home.allGenres")}</Link></p>
-          </div>
-        </section>
-      )}
-
       {systems.length > 0 && (
         <section className="section pt-0" aria-labelledby="systems-h">
           <div className="wrap">
@@ -83,6 +71,18 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
               {systems.map((s) => <li key={s.name}><BrowseTile name={s.name} count={s.count} cover={s.cover} href={paths.games(lang, `?system=${encodeURIComponent(s.name)}`)} t={t} /></li>)}
             </ul>
             <p className="mt-[var(--space-xl)]"><Link href={paths.systems(lang)} className="btn btn-soft">{t("home.allSystems")}</Link></p>
+          </div>
+        </section>
+      )}
+
+      {genres.length > 0 && (
+        <section className="section pt-0" aria-labelledby="genres-h">
+          <div className="wrap">
+            <h2 id="genres-h">{t("home.genresTitle")}</h2>
+            <ul className="mt-[var(--space-xl)] grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              {genres.map((g) => <li key={g.name}><BrowseTile name={t(genreLabelKey(g.name as GenreKey))} count={g.count} cover={genreCover(g.name as GenreKey)} href={paths.games(lang, `?genre=${g.name}`)} t={t} /></li>)}
+            </ul>
+            <p className="mt-[var(--space-xl)]"><Link href={paths.genres(lang)} className="btn btn-soft">{t("home.allGenres")}</Link></p>
           </div>
         </section>
       )}
