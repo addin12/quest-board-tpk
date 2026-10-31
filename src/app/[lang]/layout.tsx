@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Chivo, EB_Garamond } from "next/font/google";
 import { I18nProvider } from "@/components/i18n-provider";
+import { DiceMark } from "@/components/dice-mark";
 import { LanguageSwitcher, NavLinks } from "@/components/nav";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -56,7 +57,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
             <div className="oak-strip" />
             <div className="rule-double">
               <div className="wrap flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-3 sm:gap-x-6 lg:flex-nowrap lg:py-4">
-                <Link href={paths.home(lang)} className="wordmark inline-flex min-h-11 items-center text-lg min-[400px]:text-xl sm:text-2xl lg:text-3xl">{"Quest Board TPK"}</Link>
+                <Link href={paths.home(lang)} className="wordmark inline-flex min-h-11 items-center gap-2 text-lg min-[400px]:text-xl sm:text-2xl lg:text-3xl"><DiceMark />{"Quest Board"}</Link>
                 <div className="hidden min-w-0 flex-1 lg:block"><NavLinks variant="header" /></div>
                 <div className="flex items-center gap-[var(--space-sm)]"><ThemeToggle /><LanguageSwitcher /></div>
               </div>
