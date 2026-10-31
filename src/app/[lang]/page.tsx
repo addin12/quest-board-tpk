@@ -33,8 +33,8 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
       {/* The hero is a left-set head and the search, which is the action. Nothing is drawn: the listings below are the imagery. */}
       <section>
         <div className="wrap grid gap-[var(--space-xl)] pb-[var(--space-2xl)] pt-[var(--space-3xl)] lg:grid-cols-12">
-          <div className="lg:col-span-9">
-            <h1 className="max-w-[14ch] text-[length:var(--text-display)]">{t("home.title1")} {t("home.title2")}</h1>
+          <div className="lg:col-span-12">
+            <h1 className="max-w-none text-[length:var(--text-display)]"><span className="block">{t("home.title1")}</span><span className="block">{t("home.title2")}</span></h1>
             <p className="lead mt-[var(--space-lg)] text-ink-2">{t("home.lead")}</p>
             <form action={paths.games(lang)} method="get" role="search" className="mt-[var(--space-xl)] flex w-full max-w-2xl flex-col gap-[var(--space-sm)] sm:flex-row sm:items-end">
               <div className="flex-1">
