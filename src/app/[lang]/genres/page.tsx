@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BrowseTile } from "@/components/ui";
-import { GENRES, genreLabelKey, type GenreKey } from "@/lib/categories";
+import { GENRES, genreCover, genreLabelKey, type GenreKey } from "@/lib/categories";
 import { gameViews, loadSiteData } from "@/lib/data";
 import { allGenreTiles } from "@/lib/games";
 import { paths } from "@/lib/hrefs";
@@ -25,7 +25,7 @@ export default async function GenresPage({ params }: PageProps<"/[lang]/genres">
       <h1 className="max-w-none text-[length:var(--text-display-s)]">{t("genres.title")}</h1>
       <p className="lead mb-[var(--space-xl)] mt-[var(--space-sm)] text-ink-2">{t("genres.lead")}</p>
       <ul className="grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        {genres.map((g) => <li key={g.name}><BrowseTile name={t(genreLabelKey(g.name as GenreKey))} count={g.count} cover={g.cover} href={paths.games(lang, `?genre=${g.name}`)} t={t} /></li>)}
+        {genres.map((g) => <li key={g.name}><BrowseTile name={t(genreLabelKey(g.name as GenreKey))} count={g.count} cover={genreCover(g.name as GenreKey)} href={paths.games(lang, `?genre=${g.name}`)} t={t} /></li>)}
       </ul>
     </div>
   );

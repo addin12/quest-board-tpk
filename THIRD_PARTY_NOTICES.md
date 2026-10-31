@@ -27,3 +27,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+## Genre pictures
+
+The pictures in `public/images/genres/` are public domain book illustrations (Public Domain Mark 1.0) found through Inside Out Library (https://insideoutlibrary.com/). No licence notice is required; the sources are listed in `docs/art-credits.md`.

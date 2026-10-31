@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/json-ld";
 import { BrowseTile, EmptyState, GameCard, GameRow } from "@/components/ui";
-import { GENRES, genreLabelKey, type GenreKey } from "@/lib/categories";
+import { GENRES, genreCover, genreLabelKey, type GenreKey } from "@/lib/categories";
 import { gameViews, loadSiteData } from "@/lib/data";
 import { genreTiles, sortGames, systemTiles } from "@/lib/games";
 import { paths } from "@/lib/hrefs";
@@ -68,7 +68,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
           <div className="wrap">
             <h2 id="genres-h">{t("home.genresTitle")}</h2>
             <ul className="mt-[var(--space-xl)] grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {genres.map((g) => <li key={g.name}><BrowseTile name={t(genreLabelKey(g.name as GenreKey))} count={g.count} cover={g.cover} href={paths.games(lang, `?genre=${g.name}`)} t={t} /></li>)}
+              {genres.map((g) => <li key={g.name}><BrowseTile name={t(genreLabelKey(g.name as GenreKey))} count={g.count} cover={genreCover(g.name as GenreKey)} href={paths.games(lang, `?genre=${g.name}`)} t={t} /></li>)}
             </ul>
             <p className="mt-[var(--space-xl)]"><Link href={paths.genres(lang)} className="btn btn-soft">{t("home.allGenres")}</Link></p>
           </div>

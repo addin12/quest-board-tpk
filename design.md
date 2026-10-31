@@ -57,6 +57,7 @@ the listings' own cover art as the only colour) and the tavern is carried by thr
 2. The tavern stays at these four touches (the table above). A sixth needs a reason written here first. No wood textures, parchment filters, torn edges,
    flourishes, gold, glow, sword icons, and no illustration that is not a listing's own cover (R-22, R-23). The one exception is the d20 outline
    beside the wordmark "Quest Board" (`src/components/dice-mark.tsx`), drawn on the owner's explicit request; it is the site's only mark.
+   The genre tiles carry public domain book engravings chosen on the owner's request (`public/images/genres`, credits in `docs/art-credits.md`); they are the only pictures that are not a listing's own cover.
 3. Real content over templates: no three-step explainers, stat tiles or testimonial rows. How it works has its own page.
 4. Every control is at least 44 px in both directions; labels sit above fields; focus is always visible.
 5. Both languages are first class. Indonesian copy is written, not translated word for word, and can run longer: nothing may be clipped.
