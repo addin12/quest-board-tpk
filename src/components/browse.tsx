@@ -30,15 +30,17 @@ function Tiles({ tiles, href, label, cover, variant = "tile", t }: Common) {
   );
 }
 
-/** A home block: a heading, the tiles, and a button to the page with all of them. */
+/** A home block: a heading with a button to the page with all of them on its right (as in Starting soon), then the tiles. */
 export function BrowseSection({ id, title, allHref, allLabel, ...rest }: Common & { id: string; title: string; allHref: string; allLabel: string }) {
   if (rest.tiles.length === 0) return null;
   return (
     <section className="section pt-0" aria-labelledby={id}>
       <div className="wrap">
-        <h2 id={id}>{title}</h2>
+        <div className="flex flex-wrap items-end justify-between gap-[var(--space-md)]">
+          <h2 id={id}>{title}</h2>
+          <Link href={allHref} className="btn btn-soft">{allLabel}</Link>
+        </div>
         <div className="mt-[var(--space-xl)]"><Tiles {...rest} /></div>
-        <p className="mt-[var(--space-xl)]"><Link href={allHref} className="btn btn-soft">{allLabel}</Link></p>
       </div>
     </section>
   );
