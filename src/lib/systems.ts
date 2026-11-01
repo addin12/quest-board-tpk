@@ -84,6 +84,8 @@ export const SYSTEMS = [
   "Mutants & Masterminds 2e",
   "Mutants & Masterminds 3e",
   "Mythic Bastionland",
+  "Nimble 5e",
+  "Nimble 2e",
   "Old-School Essentials",
   ":Otherscape",
   "Pathfinder 1e",
