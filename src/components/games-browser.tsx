@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { GENRES, MECHANICS, STYLES, genreLabelKey, mechanicLabelKey, styleLabelKey } from "@/lib/categories";
-import { EMPTY_FILTERS, PAGE_SIZE, activeFilterCount, applyFilters, filtersToQuery, isLive, parseFilters, type Filters, type GameView, type filterOptions } from "@/lib/games";
+import { EMPTY_FILTERS, PAGE_SIZE, activeFilterCount, applyFilters, filtersToQuery, isLive, pageList, parseFilters, type Filters, type GameView, type filterOptions } from "@/lib/games";
 import { useI18n } from "./i18n-provider";
 import { EmptyState, GameCard } from "./ui";
 
@@ -38,6 +38,9 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
   const visible = useMemo(() => shown.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), [shown, page]);
   const active = activeFilterCount(filters);
   const filterCount = activeFilterCount({ ...filters, q: "" });
+
+  // a rounded rectangle, 48 px tall; the current page is filled with the accent
+  const pageBtn = "btn rounded-[var(--radius-input)] border border-[color-mix(in_oklab,var(--color-ink)_35%,var(--color-paper))] bg-paper px-3 text-ink hover:not-disabled:bg-paper-3";
 
   function go(page: number) {
     set({ page });
@@ -107,10 +110,16 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
       )}
 
       {pages > 1 && (
-        <nav aria-label={t("games.pages")} className="mt-[var(--space-2xl)] flex flex-wrap items-center justify-center gap-[var(--space-md)]" data-testid="games-pager">
-          <button type="button" className="btn btn-soft" disabled={page <= 1} onClick={() => go(page - 1)}>{t("games.prev")}</button>
-          <span className="font-bold tabular-nums" data-testid="games-page">{t("games.pageOf", { page, pages })}</span>
-          <button type="button" className="btn btn-soft" disabled={page >= pages} onClick={() => go(page + 1)}>{t("games.next")}</button>
+        <nav aria-label={t("games.pages")} className="mt-[var(--space-2xl)] flex flex-wrap items-center justify-center gap-[var(--space-sm)]" data-testid="games-pager">
+          <button type="button" className={pageBtn} disabled={page <= 1} onClick={() => go(page - 1)}>{t("games.prev")}</button>
+          {pageList(page, pages).map((n, i) =>
+            n === 0 ? (
+              <span key={`gap${i}`} aria-hidden="true" className="px-1 text-muted">…</span>
+            ) : (
+              <button key={n} type="button" className={`${pageBtn} min-w-12 ${n === page ? "!border-accent !bg-accent !text-accent-ink" : ""}`} aria-current={n === page ? "page" : undefined} aria-label={t("games.pageN", { page: n })} onClick={() => go(n)}>{n}</button>
+            ),
+          )}
+          <button type="button" className={pageBtn} disabled={page >= pages} onClick={() => go(page + 1)}>{t("games.next")}</button>
         </nav>
       )}
     </div>

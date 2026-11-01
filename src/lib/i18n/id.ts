@@ -182,7 +182,7 @@ export const id: Record<MsgKey, string> = {
   "games.pages": "Halaman game",
   "games.prev": "Sebelumnya",
   "games.next": "Berikutnya",
-  "games.pageOf": "Halaman {page} dari {pages}",
+  "games.pageN": "Halaman {page}",
   "games.none": "Tidak ada game yang cocok dengan filter ini. Coba lepas salah satunya.",
   "games.noneYet": "Belum ada game yang terpasang.",
   "game.when": "Kapan",

@@ -181,7 +181,7 @@ export const en = {
   "games.pages": "Pages of games",
   "games.prev": "Previous",
   "games.next": "Next",
-  "games.pageOf": "Page {page} of {pages}",
+  "games.pageN": "Page {page}",
   "games.none": "No games match these filters. Try removing one.",
   "games.noneYet": "No games are listed yet.",
   "game.when": "When",

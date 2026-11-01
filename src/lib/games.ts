@@ -21,6 +21,16 @@ export type Filters = {
 
 export const PAGE_SIZE = 9;
 
+/**
+ * The page buttons to draw: every page up to 7, else the first, the last and the pages around the current one, with 0 where pages are skipped.
+ * @example pageList(5, 12) // [1, 0, 4, 5, 6, 0, 12]
+ */
+export function pageList(page: number, pages: number): number[] {
+  if (pages <= 7) return Array.from({ length: pages }, (_, i) => i + 1);
+  const keep = [...new Set([1, pages, page - 1, page, page + 1].filter((n) => n >= 1 && n <= pages))].sort((a, b) => a - b);
+  return keep.flatMap((n, i) => (i > 0 && n - keep[i - 1] > 1 ? [0, n] : [n]));
+}
+
 export const EMPTY_FILTERS: Filters = { q: "", system: "", genre: "", style: "", mechanic: "", format: "", where: "", level: "", language: "", free: false, sort: "soonest", page: 1 };
 
 const oneOf = <T extends string>(v: string | null, allowed: readonly T[], fallback: T): T => (allowed.includes(v as T) ? (v as T) : fallback);

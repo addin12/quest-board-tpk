@@ -6,7 +6,7 @@ import { SUMMARY_MAX } from "../../src/lib/areas.ts";
 import { checkGame, checkGm, hasErrors } from "../../src/lib/checks.ts";
 import { contactMessage, decodeContact, encodeContact, messageLang, waLink } from "../../src/lib/contact.ts";
 import { formatDay, formatIdr, formatWhen, initialsOf } from "../../src/lib/format.ts";
-import { EMPTY_FILTERS, activeFilterCount, applyFilters, filterOptions, filtersToQuery, isLive, parseFilters, systemTiles, allSystemTiles, genreTiles, allGenreTiles, type GameView } from "../../src/lib/games.ts";
+import { EMPTY_FILTERS, activeFilterCount, applyFilters, filterOptions, filtersToQuery, isLive, pageList, parseFilters, systemTiles, allSystemTiles, genreTiles, allGenreTiles, type GameView } from "../../src/lib/games.ts";
 import { DICTIONARIES, makeT } from "../../src/lib/i18n/dict.ts";
 import { cleanDiscord, isGoogleMapsUrl, isPhone, parsePublicData, text } from "../../src/lib/public-data.ts";
 import { buildItems, canApprove, countByStatus, filterItems, previewGame, reasonText, siteBehind, whenLabel } from "../../src/lib/admin-view.ts";
@@ -105,6 +105,7 @@ test("filters narrow the list, together, and read from and write to the address"
   assert.equal(filtersToQuery(f), "?q=horror&where=online&level=beginner&free=1");
   assert.deepEqual({ ...parseFilters(filtersToQuery(f)) }, { ...f }, "what is written can be read back");
   assert.equal(filtersToQuery(EMPTY_FILTERS), "");
+  assert.deepEqual([pageList(1, 2), pageList(5, 12), pageList(1, 12), pageList(12, 12), pageList(3, 7)], [[1, 2], [1, 0, 4, 5, 6, 0, 12], [1, 2, 0, 12], [1, 0, 11, 12], [1, 2, 3, 4, 5, 6, 7]]);
   assert.equal(parseFilters("?page=3").page, 3);
   assert.deepEqual([parseFilters("?page=0").page, parseFilters("?page=x").page, parseFilters("?page=-2").page, parseFilters("?page=2.9").page], [1, 1, 1, 2]);
   assert.equal(filtersToQuery({ ...EMPTY_FILTERS, page: 2 }), "?page=2");
