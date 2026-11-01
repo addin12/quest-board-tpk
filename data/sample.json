@@ -441,6 +441,326 @@
       "mechanics": ["d20"],
       "coverId": "local:/images/covers/abomination-vaults.svg",
       "listedAt": "2026-10-03T00:00:00.000Z"
+    },
+    {
+      "id": "g0nimble01",
+      "slug": "gerbang-goblin-0n03",
+      "gmId": "m0bima001",
+      "title": "Gerbang Goblin",
+      "system": "Nimble 2e",
+      "summary": "A fast, tactical goblin raid on a toll gate. Combat that takes minutes, not hours.",
+      "description": "Goblin menyerbu gerbang tol di perbatasan, dan kalian yang harus menahannya. One-shot Nimble yang cepat: aksi sederhana, giliran singkat, taktik yang terasa.\n\nNew to Nimble? Pre-made heroes are provided and the rules take five minutes to explain.",
+      "format": "one_shot",
+      "locationType": "online",
+      "platform": "Discord + Owlbear Rodeo",
+      "city": "",
+      "venueName": "",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-18T12:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-19T12:00:00.000Z",
+      "priceIdr": 0,
+      "seats": 5,
+      "language": "both",
+      "level": "any",
+      "minAge": 12,
+      "contentWarnings": "Cartoon violence",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "high-fantasy",
+        "comedy"
+      ],
+      "styles": [
+        "combat-heavy",
+        "tactical"
+      ],
+      "mechanics": [
+        "d20"
+      ],
+      "coverId": "local:/images/covers/gerbang-goblin.svg",
+      "listedAt": "2026-10-12T12:00:00.000Z"
+    },
+    {
+      "id": "g0cairn001",
+      "slug": "garam-di-lorong-tambang-0g01",
+      "gmId": "m0raka001",
+      "title": "Garam di Lorong Tambang",
+      "system": "Cairn 2e",
+      "summary": "Salt miners vanished under the hill. A deadly, low-magic delve with fragile characters.",
+      "description": "Para penambang garam menghilang di bawah bukit. Karakter rapuh, pilihan nyata, dan tidak ada level untuk menyelamatkan kalian. Cairn dimainkan dengan sedikit aturan dan banyak akal.\n\nExpect a short, dangerous delve. Bring a pencil; characters are rolled at the table in two minutes.",
+      "format": "one_shot",
+      "locationType": "in_person",
+      "platform": "",
+      "city": "Jakarta",
+      "venueName": "Dadu & Dongeng Board Game Café",
+      "venueMapsUrl": "https://maps.app.goo.gl/DaduDongeng",
+      "startsAt": "2026-10-19T07:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-20T07:00:00.000Z",
+      "priceIdr": 45000,
+      "seats": 4,
+      "language": "id",
+      "level": "any",
+      "minAge": 16,
+      "contentWarnings": "Character death, claustrophobia",
+      "safetyTools": "Lines & Veils",
+      "genres": [
+        "dark-fantasy",
+        "gritty-fantasy",
+        "low-magic"
+      ],
+      "styles": [
+        "dungeon-crawl",
+        "theater-of-mind"
+      ],
+      "mechanics": [
+        "osr"
+      ],
+      "coverId": "local:/images/covers/garam-di-lorong-tambang.svg",
+      "listedAt": "2026-10-13T07:00:00.000Z"
+    },
+    {
+      "id": "g0shadow01",
+      "slug": "hujan-asam-di-sektor-tujuh-0h01",
+      "gmId": "m0nadia01",
+      "title": "Hujan Asam di Sektor Tujuh",
+      "system": "Shadowrun 6e",
+      "summary": "Runners hired to steal a prototype from a megacorp's wet lab in Jakarta 2085.",
+      "description": "Tahun 2085, hujan asam turun di Sektor Tujuh. Tim runner dibayar untuk mencuri prototipe dari lab milik megakorp. Planning, hacking, dan tembak-menembak.\n\nFor players who know Shadowrun or are happy to learn: character creation help is offered in a session zero.",
+      "format": "campaign",
+      "locationType": "online",
+      "platform": "Discord + Foundry VTT",
+      "city": "",
+      "venueName": "",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-20T13:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "Every second Tuesday, 20.00–23.00, for 8 sessions.",
+      "expiresAt": "2026-11-19T13:00:00.000Z",
+      "priceIdr": 30000,
+      "seats": 4,
+      "language": "id",
+      "level": "experienced",
+      "minAge": 17,
+      "contentWarnings": "Violence, corporate dystopia, drug references",
+      "safetyTools": "X-Card, Script Change",
+      "genres": [
+        "cyberpunk",
+        "urban",
+        "espionage"
+      ],
+      "styles": [
+        "tactical",
+        "rules-as-written"
+      ],
+      "mechanics": [
+        "dice-pool"
+      ],
+      "coverId": "local:/images/covers/hujan-asam-di-sektor-tujuh.svg",
+      "listedAt": "2026-10-14T13:00:00.000Z"
+    },
+    {
+      "id": "g0wuxia001",
+      "slug": "pedang-dan-teh-di-lembah-awan-0p02",
+      "gmId": "m0dewi001",
+      "title": "Pedang dan Teh di Lembah Awan",
+      "system": "Dungeons & Dragons 5.5e 2024",
+      "summary": "A tea-house mystery in the cloud valley. Wuxia-flavoured D&D for first-timers.",
+      "description": "Di sebuah rumah teh di Lembah Awan, seorang guru pedang meninggal dengan cangkir masih hangat. Misteri, duel singkat, dan banyak percakapan.\n\nA gentle, story-first one-shot with pre-made characters and snacks. No experience needed.",
+      "format": "one_shot",
+      "locationType": "in_person",
+      "platform": "",
+      "city": "Tangerang",
+      "venueName": "Ruang Main Teduh",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-21T08:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-22T08:00:00.000Z",
+      "priceIdr": 60000,
+      "seats": 5,
+      "language": "both",
+      "level": "beginner",
+      "minAge": 12,
+      "contentWarnings": "",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "mystery",
+        "heartwarming"
+      ],
+      "styles": [
+        "roleplay-heavy",
+        "puzzle-mystery"
+      ],
+      "mechanics": [
+        "d20"
+      ],
+      "coverId": "local:/images/covers/pedang-dan-teh-di-lembah-awan.svg",
+      "listedAt": "2026-10-15T08:00:00.000Z"
+    },
+    {
+      "id": "g0kultus01",
+      "slug": "kultus-di-bawah-menara-air-0k01",
+      "gmId": "m0raka001",
+      "title": "Kultus di Bawah Menara Air",
+      "system": "Call of Cthulhu 7e",
+      "summary": "Kids are drawing the same eye on school walls in 1978 Bandung. Slow-burn investigation.",
+      "description": "Bandung, 1978. Anak-anak di sebuah sekolah menggambar mata yang sama di dinding, dan seorang guru berhenti tidur. Investigasi pelan yang makin gelap.\n\nFor players who like to think, talk and be afraid. Sanity rules are used in full.",
+      "format": "one_shot",
+      "locationType": "online",
+      "platform": "Discord + Roll20",
+      "city": "",
+      "venueName": "",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-23T13:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-24T13:00:00.000Z",
+      "priceIdr": 25000,
+      "seats": 5,
+      "language": "id",
+      "level": "experienced",
+      "minAge": 17,
+      "contentWarnings": "Child endangerment (off-screen), cults, madness",
+      "safetyTools": "Lines & Veils, X-Card",
+      "genres": [
+        "horror",
+        "eldritch-horror",
+        "historical"
+      ],
+      "styles": [
+        "roleplay-heavy",
+        "puzzle-mystery"
+      ],
+      "mechanics": [
+        "d100"
+      ],
+      "coverId": "local:/images/covers/kultus-di-bawah-menara-air.svg",
+      "listedAt": "2026-10-17T13:00:00.000Z"
+    },
+    {
+      "id": "g0fate0001",
+      "slug": "kapal-hantu-kapten-jenaka-0k02",
+      "gmId": "m0nadia01",
+      "title": "Kapal Hantu Kapten Jenaka",
+      "system": "Fate Core",
+      "summary": "A ghost-pirate comedy where every roll can become a better story.",
+      "description": "Kapten Jenaka sudah mati seratus tahun, tapi kapalnya belum mau tenggelam. Kalian awaknya yang baru. Fate Core: kalian bebas membangun cerita lewat aspek dan fate points.\n\nA light, funny one-shot. Characters are made together in the first twenty minutes.",
+      "format": "one_shot",
+      "locationType": "online",
+      "platform": "Discord",
+      "city": "",
+      "venueName": "",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-24T12:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-25T12:00:00.000Z",
+      "priceIdr": 0,
+      "seats": 5,
+      "language": "both",
+      "level": "any",
+      "minAge": 13,
+      "contentWarnings": "Mild spooky themes",
+      "safetyTools": "X-Card",
+      "genres": [
+        "pirate",
+        "supernatural",
+        "comedy"
+      ],
+      "styles": [
+        "narrative",
+        "rule-of-cool"
+      ],
+      "mechanics": [
+        "fate-dice"
+      ],
+      "coverId": "local:/images/covers/kapal-hantu-kapten-jenaka.svg",
+      "listedAt": "2026-10-18T12:00:00.000Z"
+    },
+    {
+      "id": "g0hearts01",
+      "slug": "asrama-bulan-purnama-0a02",
+      "gmId": "m0bima001",
+      "title": "Asrama Bulan Purnama",
+      "system": "Monsterhearts 2e",
+      "summary": "A boarding school where everyone hides something with fangs. Teen drama with monsters.",
+      "description": "Di asrama Bulan Purnama, semua orang menyembunyikan sesuatu: taring, bulu, atau perasaan yang tidak boleh ketahuan. Monsterhearts: drama remaja, rahasia, dan pilihan yang bikin canggung.\n\nSkins (playbooks) are picked at session zero. We play to find out what happens.",
+      "format": "campaign",
+      "locationType": "in_person",
+      "platform": "",
+      "city": "Bekasi",
+      "venueName": "Kopi Tiga Sekawan",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-25T07:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "Every Sunday, 14.00–17.00, for 5 weeks.",
+      "expiresAt": "2026-11-24T07:00:00.000Z",
+      "priceIdr": 35000,
+      "seats": 4,
+      "language": "id",
+      "level": "any",
+      "minAge": 17,
+      "contentWarnings": "Romance, manipulation, bullying",
+      "safetyTools": "Lines & Veils, X-Card",
+      "genres": [
+        "supernatural",
+        "romance",
+        "urban"
+      ],
+      "styles": [
+        "roleplay-heavy",
+        "narrative"
+      ],
+      "mechanics": [
+        "pbta"
+      ],
+      "coverId": "local:/images/covers/asrama-bulan-purnama.svg",
+      "listedAt": "2026-10-19T07:00:00.000Z"
+    },
+    {
+      "id": "g0mork0001",
+      "slug": "lonceng-di-rawa-hitam-0l01",
+      "gmId": "m0raka001",
+      "title": "Lonceng di Rawa Hitam",
+      "system": "Mörk Borg",
+      "summary": "The world ends in six days. A bell rings in the black marsh. Brutal, fast, metal.",
+      "description": "The end is coming and a bell rings in the black marsh. Mörk Borg one-shot, roll up a doomed wretch and see how far you get. Play is quick, lethal and dark; we finish in three hours.\n\nBahasa Indonesia is fine at the table.",
+      "format": "one_shot",
+      "locationType": "online",
+      "platform": "Discord",
+      "city": "",
+      "venueName": "",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-27T13:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-28T13:00:00.000Z",
+      "priceIdr": 0,
+      "seats": 4,
+      "language": "en",
+      "level": "experienced",
+      "minAge": 18,
+      "contentWarnings": "Extreme violence, gore, nihilism",
+      "safetyTools": "X-Card",
+      "genres": [
+        "grimdark",
+        "dark-fantasy",
+        "horror"
+      ],
+      "styles": [
+        "rule-of-cool",
+        "combat-heavy"
+      ],
+      "mechanics": [
+        "osr"
+      ],
+      "coverId": "local:/images/covers/lonceng-di-rawa-hitam.svg",
+      "listedAt": "2026-10-21T13:00:00.000Z"
     }
   ]
 }

@@ -34,7 +34,8 @@ test("bad records are dropped with a warning; the rest of the data is kept", () 
   bad.games[4].venueMapsUrl = "https://evil.example/maps";
   bad.gms[3].whatsapp = "0812-call-me";
   const { data, warnings } = parsePublicData(bad);
-  assert.equal(warnings.length, 8, warnings.join("\n")); // 4 bad games, the bad link, the bad number, and the 2 games of the dropped GM
+  const orphans = bad.games.filter((g: { gmId: string }) => g.gmId === bad.gms[3].id).length;
+  assert.equal(warnings.length, 6 + orphans, warnings.join("\n")); // 4 bad games, the bad link, the bad number, and every game of the dropped GM
   assert.ok(!data.games.some((g) => g.id === bad.games[0].id));
   assert.ok(!data.gms.some((g) => g.id === bad.gms[3].id), "a GM without a valid number is not listed");
   assert.ok(!data.games.some((g) => g.gmId === bad.gms[3].id), "and neither are their games");

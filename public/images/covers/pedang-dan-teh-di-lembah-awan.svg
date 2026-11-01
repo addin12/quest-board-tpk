@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 1200" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Pedang dan Teh di Lembah Awan (placeholder cover)">
+<!-- Original placeholder art for the demo data (Quest Board). -->
+<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="hsl(160 55% 24%)"/><stop offset="1" stop-color="hsl(200 60% 58%)"/></linearGradient><radialGradient id="glow"><stop offset="0" stop-color="hsl(200 90% 88%)"/><stop offset="1" stop-color="hsl(200 90% 88% / 0)"/></radialGradient></defs>
+<rect width="960" height="1200" fill="url(#sky)"/><circle cx="660" cy="360" r="260" fill="url(#glow)"/><circle cx="660" cy="360" r="90" fill="hsl(200 90% 92%)"/>
+<path d="M0 1200 L0 780 Q180 640 360 760 Q540 600 720 740 Q860 650 960 720 L960 1200 Z" fill="hsl(160 40% 18% / .85)"/><path d="M0 1200 L0 900 Q240 800 480 900 Q720 790 960 890 L960 1200 Z" fill="hsl(160 45% 10%)"/>
+</svg>

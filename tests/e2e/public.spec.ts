@@ -37,18 +37,18 @@ test("the search on the home page leads to the games that match", async ({ page 
 
 test("filters narrow the list, keep the address, and can be cleared", async ({ page }) => {
   await page.goto("/en/games/");
-  await expect(page.getByTestId("games-count")).toHaveText("Showing 10 games");
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 18 games");
   await page.getByRole("button", { name: /Filters/ }).click();
   await page.getByLabel("Where", { exact: true }).selectOption("online");
   await expect(page).toHaveURL(/where=online/);
-  await expect(page.getByTestId("games-count")).toHaveText("Showing 7 games");
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 12 games");
   await page.getByLabel("Experience level").selectOption("beginner");
   await expect(page.getByTestId("games-count")).toHaveText("Showing 1 game");
 
   await page.reload();
   await expect(page.getByTestId("games-count")).toHaveText("Showing 1 game"); // read back from the address
   await page.getByRole("button", { name: "Clear filters" }).click();
-  await expect(page.getByTestId("games-count")).toHaveText("Showing 10 games");
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 18 games");
   await expect(page).toHaveURL(/\/en\/games\/$/);
 
   await page.getByLabel("Search", { exact: true }).fill("zzzzzz");
@@ -61,7 +61,7 @@ test("the language toggle keeps the page and its filters", async ({ page }) => {
   await expect(page).toHaveURL(/\/id\/games\/\?where=online/);
   await expect(page.locator("html")).toHaveAttribute("lang", "id");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Cari game");
-  await expect(page.getByTestId("games-count")).toHaveText("Menampilkan 7 game");
+  await expect(page.getByTestId("games-count")).toHaveText("Menampilkan 12 game");
 });
 
 test("a GM's profile lists their games and both ways to reach them", async ({ page, context, browserName }) => {
