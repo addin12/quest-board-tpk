@@ -105,6 +105,11 @@ test("filters narrow the list, together, and read from and write to the address"
   assert.equal(filtersToQuery(f), "?q=horror&where=online&level=beginner&free=1");
   assert.deepEqual({ ...parseFilters(filtersToQuery(f)) }, { ...f }, "what is written can be read back");
   assert.equal(filtersToQuery(EMPTY_FILTERS), "");
+  assert.equal(parseFilters("?page=3").page, 3);
+  assert.deepEqual([parseFilters("?page=0").page, parseFilters("?page=x").page, parseFilters("?page=-2").page, parseFilters("?page=2.9").page], [1, 1, 1, 2]);
+  assert.equal(filtersToQuery({ ...EMPTY_FILTERS, page: 2 }), "?page=2");
+  assert.equal(filtersToQuery({ ...EMPTY_FILTERS, q: "a", page: 1 }), "?q=a", "page 1 is the default and is not written");
+  assert.equal(activeFilterCount({ ...EMPTY_FILTERS, page: 2 }), 0, "the page is not a filter");
   assert.equal(activeFilterCount(f), 4);
   const inPerson = applyFilters(all, { ...EMPTY_FILTERS, where: "in_person" });
   assert.ok(inPerson.length >= 3 && inPerson.every((g) => g.locationType === "in_person"));

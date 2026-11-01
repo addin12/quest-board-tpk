@@ -94,8 +94,29 @@ test("an address that is not a page gets the 404 page, in both languages", async
   await expect(page.getByRole("link", { name: "Back to the tavern" })).toHaveAttribute("href", "/en/");
 });
 
-test("a game marked full says so, sinks to the end of the list, and can still be messaged", async ({ page }) => {
+test("the list shows nine games a page, with a pager that keeps the address", async ({ page }) => {
   await page.goto("/en/games/");
+  const list = page.getByTestId("games-list").getByRole("listitem");
+  await expect(list).toHaveCount(9);
+  await expect(page.getByTestId("games-page")).toHaveText("Page 1 of 2");
+  await expect(page.getByRole("button", { name: "Previous" })).toBeDisabled();
+  await page.getByRole("button", { name: "Next" }).click();
+  await expect(page).toHaveURL(/\?page=2$/);
+  await expect(page.getByTestId("games-page")).toHaveText("Page 2 of 2");
+  await expect(list).toHaveCount(9);
+  await expect(page.getByRole("button", { name: "Next" })).toBeDisabled();
+  await page.reload();
+  await expect(page.getByTestId("games-page")).toHaveText("Page 2 of 2"); // read back from the address
+  await page.getByRole("button", { name: /Filters/ }).click();
+  await page.getByLabel("Where", { exact: true }).selectOption("in_person");
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 6 games"); // a filter sends the list back to page 1, and 6 fit on one
+  await expect(page.getByTestId("games-pager")).toHaveCount(0);
+  await page.goto("/id/games/?page=99");
+  await expect(page.getByTestId("games-page")).toHaveText("Halaman 2 dari 2"); // past the end shows the last page
+});
+
+test("a game marked full says so, sinks to the end of the list, and can still be messaged", async ({ page }) => {
+  await page.goto("/en/games/?page=2");
   const titles = await page.locator("main a h2").allInnerTexts();
   expect(titles.at(-1)).toBe("Doskvol Setelah Gelap");
   await expect(page.locator("main li").filter({ hasText: "Doskvol Setelah Gelap" })).toContainText("Full");

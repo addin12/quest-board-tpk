@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { GENRES, MECHANICS, STYLES, genreLabelKey, mechanicLabelKey, styleLabelKey } from "@/lib/categories";
-import { EMPTY_FILTERS, activeFilterCount, applyFilters, filtersToQuery, isLive, parseFilters, type Filters, type GameView, type filterOptions } from "@/lib/games";
+import { EMPTY_FILTERS, PAGE_SIZE, activeFilterCount, applyFilters, filtersToQuery, isLive, parseFilters, type Filters, type GameView, type filterOptions } from "@/lib/games";
 import { useI18n } from "./i18n-provider";
 import { EmptyState, GameCard } from "./ui";
 
@@ -26,15 +26,23 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
   }, []);
 
   function set(patch: Partial<Filters>) {
-    const next = { ...filters, ...patch };
+    const next = { ...filters, page: 1, ...patch };
     setFilters(next);
     window.history.replaceState(null, "", window.location.pathname + filtersToQuery(next));
   }
 
   const live = useMemo(() => (now === null ? games : games.filter((g) => isLive(g, now))), [games, now]);
   const shown = useMemo(() => applyFilters(live, filters), [live, filters]);
+  const pages = Math.max(1, Math.ceil(shown.length / PAGE_SIZE));
+  const page = Math.min(filters.page, pages); // a shared address can point past the end
+  const visible = useMemo(() => shown.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), [shown, page]);
   const active = activeFilterCount(filters);
   const filterCount = activeFilterCount({ ...filters, q: "" });
+
+  function go(page: number) {
+    set({ page });
+    document.getElementById("games-top")?.scrollIntoView({ block: "start" });
+  }
 
   const select = (id: string, label: string, value: string, onChange: (v: string) => void, choices: { value: string; label: string }[], anyLabel = t("common.any")) => (
     <div>
@@ -82,7 +90,7 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
       </div>
 
       <div className="mt-[var(--space-xl)] flex flex-wrap items-center justify-between gap-[var(--space-md)]">
-        <p className="text-muted" role="status" aria-live="polite" data-testid="games-count">{t("games.results", { n: shown.length })}</p>
+        <p id="games-top" className="scroll-mt-24 text-muted" role="status" aria-live="polite" data-testid="games-count">{t("games.results", { n: shown.length })}</p>
         {active > 0 && (
           <button type="button" className="btn btn-ghost" onClick={() => { setFilters(EMPTY_FILTERS); window.history.replaceState(null, "", window.location.pathname); }}>
             {t("games.clear")}
@@ -94,8 +102,16 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
         <div className="mt-[var(--space-md)]"><EmptyState title={t(games.length === 0 ? "games.noneYet" : "games.none")} /></div>
       ) : (
         <ul className="mt-[var(--space-md)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-2 lg:grid-cols-3" data-testid="games-list">
-          {shown.map((g, i) => <li key={g.id}><GameCard game={g} t={t} lang={lang} priority={i < 4} headingLevel={2} /></li>)}
+          {visible.map((g, i) => <li key={g.id}><GameCard game={g} t={t} lang={lang} priority={i < 4} headingLevel={2} /></li>)}
         </ul>
+      )}
+
+      {pages > 1 && (
+        <nav aria-label={t("games.pages")} className="mt-[var(--space-2xl)] flex flex-wrap items-center justify-center gap-[var(--space-md)]" data-testid="games-pager">
+          <button type="button" className="btn btn-soft" disabled={page <= 1} onClick={() => go(page - 1)}>{t("games.prev")}</button>
+          <span className="font-bold tabular-nums" data-testid="games-page">{t("games.pageOf", { page, pages })}</span>
+          <button type="button" className="btn btn-soft" disabled={page >= pages} onClick={() => go(page + 1)}>{t("games.next")}</button>
+        </nav>
       )}
     </div>
   );

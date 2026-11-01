@@ -15,9 +15,13 @@ export type Filters = {
   language: "" | "id" | "en";
   free: boolean;
   sort: SortKey;
+  /** 1-based page of the list; not a filter, so it is not counted and any change to a filter sends the list back to page 1. */
+  page: number;
 };
 
-export const EMPTY_FILTERS: Filters = { q: "", system: "", genre: "", style: "", mechanic: "", format: "", where: "", level: "", language: "", free: false, sort: "soonest" };
+export const PAGE_SIZE = 9;
+
+export const EMPTY_FILTERS: Filters = { q: "", system: "", genre: "", style: "", mechanic: "", format: "", where: "", level: "", language: "", free: false, sort: "soonest", page: 1 };
 
 const oneOf = <T extends string>(v: string | null, allowed: readonly T[], fallback: T): T => (allowed.includes(v as T) ? (v as T) : fallback);
 
@@ -36,6 +40,7 @@ export function parseFilters(search: string): Filters {
     language: oneOf(p.get("language"), ["", "id", "en"] as const, ""),
     free: p.get("free") === "1",
     sort: oneOf(p.get("sort"), ["soonest", "newest", "priceAsc"] as const, "soonest"),
+    page: Math.min(Math.max(Math.trunc(Number(p.get("page"))) || 1, 1), 999),
   };
 }
 
@@ -45,6 +50,7 @@ export function filtersToQuery(f: Filters): string {
   (["q", "system", "genre", "style", "mechanic", "format", "where", "level", "language"] as const).forEach((k) => { if (f[k]) p.set(k, f[k]); });
   if (f.free) p.set("free", "1");
   if (f.sort !== "soonest") p.set("sort", f.sort);
+  if (f.page > 1) p.set("page", String(f.page));
   const s = p.toString();
   return s ? `?${s}` : "";
 }
