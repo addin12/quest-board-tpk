@@ -23,12 +23,16 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
     setFilters(f); // the address is only known in the browser
     setNow(Date.now());
     setOpen(activeFilterCount({ ...f, q: "" }) > 0);
+    const onBack = () => setFilters(parseFilters(window.location.search)); // Back and Forward step through the pages
+    window.addEventListener("popstate", onBack);
+    return () => window.removeEventListener("popstate", onBack);
   }, []);
 
-  function set(patch: Partial<Filters>) {
+  /** Typing and picking filters rewrite the address in place; moving to another page adds a history entry so Back returns to the previous page. */
+  function set(patch: Partial<Filters>, newEntry = false) {
     const next = { ...filters, page: 1, ...patch };
     setFilters(next);
-    window.history.replaceState(null, "", window.location.pathname + filtersToQuery(next));
+    window.history[newEntry ? "pushState" : "replaceState"](null, "", window.location.pathname + filtersToQuery(next));
   }
 
   const live = useMemo(() => (now === null ? games : games.filter((g) => isLive(g, now))), [games, now]);
@@ -43,7 +47,7 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
   const pageBtn = "btn rounded-[var(--radius-input)] border border-[color-mix(in_oklab,var(--color-ink)_35%,var(--color-paper))] bg-paper px-3 text-ink hover:not-disabled:bg-paper-3";
 
   function go(page: number) {
-    set({ page });
+    set({ page }, true);
     document.getElementById("games-top")?.scrollIntoView({ block: "start" });
   }
 

@@ -224,7 +224,7 @@ export async function daily(env: Env): Promise<void> {
     failure = e;
     const why = String(e instanceof Error ? e.message : e).slice(0, 200);
     await metaSet(ctx.db, "backup_error", `${iso(ctx.now())}: ${why}`);
-    await tellOwner(ctx, "Quest Board TPK: the daily backup failed", `The daily backup did not complete: ${why}\n\nThe site keeps working. Check GET /api/health?key=… and the Worker "quest-board-cron" in the Cloudflare dashboard.`);
+    await tellOwner(ctx, "Quest Board: the daily backup failed", `The daily backup did not complete: ${why}\n\nThe site keeps working. Check GET /api/health?key=… and the Worker "quest-board-cron" in the Cloudflare dashboard.`);
   }
   await expireInactive(ctx, async (keys) => { for (const key of keys) await env.images.delete(key); }).catch((e) => logEvent(ctx.db, ctx.now(), "expire_failed", "job", "", "", String(e instanceof Error ? e.message : e).slice(0, 120), "the daily job"));
   await deployIfDue(ctx, env.deployHook, env.fetcher, true);

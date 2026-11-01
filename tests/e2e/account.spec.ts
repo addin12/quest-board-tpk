@@ -14,7 +14,7 @@ async function fillProfile(page: Page, name = "Sari Dewanti") {
   await page.getByLabel("Short bio").fill("A GM who likes quiet horror.");
   await page.getByLabel("City", { exact: true }).selectOption("Depok");
   await page.getByLabel("WhatsApp number", { exact: true }).fill("0813-5555-0101");
-  await page.getByRole("checkbox", { name: /shown publicly on Quest Board TPK/ }).check();
+  await page.getByRole("checkbox", { name: /shown publicly on Quest Board/ }).check();
 }
 
 test("signing in: the link in the email opens the account, the token leaves the address bar, and it works once", async ({ page }) => {
@@ -74,6 +74,8 @@ test("profile, then a game with a picture: both wait for review; the picture is 
   await form.getByLabel("Play language").selectOption("id");
   await form.getByLabel("Experience level").selectOption("beginner");
   await form.getByRole("checkbox", { name: "Horror", exact: true }).check();
+  await form.getByText("More about how you run it").click(); // play styles and mechanics are optional and folded away
+  await form.getByRole("checkbox", { name: "Percentile (d100)" }).check();
   const png = await sharp({ create: { width: 1600, height: 1600, channels: 3, background: { r: 120, g: 60, b: 40 } } }).png().toBuffer();
   await form.getByLabel("Cover picture").setInputFiles({ name: "cover.png", mimeType: "image/png", buffer: png });
   await expect(form.getByText("Picture ready")).toBeVisible();
@@ -85,6 +87,7 @@ test("profile, then a game with a picture: both wait for review; the picture is 
   await expect(page.getByTestId("my-game").getByTestId("status")).toHaveText("Waiting for review");
   const [game] = await world.sql(COLUMN("Kabut di Kebun Raya"));
   expect(game.status).toBe("pending");
+  expect(JSON.parse(game.mechanics)).toEqual(["d100"]);
   expect(game.cover_key).toMatch(/^covers\/[a-z0-9]{16}\.(webp|jpg)$/);
   const stored = await page.evaluate(async (key) => (await fetch(`/api/img/${key}`)).status, game.cover_key);
   expect(stored, "a picture that is not approved is private").toBe(404);

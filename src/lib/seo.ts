@@ -58,7 +58,7 @@ export function websiteJsonLd(lang: Lang, description: string): object[] {
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      name: "Quest Board TPK",
+      name: "Quest Board",
       url: SITE_URL,
       inLanguage: lang === "id" ? "id-ID" : "en",
       description,

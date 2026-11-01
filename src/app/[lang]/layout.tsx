@@ -31,9 +31,9 @@ export async function generateMetadata({ params }: LayoutProps<"/[lang]">): Prom
   const t = makeT(lang);
   return {
     metadataBase: new URL(SITE_URL),
-    title: { default: t("meta.title"), template: "%s · Quest Board TPK" },
+    title: { default: t("meta.title"), template: "%s · Quest Board" },
     description: t("meta.description"),
-    openGraph: { siteName: "Quest Board TPK", type: "website", title: t("meta.title"), description: t("meta.description"), locale: lang === "id" ? "id_ID" : "en_US" },
+    openGraph: { siteName: "Quest Board", type: "website", title: t("meta.title"), description: t("meta.description"), locale: lang === "id" ? "id_ID" : "en_US" },
     twitter: { card: "summary" },
   };
 }

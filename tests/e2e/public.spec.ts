@@ -23,7 +23,7 @@ test("find a game, follow the links, message the GM on WhatsApp", async ({ page,
   await chat.waitForURL(/wa\.me/);
   const url = new URL(chat.url());
   expect(url.pathname).toBe("/62811000000001");
-  expect(url.searchParams.get("text")).toMatch(/^Hi Raka Pratama, I found “Mercusuar di Pulau Kabut” on Quest Board TPK \(.* WIB\)\. Is there still a seat\?$/);
+  expect(url.searchParams.get("text")).toMatch(/^Hi Raka Pratama, I found “Mercusuar di Pulau Kabut” on Quest Board \(.* WIB\)\. Is there still a seat\?$/);
 });
 
 test("the search on the home page leads to the games that match", async ({ page }) => {
@@ -103,6 +103,10 @@ test("the list shows nine games a page, with a pager that keeps the address", as
   await page.getByRole("button", { name: "Page 2" }).click();
   await expect(page).toHaveURL(/\?page=2$/);
   await expect(page.getByRole("button", { name: "Page 2" })).toHaveAttribute("aria-current", "page");
+  await page.goBack(); // moving to a page is a history step, so Back returns to the page before
+  await expect(page.getByRole("button", { name: "Page 1" })).toHaveAttribute("aria-current", "page");
+  await page.goForward();
+  await expect(page.getByRole("button", { name: "Page 2" })).toHaveAttribute("aria-current", "page");
   await expect(list).toHaveCount(9);
   await expect(page.getByRole("button", { name: "Next" })).toBeDisabled();
   await page.reload();
@@ -115,8 +119,33 @@ test("the list shows nine games a page, with a pager that keeps the address", as
   await expect(page.getByRole("button", { name: "Halaman 2" })).toHaveAttribute("aria-current", "page"); // past the end shows the last page
 });
 
+test("the browse pages list every system, genre, style and mechanic and lead into the filtered list", async ({ page }) => {
+  await page.goto("/en/");
+  await page.getByRole("link", { name: "Browse all game systems" }).click();
+  await expect(page).toHaveURL(/\/en\/systems\/$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Game systems");
+  await expect(page.getByRole("heading", { level: 2, name: "No games listed yet" })).toBeVisible(); // the systems nobody runs yet sit apart, as small cards
+  await expect(page.getByRole("link", { name: /Nimble 5e/ })).toContainText("0 games");
+  const ld = (await page.locator('script[type="application/ld+json"]').allInnerTexts()).join("");
+  expect(ld).toContain("BreadcrumbList");
+  await page.getByRole("link", { name: /Cairn 2e/ }).click();
+  await expect(page).toHaveURL(/system=Cairn%202e/);
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 1 game");
+
+  for (const [path, title] of [["genres", "Genres"], ["styles", "Play styles"], ["mechanics", "Game mechanics"]]) {
+    await page.goto(`/en/${path}/`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
+  }
+  await page.goto("/en/mechanics/");
+  await page.getByRole("link", { name: /Fate dice/ }).click();
+  await expect(page).toHaveURL(/mechanic=fate-dice/);
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 1 game");
+  await expect(page.getByTestId("games-list")).toContainText("Kapal Hantu Kapten Jenaka");
+});
+
 test("a game marked full says so, sinks to the end of the list, and can still be messaged", async ({ page }) => {
   await page.goto("/en/games/?page=2");
+  await expect(page.getByRole("button", { name: "Page 2" })).toHaveAttribute("aria-current", "page"); // the address is read after the page loads
   const titles = await page.locator("main a h2").allInnerTexts();
   expect(titles.at(-1)).toBe("Doskvol Setelah Gelap");
   await expect(page.locator("main li").filter({ hasText: "Doskvol Setelah Gelap" })).toContainText("Full");

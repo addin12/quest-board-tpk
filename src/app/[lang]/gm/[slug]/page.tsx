@@ -44,7 +44,7 @@ export default async function GmPage({ params }: PageProps<"/[lang]/gm/[slug]">)
       <JsonLd data={[
         gmJsonLd(gm, lang),
         breadcrumbJsonLd([
-          { name: "Quest Board TPK", url: `${SITE_URL}${paths.home(lang)}` },
+          { name: "Quest Board", url: `${SITE_URL}${paths.home(lang)}` },
           { name: t("gm.title"), url: `${SITE_URL}${paths.gms(lang)}` },
           { name: gm.name, url: `${SITE_URL}${paths.gm(lang, gm.slug)}` },
         ]),

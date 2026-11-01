@@ -45,7 +45,7 @@ test("doPost sends the mail, counts it for the day, and stops at the limit", () 
   const w = load();
   assert.deepEqual(w.post(ok), { ok: true });
   assert.equal(w.sent.length, 1);
-  assert.deepEqual(plain(w.sent[0]), { to: "raka@example.com", subject: "Hi there", body: "Link: https://x.example", name: "Quest Board TPK" });
+  assert.deepEqual(plain(w.sent[0]), { to: "raka@example.com", subject: "Hi there", body: "Link: https://x.example", name: "Quest Board" });
   assert.equal(w.props.MAIL_DAY, "2026-10-30:1");
   w.props.MAIL_DAY = "2026-10-30:90";
   assert.deepEqual(w.post(ok), { ok: false, error: "quota" });

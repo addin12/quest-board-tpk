@@ -8,7 +8,7 @@ const chivo = Chivo({ variable: "--font-chivo", subsets: ["latin"], weight: ["40
 
 // The 404 for any address that isn't a page (the site is static, so this becomes 404.html). It ignores the [lang]
 // layout, so it speaks both languages and links to both home pages.
-export const metadata = { title: "404 · Quest Board TPK" };
+export const metadata = { title: "404 · Quest Board" };
 
 export default function GlobalNotFound() {
   const en = makeT("en");

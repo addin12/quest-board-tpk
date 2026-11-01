@@ -11,6 +11,17 @@ is only the mail relay. **Everything up to `edb7fb4` is pushed and live, CI gree
 design, the header toggle, the systems pages and the removal of featured games). The live site has 0 games and 0 GMs, so the home "Browse by system" block
 is hidden there until a game is listed; `/systems/` shows all 132 systems with 0 games.
 
+## Update 2026-11-01 (newer than the paragraph above)
+
+Pushed and CI green up to `31c0a34`; later commits are local until the owner says "push". Since the paragraph above: browse blocks and pages for systems,
+genres, play styles and mechanics (ADR-30..33; migration `0003_mechanics.sql` is applied to the live D1); `/systems/` splits the systems without games
+into compact cards; Nimble 5e and Nimble 2e added (the names are a guess, Nimble Co. is the authority); the **demo data is 18 games** (`data/sample.json`,
+placeholder covers in `public/images/covers/`; the e2e counts depend on it) and the games list shows **nine a page** with a numbered pager
+(`PAGE_SIZE`, `pageList` in `src/lib/games.ts`; the page is `?page=N`, moving to a page is a history step; the built HTML holds page 1 only, the other
+games are reachable through the sitemap and their own pages). The product is called **Quest Board** on the site, in emails and in the share text;
+"The Pandemonium Kollektive (TPK)" stays as the community's name. The Apps Script sender name in `apps-script/Code.gs` changed too and only goes live with
+`npm run script:deploy`.
+
 ## What was done on 2026-10-30 evening (all pushed)
 
 Design: Halftone, the oak-board tavern and the tavern at night were each dropped; the direction is the **minimal tavern** (ADR-30, [design.md](../design.md))

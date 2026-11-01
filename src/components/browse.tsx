@@ -60,7 +60,7 @@ export function BrowsePage({ title, lead, home, path, emptyHeading, ...rest }: C
   const unlisted = emptyHeading ? rest.tiles.filter((x) => x.count === 0) : [];
   return (
     <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-2xl)]">
-      <JsonLd data={breadcrumbJsonLd([{ name: "Quest Board TPK", url: `${SITE_URL}${home}` }, { name: title, url: `${SITE_URL}${path}` }])} />
+      <JsonLd data={breadcrumbJsonLd([{ name: "Quest Board", url: `${SITE_URL}${home}` }, { name: title, url: `${SITE_URL}${path}` }])} />
       <h1 className="max-w-none text-[length:var(--text-display-s)]">{title}</h1>
       <p className="lead mb-[var(--space-xl)] mt-[var(--space-sm)] text-ink-2">{lead}</p>
       {listed.length > 0 && <Tiles {...rest} tiles={listed} level={2} />}

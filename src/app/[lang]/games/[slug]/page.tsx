@@ -76,7 +76,7 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
       <JsonLd data={[
         gameJsonLd(game, gm, lang),
         breadcrumbJsonLd([
-          { name: "Quest Board TPK", url: `${SITE_URL}${paths.home(lang)}` },
+          { name: "Quest Board", url: `${SITE_URL}${paths.home(lang)}` },
           { name: t("games.title"), url: `${SITE_URL}${paths.games(lang)}` },
           { name: game.title, url: `${SITE_URL}${paths.game(lang, game.slug)}` },
         ]),

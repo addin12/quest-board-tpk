@@ -128,4 +128,4 @@ createServer(async (req, res) => {
     console.error(e);
     send(500, { error: String(e) });
   }
-}).listen(PORT, () => console.log(`Quest Board TPK test server: ${ORIGIN}`));
+}).listen(PORT, () => console.log(`Quest Board test server: ${ORIGIN}`));

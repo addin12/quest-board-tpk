@@ -1,4 +1,4 @@
-// Quest Board TPK lists games played online or in person in Jabodetabek. Pure module (no imports): the script,
+// Quest Board lists games played online or in person in Jabodetabek. Pure module (no imports): the script,
 // the checks and the tests share it.
 
 /** The cities a Game Master picks from in the forms. */

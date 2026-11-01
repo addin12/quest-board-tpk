@@ -25,7 +25,7 @@ export default async function GamesPage({ params }: PageProps<"/[lang]/games">) 
     <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-2xl)]">
       <JsonLd data={[
         collectionJsonLd(t("games.title"), lang, games),
-        breadcrumbJsonLd([{ name: "Quest Board TPK", url: `${SITE_URL}${paths.home(lang)}` }, { name: t("games.title"), url: `${SITE_URL}${paths.games(lang)}` }]),
+        breadcrumbJsonLd([{ name: "Quest Board", url: `${SITE_URL}${paths.home(lang)}` }, { name: t("games.title"), url: `${SITE_URL}${paths.games(lang)}` }]),
       ]} />
       <h1 className="max-w-none text-[length:var(--text-display-s)]">{t("games.title")}</h1>
       <p className="lead mb-[var(--space-xl)] mt-[var(--space-sm)] text-ink-2">{t("games.count", { n: games.length })}</p>

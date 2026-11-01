@@ -73,7 +73,7 @@ function doPost(e) {
   if (m.error) return json_({ ok: false, error: m.error });
   props.setProperty('MAIL_DAY', today + ':' + (sent + 1));
   try {
-    MailApp.sendEmail({ to: m.to, subject: m.subject, body: m.body, name: 'Quest Board TPK' });
+    MailApp.sendEmail({ to: m.to, subject: m.subject, body: m.body, name: 'Quest Board' });
   } catch (err) {
     console.error(err);
     return json_({ ok: false, error: 'mail_failed' });

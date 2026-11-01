@@ -30,5 +30,5 @@ export async function watchBackup(ctx: Ctx): Promise<void> {
   if (told && now - Date.parse(told) < DAY_MS) return;
   await metaSet(ctx.db, "stale_alert_at", iso(now));
   const why = (await metaGet(ctx.db, "backup_error")) || "no error was recorded, so the daily job probably did not run";
-  await tellOwner(ctx, "Quest Board TPK: no backup for " + hours + " hours", `The last good backup was ${hours} hours ago (${last}).\n\nWhat the system knows: ${why}.\n\nCheck the Worker "quest-board-cron" in the Cloudflare dashboard (Workers → quest-board-cron → Logs), and GET /api/health?key=… for details.`);
+  await tellOwner(ctx, "Quest Board: no backup for " + hours + " hours", `The last good backup was ${hours} hours ago (${last}).\n\nWhat the system knows: ${why}.\n\nCheck the Worker "quest-board-cron" in the Cloudflare dashboard (Workers → quest-board-cron → Logs), and GET /api/health?key=… for details.`);
 }

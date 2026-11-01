@@ -189,7 +189,7 @@ test("the first message is in the game's language, or the page's when the game u
   assert.equal(messageLang(g("both"), "id"), "id");
   assert.equal(messageLang(null, "en"), "en");
   const m = contactMessage({ name: "Raka" }, g("id"), "en");
-  assert.match(m, /^Halo Raka, aku menemukan “Mercusuar di Pulau Kabut” di Quest Board TPK \(.* WIB\)\. Apakah masih ada kursi\?$/);
+  assert.match(m, /^Halo Raka, aku menemukan “Mercusuar di Pulau Kabut” di Quest Board \(.* WIB\)\. Apakah masih ada kursi\?$/);
   assert.match(contactMessage({ name: "Raka" }, null, "en"), /^Hi Raka, I found your profile/);
 });
 

@@ -21,7 +21,7 @@ export function messageLang(game: Pick<SiteGame, "language"> | null, pageLang: L
   return game.language === "both" ? pageLang : game.language;
 }
 
-/** "Hi Raka, I found “Mercusuar” on Quest Board TPK (Sun 12 Oct, 19.00 WIB). Is there still a seat?" */
+/** "Hi Raka, I found “Mercusuar” on Quest Board (Sun 12 Oct, 19.00 WIB). Is there still a seat?" */
 export function contactMessage(gm: Pick<SiteGm, "name">, game: SiteGame | null, pageLang: Lang): string {
   const lang = messageLang(game, pageLang);
   const t = makeT(lang);

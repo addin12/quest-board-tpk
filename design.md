@@ -70,6 +70,9 @@ the listings' own cover art as the only colour) and the tavern is carried by thr
 - **The tavern stays at three touches and a typeface** (oak strip, double rule, a nail on each card, Garamond). It is deliberately quiet after three heavier directions were rejected. Turning it up later means adding one touch at a time, each with a reason in the table above.
 - **Play styles and mechanics are optional and collapsed** in the GM's listing form (genres stay open): they are long and most GMs will skip them.
 
+- **The product is "Quest Board"** everywhere people read it (header, titles, emails, share text); TPK is the community behind it, named on the How it works page and in the footer line.
+- **The games list is paged, nine to a page.** The pager is numbered rounded rectangles (the current page filled with the accent), 48 px high; more than 7 pages show the first, the last and the neighbours of the current page with "…".
+
 ## How to change it
 
 Change a token in `tokens.css` (light) or the dark blocks in `globals.css` before changing a component. Check both stocks and both languages at a 400 px

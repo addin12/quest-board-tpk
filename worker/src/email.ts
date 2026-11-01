@@ -69,8 +69,8 @@ export function loginMail(to: string, link: string, minutes: number): Mail {
     to,
     subject: "Your sign-in link / Tautan masuk kamu",
     body:
-      `Hi,\n\nOpen this link to sign in to Quest Board TPK. It works once and expires in ${minutes} minutes.\n${link}\n\nIf you did not ask for it, ignore this email.\n\n${SIGN}\n\n* * *\n\n` +
-      `Halo,\n\nBuka tautan ini untuk masuk ke Quest Board TPK. Tautan hanya berlaku sekali dan kedaluwarsa dalam ${minutes} menit.\n${link}\n\nJika bukan kamu yang meminta, abaikan email ini.\n\n${SIGN}`,
+      `Hi,\n\nOpen this link to sign in to Quest Board. It works once and expires in ${minutes} minutes.\n${link}\n\nIf you did not ask for it, ignore this email.\n\n${SIGN}\n\n* * *\n\n` +
+      `Halo,\n\nBuka tautan ini untuk masuk ke Quest Board. Tautan hanya berlaku sekali dan kedaluwarsa dalam ${minutes} menit.\n${link}\n\nJika bukan kamu yang meminta, abaikan email ini.\n\n${SIGN}`,
   };
 }
 
@@ -103,9 +103,9 @@ export function expiryMail(to: string, graceDays: number, siteUrl: string): Mail
   const where = `${siteUrl.replace(/\/$/, "")}/en/account/`;
   return {
     to,
-    subject: "Your Quest Board TPK account will be erased / Akun Quest Board TPK kamu akan dihapus",
+    subject: "Your Quest Board account will be erased / Akun Quest Board kamu akan dihapus",
     body:
-      `Hi,\n\nYou have not signed in to Quest Board TPK for a long time. In ${graceDays} days we will erase your account, your Game Master profile, your games and your pictures.\n\nTo keep them, sign in once at ${where}. That is all.\n\n${SIGN}\n\n* * *\n\n` +
-      `Halo,\n\nKamu sudah lama tidak masuk ke Quest Board TPK. Dalam ${graceDays} hari kami akan menghapus akunmu, profil Game Master, game, dan gambarmu.\n\nUntuk menyimpannya, masuk sekali di ${where}. Itu saja.\n\n${SIGN}`,
+      `Hi,\n\nYou have not signed in to Quest Board for a long time. In ${graceDays} days we will erase your account, your Game Master profile, your games and your pictures.\n\nTo keep them, sign in once at ${where}. That is all.\n\n${SIGN}\n\n* * *\n\n` +
+      `Halo,\n\nKamu sudah lama tidak masuk ke Quest Board. Dalam ${graceDays} hari kami akan menghapus akunmu, profil Game Master, game, dan gambarmu.\n\nUntuk menyimpannya, masuk sekali di ${where}. Itu saja.\n\n${SIGN}`,
   };
 }
