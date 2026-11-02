@@ -31,7 +31,7 @@ SOFTWARE.
 
 ## Genre pictures
 
-The pictures in `public/images/genres/` are public domain book illustrations (Public Domain Mark 1.0) found through Inside Out Library (https://insideoutlibrary.com/). No licence notice is required; the sources are listed in `docs/art-credits.md`.
+The pictures in `public/images/genres/` are the ones StartPlaying shows on its genres page (https://startplaying.games/play/genres). They are not licensed for reuse; see [docs/art-credits.md](docs/art-credits.md) and ADR-35 for the source, the owner's decision and how to remove one. (The public domain engravings used before 2026-11-02 are in the git history.)
 
 ## Game system pictures
 

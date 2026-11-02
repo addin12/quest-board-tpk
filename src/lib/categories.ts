@@ -94,6 +94,6 @@ export const mechanicLabelKey = (k: MechanicKey) => `mechanic.${k}` as MsgKey;
 export const isStyle = (k: string): k is StyleKey => STYLES.some((s) => s.key === k);
 
 export const genreLabelKey = (k: GenreKey) => `genre.${k}` as MsgKey;
-/** A genre's picture: public domain book art, one file per genre in public/images/genres (credits in docs/art-credits.md). */
+/** A genre's picture: the one StartPlaying shows for it, one file per genre in public/images/genres (credits in docs/art-credits.md). */
 export const genreCover = (k: GenreKey) => `/images/genres/${k}.webp`;
 export const styleLabelKey = (k: StyleKey) => `style.${k}` as MsgKey;
