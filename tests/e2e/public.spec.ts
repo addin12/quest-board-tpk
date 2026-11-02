@@ -238,7 +238,7 @@ test("the system filter has a search box inside it: type, pick, and go back to A
   const system = page.getByLabel("Game system", { exact: true });
   await expect(system).toHaveValue("Any");
   await system.fill("cairn");
-  const list = page.getByRole("listbox", { name: "Matching game systems" });
+  const list = page.getByRole("listbox", { name: "Choices for Game system" });
   await expect(list.getByRole("option")).toHaveCount(1); // only the systems with listed games are offered, here Cairn 2e
   await list.getByRole("option", { name: "Cairn 2e" }).click();
   await expect(page).toHaveURL(/system=Cairn\+2e/);
@@ -251,6 +251,18 @@ test("the system filter has a search box inside it: type, pick, and go back to A
   await list.getByRole("option", { name: "Any" }).click();
   await expect(page.getByTestId("games-count")).toHaveText("Showing 18 games");
   await expect(page).toHaveURL(/\/en\/games\/$/);
+
+  // genres, play styles and mechanics are searchable the same way, and show their translated names
+  for (const [label, typed, option, param] of [["Genre", "horr", "Horror", "genre=horror"], ["Play style", "tact", "Tactical", "style=tactical"], ["Mechanic", "d100", "Percentile (d100)", "mechanic=d100"]] as const) {
+    const field = page.getByLabel(label, { exact: true });
+    await field.fill(typed);
+    await page.getByRole("listbox", { name: `Choices for ${label}` }).getByRole("option", { name: option, exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(param.replace(/[()]/g, "\\$&")));
+    await expect(field).toHaveValue(option);
+    await field.click();
+    await page.getByRole("listbox", { name: `Choices for ${label}` }).getByRole("option", { name: "Any" }).click();
+    await expect(page).toHaveURL(/\/en\/games\/$/);
+  }
 });
 
 test("the home page: a ranked row of systems, counts on the buttons, a way in for Game Masters, and a header that stays", async ({ page }) => {

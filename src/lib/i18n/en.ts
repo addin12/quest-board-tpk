@@ -184,6 +184,8 @@ export const en = {
   "games.sort": "Sort by",
   "games.freeOnly": "Free games only",
   "games.clear": "Clear filters",
+  "games.typeToSearch": "Type to search",
+  "games.choicesFor": "Choices for {name}",
   "games.showN": "Show {n} game|Show {n} games",
   "games.results": "Showing {n} game|Showing {n} games",
   "games.pages": "Pages of games",

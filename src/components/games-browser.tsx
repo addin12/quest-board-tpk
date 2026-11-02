@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { GENRES, MECHANICS, STYLES, genreLabelKey, mechanicLabelKey, styleLabelKey } from "@/lib/categories";
 import { EMPTY_FILTERS, PAGE_SIZE, activeFilterCount, applyFilters, filtersToQuery, isLive, pageList, parseFilters, type Filters, type GameView, type filterOptions } from "@/lib/games";
-import { SystemPicker } from "./account/system-picker";
+import { SearchPicker, type PickerOption } from "./search-picker";
 import { useI18n } from "./i18n-provider";
 import { EmptyState, GameCard } from "./ui";
 
@@ -82,6 +82,14 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
     </div>
   );
 
+  // the long lists (system, genre, style, mechanic) are searchable; the short ones stay native dropdowns
+  const search = (id: string, label: string, value: string, onChange: (v: string) => void, choices: PickerOption[]) => (
+    <div>
+      <label htmlFor={id} className="label">{label}</label>
+      <SearchPicker id={id} value={value} options={choices} any={t("common.any")} placeholder={t("games.typeToSearch")} listLabel={t("games.choicesFor", { name: label })} onChange={onChange} />
+    </div>
+  );
+
   return (
     <div data-ready={now !== null ? "" : undefined} /* set once the page's scripts run: the list is then interactive (the tests wait for it) */>
       <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
@@ -95,13 +103,10 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
       </div>
 
       <FilterShell phone={phone} open={open} sheet={sheet} count={shown.length} onClose={() => setSheet(false)}>
-        <div>
-          <label htmlFor="f-system" className="label">{t("games.system")}</label>
-          <SystemPicker id="f-system" value={filters.system} options={options.systems} any={t("common.any")} onChange={(system) => set({ system })} />
-        </div>
-        {select("f-genre", t("games.genre"), filters.genre, (v) => set({ genre: v }), GENRES.filter((g) => options.genres.includes(g.key)).map((g) => ({ value: g.key, label: t(genreLabelKey(g.key)) })))}
-        {select("f-style", t("games.style"), filters.style, (v) => set({ style: v }), STYLES.filter((s) => options.styles.includes(s.key)).map((s) => ({ value: s.key, label: t(styleLabelKey(s.key)) })))}
-        {select("f-mechanic", t("games.mechanic"), filters.mechanic, (v) => set({ mechanic: v }), MECHANICS.filter((m) => options.mechanics.includes(m.key)).map((m) => ({ value: m.key, label: t(mechanicLabelKey(m.key)) })))}
+        {search("f-system", t("games.system"), filters.system, (v) => set({ system: v }), options.systems.map((s) => ({ value: s, label: s })))}
+        {search("f-genre", t("games.genre"), filters.genre, (v) => set({ genre: v }), GENRES.filter((g) => options.genres.includes(g.key)).map((g) => ({ value: g.key, label: t(genreLabelKey(g.key)) })))}
+        {search("f-style", t("games.style"), filters.style, (v) => set({ style: v }), STYLES.filter((s) => options.styles.includes(s.key)).map((s) => ({ value: s.key, label: t(styleLabelKey(s.key)) })))}
+        {search("f-mechanic", t("games.mechanic"), filters.mechanic, (v) => set({ mechanic: v }), MECHANICS.filter((m) => options.mechanics.includes(m.key)).map((m) => ({ value: m.key, label: t(mechanicLabelKey(m.key)) })))}
         {select("f-format", t("games.format"), filters.format, (v) => set({ format: v as Filters["format"] }), [{ value: "one_shot", label: t("format.one_shot") }, { value: "campaign", label: t("format.campaign") }])}
         {select("f-where", t("games.where"), filters.where, (v) => set({ where: v as Filters["where"] }), [{ value: "online", label: t("loc.online") }, { value: "in_person", label: t("loc.inPerson") }])}
         {select("f-level", t("games.level"), filters.level, (v) => set({ level: v as Filters["level"] }), [{ value: "beginner", label: t("level.beginner") }, { value: "any", label: t("level.any") }, { value: "experienced", label: t("level.experienced") }])}

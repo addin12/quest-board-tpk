@@ -185,6 +185,8 @@ export const id: Record<MsgKey, string> = {
   "games.sort": "Urutkan",
   "games.freeOnly": "Hanya game gratis",
   "games.clear": "Hapus filter",
+  "games.typeToSearch": "Ketik untuk mencari",
+  "games.choicesFor": "Pilihan untuk {name}",
   "games.showN": "Tampilkan {n} game",
   "games.results": "Menampilkan {n} game",
   "games.pages": "Halaman game",

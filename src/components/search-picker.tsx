@@ -2,15 +2,19 @@
 
 import { useId, useMemo, useState } from "react";
 import { norm } from "@/lib/games";
-import { useI18n } from "../i18n-provider";
+
+export type PickerOption = { value: string; label: string };
 
 /**
- * A searchable list for the game system: 141 names are too many to scroll in a native dropdown. A standard ARIA combobox: type to narrow the list,
- * arrow keys and Enter to choose, Escape to close. `onChange` gets the chosen name.
- * In the GM form `other` is the last choice; in the games filter `any` is the first (it chooses "", no system) and is shown when nothing is typed.
+ * A searchable list in place of a long native dropdown (the game systems, the genres, the play styles, the mechanics). A standard ARIA combobox:
+ * click or type to open and narrow the list, arrow keys and Enter to choose, Escape to close. `value` is the chosen option's value ("" for none);
+ * `onChange` gets the chosen value. In the GM form `other` is the last choice; in the games filter `any` is the first (it chooses "") and shows
+ * while nothing is typed. The list opens on a click or on typing, never on focus: a filter sheet focuses its first field when it opens, and
+ * Escape must then close the sheet.
  */
-export function SystemPicker({ id, value, options, other, any, onChange, invalid }: { id: string; value: string; options: readonly string[]; other?: string; any?: string; onChange: (value: string) => void; invalid?: boolean }) {
-  const { t } = useI18n();
+export function SearchPicker({ id, value, options, other, any, placeholder, listLabel, onChange, invalid }: {
+  id: string; value: string; options: readonly PickerOption[]; other?: PickerOption; any?: string; placeholder: string; listLabel: string; onChange: (value: string) => void; invalid?: boolean;
+}) {
   const listId = useId();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
@@ -19,9 +23,11 @@ export function SystemPicker({ id, value, options, other, any, onChange, invalid
 
   const choices = useMemo(() => {
     const words = dirty ? norm(text).split(/\s+/).filter(Boolean) : [];
-    const found = options.filter((o) => words.every((w) => norm(o).includes(w))).map((o) => ({ label: o, value: o }));
-    return [...(any && words.length === 0 ? [{ label: any, value: "" }] : []), ...found, ...(other ? [{ label: other, value: other }] : [])];
+    const found = options.filter((o) => words.every((w) => norm(o.label).includes(w)));
+    return [...(any && words.length === 0 ? [{ label: any, value: "" }] : []), ...found, ...(other ? [other] : [])];
   }, [options, other, any, text, dirty]);
+
+  const shown = options.find((o) => o.value === value)?.label ?? (other && value === other.value ? other.label : value || any || "");
 
   function choose(i: number) {
     const c = choices[Math.min(i, choices.length - 1)];
@@ -49,19 +55,18 @@ export function SystemPicker({ id, value, options, other, any, onChange, invalid
         aria-invalid={invalid || undefined}
         autoComplete="off"
         className="input"
-        value={open && dirty ? text : value || any || ""}
-        placeholder={t("acct.f.systemPlaceholder")}
-        // Opened by a click or by typing, not by focus: a filter sheet focuses its first field when it opens, and Escape must then close the sheet (and focus must not scroll the page)
+        value={open && dirty ? text : shown}
+        placeholder={placeholder}
         onClick={(e) => { setOpen(true); setActive(0); e.currentTarget.select(); }}
         onBlur={() => { setOpen(false); setDirty(false); }}
         onChange={(e) => { setText(e.target.value); setDirty(true); setOpen(true); setActive(0); }}
         onKeyDown={key}
       />
       {open && (
-        <ul id={listId} role="listbox" aria-label={t("acct.f.systemList")} className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-y-auto border border-ink bg-paper">
+        <ul id={listId} role="listbox" aria-label={listLabel} className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-y-auto border border-ink bg-paper">
           {choices.map((c, i) => (
             <li
-              key={c.label}
+              key={c.value || c.label}
               id={`${listId}-${i}`}
               role="option"
               aria-selected={c.value === value}
