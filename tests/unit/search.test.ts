@@ -45,6 +45,49 @@ test("game systems are found by their abbreviations", () => {
   assert.ok(!finds("Pathfinder 1e", "pf2e"), "the edition number is respected");
 });
 
+test("more abbreviations from community glossaries find the system they stand for", () => {
+  const cases: [string, string[]][] = [
+    ["Mothership", ["mosh"]],
+    ["Mörk Borg", ["mb"]],
+    ["Mythic Bastionland", ["mb"]],
+    ["Mutant: Year Zero", ["myz", "yze"]],
+    ["Tales From the Loop", ["tftl"]],
+    ["Vampire: The Requiem 2nd Edition", ["cofd", "nwod", "vtr"]],
+    ["Vampire: The Masquerade Revised Edition", ["owod", "wod", "vtm"]],
+    ["Vampire: The Masquerade 5e", ["v5"]],
+    ["Changeling: The Lost Second Edition", ["ctl", "cofd"]],
+    ["Delta Green", ["dg"]],
+    ["Twilight: 2000", ["t2k"]],
+    ["Classic Traveller", ["ct", "trav"]],
+    ["Traveller (Mongoose 2nd Edition)", ["mgt2e", "mgt"]],
+    ["Exalted 3rd Edition", ["ex3e", "ex"]],
+    ["Monsterhearts 2e", ["mh2e"]],
+    ["Tales of the Valiant", ["totv"]],
+    ["Fabula Ultima", ["fu"]],
+    ["Level Up Advanced 5th Edition", ["a5e"]],
+    ["Pokemon Tabletop United", ["ptu"]],
+    ["Fate Accelerated", ["fae"]],
+    ["Starfinder 2e", ["sf2e"]],
+    ["Star Wars RPG by Fantasy Flight Games", ["swrpg"]],
+    ["Warhammer Fantasy Roleplay 4e", ["wfrp4e"]],
+    ["Warhammer 40,000 Wrath & Glory", ["w&g", "wng", "wh40k"]],
+    ["Legend of the Five Rings 5th Edition", ["l5r5e"]],
+    ["Mutants & Masterminds 3e", ["mm3e"]],
+    ["Eldritch horror", ["cosmic", "lovecraftian"]],
+    ["Fate dice", ["fudge"]],
+    ["Card-based", ["cards"]],
+    ["Espionage", ["spy"]],
+    ["Heartwarming", ["wholesome"]],
+  ];
+  for (const [text, typed] of cases) for (const t of typed) assert.ok(finds(text, t), `"${t}" finds ${text}`);
+  assert.ok(!finds("Pathfinder 1e", "pf2e") && !finds("Warhammer Fantasy Roleplay 4e", "wfrp3e"), "the edition numbers still count");
+});
+
+test("a game is found by its format and place in the short words people use", () => {
+  assert.ok(finds("Mercusuar one_shot in_person horror", "oneshot irl"));
+  assert.ok(finds("Mercusuar campaign online", "virtual"));
+});
+
 test("every word must match, and nothing matches nothing", () => {
   assert.ok(finds("Cairn 2e", "cairn 2e"));
   assert.ok(!finds("Cairn 2e", "cairn 1e"));

@@ -79,7 +79,7 @@ export { norm };
 function matchesText(g: GameView, q: string): boolean {
   const words = queryWords(q);
   if (words.length === 0) return true;
-  return matchesWords(searchText([g.title, g.system, g.summary, g.city, g.venueName, g.gmName, g.platform, ...g.genres, ...g.styles, ...g.mechanics].join(" ")), words);
+  return matchesWords(searchText([g.title, g.system, g.summary, g.city, g.venueName, g.gmName, g.platform, g.format, g.locationType, ...g.genres, ...g.styles, ...g.mechanics].join(" ")), words);
 }
 
 export function sortGames<G extends GameView>(games: G[], sort: SortKey): G[] {
