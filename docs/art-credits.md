@@ -28,4 +28,4 @@ Vampire: The Masquerade Revised Edition is now Open Library's 349 x 475 scan (co
 
 Dungeons & Dragons 5.5e 2024 is the 2024 Player's Handbook cover, a 2732 x 3579 image the owner supplied (Wizards of the Coast's art), instead of the 2014 cover StartPlaying shows. The 2014 entry keeps StartPlaying's picture.
 
-Knave 2e is the front cover of the hardback, cut from the publisher's Kickstarter product photo and shown whole (a portrait book) over a darkened, blurred copy of itself at the sides. Knave 1e has no cover scan in reach: its tile shows the gold title mark from the publisher's page on black. Replace `public/images/systems/knave-1e.webp` (then `npm run tiles`) when a real cover is at hand.
+Knave 2e is the front cover of the hardback, cut from the publisher's Kickstarter product photo and scaled to the tile's full width without stretching (so the top spires and the bottom of the book fall outside the 4:5 tile). Knave 1e has no cover scan in reach: its tile shows the gold title mark from the publisher's page on black. Replace `public/images/systems/knave-1e.webp` (then `npm run tiles`) when a real cover is at hand.
