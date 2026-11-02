@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
+import { SYSTEMS } from "../../src/lib/systems.ts";
 
 // The public site against the demo data (data/sample.json), as a player uses it.
 const GAME = "/en/games/mercusuar-di-pulau-kabut-0m01/";
@@ -176,9 +177,9 @@ test("the systems page can be searched, and the search stays in the address", as
   await expect(page.locator("[data-ready]")).toBeAttached(); // typing before the page's scripts run is lost
   const visible = page.locator("#browse-tiles [data-name]:not([hidden])");
   const all = await visible.count();
-  expect(all).toBe(141);
+  expect(all).toBe(SYSTEMS.length);
   await page.getByLabel("Find a system").fill("cairn");
-  await expect(page.getByTestId("tile-count")).toHaveText("Showing 2 of 141");
+  await expect(page.getByTestId("tile-count")).toHaveText(`Showing 2 of ${SYSTEMS.length}`);
   await expect(visible).toHaveCount(2);
   await expect(page).toHaveURL(/\/en\/systems\/\?q=cairn$/);
   await page.getByLabel("Find a system").fill("mork"); // accents do not matter: Mörk Borg
@@ -186,9 +187,9 @@ test("the systems page can be searched, and the search stays in the address", as
   await page.getByLabel("Find a system").fill("zzzz");
   await expect(page.getByTestId("tile-count")).toHaveText("No match. Try another word.");
   await page.getByLabel("Find a system").fill("");
-  await expect(visible).toHaveCount(141);
+  await expect(visible).toHaveCount(SYSTEMS.length);
   await page.goto("/id/systems/?q=shadowrun");
-  await expect(page.getByTestId("tile-count")).toHaveText("Menampilkan 4 dari 141"); // read back from the address
+  await expect(page.getByTestId("tile-count")).toHaveText(`Menampilkan 4 dari ${SYSTEMS.length}`); // read back from the address
   await expect(page.getByText(/Pilih “Other”/)).toBeVisible();
 });
 
@@ -232,7 +233,7 @@ test("with no match the empty state offers the way out, and people who ask for l
 
 test("the home page: a ranked row of systems, counts on the buttons, a way in for Game Masters, and a header that stays", async ({ page }) => {
   await page.goto("/en/");
-  await expect(page.getByRole("link", { name: "All 141 game systems" })).toBeVisible();
+  await expect(page.getByRole("link", { name: `All ${SYSTEMS.length} game systems` })).toBeVisible();
   await expect(page.getByRole("link", { name: "All 40 genres" })).toBeVisible();
   await expect(page.locator('section[aria-labelledby="systems-h"] .rank').first()).toHaveText("1");
   await expect(page.getByText("Do you run games?")).toBeVisible();

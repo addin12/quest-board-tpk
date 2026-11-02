@@ -85,8 +85,8 @@ The five motions (R-19: each has a UX purpose, written here):
 - **The header stays in view** (sticky, paper-coloured) on every page, so the language, the theme and the way back are always one tap away on the long pages; on a phone it slides away while reading downwards.
 - **Home blocks vary** (R-05): systems and genres are picture grids; play styles and mechanics sit side by side as two columns of text cards (stacked on a phone). The filter fields are a bottom sheet on a phone and an inline panel from 640 px; the system field in the GM form is a searchable list (ARIA combobox) instead of a 141-option dropdown; the empty list offers "Clear filters" in place.
 - **On a phone the home browse blocks are one row that scrolls sideways** (the next tile peeking in, snapping to each); from 640 px up they are grids. "Starting soon" stays a grid, because the owner asked for no scrollbar there.
-- **The systems page has a search box** (`?q=`, accents ignored): 141 tiles are too many to scan. Its closing note tells a Game Master to choose "Other" for a missing system and, when `NEXT_PUBLIC_REPORT_URL` is set, links to tell the admins.
-- **Buttons that lead on carry the number**, such as "All 141 game systems"; the hero asks Game Masters in too ("Do you run games?" and the list button), as well as players.
+- **The systems page has a search box** (`?q=`, accents ignored): 143 tiles are too many to scan. Its closing note tells a Game Master to choose "Other" for a missing system and, when `NEXT_PUBLIC_REPORT_URL` is set, links to tell the admins.
+- **Buttons that lead on carry the number**, such as "All 143 game systems"; the hero asks Game Masters in too ("Do you run games?" and the list button), as well as players.
 
 ## How to change it
 

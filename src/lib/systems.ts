@@ -70,6 +70,8 @@ export const SYSTEMS = [
   "Invincible Superhero Roleplaying",
   "Kids on Bikes",
   "Kids on Brooms",
+  "Knave 1e",
+  "Knave 2e",
   "Lancer",
   "Legend in the Mist",
   "Legend of the Five Rings 4th Edition",

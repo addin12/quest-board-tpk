@@ -59,6 +59,8 @@ const FILE: Record<string, string> = {
   "Invincible Superhero Roleplaying": "invincible-superhero-roleplaying",
   "Kids on Bikes": "kids-on-bikes",
   "Kids on Brooms": "kids-on-brooms",
+  "Knave 1e": "knave-1e",
+  "Knave 2e": "knave-2e",
   "Lancer": "lancer",
   "Legend in the Mist": "legend-in-the-mist",
   "Legend of the Five Rings 5th Edition": "legend-of-the-five-rings-5th-edition",
