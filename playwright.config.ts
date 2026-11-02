@@ -12,6 +12,9 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   // Headless Firefox on Windows hangs (graphics compositor) when many windows run at once; two workers is steady everywhere.
   workers: 2,
+  // Firefox and WebKit on a busy Windows laptop can need 3 s just to load a static page; a step that takes seconds there is slowness, not a hang
+  // (measured: a 9 s test took 18 s when the machine was short of memory). 60 s still catches a real hang.
+  timeout: 60_000,
   reporter: process.env.CI ? [["github"], ["list"]] : "list",
   use: { baseURL: `http://localhost:${PORT}`, trace: "retain-on-failure" },
   projects: [
