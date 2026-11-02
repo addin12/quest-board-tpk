@@ -11,7 +11,7 @@ import { gmById, loadSiteData } from "@/lib/data";
 import { formatDay, formatWhen } from "@/lib/format";
 import { paths } from "@/lib/hrefs";
 import { makeT } from "@/lib/i18n/dict";
-import { REPORT_URL, SITE_URL } from "@/lib/site";
+import { OG_IMAGE, REPORT_URL, SITE_URL } from "@/lib/site";
 import { slugParams } from "@/lib/static-params";
 import { breadcrumbJsonLd, gameJsonLd, languageAlternates } from "@/lib/seo";
 import { isLang } from "@/lib/types";
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: PageProps<"/[lang]/games/[slu
     title: game.title,
     description: game.summary || undefined,
     alternates: languageAlternates(lang, `/games/${game.slug}/`),
-    openGraph: { title: game.title, description: game.summary || undefined, type: "website", images: game.cover ? [{ url: game.cover }] : undefined },
+    openGraph: { title: game.title, description: game.summary || undefined, type: "website", images: game.cover ? [{ url: game.cover }] : [OG_IMAGE] },
   };
 }
 

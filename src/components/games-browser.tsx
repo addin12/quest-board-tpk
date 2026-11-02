@@ -43,7 +43,9 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
   const active = activeFilterCount(filters);
   const filterCount = activeFilterCount({ ...filters, q: "" });
 
-  // a rounded rectangle, 48 px tall; the current page is filled with the accent
+  useEffect(() => { if (now !== null) delete document.documentElement.dataset.q; }, [now]); // the address is read and applied: show the list
+
+  // a rounded rectangle, 48 px tall; the current page is filled with the accent. On a phone the numbers get a row above Previous and Next.
   const pageBtn = "btn rounded-[var(--radius-input)] border border-[color-mix(in_oklab,var(--color-ink)_35%,var(--color-paper))] bg-paper px-3 text-ink hover:not-disabled:bg-paper-3";
 
   function go(page: number) {
@@ -97,7 +99,7 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
       </div>
 
       <div className="mt-[var(--space-xl)] flex flex-wrap items-center justify-between gap-[var(--space-md)]">
-        <p id="games-top" className="scroll-mt-24 text-muted" role="status" aria-live="polite" data-testid="games-count">{t("games.results", { n: shown.length })}</p>
+        <p id="games-top" data-late className="scroll-mt-24 text-muted" role="status" aria-live="polite" data-testid="games-count">{t("games.results", { n: shown.length })}</p>
         {active > 0 && (
           <button type="button" className="btn btn-ghost" onClick={() => { setFilters(EMPTY_FILTERS); window.history.replaceState(null, "", window.location.pathname); }}>
             {t("games.clear")}
@@ -106,23 +108,25 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
       </div>
 
       {shown.length === 0 ? (
-        <div className="mt-[var(--space-md)]"><EmptyState title={t(games.length === 0 ? "games.noneYet" : "games.none")} /></div>
+        <div data-late className="mt-[var(--space-md)]"><EmptyState title={t(games.length === 0 ? "games.noneYet" : "games.none")} /></div>
       ) : (
-        <ul className="mt-[var(--space-md)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-2 lg:grid-cols-3" data-testid="games-list">
+        <ul data-late className="mt-[var(--space-md)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-2 lg:grid-cols-3" data-testid="games-list">
           {visible.map((g, i) => <li key={g.id}><GameCard game={g} t={t} lang={lang} priority={i < 4} headingLevel={2} /></li>)}
         </ul>
       )}
 
       {pages > 1 && (
-        <nav aria-label={t("games.pages")} className="mt-[var(--space-2xl)] flex flex-wrap items-center justify-center gap-[var(--space-sm)]" data-testid="games-pager">
+        <nav aria-label={t("games.pages")} data-late className="mt-[var(--space-2xl)] flex flex-wrap items-center justify-center gap-[var(--space-sm)]" data-testid="games-pager">
           <button type="button" className={pageBtn} disabled={page <= 1} onClick={() => go(page - 1)}>{t("games.prev")}</button>
+          <div className="order-first flex w-full items-center justify-center gap-1.5 sm:gap-[var(--space-sm)] sm:order-none sm:w-auto">
           {pageList(page, pages).map((n, i) =>
             n === 0 ? (
-              <span key={`gap${i}`} aria-hidden="true" className="px-1 text-muted">…</span>
+              <span key={`gap${i}`} aria-hidden="true" className="px-0.5 text-muted sm:px-1">…</span>
             ) : (
-              <button key={n} type="button" className={`${pageBtn} min-w-12 ${n === page ? "!border-accent !bg-accent !text-accent-ink" : ""}`} aria-current={n === page ? "page" : undefined} aria-label={t("games.pageN", { page: n })} onClick={() => go(n)}>{n}</button>
+              <button key={n} type="button" className={`${pageBtn} min-w-11 !px-2 sm:min-w-12 sm:!px-3 ${n === page ? "!border-accent !bg-accent !text-accent-ink" : ""}`} aria-current={n === page ? "page" : undefined} aria-label={t("games.pageN", { page: n })} onClick={() => go(n)}>{n}</button>
             ),
           )}
+          </div>
           <button type="button" className={pageBtn} disabled={page >= pages} onClick={() => go(page + 1)}>{t("games.next")}</button>
         </nav>
       )}

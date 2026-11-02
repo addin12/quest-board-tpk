@@ -12,3 +12,6 @@ export const TURNSTILE_SITE_KEY = env(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 
 /** Where a player can report a listing (a form or chat link); the link is hidden when empty. */
 export const REPORT_URL = env(process.env.NEXT_PUBLIC_REPORT_URL);
+
+/** The picture a shared link shows when the page has none of its own (public/og.png, 1200 x 630). */
+export const OG_IMAGE = { url: "/og.png", width: 1200, height: 630, alt: "Quest Board" };

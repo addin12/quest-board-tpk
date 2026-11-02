@@ -9,7 +9,7 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { makeT, publicMessages } from "@/lib/i18n/dict";
 import { paths } from "@/lib/hrefs";
-import { SITE_URL } from "@/lib/site";
+import { OG_IMAGE, SITE_URL } from "@/lib/site";
 import { LANGS, isLang } from "@/lib/types";
 import "../globals.css";
 
@@ -33,8 +33,8 @@ export async function generateMetadata({ params }: LayoutProps<"/[lang]">): Prom
     metadataBase: new URL(SITE_URL),
     title: { default: t("meta.title"), template: "%s · Quest Board" },
     description: t("meta.description"),
-    openGraph: { siteName: "Quest Board", type: "website", title: t("meta.title"), description: t("meta.description"), locale: lang === "id" ? "id_ID" : "en_US" },
-    twitter: { card: "summary" },
+    openGraph: { siteName: "Quest Board", type: "website", title: t("meta.title"), description: t("meta.description"), locale: lang === "id" ? "id_ID" : "en_US", images: [OG_IMAGE] },
+    twitter: { card: "summary_large_image" },
   };
 }
 

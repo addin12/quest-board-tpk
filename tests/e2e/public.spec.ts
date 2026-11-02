@@ -117,6 +117,30 @@ test("the list shows nine games a page, with a pager that keeps the address", as
   await expect(page.getByTestId("games-pager")).toHaveCount(0);
   await page.goto("/id/games/?page=99");
   await expect(page.getByRole("button", { name: "Halaman 2" })).toHaveAttribute("aria-current", "page"); // past the end shows the last page
+  await expect(page.getByRole("button", { name: "Sebelumnya" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Berikutnya" })).toBeDisabled();
+  await page.getByRole("button", { name: "Halaman 1" }).click();
+  await page.getByRole("button", { name: /Filter/ }).click();
+  await page.getByLabel("Tempat", { exact: true }).selectOption("online");
+  await expect(page.getByTestId("games-count")).toHaveText("Menampilkan 12 game");
+  await expect(page.getByRole("button", { name: "Halaman 2" })).toBeVisible(); // 12 online games are two pages
+  await page.getByRole("button", { name: "Halaman 2" }).click();
+  await expect(page.getByTestId("games-list").getByRole("listitem")).toHaveCount(3);
+  await page.getByRole("button", { name: "Hapus filter" }).click();
+  await expect(page.getByTestId("games-count")).toHaveText("Menampilkan 18 game"); // clearing the filters also returns to page 1
+  await expect(page.getByRole("button", { name: "Halaman 1" })).toHaveAttribute("aria-current", "page");
+  expect(new URL(page.url()).search).toBe("");
+});
+
+test("an address that filters or pages the list does not show the unfiltered list first", async ({ page }) => {
+  await page.route("**/_next/static/**/*.js", async (route) => { await new Promise((r) => setTimeout(r, 1000)); await route.continue(); }); // the page is drawn before it can read its address
+  const shown = () => page.evaluate(() => getComputedStyle(document.querySelector("[data-late]")!).visibility);
+  await page.goto("/en/games/?system=Cairn%202e", { waitUntil: "domcontentloaded" });
+  expect(await shown()).toBe("hidden");
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 1 game");
+  expect(await shown()).toBe("visible");
+  await page.goto("/en/games/", { waitUntil: "domcontentloaded" });
+  expect(await shown(), "no query, nothing to wait for").toBe("visible");
 });
 
 test("the browse pages list every system, genre, style and mechanic and lead into the filtered list", async ({ page }) => {
