@@ -23,3 +23,5 @@ Warhammer Fantasy Roleplay 1e is the last one found: the cover of the 1995 repri
 Werewolf: The Apocalypse 20th Anniversary Edition (W20) is Noble Knight's product photo (the "1500 px" file is an upscale of a roughly 200 px original), trimmed to the book, so the white edge is gone, and sharpened in two steps; it is crisper but not more detailed. The only scan with more detail found was the Spanish edition's, which carries the Spanish title.
 
 Warhammer Fantasy Roleplay 2e is now a 377 x 500 cover scan (a library catalogue's copy of the retail cover image, from Amazon's image server) instead of Wikipedia's 277 px one, sharpened in two steps.
+
+Vampire: The Masquerade Revised Edition is now Open Library's 349 x 475 scan (cover 802185) instead of Dragonstrove's 199 x 260 photo, sharpened in two steps and toned down a little (the scan is brighter green than the printed cover looks).
