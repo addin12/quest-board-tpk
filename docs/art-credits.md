@@ -21,3 +21,5 @@ A second pass the same day replaced 14 of those 30 with sharper pictures (2e/3e/
 Warhammer Fantasy Roleplay 1e is the last one found: the cover of the 1995 reprint of the 1986 core rulebook, from Open Library (cover 946179, 367 px).
 
 Werewolf: The Apocalypse 20th Anniversary Edition (W20) is Noble Knight's product photo (the "1500 px" file is an upscale of a roughly 200 px original), trimmed to the book, so the white edge is gone, and sharpened in two steps; it is crisper but not more detailed. The only scan with more detail found was the Spanish edition's, which carries the Spanish title.
+
+Warhammer Fantasy Roleplay 2e is now a 377 x 500 cover scan (a library catalogue's copy of the retail cover image, from Amazon's image server) instead of Wikipedia's 277 px one, sharpened in two steps.
