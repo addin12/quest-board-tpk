@@ -287,6 +287,26 @@ test("every search box understands the short names: dnd, d&d, science fiction", 
   await expect(page.getByRole("listbox", { name: "Choices for Genre" }).getByRole("option", { name: "Sci-fi" })).toBeVisible();
 });
 
+test("the Game Masters page can be searched by name, city or system, and the short names work", async ({ page }) => {
+  await page.goto("/en/gms/");
+  await expect(page.locator("[data-ready]")).toBeAttached();
+  const shown = page.locator("#gm-list [data-name]:not([hidden])");
+  await expect(shown).toHaveCount(4);
+  await page.getByLabel("Find a Game Master").fill("dnd"); // Dewi Lestari runs Dungeons & Dragons
+  await expect(shown).toHaveCount(1);
+  await expect(shown).toContainText("Dewi Lestari");
+  await expect(page.getByTestId("tile-count")).toHaveText("Showing 1 of 4");
+  await page.getByLabel("Find a Game Master").fill("depok");
+  await expect(shown).toHaveCount(1);
+  await expect(shown).toContainText("Raka Pratama");
+  await expect(page).toHaveURL(/\/en\/gms\/\?q=depok$/);
+  await page.getByLabel("Find a Game Master").fill("zzzz");
+  await expect(page.getByTestId("tile-count")).toHaveText("No match. Try another word.");
+  await page.goto("/id/gms/?q=coc"); // read back from the address; Call of Cthulhu
+  await expect(page.getByLabel("Cari Game Master")).toHaveValue("coc");
+  await expect(shown).toHaveCount(1);
+});
+
 test("the home page: a ranked row of systems, counts on the buttons, a way in for Game Masters, and a header that stays", async ({ page }) => {
   await page.goto("/en/");
   await expect(page.getByRole("link", { name: `All ${SYSTEMS.length} game systems` })).toBeVisible();

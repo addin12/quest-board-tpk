@@ -230,6 +230,8 @@ export const en = {
   "game.sessionAt": "{when} ({zone})",
   "gm.title": "Game Masters",
   "gm.lead": "Every Game Master here was approved by the TPK admins.",
+  "gm.search": "Find a Game Master",
+  "gm.searchPlaceholder": "Try a name, a city or a system, like “Raka”, “Depok” or “dnd”",
   "gm.openGames": "{n} open game|{n} open games",
   "gm.gamesTitle": "Open games",
   "gm.noGames": "No open games right now. Message the GM to ask about the next one.",

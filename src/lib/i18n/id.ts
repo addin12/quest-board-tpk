@@ -231,6 +231,8 @@ export const id: Record<MsgKey, string> = {
   "game.sessionAt": "{when} ({zone})",
   "gm.title": "Game Master",
   "gm.lead": "Semua Game Master di sini sudah disetujui admin TPK.",
+  "gm.search": "Cari Game Master",
+  "gm.searchPlaceholder": "Coba nama, kota, atau sistem, misalnya “Raka”, “Depok” atau “dnd”",
   "gm.openGames": "{n} game terbuka",
   "gm.gamesTitle": "Game yang terbuka",
   "gm.noGames": "Belum ada game terbuka. Hubungi GM-nya untuk menanyakan game berikutnya.",
