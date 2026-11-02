@@ -25,3 +25,5 @@ Werewolf: The Apocalypse 20th Anniversary Edition (W20) is Noble Knight's produc
 Warhammer Fantasy Roleplay 2e is now a 377 x 500 cover scan (a library catalogue's copy of the retail cover image, from Amazon's image server) instead of Wikipedia's 277 px one, sharpened in two steps.
 
 Vampire: The Masquerade Revised Edition is now Open Library's 349 x 475 scan (cover 802185) instead of Dragonstrove's 199 x 260 photo, sharpened in two steps and toned down a little (the scan is brighter green than the printed cover looks).
+
+Dungeons & Dragons 5.5e 2024 is the 2024 Player's Handbook cover, a 2732 x 3579 image the owner supplied (Wizards of the Coast's art), instead of the 2014 cover StartPlaying shows. The 2014 entry keeps StartPlaying's picture.

@@ -4,7 +4,7 @@
 
 /** The picture file (without extension) for each system name in systems.ts; an edition with no picture of its own is left out. */
 const FILE: Record<string, string> = {
-  "Dungeons & Dragons 5.5e 2024": "dungeons-and-dragons-5e",
+  "Dungeons & Dragons 5.5e 2024": "dungeons-and-dragons-5-5e-2024",
   "Dungeons & Dragons 5e 2014": "dungeons-and-dragons-5e",
   "Pathfinder 2e": "pathfinder-2e",
   "Pathfinder 1e": "pathfinder-1e",
