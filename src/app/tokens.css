@@ -30,7 +30,7 @@
   /* The oak strip at the top and foot of every page: the one piece of the tavern that is a colour of its own. */
   --color-oak: oklch(27% 0.045 48);
   --font-display: "EB Garamond", ui-serif, Georgia, serif;
-  --font-body: "Chivo", ui-sans-serif, sans-serif;
+  --font-body: "Plus Jakarta Sans", ui-sans-serif, sans-serif;
   --radius-card: 3px;
   --radius-input: 4px;
   --radius-pill: 999px;

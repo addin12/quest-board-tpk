@@ -72,7 +72,8 @@ export function activeFilterCount(f: Filters): number {
 
 export type GameView = SiteGame & { gmName: string };
 
-const norm = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "");
+/** Lower case with the accents taken off, for matching what a person typed (Mork finds Mörk). */
+export const norm = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "");
 
 /** Every word of the search must appear somewhere in the title, system, summary, city, venue or GM's name. */
 function matchesText(g: GameView, q: string): boolean {

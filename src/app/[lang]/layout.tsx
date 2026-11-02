@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Chivo, EB_Garamond } from "next/font/google";
+import { EB_Garamond, Plus_Jakarta_Sans } from "next/font/google";
 import { I18nProvider } from "@/components/i18n-provider";
 import { DiceMark } from "@/components/dice-mark";
 import { LanguageSwitcher, NavLinks } from "@/components/nav";
@@ -13,10 +13,10 @@ import { OG_IMAGE, SITE_URL } from "@/lib/site";
 import { LANGS, isLang } from "@/lib/types";
 import "../globals.css";
 
-// Typography: EB Garamond for heads and the wordmark (a 1500s old-style serif, the book face of a tavern's menu and broadside), Chivo for everything
-// people read. Self-hosted at build time. Garamond has a small x-height, so heads are set larger; facts (dates, prices, seats) are always Chivo.
+// Typography: EB Garamond for heads and the wordmark (a 1500s old-style serif, the book face of a tavern's menu and broadside), Plus Jakarta Sans for everything
+// people read (Plus Jakarta Sans, drawn in Indonesia). Self-hosted at build time. Garamond has a small x-height, so heads are set larger; facts (dates, prices, seats) are always Chivo.
 const garamond = EB_Garamond({ variable: "--font-garamond", subsets: ["latin"], weight: ["400", "500"] });
-const chivo = Chivo({ variable: "--font-chivo", subsets: ["latin"], weight: ["400", "700"] });
+const jakarta = Plus_Jakarta_Sans({ variable: "--font-jakarta", subsets: ["latin"], weight: ["400", "700"] });
 
 export const dynamicParams = false;
 export const viewport: Viewport = { themeColor: [{ media: "(prefers-color-scheme: light)", color: "#f5efdc" }, { media: "(prefers-color-scheme: dark)", color: "#16110d" }] };
@@ -46,14 +46,14 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
   if (!isLang(lang)) notFound();
   const t = makeT(lang);
   return (
-    <html lang={lang} suppressHydrationWarning className={`${garamond.variable} ${chivo.variable} h-full overflow-x-clip antialiased`}>
+    <html lang={lang} suppressHydrationWarning className={`${garamond.variable} ${jakarta.variable} h-full overflow-x-clip antialiased`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
       </head>
       <body className="overflow-x-clip max-lg:pb-16">
         <I18nProvider lang={lang} messages={publicMessages(lang)}>
           <a href="#main" className="btn btn-primary sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50">{t("nav.skip")}</a>
-          <header>
+          <header className="sticky top-0 z-30 bg-paper">
             <div className="oak-strip" />
             <div className="rule-double">
               <div className="wrap flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-3 sm:gap-x-6 lg:flex-nowrap lg:py-4">

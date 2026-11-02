@@ -70,7 +70,7 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
           <label htmlFor="q" className="label">{t("games.search")}</label>
           <input id="q" type="search" className="input" value={filters.q} placeholder={t("games.searchPlaceholder")} maxLength={80} onChange={(e) => set({ q: e.target.value })} />
         </div>
-        <button type="button" className="btn btn-secondary" aria-expanded={open} aria-controls="filter-panel" onClick={() => setOpen(!open)}>
+        <button type="button" className="btn btn-secondary min-w-11" aria-expanded={open} aria-controls="filter-panel" onClick={() => setOpen(!open)}>
           {t("games.filters")}{filterCount > 0 ? ` (${filterCount})` : ""}
         </button>
       </div>

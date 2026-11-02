@@ -11,6 +11,7 @@ import { paths } from "@/lib/hrefs";
 import { makeT } from "@/lib/i18n/dict";
 import { languageAlternates, websiteJsonLd } from "@/lib/seo";
 import { systemCover } from "@/lib/system-covers";
+import { SYSTEMS } from "@/lib/systems";
 import { isLang } from "@/lib/types";
 
 export async function generateMetadata({ params }: PageProps<"/[lang]">): Promise<Metadata> {
@@ -48,6 +49,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
               </div>
               <button type="submit" className="btn btn-primary">{t("games.search")}</button>
             </form>
+            <p className="mt-[var(--space-lg)] flex flex-wrap items-center gap-x-[var(--space-md)] gap-y-[var(--space-xs)] text-ink-2">{t("home.gmHint")} <Link href={paths.list(lang)} className="btn btn-soft">{t("nav.list")}</Link></p>
           </div>
         </div>
       </section>
@@ -68,10 +70,10 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
         </div>
       </section>
 
-      <BrowseSection id="systems-h" cover={systemCover} title={t("home.systemsTitle")} tiles={systems} href={filterHref("system")} allHref={paths.systems(lang)} allLabel={t("home.allSystems")} t={t} />
-      <BrowseSection id="genres-h" title={t("home.genresTitle")} tiles={genres} href={filterHref("genre")} label={(k) => t(genreLabelKey(k as GenreKey))} cover={(k) => genreCover(k as GenreKey)} allHref={paths.genres(lang)} allLabel={t("home.allGenres")} t={t} />
-      <BrowseSection id="styles-h" title={t("home.stylesTitle")} tiles={styles} href={filterHref("style")} label={(k) => t(styleLabelKey(k as StyleKey))} variant="card" allHref={paths.styles(lang)} allLabel={t("home.allStyles")} t={t} />
-      <BrowseSection id="mechanics-h" title={t("home.mechanicsTitle")} tiles={mechanics} href={filterHref("mechanic")} label={(k) => t(mechanicLabelKey(k as MechanicKey))} variant="card" allHref={paths.mechanics(lang)} allLabel={t("home.allMechanics")} t={t} />
+      <BrowseSection id="systems-h" ranked cover={systemCover} title={t("home.systemsTitle")} tiles={systems} href={filterHref("system")} allHref={paths.systems(lang)} allLabel={t("home.allSystems", { n: SYSTEMS.length })} t={t} />
+      <BrowseSection id="genres-h" title={t("home.genresTitle")} tiles={genres} href={filterHref("genre")} label={(k) => t(genreLabelKey(k as GenreKey))} cover={(k) => genreCover(k as GenreKey)} allHref={paths.genres(lang)} allLabel={t("home.allGenres", { n: GENRES.length })} t={t} />
+      <BrowseSection id="styles-h" title={t("home.stylesTitle")} tiles={styles} href={filterHref("style")} label={(k) => t(styleLabelKey(k as StyleKey))} variant="card" allHref={paths.styles(lang)} allLabel={t("home.allStyles", { n: STYLES.length })} t={t} />
+      <BrowseSection id="mechanics-h" title={t("home.mechanicsTitle")} tiles={mechanics} href={filterHref("mechanic")} label={(k) => t(mechanicLabelKey(k as MechanicKey))} variant="card" allHref={paths.mechanics(lang)} allLabel={t("home.allMechanics", { n: MECHANICS.length })} t={t} />
 
       {beginner.length > 0 && (
         <section className="section pt-0" aria-labelledby="new-h">

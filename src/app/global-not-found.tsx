@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { makeT } from "@/lib/i18n/dict";
-import { Chivo, Ultra } from "next/font/google";
+import { Plus_Jakarta_Sans, Ultra } from "next/font/google";
 import "./globals.css";
 
 const ultra = Ultra({ variable: "--font-ultra", subsets: ["latin"], weight: "400" });
-const chivo = Chivo({ variable: "--font-chivo", subsets: ["latin"], weight: ["400", "700"] });
+const jakarta = Plus_Jakarta_Sans({ variable: "--font-jakarta", subsets: ["latin"], weight: ["400", "700"] });
 
 // The 404 for any address that isn't a page (the site is static, so this becomes 404.html). It ignores the [lang]
 // layout, so it speaks both languages and links to both home pages.
@@ -14,7 +14,7 @@ export default function GlobalNotFound() {
   const en = makeT("en");
   const id = makeT("id");
   return (
-    <html lang="en" className={`${ultra.variable} ${chivo.variable}`}>
+    <html lang="en" className={`${ultra.variable} ${jakarta.variable}`}>
       <body className="items-start justify-center">
         <main className="wrap flex flex-col items-start gap-[var(--space-lg)] py-[var(--space-3xl)]">
           <p className="poster" aria-hidden>{"404"}</p>

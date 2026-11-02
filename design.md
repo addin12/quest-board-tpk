@@ -5,7 +5,7 @@ are earlier directions that were dropped); the mandatory rules for any screen re
 `src/app/tokens.css` (light) and `src/app/globals.css` (dark and components).
 
 Design Read: a listing board for tabletop players in Jabodetabek and the Game Masters who run for them, in a **minimal tavern** language: warm paper,
-ink, one oxblood accent, and three quiet tavern touches and one typeface. Dial: ENERGY 1 / RHYTHM 2 / MOTION 1.
+ink, one oxblood accent, and four quiet tavern touches and one typeface. Dial: ENERGY 1 / RHYTHM 2 / MOTION 1.
 
 ## Who it is for
 
@@ -17,13 +17,14 @@ message the GM. The site takes no bookings and no money, and the design must nev
 
 Three earlier directions were tried and dropped at the owner's request (Halftone: print poster; a tavern board with oak planks and chains; a tavern at
 night). The lesson: the more the page is dressed as a tavern, the less it reads as a place to find a game. So the page is plain (paper, ink, space, rules,
-the listings' own cover art as the only colour) and the tavern is carried by three touches and one typeface. Each touch does something; none is decoration.
+the listings' own cover art as the only colour) and the tavern is carried by four touches and one typeface. Each touch does something; none is decoration.
 
 | Touch | What it is | Why it is there (R-31) |
 |---|---|---|
 | **Oak strip** (`.oak-strip`) | A 6 px band of oak across the very top and the very foot of every page | A beam over the door and a sill under it: the one place the page has a colour of its own, and it frames the page without a panel |
 | **Double rule** (`.rule-double`, `border-double`) | A thin double line under the masthead, above the footer and above the closing call | How an old broadside is ruled under its title: it separates without a heavy bar, and it is the only "ornament" |
 | **Nail** (`.tack`) | Each game card is a hairline box with a small nail at the top: a notice on a board | The product is a board of notices; one dot says so, with no shadow, tilt or texture |
+| **Rank numeral** (`.rank`) | An outlined Garamond numeral in the text zone of each "Browse by system" tile on the home page | The tiles are ordered by how many games each system has; a number says so at a glance (the idea comes from style.ai.id's "Top today"); it is faint, decorative and never over a picture |
 | **Book face** (EB Garamond) | Headings and the wordmark are set in a Garamond, a 1500s old-style serif | The voice of a tavern's menu and broadside, in the one place type can carry it without costing readability |
 
 ## Visual language
@@ -31,8 +32,8 @@ the listings' own cover art as the only colour) and the tavern is carried by thr
 - **Palette (R-29).** Warm paper and ink (the two core colours) and one accent, oxblood (the red of a wax seal and a painted sign). The accent is
   a deep oxblood on paper (7:1 or better for text and buttons) and a lifted brick on the dark stock. Oak appears only in the strip and is the nail's colour
   family. Light is the primary stock; dark is the same room after hours. The OS preference decides unless the person picks a theme (`html[data-theme]`).
-- **Type.** EB Garamond (medium) for heads and the wordmark; Chivo for everything people read. Garamond has a small x-height, so heads are set larger, and
-  facts stay in Chivo: a date, a price, a seat count or a time (R-06, readability, tabular figures). It was chosen by the owner from seven options (IM Fell English,
+- **Type.** EB Garamond (medium) for heads and the wordmark; Plus Jakarta Sans for everything people read (drawn in Indonesia, 2026-11-02: it replaced Chivo; ADR-36). Garamond has a small x-height, so heads are set larger, and
+  facts stay in the sans: a date, a price, a seat count or a time (R-06, readability, tabular figures). It was chosen by the owner from seven options (IM Fell English,
   Alegreya, EB Garamond, Lora, Besley, Almendra, Young Serif); Fell was dropped for its one thin weight and old-style figures. 14 px is the smallest text;
   running text stays near 65 characters wide.
 - **Shape.** Photographs and wells are square or nearly (radii 2 to 4 px); tags are small rectangles, not pills (R-11); ruled lists use a 2 px bar and hairlines.
@@ -54,7 +55,7 @@ the listings' own cover art as the only colour) and the tavern is carried by thr
 ## Rules that follow from it
 
 1. One accent. A second colour needs a reason written here.
-2. The tavern stays at these four touches (the table above). A sixth needs a reason written here first. No wood textures, parchment filters, torn edges,
+2. The tavern stays at these five touches (the table above). A sixth needs a reason written here first. No wood textures, parchment filters, torn edges,
    flourishes, gold, glow, sword icons, and no illustration that is not a listing's own cover (R-22, R-23). The one exception is the d20 outline
    beside the wordmark "Quest Board" (`src/components/dice-mark.tsx`), drawn on the owner's explicit request; it is the site's only mark.
    The genre tiles carry the pictures from StartPlaying's genres page (ADR-35, `public/images/genres`) and the system tiles the publishers' book covers (ADR-34, `public/images/systems`), both chosen on the owner's request and credited in `docs/art-credits.md`; they are the only pictures that are not a listing's own cover.
@@ -67,11 +68,16 @@ the listings' own cover art as the only colour) and the tavern is carried by thr
 ## Decisions on the record (2026-10-31)
 
 - **The theme follows the visitor's device by default**, and the header toggle then pins light or dark. Dark is not forced on everyone: the page is read mostly on phones in daylight and the light stock is the primary one. The footer keeps the three-way switch because it is the only way back to Automatic.
-- **The tavern stays at three touches and a typeface** (oak strip, double rule, a nail on each card, Garamond). It is deliberately quiet after three heavier directions were rejected. Turning it up later means adding one touch at a time, each with a reason in the table above.
+- **The tavern stays at four touches and a typeface** (oak strip, double rule, a nail on each card, a rank numeral on the system tiles, Garamond). It is deliberately quiet after three heavier directions were rejected. Turning it up later means adding one touch at a time, each with a reason in the table above.
 - **Play styles and mechanics are optional and collapsed** in the GM's listing form (genres stay open): they are long and most GMs will skip them.
 
 - **The product is "Quest Board"** everywhere people read it (header, titles, emails, share text); TPK is the community behind it, named on the How it works page and in the footer line.
 - **The games list is paged, nine to a page.** The pager is numbered rounded rectangles (the current page filled with the accent), 48 px high; more than 7 pages show the first, the last and the neighbours of the current page with "…".
+
+- **The header stays in view** (sticky, paper-coloured) on every page, so the language, the theme and the way back are always one tap away on the long pages.
+- **On a phone the home browse blocks are one row that scrolls sideways** (the next tile peeking in, snapping to each); from 640 px up they are grids. "Starting soon" stays a grid, because the owner asked for no scrollbar there.
+- **The systems page has a search box** (`?q=`, accents ignored): 141 tiles are too many to scan. Its closing note tells a Game Master to choose "Other" for a missing system and, when `NEXT_PUBLIC_REPORT_URL` is set, links to tell the admins.
+- **Buttons that lead on carry the number**, such as "All 141 game systems"; the hero asks Game Masters in too ("Do you run games?" and the list button), as well as players.
 
 ## How to change it
 

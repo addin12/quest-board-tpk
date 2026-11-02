@@ -22,6 +22,8 @@ games are reachable through the sitemap and their own pages). The product is cal
 "The Pandemonium Kollektive (TPK)" stays as the community's name. The Apps Script sender name in `apps-script/Code.gs` changed too and only goes live with
 `npm run script:deploy`.
 
+Later on 2026-11-02 (local, not pushed until the owner says so): ADR-36, the refinements drawn from style.ai.id (search on /systems/, sideways rows on phones, sticky header, counts on the buttons, a Game Master line in the hero, a note for missing systems, rank numerals, Plus Jakarta Sans), and system pictures for all 141 systems (ADR-34, [art-credits.md](art-credits.md)).
+
 ## What was done on 2026-10-30 evening (all pushed)
 
 Design: Halftone, the oak-board tavern and the tavern at night were each dropped; the direction is the **minimal tavern** (ADR-30, [design.md](../design.md))

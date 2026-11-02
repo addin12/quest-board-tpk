@@ -145,7 +145,7 @@ test("an address that filters or pages the list does not show the unfiltered lis
 
 test("the browse pages list every system, genre, style and mechanic and lead into the filtered list", async ({ page }) => {
   await page.goto("/en/");
-  await page.getByRole("link", { name: "Browse all game systems" }).click();
+  await page.getByRole("link", { name: /game systems/ }).click();
   await expect(page).toHaveURL(/\/en\/systems\/$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Game systems");
   await expect(page.getByRole("link", { name: /Nimble 5e/ })).toContainText("0 games");
@@ -164,6 +164,39 @@ test("the browse pages list every system, genre, style and mechanic and lead int
   await expect(page).toHaveURL(/mechanic=fate-dice/);
   await expect(page.getByTestId("games-count")).toHaveText("Showing 1 game");
   await expect(page.getByTestId("games-list")).toContainText("Kapal Hantu Kapten Jenaka");
+});
+
+test("the systems page can be searched, and the search stays in the address", async ({ page }) => {
+  await page.goto("/en/systems/");
+  const visible = page.locator("#browse-tiles [data-name]:not([hidden])");
+  const all = await visible.count();
+  expect(all).toBe(141);
+  await page.getByLabel("Find a system").fill("cairn");
+  await expect(page.getByTestId("tile-count")).toHaveText("Showing 2 of 141");
+  await expect(visible).toHaveCount(2);
+  await expect(page).toHaveURL(/\/en\/systems\/\?q=cairn$/);
+  await page.getByLabel("Find a system").fill("mork"); // accents do not matter: Mörk Borg
+  await expect(visible).toHaveCount(1);
+  await page.getByLabel("Find a system").fill("zzzz");
+  await expect(page.getByTestId("tile-count")).toHaveText("No match. Try another word.");
+  await page.getByLabel("Find a system").fill("");
+  await expect(visible).toHaveCount(141);
+  await page.goto("/id/systems/?q=shadowrun");
+  await expect(page.getByTestId("tile-count")).toHaveText("Menampilkan 4 dari 141"); // read back from the address
+  await expect(page.getByText(/Pilih “Other”/)).toBeVisible();
+});
+
+test("the home page: a ranked row of systems, counts on the buttons, a way in for Game Masters, and a header that stays", async ({ page }) => {
+  await page.goto("/en/");
+  await expect(page.getByRole("link", { name: "All 141 game systems" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "All 40 genres" })).toBeVisible();
+  await expect(page.locator('section[aria-labelledby="systems-h"] .rank').first()).toHaveText("1");
+  await expect(page.getByText("Do you run games?")).toBeVisible();
+  await expect(page.getByRole("main").getByRole("link", { name: "List your game" }).first()).toHaveAttribute("href", "/en/list-your-game/");
+  await page.goto("/en/systems/");
+  await page.evaluate(() => scrollTo(0, 3000));
+  const top = await page.locator("header").evaluate((el) => el.getBoundingClientRect().top);
+  expect(top, "the header is still at the top after scrolling").toBe(0);
 });
 
 test("a game marked full says so, sinks to the end of the list, and can still be messaged", async ({ page }) => {
