@@ -82,7 +82,7 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
   );
 
   return (
-    <div>
+    <div data-ready={now !== null ? "" : undefined} /* set once the page's scripts run: the list is then interactive (the tests wait for it) */>
       <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
         <div>
           <label htmlFor="q" className="label">{t("games.search")}</label>

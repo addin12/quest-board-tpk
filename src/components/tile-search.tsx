@@ -14,9 +14,11 @@ const wordsOf = (q: string) => norm(q).split(/\s+/).filter(Boolean);
 export function TileSearch({ targetId, label, placeholder, names }: { targetId: string; label: string; placeholder: string; names: string[] }) {
   const { t } = useI18n();
   const [q, setQ] = useState("");
+  const [ready, setReady] = useState(false); // the scripts have run: typing now counts (the tests wait for this)
 
   useEffect(() => {
     setQ((new URLSearchParams(window.location.search).get("q") ?? "").slice(0, 60)); // eslint-disable-line react-hooks/set-state-in-effect -- the address is only known in the browser
+    setReady(true);
   }, []);
 
   useEffect(() => {
@@ -32,7 +34,7 @@ export function TileSearch({ targetId, label, placeholder, names }: { targetId: 
   const words = wordsOf(q);
   const shown = words.length ? names.filter((n) => words.every((w) => n.includes(w))).length : names.length;
   return (
-    <div className="max-w-xl">
+    <div className="max-w-xl" data-ready={ready ? "" : undefined}>
       <label htmlFor="tile-q" className="label">{label}</label>
       <input id="tile-q" type="search" className="input" value={q} placeholder={placeholder} maxLength={60} onChange={(e) => change(e.target.value)} autoComplete="off" />
       <p className="mt-[var(--space-xs)] min-h-6 text-sm text-muted" role="status" aria-live="polite" data-testid="tile-count">

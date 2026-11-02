@@ -37,6 +37,7 @@ test("the search on the home page leads to the games that match", async ({ page 
 
 test("filters narrow the list, keep the address, and can be cleared", async ({ page }) => {
   await page.goto("/en/games/");
+  await expect(page.locator("[data-ready]")).toBeAttached(); // the page's scripts have run; a tap before that does nothing
   await expect(page.getByTestId("games-count")).toHaveText("Showing 18 games");
   await page.getByRole("button", { name: /Filters/ }).click();
   await page.getByLabel("Where", { exact: true }).selectOption("online");
@@ -96,6 +97,7 @@ test("an address that is not a page gets the 404 page, in both languages", async
 
 test("the list shows nine games a page, with a pager that keeps the address", async ({ page }) => {
   await page.goto("/en/games/");
+  await expect(page.locator("[data-ready]")).toBeAttached(); // a click before the page's scripts run does nothing
   const list = page.getByTestId("games-list").getByRole("listitem");
   await expect(list).toHaveCount(9);
   await expect(page.getByRole("button", { name: "Page 1" })).toHaveAttribute("aria-current", "page");
@@ -168,6 +170,7 @@ test("the browse pages list every system, genre, style and mechanic and lead int
 
 test("the systems page can be searched, and the search stays in the address", async ({ page }) => {
   await page.goto("/en/systems/");
+  await expect(page.locator("[data-ready]")).toBeAttached(); // typing before the page's scripts run is lost
   const visible = page.locator("#browse-tiles [data-name]:not([hidden])");
   const all = await visible.count();
   expect(all).toBe(141);
@@ -189,6 +192,7 @@ test("the systems page can be searched, and the search stays in the address", as
 test("on a phone the filters are a sheet, and the header slides away going down and back going up", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/en/games/");
+  await expect(page.locator("[data-ready]")).toBeAttached();
   await page.getByRole("button", { name: /Filters/ }).click();
   const sheet = page.getByRole("dialog", { name: "Filters" });
   await expect(sheet).toBeVisible();

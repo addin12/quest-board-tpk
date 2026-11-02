@@ -133,3 +133,5 @@ Accessibility 98 to 100, best practices 100, SEO 100 on the home page, a game pa
 Reply in English. Commit locally after typecheck, lint and unit tests; run e2e, push, CI and deploys only when told. Never force-push.
 Show text progress bars on long runs. UI changes follow the mandatory real-user rules in CLAUDE.md. Never print secrets
 (`.cloudflare.local.json` and `.apps-script.local.json` are git-ignored on purpose).
+
+**Flaky browser tests, found and fixed on 2026-11-02:** the games list and the systems search are drawn on the server, so a button tapped (or text typed) before the page's scripts run does nothing. The tests did exactly that on a slow machine, which was the cause of the "filters narrow the list" timeouts in Firefox and WebKit. Both components now set `data-ready` once their scripts have run, and the tests wait for it. A real visitor on a slow phone can still tap too early; the `data-late` rule already hides a list that an address filters, and a fuller fix (making the Filters button work without scripts) is not done.
