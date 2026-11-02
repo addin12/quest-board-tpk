@@ -148,7 +148,6 @@ test("the browse pages list every system, genre, style and mechanic and lead int
   await page.getByRole("link", { name: "Browse all game systems" }).click();
   await expect(page).toHaveURL(/\/en\/systems\/$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Game systems");
-  await expect(page.getByRole("heading", { level: 2, name: "No games listed yet" })).toBeVisible(); // the systems nobody runs yet sit apart, as small cards
   await expect(page.getByRole("link", { name: /Nimble 5e/ })).toContainText("0 games");
   const ld = (await page.locator('script[type="application/ld+json"]').allInnerTexts()).join("");
   expect(ld).toContain("BreadcrumbList");

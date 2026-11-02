@@ -108,6 +108,7 @@ const FILE: Record<string, string> = {
   "Fate Condensed": "fate-condensed",
   "Warhammer Fantasy Roleplay 3e": "warhammer-fantasy-roleplay-3e",
   "Vampire: The Requiem 1st Edition": "vampire-the-requiem-1st-edition",
+  "Warhammer Fantasy Roleplay 1e": "warhammer-fantasy-roleplay-1e",
   "Warhammer Fantasy Roleplay 2e": "warhammer-fantasy-roleplay-2e",
   "Werewolf: The Apocalypse 20th Anniversary Edition (W20)": "werewolf-the-apocalypse-20th-anniversary-edition-w20",
   "Legend of the Five Rings 4th Edition": "legend-of-the-five-rings-4th-edition",

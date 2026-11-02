@@ -327,6 +327,6 @@ test("every system picture exists, and a system without one has none", () => {
   for (const f of SYSTEM_COVER_FILES) assert.ok(existsSync(new URL(`../../public/images/systems/${f}.webp`, import.meta.url)), `${f}.webp is missing`);
   assert.equal(systemCover("Daggerheart"), "/images/systems/daggerheart.webp");
   assert.equal(systemCover("Dungeons & Dragons 5e 2014"), systemCover("Dungeons & Dragons 5.5e 2024"), "the two 5e entries share a picture");
-  assert.equal(systemCover("Warhammer Fantasy Roleplay 1e"), null);
-  assert.ok(SYSTEMS.filter((s) => systemCover(s)).length >= 130);
+  assert.equal(systemCover("Not a system"), null);
+  assert.ok(SYSTEMS.filter((s) => systemCover(s)).length === SYSTEMS.length, "every listed system has a picture");
 });
