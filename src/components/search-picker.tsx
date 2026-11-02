@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
-import { norm } from "@/lib/games";
+import { matchesWords, queryWords, searchText } from "@/lib/search";
 
 export type PickerOption = { value: string; label: string };
 
@@ -22,8 +22,8 @@ export function SearchPicker({ id, value, options, other, any, placeholder, list
   const [active, setActive] = useState(0);
 
   const choices = useMemo(() => {
-    const words = dirty ? norm(text).split(/\s+/).filter(Boolean) : [];
-    const found = options.filter((o) => words.every((w) => norm(o.label).includes(w)));
+    const words = dirty ? queryWords(text) : [];
+    const found = options.filter((o) => matchesWords(searchText(o.label), words));
     return [...(any && words.length === 0 ? [{ label: any, value: "" }] : []), ...found, ...(other ? [other] : [])];
   }, [options, other, any, text, dirty]);
 

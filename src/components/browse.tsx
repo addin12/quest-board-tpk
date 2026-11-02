@@ -4,7 +4,7 @@ import { JsonLd } from "@/components/json-ld";
 import { breadcrumbJsonLd } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 import type { T } from "@/lib/i18n/core";
-import { norm } from "@/lib/games";
+import { searchText } from "@/lib/search";
 import { TileSearch } from "./tile-search";
 import { BrowseCard, BrowseTile } from "./ui";
 
@@ -36,11 +36,11 @@ const CARD_RAIL_HALF = "flex snap-x snap-mandatory scroll-pl-[var(--gutter)] gap
 function Tiles({ tiles, href, label, cover, variant = "tile", level, rail, ranked, half, t }: Common & { rail?: boolean; ranked?: boolean; half?: boolean }) {
   const shown = (name: string) => (label ? label(name) : name);
   if (variant === "card") {
-    return <ul className={rail ? (half ? CARD_RAIL_HALF : CARD_RAIL) : CARD_GRID}>{tiles.map((x) => <li key={x.name} data-name={norm(shown(x.name))} className={`flex ${rail ? RAIL_ITEM : ""}`}><BrowseCard name={shown(x.name)} count={x.count} href={href(x.name)} t={t} level={level} /></li>)}</ul>;
+    return <ul className={rail ? (half ? CARD_RAIL_HALF : CARD_RAIL) : CARD_GRID}>{tiles.map((x) => <li key={x.name} data-name={searchText(shown(x.name))} className={`flex ${rail ? RAIL_ITEM : ""}`}><BrowseCard name={shown(x.name)} count={x.count} href={href(x.name)} t={t} level={level} /></li>)}</ul>;
   }
   return (
     <ul className={rail ? RAIL : GRID}>
-      {tiles.map((x, i) => <li key={x.name} data-name={norm(shown(x.name))} className={rail ? RAIL_ITEM : undefined}><BrowseTile name={shown(x.name)} count={x.count} cover={(cover ? cover(x.name) : null) ?? x.cover} href={href(x.name)} t={t} level={level} rank={ranked ? i + 1 : undefined} /></li>)}
+      {tiles.map((x, i) => <li key={x.name} data-name={searchText(shown(x.name))} className={rail ? RAIL_ITEM : undefined}><BrowseTile name={shown(x.name)} count={x.count} cover={(cover ? cover(x.name) : null) ?? x.cover} href={href(x.name)} t={t} level={level} rank={ranked ? i + 1 : undefined} /></li>)}
     </ul>
   );
 }
@@ -98,7 +98,7 @@ export function BrowsePage({ title, lead, home, path, emptyHeading, search, chil
       <JsonLd data={breadcrumbJsonLd([{ name: "Quest Board", url: `${SITE_URL}${home}` }, { name: title, url: `${SITE_URL}${path}` }])} />
       <h1 className="max-w-none text-[length:var(--text-display-s)]">{title}</h1>
       <p className="lead mt-[var(--space-sm)] text-ink-2">{lead}</p>
-      <div className="mb-[var(--space-xl)] mt-[var(--space-lg)]">{search && <TileSearch targetId="browse-tiles" {...search} names={rest.tiles.map((x) => norm(rest.label ? rest.label(x.name) : x.name))} />}</div>
+      <div className="mb-[var(--space-xl)] mt-[var(--space-lg)]">{search && <TileSearch targetId="browse-tiles" {...search} names={rest.tiles.map((x) => searchText(rest.label ? rest.label(x.name) : x.name))} />}</div>
       <div id="browse-tiles">
       {listed.length > 0 && <Tiles {...rest} tiles={listed} level={2} />}
       {unlisted.length > 0 && (

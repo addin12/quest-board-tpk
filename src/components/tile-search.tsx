@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { norm } from "@/lib/games";
+import { queryWords } from "@/lib/search";
 import { useI18n } from "./i18n-provider";
 
-const wordsOf = (q: string) => norm(q).split(/\s+/).filter(Boolean);
+const wordsOf = queryWords;
 
 /**
  * A search box for a long page of tiles (the 141 game systems). The tiles are drawn on the server, so the page is complete without scripts; this
  * hides the `[data-name]` items inside `#targetId` that do not contain every word typed, and keeps the words in the address (?q=).
- * `names` are the tiles' normalised names, only to count the matches.
+ * `names` are the tiles' searchable names (`searchText`, synonyms included), only to count the matches.
  */
 export function TileSearch({ targetId, label, placeholder, names }: { targetId: string; label: string; placeholder: string; names: string[] }) {
   const { t } = useI18n();

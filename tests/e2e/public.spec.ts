@@ -265,6 +265,28 @@ test("the system filter has a search box inside it: type, pick, and go back to A
   }
 });
 
+test("every search box understands the short names: dnd, d&d, science fiction", async ({ page }) => {
+  // the systems page
+  await page.goto("/en/systems/");
+  await expect(page.locator("[data-ready]")).toBeAttached();
+  await page.getByLabel("Find a system").fill("DnD");
+  await expect(page.locator("#browse-tiles [data-name]:not([hidden])").filter({ hasText: "Dungeons & Dragons 5.5e 2024" })).toHaveCount(1);
+  await page.getByLabel("Find a system").fill("d&d 2014");
+  await expect(page.locator("#browse-tiles [data-name]:not([hidden])")).toHaveCount(1);
+  // the games list: the main search, and the pickers in the filters
+  await page.goto("/en/games/?q=dnd");
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 3 games"); // the three D&D games of the demo data (two on 5.5e 2024, one on 5e 2014), found without the word "Dungeons" in the search
+  await page.getByRole("button", { name: /Filters/ }).click();
+  await page.getByLabel("Game system", { exact: true }).fill("d&d");
+  const list = page.getByRole("listbox", { name: "Choices for Game system" });
+  await expect(list.getByRole("option", { name: "Dungeons & Dragons 5.5e 2024" })).toBeVisible();
+  await page.goto("/en/games/");
+  await expect(page.locator("[data-ready]")).toBeAttached();
+  await page.getByRole("button", { name: /Filters/ }).click();
+  await page.getByLabel("Genre", { exact: true }).fill("science fiction");
+  await expect(page.getByRole("listbox", { name: "Choices for Genre" }).getByRole("option", { name: "Sci-fi" })).toBeVisible();
+});
+
 test("the home page: a ranked row of systems, counts on the buttons, a way in for Game Masters, and a header that stays", async ({ page }) => {
   await page.goto("/en/");
   await expect(page.getByRole("link", { name: `All ${SYSTEMS.length} game systems` })).toBeVisible();

@@ -1,5 +1,6 @@
 // Finding games: the filters, how they read from and write to the URL, and the sort orders. Pure module, so the
 // same code runs while the site is built (the first render lists everything) and in the browser (filtering).
+import { matchesWords, norm, queryWords, searchText } from "./search.ts";
 import type { GameFormat, Level, LocationType, SiteGame } from "./types.ts";
 
 export type SortKey = "soonest" | "newest" | "priceAsc";
@@ -72,15 +73,13 @@ export function activeFilterCount(f: Filters): number {
 
 export type GameView = SiteGame & { gmName: string };
 
-/** Lower case with the accents taken off, for matching what a person typed (Mork finds Mörk). */
-export const norm = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "");
+export { norm };
 
-/** Every word of the search must appear somewhere in the title, system, summary, city, venue or GM's name. */
+/** Every word of the search must appear somewhere in the title, system, summary, city, venue, GM's name, platform, genres, styles or mechanics; synonyms count (src/lib/search.ts). */
 function matchesText(g: GameView, q: string): boolean {
-  const words = norm(q).split(/\s+/).filter(Boolean);
+  const words = queryWords(q);
   if (words.length === 0) return true;
-  const hay = norm([g.title, g.system, g.summary, g.city, g.venueName, g.gmName, g.platform].join(" "));
-  return words.every((w) => hay.includes(w));
+  return matchesWords(searchText([g.title, g.system, g.summary, g.city, g.venueName, g.gmName, g.platform, ...g.genres, ...g.styles, ...g.mechanics].join(" ")), words);
 }
 
 export function sortGames<G extends GameView>(games: G[], sort: SortKey): G[] {
