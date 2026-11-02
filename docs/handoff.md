@@ -9,7 +9,7 @@ The site is a Next 16 static export on Cloudflare Pages (EN/ID) at <https://ques
 accounts, ADR-25, [backend.md](backend.md)) went live on 2026-10-30 and the Google Forms + Sheet stack was retired in code (ADR-27); the Apps Script
 is only the mail relay. **Everything up to `edb7fb4` is pushed and live, CI green including the full Playwright suite** (the first e2e run on the minimal-tavern
 design, the header toggle, the systems pages and the removal of featured games). The live site has 0 games and 0 GMs, so the home "Browse by system" block
-is hidden there until a game is listed; `/systems/` shows all 132 systems with 0 games.
+is hidden there until a game is listed; `/systems/` shows all 141 systems with 0 games.
 
 ## Update 2026-11-01 (newer than the paragraph above)
 
@@ -26,7 +26,7 @@ games are reachable through the sitemap and their own pages). The product is cal
 
 Design: Halftone, the oak-board tavern and the tavern at night were each dropped; the direction is the **minimal tavern** (ADR-30, [design.md](../design.md))
 with EB Garamond headings. Also: header light/dark toggle and EN/ID in capitals; featured games removed (ADR-31); Phosphor inline icons and no footer credit
-(ADR-32, [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md)); the "Browse by system" home block and the `/systems/` page; a 132-entry systems list with every edition
+(ADR-32, [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md)); the "Browse by system" home block and the `/systems/` page; a 141-entry systems list with every edition
 its own entry; system tiles kept to one line. Nothing needs a database migration; the unused `featured` column stays in D1.
 
 Still for the owner to check: the editions in `src/lib/systems.ts` were written from memory (Cairn 2e, the Traveller names, the Hunter and Changeling splits).

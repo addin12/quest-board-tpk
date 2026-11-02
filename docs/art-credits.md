@@ -8,7 +8,7 @@ The 40 pictures in `public/images/genres/` are the pictures StartPlaying shows f
 
 ## Game system pictures
 
-The 99 pictures in `public/images/systems/` are the book covers shown on StartPlaying's [game systems page](https://startplaying.games/play/game-systems), downloaded on 2026-11-02 and cropped to 480 x 600 WebP. **This art belongs to the games' publishers** (for example Wizards of the Coast, Chaosium, Paradox Interactive, Evil Hat, Paizo, Free League, Monte Cook Games). Which picture belongs to which system is `src/lib/system-covers.ts`; a system without a picture there (for example Cairn 2e, Nimble 2e and Shadowrun 6e, which StartPlaying does not list) shows its soonest listing's cover, or appears as a compact card.
+The 108 pictures in `public/images/systems/` are the book covers shown on StartPlaying's [game systems page](https://startplaying.games/play/game-systems), downloaded on 2026-11-02 and cropped to 480 x 600 WebP. **This art belongs to the games' publishers** (for example Wizards of the Coast, Chaosium, Paradox Interactive, Evil Hat, Paizo, Free League, Monte Cook Games). Which picture belongs to which system is `src/lib/system-covers.ts`; a system without a picture there (for example Cairn 2e, Nimble 2e and Shadowrun 6e, which StartPlaying does not list) shows its soonest listing's cover, or appears as a compact card.
 
 ## If someone asks for a picture to be removed
 
