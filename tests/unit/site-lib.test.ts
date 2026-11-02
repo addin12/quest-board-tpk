@@ -1,11 +1,13 @@
 // The site's pure library: the data check at the boundary, the filters, the contact links, the admin view.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { SUMMARY_MAX } from "../../src/lib/areas.ts";
 import { checkGame, checkGm, hasErrors } from "../../src/lib/checks.ts";
 import { contactMessage, decodeContact, encodeContact, messageLang, waLink } from "../../src/lib/contact.ts";
 import { formatDay, formatIdr, formatWhen, initialsOf } from "../../src/lib/format.ts";
+import { SYSTEM_COVER_FILES, systemCover } from "../../src/lib/system-covers.ts";
+import { SYSTEMS } from "../../src/lib/systems.ts";
 import { EMPTY_FILTERS, activeFilterCount, applyFilters, filterOptions, filtersToQuery, isLive, pageList, parseFilters, systemTiles, allSystemTiles, genreTiles, allGenreTiles, type GameView } from "../../src/lib/games.ts";
 import { DICTIONARIES, makeT } from "../../src/lib/i18n/dict.ts";
 import { cleanDiscord, isGoogleMapsUrl, isPhone, parsePublicData, text } from "../../src/lib/public-data.ts";
@@ -319,4 +321,12 @@ test("the script deploy command refuses a missing or mistyped id before it pushe
   assert.throws(() => parseConfig({ ...good, scriptId: "short" }), /scriptId/);
   assert.throws(() => parseConfig({ ...good, deploymentId: "has spaces and ; rm -rf" }), /deploymentId/);
   assert.throws(() => parseConfig({ scriptId: good.scriptId }), /deploymentId/);
+});
+
+test("every system picture exists, and a system without one has none", () => {
+  for (const f of SYSTEM_COVER_FILES) assert.ok(existsSync(new URL(`../../public/images/systems/${f}.webp`, import.meta.url)), `${f}.webp is missing`);
+  assert.equal(systemCover("Daggerheart"), "/images/systems/daggerheart.webp");
+  assert.equal(systemCover("Dungeons & Dragons 5e 2014"), systemCover("Dungeons & Dragons 5.5e 2024"), "the two 5e entries share a picture");
+  assert.equal(systemCover("Nimble 2e"), null);
+  assert.ok(SYSTEMS.filter((s) => systemCover(s)).length >= 90);
 });

@@ -32,3 +32,7 @@ SOFTWARE.
 ## Genre pictures
 
 The pictures in `public/images/genres/` are public domain book illustrations (Public Domain Mark 1.0) found through Inside Out Library (https://insideoutlibrary.com/). No licence notice is required; the sources are listed in `docs/art-credits.md`.
+
+## Game system pictures
+
+`public/images/systems/` holds publishers' book covers, shown as listed on StartPlaying's game systems page. They are not licensed for reuse; see [docs/art-credits.md](docs/art-credits.md) and ADR-34 for the source, the owner's decision and how to remove one.

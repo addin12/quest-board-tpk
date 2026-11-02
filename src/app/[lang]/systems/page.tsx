@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BrowsePage } from "@/components/browse";
 import { allSystemTiles } from "@/lib/games";
+import { systemCover } from "@/lib/system-covers";
 import { SYSTEMS } from "@/lib/systems";
 import { gameViews, loadSiteData } from "@/lib/data";
 import { paths } from "@/lib/hrefs";
@@ -21,6 +22,6 @@ export default async function SystemsPage({ params }: PageProps<"/[lang]/systems
   const t = makeT(lang);
   const tiles = allSystemTiles(gameViews(loadSiteData()), SYSTEMS);
   return (
-    <BrowsePage home={paths.home(lang)} path={paths.systems(lang)} emptyHeading={t("systems.noGames")} title={t("systems.title")} lead={t("systems.lead")} tiles={tiles} href={(n) => paths.games(lang, `?system=${encodeURIComponent(n)}`)} t={t} />
+    <BrowsePage cover={systemCover} home={paths.home(lang)} path={paths.systems(lang)} emptyHeading={t("systems.noGames")} title={t("systems.title")} lead={t("systems.lead")} tiles={tiles} href={(n) => paths.games(lang, `?system=${encodeURIComponent(n)}`)} t={t} />
   );
 }

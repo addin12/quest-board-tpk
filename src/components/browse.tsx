@@ -12,7 +12,7 @@ type Common = {
   href: (name: string) => string;
   /** The shown name when it is not the key itself (a genre or a style has a translated label). */
   label?: (name: string) => string;
-  /** The picture when it is not the cover of the tile's soonest listing (the genres have their own engravings). */
+  /** The picture when it is not the cover of the tile's soonest listing (a genre has its own engraving, a system its book cover); null falls back to that listing cover. */
   cover?: (name: string) => string | null;
   /** "card" is a rounded rectangle with the name only (no picture); the default is a picture tile. */
   variant?: "tile" | "card";
@@ -30,7 +30,7 @@ function Tiles({ tiles, href, label, cover, variant = "tile", level, t }: Common
   }
   return (
     <ul className={GRID}>
-      {tiles.map((x) => <li key={x.name}><BrowseTile name={label ? label(x.name) : x.name} count={x.count} cover={cover ? cover(x.name) : x.cover} href={href(x.name)} t={t} level={level} /></li>)}
+      {tiles.map((x) => <li key={x.name}><BrowseTile name={label ? label(x.name) : x.name} count={x.count} cover={(cover ? cover(x.name) : null) ?? x.cover} href={href(x.name)} t={t} level={level} /></li>)}
     </ul>
   );
 }
@@ -56,8 +56,10 @@ export function BrowseSection({ id, title, allHref, allLabel, ...rest }: Common 
  * have no games are not drawn as pictures: they follow under that heading as compact cards, so a long list of blanks does not push the real ones away.
  */
 export function BrowsePage({ title, lead, home, path, emptyHeading, ...rest }: Common & { title: string; lead: string; home: string; path: string; emptyHeading?: string }) {
-  const listed = emptyHeading ? rest.tiles.filter((x) => x.count > 0) : rest.tiles;
-  const unlisted = emptyHeading ? rest.tiles.filter((x) => x.count === 0) : [];
+  // with `emptyHeading`, a tile with no games and no picture is a compact card; one with a picture stays a picture tile even at 0 games
+  const drawn = (x: Tile) => x.count > 0 || !!rest.cover?.(x.name);
+  const listed = emptyHeading ? rest.tiles.filter(drawn) : rest.tiles;
+  const unlisted = emptyHeading ? rest.tiles.filter((x) => !drawn(x)) : [];
   return (
     <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-2xl)]">
       <JsonLd data={breadcrumbJsonLd([{ name: "Quest Board", url: `${SITE_URL}${home}` }, { name: title, url: `${SITE_URL}${path}` }])} />
