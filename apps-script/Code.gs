@@ -80,16 +80,3 @@ function doPost(e) {
   }
   return json_({ ok: true });
 }
-
-/**
- * The Sheet backend ran three time triggers: tick (every minute), nightly and backup. Their functions are gone, so a trigger left
- * in the project would mail the owner an error each time it fires. Each stub removes every trigger of this project the first time
- * it is called, so the script cleans itself up within a minute of being deployed. Delete these four functions once no trigger
- * is listed under Triggers in the script editor.
- */
-function retireOldTriggers_() {
-  ScriptApp.getProjectTriggers().forEach(function (t) { ScriptApp.deleteTrigger(t); });
-}
-function tick() { retireOldTriggers_(); }
-function nightly() { retireOldTriggers_(); }
-function backup() { retireOldTriggers_(); }

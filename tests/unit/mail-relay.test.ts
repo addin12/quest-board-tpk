@@ -11,21 +11,19 @@ const source = readFileSync(new URL("../../apps-script/Code.gs", import.meta.url
 const plain = <T = any>(v: unknown): T => JSON.parse(JSON.stringify(v));
 
 /** Code.gs with fake services; `secret` replaces the placeholder the way scripts/push-apps-script.mjs does. */
-function load(secret: string | null = SECRET, opts: { sendFails?: boolean; triggers?: string[] } = {}) {
+function load(secret: string | null = SECRET, opts: { sendFails?: boolean } = {}) {
   const sent: any[] = [];
   const props: Record<string, string> = {};
-  const triggers = [...(opts.triggers ?? [])];
   const ctx: any = vm.createContext({
     console: { error: () => {} },
     ContentService: { MimeType: { JSON: "json" }, createTextOutput: (text: string) => ({ text, setMimeType() { return this; } }) },
     PropertiesService: { getScriptProperties: () => ({ getProperty: (k: string) => props[k] ?? null, setProperty: (k: string, v: string) => { props[k] = v; } }) },
     Utilities: { formatDate: () => "2026-10-30" },
     MailApp: { sendEmail: (m: any) => { if (opts.sendFails) throw new Error("quota"); sent.push(m); } },
-    ScriptApp: { getProjectTriggers: () => [...triggers], deleteTrigger: (t: string) => { triggers.splice(triggers.indexOf(t), 1); } },
   });
   vm.runInContext(secret === null ? source : source.replace("'__MAIL_SECRET__'", JSON.stringify(secret)), ctx);
   const post = (body: unknown) => JSON.parse(ctx.doPost({ postData: { contents: typeof body === "string" ? body : JSON.stringify(body) } }).text);
-  return { ctx, sent, props, triggers, post };
+  return { ctx, sent, props, post };
 }
 
 const ok = { action: "mail", secret: SECRET, to: "Raka@Example.com", subject: "Hi\nthere", body: "Link: https://x.example" };
@@ -66,12 +64,4 @@ test("doPost answers errors as JSON and never sends without the secret or on a b
 test("doGet only says the relay is there", () => {
   const out = JSON.parse(load().ctx.doGet().text);
   assert.deepEqual([out.ok, out.name], [true, "quest-board-tpk-mail"]);
-});
-
-test("the old Sheet triggers remove themselves: any of the three stubs deletes every trigger", () => {
-  for (const stub of ["tick", "nightly", "backup"]) {
-    const w = load(SECRET, { triggers: ["t1", "t2", "t3"] });
-    w.ctx[stub]();
-    assert.deepEqual(w.triggers, [], `${stub} clears the project's triggers`);
-  }
 });

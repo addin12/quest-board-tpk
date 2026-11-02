@@ -39,7 +39,7 @@ The audit script (`scripts/audit-frontend.mjs`, with `npm run preview` running) 
    that is live keeps working with it. For a later migration, do the same: apply it, then push.
 2. **Done on 2026-10-30:** `npm run script:deploy` put the reduced relay live as Apps Script version 11 (ping answers, an old Sheet action is
    refused, a wrong secret is refused, a real mail was sent), and the setup removed the retired Pages variables. Still to check by eye: the
-   Apps Script **Triggers** page should be empty within a minute of the deploy (the stubs delete them when they fire).
+   Apps Script **Triggers** page should be empty within a minute of the deploy (the stubs that did this were removed on 2026-11-02).
 3. The Playwright suite has **not** been run since the audit fixes and the retirement (the owner's rule is not to run it unasked); CI runs it on the push.
    Watch CI after pushing (public Actions API, times in UTC).
 
@@ -55,7 +55,7 @@ The audit script (`scripts/audit-frontend.mjs`, with `npm run preview` running) 
   schema, deploy hook, bindings and variables by Pages API, never a committed `wrangler.toml`), mail relay deployed, Turnstile widget made,
   timers Worker `quest-board-cron` deployed (`npm run cron:deploy`; a scheduled firing was seen), first backup written and read back.
 - **Anti-Slop audit** ([anti-slop-audit.md](anti-slop-audit.md)): em dashes out of emails, 44 px targets, priority images, dead code, the duplicate GitHub timer.
-- **Retirement of the Google stack** (ADR-27): `Code.gs` 1,216 lines to about 100 (mail relay + three self-cleaning trigger stubs), `CreateForms.gs`,
+- **Retirement of the Google stack** (ADR-27): `Code.gs` 1,216 lines to about 100 (mail relay; the self-cleaning trigger stubs that were here are gone since 2026-11-02), `CreateForms.gs`,
   the form-options generator, `docs/forms.md`, `form-options.md`, `setup.md`, the fake Sheet and its tests, the `TPK_API_URL` and Drive-picture paths.
   The last commit that has the Sheet stack is tagged `legacy-google-sheet` (local tag; push it with `git push origin legacy-google-sheet` if wanted).
 - **Monitoring and retention** (ADR-27, [backend.md](backend.md)): `/api/health` shows last mail success and error and the last backup; a failed backup
@@ -70,7 +70,7 @@ The audit script (`scripts/audit-frontend.mjs`, with `npm run preview` running) 
   does, sign-in is blocked for everyone: remove `TURNSTILE_SECRET` and `NEXT_PUBLIC_TURNSTILE_SITE_KEY` from the Pages project (and both keys from
   `.cloudflare.local.json`), rebuild.
 - **Billing** is unverified: the agent's token has no billing scope. The owner should check Cloudflare → Billing shows $0 and may add a usage notification.
-- **Old triggers in the Apps Script**: check Triggers in the script editor after `script:deploy`; once none is listed, delete the four stubs at the end of `Code.gs`.
+- **Old triggers in the Apps Script**: done 2026-11-02. The owner confirmed the Triggers page was empty and the four stubs were deleted from `Code.gs` (deployed as the next relay version).
 - **The old Google Forms and Sheet** still exist in the owner's Google account; nothing reads them. Delete when ready (the agent has no access).
 - `wrangler` is not a dependency: the scripts run it with `npx wrangler@4`, and its login lives in the user profile, not the repo.
 - The agent was refused by the permission classifier for reading the stored Git credential and for creating the Worker before explicit approval:
