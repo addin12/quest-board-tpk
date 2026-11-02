@@ -86,13 +86,26 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
         <Link href={paths.games(lang)} className="link-spot inline-flex min-h-11 items-center font-bold">{t("game.allGames")}</Link>
 
         <div className="mt-[var(--space-lg)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] lg:grid-cols-12">
-          <div className="min-w-0 lg:col-span-4">
-            <ViewTransition name={`cover-${game.slug}`}>
-              <Cover src={game.cover} seed={game.title} priority sizes="(min-width: 1024px) 30vw, 100vw" className="aspect-[4/5] w-full max-sm:max-w-xs" />
-            </ViewTransition>
+          {/* From 1024 px two columns: the cover with the facts under it, and the title, contact and the text beside. Below that the four blocks (display: contents) stack in the order 1 to 4. */}
+          <div className="contents lg:block lg:col-span-4">
+            <div className="order-1 min-w-0 lg:order-none">
+              <ViewTransition name={`cover-${game.slug}`}>
+                <Cover src={game.cover} seed={game.title} priority sizes="(min-width: 1024px) 30vw, 100vw" className="aspect-[4/5] w-full max-sm:max-w-xs" />
+              </ViewTransition>
+            </div>
+
+            <dl className="panel order-3 lg:order-none lg:mt-[var(--space-lg)]">
+              {facts.map((f) => (
+                <div key={f.label}>
+                  <dt>{f.label}</dt>
+                  <dd>{f.value}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
 
-          <div className="min-w-0 lg:col-span-8">
+          <div className="contents lg:block lg:col-span-8">
+          <div className="order-2 min-w-0 lg:order-none">
             <p className="flex flex-wrap items-center gap-[var(--space-xs)]">
               <span className="chip">{game.system}</span>
               {game.full && <span className="chip chip-spot" data-testid="full-chip">{t("game.full")}</span>}
@@ -116,15 +129,33 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
               )}
             </aside>
 
-            <dl className="panel mt-[var(--space-xl)] lg:grid lg:grid-cols-2 lg:gap-x-[var(--gap-columns)] lg:[&>div:last-child]:col-span-2">
-              {facts.map((f) => (
-                <div key={f.label}>
-                  <dt>{f.label}</dt>
-                  <dd>{f.value}</dd>
-                </div>
-              ))}
-            </dl>
+          </div>
 
+          <div className="order-4 min-w-0 lg:order-none lg:mt-[var(--space-xl)]">
+            <section aria-labelledby="about-h">
+              <h2 id="about-h" className="max-w-none text-[length:var(--text-xl)]">{t("game.about")}</h2>
+              <div className="mt-[var(--space-sm)] max-w-[65ch] space-y-[var(--space-md)]">
+                {game.description.split(/\n{2,}/).map((p, i) => <p key={i} className="whitespace-pre-line">{p}</p>)}
+              </div>
+            </section>
+
+            {game.scheduleNote && (
+              <section aria-labelledby="schedule-h" className="mt-[var(--space-xl)] border-t border-rule pt-[var(--space-lg)]">
+                <h2 id="schedule-h" className="max-w-none text-[length:var(--text-xl)]">{t("game.schedule")}</h2>
+                <p className="mt-[var(--space-sm)] max-w-[65ch] whitespace-pre-line">{game.scheduleNote}</p>
+              </section>
+            )}
+
+            <div className="mt-[var(--space-xl)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-lg)] border-t border-rule pt-[var(--space-lg)] md:grid-cols-2">
+              <section aria-labelledby="cw-h">
+                <h2 id="cw-h" className="max-w-none text-[length:var(--text-xl)]">{t("game.cw")}</h2>
+                <p className="mt-[var(--space-sm)] whitespace-pre-line">{game.contentWarnings || t("game.cwNone")}</p>
+              </section>
+              <section aria-labelledby="safety-h">
+                <h2 id="safety-h" className="max-w-none text-[length:var(--text-xl)]">{t("game.safety")}</h2>
+                <p className="mt-[var(--space-sm)]">{game.safetyTools || t("game.safetyNone")}</p>
+              </section>
+            </div>
 
             {(genres.length > 0 || styles.length > 0 || mechanics.length > 0) && (
               <ul className="mt-[var(--space-xl)] flex flex-wrap gap-[var(--space-xs)]">
@@ -133,35 +164,10 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
                 {mechanics.map((m) => <li key={m} className="chip">{t(mechanicLabelKey(m))}</li>)}
               </ul>
             )}
+            <p className="mt-[var(--space-xl)] text-sm text-muted">{t("game.listedUntil", { date: formatDay(game.expiresAt, lang, game.zone) })}</p>
+          </div>
           </div>
         </div>
-
-        <section className="ruled mt-[var(--section-gap-s)]" aria-label={t("game.about")}>
-          <div className="grid gap-x-[var(--gap-columns)] gap-y-[var(--space-md)] py-[var(--space-xl)] lg:grid-cols-12">
-            <h2 id="about-h" className="max-w-none text-[length:var(--text-2xl)] lg:col-span-4">{t("game.about")}</h2>
-            <div className="max-w-[65ch] space-y-[var(--space-md)] lg:col-span-8">
-              {game.description.split(/\n{2,}/).map((p, i) => <p key={i} className="whitespace-pre-line">{p}</p>)}
-            </div>
-          </div>
-
-          {game.scheduleNote && (
-            <div className="grid gap-x-[var(--gap-columns)] gap-y-[var(--space-md)] py-[var(--space-xl)] lg:grid-cols-12">
-              <h2 className="max-w-none text-[length:var(--text-2xl)] lg:col-span-4">{t("game.schedule")}</h2>
-              <p className="max-w-[65ch] whitespace-pre-line lg:col-span-8">{game.scheduleNote}</p>
-            </div>
-          )}
-
-          <div className="grid gap-x-[var(--gap-columns)] gap-y-[var(--space-md)] py-[var(--space-xl)] lg:grid-cols-12">
-            <h2 className="max-w-none text-[length:var(--text-2xl)] lg:col-span-4">{t("game.cw")}</h2>
-            <p className="max-w-[65ch] whitespace-pre-line lg:col-span-8">{game.contentWarnings || t("game.cwNone")}</p>
-          </div>
-
-          <div className="grid gap-x-[var(--gap-columns)] gap-y-[var(--space-md)] py-[var(--space-xl)] lg:grid-cols-12">
-            <h2 className="max-w-none text-[length:var(--text-2xl)] lg:col-span-4">{t("game.safety")}</h2>
-            <p className="max-w-[65ch] lg:col-span-8">{game.safetyTools || t("game.safetyNone")}</p>
-          </div>
-        </section>
-        <p className="mt-[var(--space-lg)] text-sm text-muted">{t("game.listedUntil", { date: formatDay(game.expiresAt, lang, game.zone) })}</p>
       </div>
     </article>
   );

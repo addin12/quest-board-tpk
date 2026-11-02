@@ -42,7 +42,7 @@ the listings' own cover art as the only colour) and the tavern is carried by fou
 - **Masthead controls.** A light/dark toggle (it names the mode it switches to: a moon and "Dark" while the page is light; icon only under 1024 px) and the language switch in capitals, EN and ID. The footer keeps the three-way switch with Automatic; both read the one `data-theme` attribute, so they never disagree.
 - **Layout.** Home: a left-set head and the search; the next six games as a grid of cards, three across; the game systems as a grid of tiles (the publisher's book cover where one is known, else the cover of the system's soonest listing, ADR-34, with the name and how many games use it; a button beside the heading opens the page with all of them); the genres as a grid of picture tiles in the same shape, and the play styles and mechanics as rounded text cards (name and count, no picture) (each with its picture from StartPlaying's genres page, the name and the count; a button opens the page with every genre); beginner
   games as rows beside a short text; a closing call under a double rule. Inner pages open straight on their list, listing or form under the masthead. A game
-  page is a Split Studio: the cover beside the facts, the contact box a plain tinted well.
+  page is two columns from 1024 px: the cover with the facts list under it (no empty space under the picture), and beside them the title, the Game Master, the contact box (a plain tinted well), then the text blocks stacked with their headings above (About this game, Schedule, then Content warnings and Safety tools side by side, the tags, the listing date). On a phone one column in the order cover, title and contact, facts, text.
 
 ## The three dials
 
