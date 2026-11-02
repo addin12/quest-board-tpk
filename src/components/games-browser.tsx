@@ -90,14 +90,17 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
     </div>
   );
 
+  const ready = now !== null;
+  const wait = ready ? "" : "pending"; // until the scripts have run, the search, the Filters button and the pager ignore taps (and look it, if it takes long)
+
   return (
-    <div data-ready={now !== null ? "" : undefined} /* set once the page's scripts run: the list is then interactive (the tests wait for it) */>
+    <div data-ready={ready ? "" : undefined} /* set once the page's scripts run: the list is then interactive (the tests wait for it) */>
       <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
         <div>
           <label htmlFor="q" className="label">{t("games.search")}</label>
-          <input id="q" type="search" className="input" value={filters.q} placeholder={t("games.searchPlaceholder")} maxLength={80} onChange={(e) => set({ q: e.target.value })} />
+          <input id="q" type="search" className={`input ${wait}`} readOnly={!ready} value={filters.q} placeholder={t("games.searchPlaceholder")} maxLength={80} onChange={(e) => set({ q: e.target.value })} />
         </div>
-        <button type="button" className="btn btn-secondary min-w-11" aria-expanded={phone ? sheet : open} aria-controls="filter-panel" onClick={() => (phone ? setSheet(true) : setOpen(!open))}>
+        <button type="button" className={`btn btn-secondary min-w-11 ${wait}`} aria-disabled={!ready || undefined} aria-expanded={phone ? sheet : open} aria-controls="filter-panel" onClick={() => (phone ? setSheet(true) : setOpen(!open))}>
           {t("games.filters")}{filterCount > 0 ? ` (${filterCount})` : ""}
         </button>
       </div>
@@ -147,7 +150,7 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
       )}
 
       {pages > 1 && (
-        <nav aria-label={t("games.pages")} data-late className="mt-[var(--space-2xl)] flex flex-wrap items-center justify-center gap-[var(--space-sm)]" data-testid="games-pager">
+        <nav aria-label={t("games.pages")} data-late className={`mt-[var(--space-2xl)] flex flex-wrap items-center justify-center gap-[var(--space-sm)] ${wait}`} data-testid="games-pager">
           <button type="button" className={pageBtn} disabled={page <= 1} onClick={() => go(page - 1)}>{t("games.prev")}</button>
           <div className="order-first flex w-full items-center justify-center gap-1.5 sm:gap-[var(--space-sm)] sm:order-none sm:w-auto">
           {pageList(page, pages).map((n, i) =>

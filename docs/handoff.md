@@ -20,8 +20,7 @@ game page and GM page re-laid out; search box on `/systems/` and `/gms/`; defaul
 **Open, none blocks use:** the Indonesian wording of everything new is mine (the owner is a native speaker and should review: browse blocks, pager, search
 strings, "Cari Game Master", "Pilihan untuk"); the names Nimble 5e / Nimble 2e and some editions were written without a primary source; Knave 1e has only a
 title-mark picture (no cover scan found); Shadowrun 3e and L5R 4e pictures are small scans; no real Game Master has listed a game yet, so the retention
-timers, the first approval and rebuild on live, and the first Instagram save are unproven on live data; a visitor on a slow phone can tap "Filters" before
-the page's scripts have run (see "Flaky browser tests" below); ask Game Masters to list their games (an invitation message was offered, not written).
+timers, the first approval and rebuild on live, and the first Instagram save are unproven on live data; (a visitor on a slow phone tapping "Filters" before the page's scripts have run is handled since 2026-11-03: the search, Filters and the pager are `pending`, read-only and ignore taps, and dim after 0.8 s); ask Game Masters to list their games (an invitation message was offered, not written).
 
 Ways of working that matter: the owner says "push" when ready; apply a database migration to the live D1 **before** pushing code that needs it
 (`npm run cloudflare:setup`; the owner added the permission rule for it on 2026-11-02); run the full Playwright suite on all three browsers before a push

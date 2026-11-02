@@ -36,7 +36,7 @@ export function TileSearch({ targetId, label, placeholder, names }: { targetId: 
   return (
     <div className="max-w-xl" data-ready={ready ? "" : undefined}>
       <label htmlFor="tile-q" className="label">{label}</label>
-      <input id="tile-q" type="search" className="input" value={q} placeholder={placeholder} maxLength={60} onChange={(e) => change(e.target.value)} autoComplete="off" />
+      <input id="tile-q" type="search" className={`input ${ready ? "" : "pending"}`} readOnly={!ready} value={q} placeholder={placeholder} maxLength={60} onChange={(e) => change(e.target.value)} autoComplete="off" />
       <p className="mt-[var(--space-xs)] min-h-6 text-sm text-muted" role="status" aria-live="polite" data-testid="tile-count">
         {words.length ? (shown === 0 ? t("browse.noMatch") : t("browse.shownOf", { n: shown, total: names.length })) : ""}
       </p>

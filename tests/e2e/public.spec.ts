@@ -307,6 +307,23 @@ test("the Game Masters page can be searched by name, city or system, and the sho
   await expect(shown).toHaveCount(1);
 });
 
+test("before the page's scripts have run the search and Filters say so and ignore taps; afterwards they work", async ({ page }) => {
+  await page.route("**/_next/static/**/*.js", async (route) => { await new Promise((r) => setTimeout(r, 2500)); await route.continue(); }); // a slow phone
+  await page.goto("/en/games/", { waitUntil: "domcontentloaded" });
+  const search = page.getByLabel("Search", { exact: true });
+  const filters = page.getByRole("button", { name: /Filters/ });
+  await expect(search).toHaveJSProperty("readOnly", true);
+  await expect(filters).toHaveAttribute("aria-disabled", "true");
+  expect(await filters.evaluate((el) => getComputedStyle(el).pointerEvents), "taps go through to nothing").toBe("none");
+  await expect(page.locator("[data-ready]")).toBeAttached({ timeout: 20_000 });
+  await expect(search).toHaveJSProperty("readOnly", false);
+  await expect(filters).not.toHaveAttribute("aria-disabled", "true");
+  await search.fill("kumu");
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 1 game");
+  await filters.click();
+  await expect(page.getByLabel("Where", { exact: true })).toBeVisible();
+});
+
 test("the home page: a ranked row of systems, counts on the buttons, a way in for Game Masters, and a header that stays", async ({ page }) => {
   await page.goto("/en/");
   await expect(page.getByRole("link", { name: `All ${SYSTEMS.length} game systems` })).toBeVisible();
