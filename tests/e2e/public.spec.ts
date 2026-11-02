@@ -231,6 +231,28 @@ test("with no match the empty state offers the way out, and people who ask for l
   await calm.close();
 });
 
+test("the system filter has a search box inside it: type, pick, and go back to Any", async ({ page }) => {
+  await page.goto("/en/games/");
+  await expect(page.locator("[data-ready]")).toBeAttached();
+  await page.getByRole("button", { name: /Filters/ }).click();
+  const system = page.getByLabel("Game system", { exact: true });
+  await expect(system).toHaveValue("Any");
+  await system.fill("cairn");
+  const list = page.getByRole("listbox", { name: "Matching game systems" });
+  await expect(list.getByRole("option")).toHaveCount(1); // only the systems with listed games are offered, here Cairn 2e
+  await list.getByRole("option", { name: "Cairn 2e" }).click();
+  await expect(page).toHaveURL(/system=Cairn\+2e/);
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 1 game");
+  await system.click();
+  await system.press("ArrowDown"); // from "Any" to the first system, then Enter would pick it; Escape closes without a change
+  await system.press("Escape");
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 1 game");
+  await system.fill("");
+  await list.getByRole("option", { name: "Any" }).click();
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 18 games");
+  await expect(page).toHaveURL(/\/en\/games\/$/);
+});
+
 test("the home page: a ranked row of systems, counts on the buttons, a way in for Game Masters, and a header that stays", async ({ page }) => {
   await page.goto("/en/");
   await expect(page.getByRole("link", { name: `All ${SYSTEMS.length} game systems` })).toBeVisible();

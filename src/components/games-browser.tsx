@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { GENRES, MECHANICS, STYLES, genreLabelKey, mechanicLabelKey, styleLabelKey } from "@/lib/categories";
 import { EMPTY_FILTERS, PAGE_SIZE, activeFilterCount, applyFilters, filtersToQuery, isLive, pageList, parseFilters, type Filters, type GameView, type filterOptions } from "@/lib/games";
+import { SystemPicker } from "./account/system-picker";
 import { useI18n } from "./i18n-provider";
 import { EmptyState, GameCard } from "./ui";
 
@@ -94,7 +95,10 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
       </div>
 
       <FilterShell phone={phone} open={open} sheet={sheet} count={shown.length} onClose={() => setSheet(false)}>
-        {select("f-system", t("games.system"), filters.system, (v) => set({ system: v }), options.systems.map((s) => ({ value: s, label: s })))}
+        <div>
+          <label htmlFor="f-system" className="label">{t("games.system")}</label>
+          <SystemPicker id="f-system" value={filters.system} options={options.systems} any={t("common.any")} onChange={(system) => set({ system })} />
+        </div>
         {select("f-genre", t("games.genre"), filters.genre, (v) => set({ genre: v }), GENRES.filter((g) => options.genres.includes(g.key)).map((g) => ({ value: g.key, label: t(genreLabelKey(g.key)) })))}
         {select("f-style", t("games.style"), filters.style, (v) => set({ style: v }), STYLES.filter((s) => options.styles.includes(s.key)).map((s) => ({ value: s.key, label: t(styleLabelKey(s.key)) })))}
         {select("f-mechanic", t("games.mechanic"), filters.mechanic, (v) => set({ mechanic: v }), MECHANICS.filter((m) => options.mechanics.includes(m.key)).map((m) => ({ value: m.key, label: t(mechanicLabelKey(m.key)) })))}
