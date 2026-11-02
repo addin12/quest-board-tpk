@@ -51,8 +51,8 @@ export default async function GmPage({ params }: PageProps<"/[lang]/gm/[slug]">)
       ]} />
       <Link href={paths.gms(lang)} className="link-spot inline-flex min-h-11 items-center font-bold">{t("gm.title")}</Link>
       <header className="mt-[var(--space-lg)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] lg:grid-cols-12">
-        <div className="min-w-0 lg:col-span-4"><Avatar name={gm.name} photo={gm.photo} size={416} priority /></div>
-        <div className="min-w-0 lg:col-span-8">
+        <div className="w-40 min-w-0 sm:w-52 lg:col-span-3 lg:w-full"><Avatar name={gm.name} photo={gm.photo} size={288} priority /></div>
+        <div className="min-w-0 lg:col-span-9">
           <h1 className="max-w-none text-[length:var(--text-display-s)]">{gm.name}</h1>
           {gm.city && <p className="lead mt-[var(--space-sm)] text-ink-2">{gm.city}</p>}
           {gm.systems.length > 0 && (
@@ -64,12 +64,12 @@ export default async function GmPage({ params }: PageProps<"/[lang]/gm/[slug]">)
         </div>
       </header>
 
-      <section className="mt-[var(--section-gap-s)]" aria-labelledby="gm-games-h">
-        <h2 id="gm-games-h">{t("gm.gamesTitle")}</h2>
+      <section className="mt-[var(--space-2xl)] border-t border-rule pt-[var(--space-xl)]" aria-labelledby="gm-games-h">
+        <h2 id="gm-games-h" className="max-w-none text-[length:var(--text-2xl)]">{t("gm.gamesTitle")}</h2>
         {games.length === 0 ? (
           <p className="mt-[var(--space-md)] text-muted">{t("gm.noGames")}</p>
         ) : (
-          <ul className="mt-[var(--space-xl)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-2xl)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <ul className="mt-[var(--space-lg)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-2 lg:grid-cols-3">
             {games.map((g, i) => <li key={g.id}><GameCard game={g} t={t} lang={lang} priority={i < 6} /></li>)}
           </ul>
         )}

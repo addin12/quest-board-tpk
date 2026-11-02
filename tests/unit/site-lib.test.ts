@@ -328,7 +328,7 @@ test("every system picture exists, and a system without one has none", () => {
   for (const f of SYSTEM_COVER_FILES) assert.ok(existsSync(new URL(`../../public/images/systems/${f}.webp`, import.meta.url)), `${f}.webp is missing`);
   assert.equal(systemCover("Daggerheart"), "/images/systems/daggerheart.webp");
   assert.notEqual(systemCover("Dungeons & Dragons 5e 2014"), systemCover("Dungeons & Dragons 5.5e 2024"), "the 2014 and 2024 rules each have their own cover");
-  assert.equal(systemCover("Dungeons & Dragons 3e"), systemCover("Dungeons & Dragons 3.5e"), "3e and 3.5e share the one StartPlaying picture");
+  assert.notEqual(systemCover("Dungeons & Dragons 3e"), systemCover("Dungeons & Dragons 3.5e"), "3e and 3.5e each have their own Player's Handbook cover");
   assert.equal(systemCover("Not a system"), null);
   assert.ok(SYSTEMS.filter((s) => systemCover(s)).length === SYSTEMS.length, "every listed system has a picture");
 });

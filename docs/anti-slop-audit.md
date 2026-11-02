@@ -92,3 +92,5 @@ Rules read again from `antislop.md` (R-01 to R-40, Delivery Gate, dials). Findin
 | R-35 | The latest 14 commits had no full cross-browser run | Run before the push (see the handoff) |
 
 Not adopted, on purpose: an animation library (Motion), Uiverse components (glow and neon, R-12 and R-13), gradient backdrops (R-01, R-07), and anything copied from 21st.dev (licence unclear per component).
+
+Later the same day: the Game Master page was tightened like the game page (smaller photo, a full 3 x 2 grid of games instead of 4 + 2, smaller "Open games" heading, less space between blocks), and the D&D 3e and 3.5e tiles got their own Player's Handbook covers (they had shared one picture).
