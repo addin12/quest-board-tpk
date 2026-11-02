@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { EB_Garamond, Plus_Jakarta_Sans } from "next/font/google";
 import { I18nProvider } from "@/components/i18n-provider";
 import { DiceMark } from "@/components/dice-mark";
+import { HeaderShell } from "@/components/header-shell";
 import { LanguageSwitcher, NavLinks } from "@/components/nav";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -53,7 +54,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
       <body className="overflow-x-clip max-lg:pb-16">
         <I18nProvider lang={lang} messages={publicMessages(lang)}>
           <a href="#main" className="btn btn-primary sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50">{t("nav.skip")}</a>
-          <header className="sticky top-0 z-30 bg-paper">
+          <HeaderShell>
             <div className="oak-strip" />
             <div className="rule-double">
               <div className="wrap flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-3 sm:gap-x-6 lg:flex-nowrap lg:py-4">
@@ -62,7 +63,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
                 <div className="flex items-center gap-[var(--space-sm)]"><ThemeToggle /><LanguageSwitcher /></div>
               </div>
             </div>
-          </header>
+          </HeaderShell>
           <main id="main" className="flex-1">{children}</main>
           <footer className="border-t-4 border-double border-ink">
             <div className="wrap grid gap-[var(--space-xl)] py-[var(--space-3xl)] lg:grid-cols-12">

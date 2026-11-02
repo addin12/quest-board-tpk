@@ -186,6 +186,43 @@ test("the systems page can be searched, and the search stays in the address", as
   await expect(page.getByText(/Pilih “Other”/)).toBeVisible();
 });
 
+test("on a phone the filters are a sheet, and the header slides away going down and back going up", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/en/games/");
+  await page.getByRole("button", { name: /Filters/ }).click();
+  const sheet = page.getByRole("dialog", { name: "Filters" });
+  await expect(sheet).toBeVisible();
+  await sheet.getByLabel("Where", { exact: true }).selectOption("online");
+  await expect(sheet.getByRole("button", { name: "Show 12 games" })).toBeVisible(); // the button says what the filters leave
+  await page.keyboard.press("Escape"); // a native modal dialog: Escape closes it
+  await expect(sheet).toBeHidden();
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 12 games");
+  await page.getByRole("button", { name: /Filters/ }).click();
+  await sheet.getByRole("button", { name: "Show 12 games" }).click();
+  await expect(sheet).toBeHidden();
+
+  const top = () => page.locator("header").evaluate((el) => el.getBoundingClientRect().top);
+  expect(await top()).toBe(0);
+  await page.mouse.wheel(0, 900);
+  await expect.poll(top).toBeLessThan(-40); // gone while reading downwards
+  await page.mouse.wheel(0, -200);
+  await expect.poll(top).toBe(0); // back as soon as the reader scrolls up
+});
+
+test("with no match the empty state offers the way out, and people who ask for less motion get none", async ({ page, browser }) => {
+  await page.goto("/en/games/?q=zzzzzz");
+  await expect(page.getByText("No games match these filters")).toBeVisible();
+  await page.getByRole("main").getByRole("button", { name: "Clear filters" }).first().click();
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 18 games");
+
+  const calm = await browser.newContext({ reducedMotion: "reduce" });
+  const calmPage = await calm.newPage();
+  await calmPage.goto(new URL("/en/", page.url()).href);
+  const duration = await calmPage.getByRole("link", { name: "List your game" }).first().evaluate((el) => parseFloat(getComputedStyle(el).transitionDuration));
+  expect(duration, "state changes are instant").toBeLessThan(0.001);
+  await calm.close();
+});
+
 test("the home page: a ranked row of systems, counts on the buttons, a way in for Game Masters, and a header that stays", async ({ page }) => {
   await page.goto("/en/");
   await expect(page.getByRole("link", { name: "All 141 game systems" })).toBeVisible();

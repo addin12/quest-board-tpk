@@ -12,6 +12,7 @@
     "lint": "eslint",
     "test": "node --conditions=react-server --import ./tests/loader.mjs --test \"tests/unit/*.test.ts\"",
     "test:e2e": "npm run build && playwright test",
+    "tiles": "node scripts/build-tile-images.mjs",
     "icons": "node scripts/build-icons.mjs",
     "script:deploy": "node scripts/push-apps-script.mjs",
     "cloudflare:setup": "node scripts/cloudflare-setup.mjs",

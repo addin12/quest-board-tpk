@@ -23,5 +23,5 @@ export function switchLang(pathname: string, to: Lang): string {
   return /^\/(en|id)(\/|$)/.test(pathname) ? pathname.replace(/^\/(en|id)/, `/${to}`) : `/${to}/`;
 }
 
-/** The smaller copy of a cover the build made (cards use it); covers that ship with the project, and the admin page's previews straight from the backend, have only one size. */
-export const smallCover = (cover: string): string => (cover.startsWith("/media/") ? cover.replace(/\.webp$/, "-sm.webp") : cover);
+/** The smaller copy of a cover (cards and tiles use it): the build makes one for each listing cover, `npm run tiles` for each system and genre picture. The demo covers and the admin page's previews straight from the backend have only one size. */
+export const smallCover = (cover: string): string => (/^\/(media|images\/(systems|genres))\//.test(cover) ? cover.replace(/\.webp$/, "-sm.webp") : cover);

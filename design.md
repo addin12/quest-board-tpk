@@ -5,7 +5,7 @@ are earlier directions that were dropped); the mandatory rules for any screen re
 `src/app/tokens.css` (light) and `src/app/globals.css` (dark and components).
 
 Design Read: a listing board for tabletop players in Jabodetabek and the Game Masters who run for them, in a **minimal tavern** language: warm paper,
-ink, one oxblood accent, and four quiet tavern touches and one typeface. Dial: ENERGY 1 / RHYTHM 2 / MOTION 1.
+ink, one oxblood accent, and four quiet tavern touches and one typeface. Dial: ENERGY 1 / RHYTHM 2 / MOTION 2 (raised from 1 on 2026-11-02, ADR-37).
 
 ## Who it is for
 
@@ -37,7 +37,7 @@ the listings' own cover art as the only colour) and the tavern is carried by fou
   Alegreya, EB Garamond, Lora, Besley, Almendra, Young Serif); Fell was dropped for its one thin weight and old-style figures. 14 px is the smallest text;
   running text stays near 65 characters wide.
 - **Shape.** Photographs and wells are square or nearly (radii 2 to 4 px); tags are small rectangles, not pills (R-11); ruled lists use a 2 px bar and hairlines.
-- **Nothing is drawn.** No planks, grain, chains, frames, shadows, gradients, dot screens or icons beside labels. The brand marks and genre icons stay.
+- **Nothing is drawn.** No planks, chains, frames, shadows, dot screens or icons beside labels, and no gradients or grain on the page itself. The brand marks and genre icons stay. The one exception (R-01, with its reason): a listing **without a picture** shows its colour field with a soft light from the corner and a little grain (`.grain`), so a bare card still reads as a poster and not as an empty box.
 - **Masthead links.** No underlines: the current page sits in a tinted rounded rectangle, any other link gets a neutral one on hover, and "List your game" is the one filled accent button (the same look as the page buttons).
 - **Masthead controls.** A light/dark toggle (it names the mode it switches to: a moon and "Dark" while the page is light; icon only under 1024 px) and the language switch in capitals, EN and ID. The footer keeps the three-way switch with Automatic; both read the one `data-theme` attribute, so they never disagree.
 - **Layout.** Home: a left-set head and the search; the next six games as a grid of cards, three across; the game systems as a grid of tiles (the publisher's book cover where one is known, else the cover of the system's soonest listing, ADR-34, with the name and how many games use it; a button beside the heading opens the page with all of them); the genres as a grid of picture tiles in the same shape, and the play styles and mechanics as rounded text cards (name and count, no picture) (each with its picture from StartPlaying's genres page, the name and the count; a button opens the page with every genre); beginner
@@ -50,7 +50,15 @@ the listings' own cover art as the only colour) and the tavern is carried by fou
 |---|---|---|
 | Energy | 1, calm | one accent, one big heading per screen, no loud colour except the listings' covers |
 | Rhythm | 2, consistent with a few breaks | sections share one left edge and one rule style; the genre list, the beginner split and the closing call break the pattern in composition |
-| Motion | 1, almost none | focus and hover states only; nothing animates in; `prefers-reduced-motion` is respected |
+| Motion | 2, a few transitions with a reason | focus and hover states, plus the five motions in the next list; nothing loops, nothing is scroll-linked, nothing plays on load; `prefers-reduced-motion` turns all of it off (one global rule in `globals.css`) |
+
+The five motions (R-19: each has a UX purpose, written here):
+
+1. **The filter sheet on a phone slides up** (220 ms): it is a separate layer, and the slide shows where it came from and where it goes.
+2. **The header slides away going down and back going up** on a phone: the page needs the height, and the way back is one flick away.
+3. **The games list fades in after a change of page** (220 ms, 6 px): the whole list changed under the reader's thumb.
+4. **A folded section opens and closes smoothly** (the GM form's "More about how you run it"), where the browser supports `::details-content`.
+5. **The cover morphs from a game card to the game page** (React `<ViewTransition>`, named `cover-<slug>`, the browser's default 250 ms): the reader sees it is the same game they tapped, which is the one place a page change has no other cue.
 
 ## Rules that follow from it
 
@@ -74,7 +82,8 @@ the listings' own cover art as the only colour) and the tavern is carried by fou
 - **The product is "Quest Board"** everywhere people read it (header, titles, emails, share text); TPK is the community behind it, named on the How it works page and in the footer line.
 - **The games list is paged, nine to a page.** The pager is numbered rounded rectangles (the current page filled with the accent), 48 px high; more than 7 pages show the first, the last and the neighbours of the current page with "…".
 
-- **The header stays in view** (sticky, paper-coloured) on every page, so the language, the theme and the way back are always one tap away on the long pages.
+- **The header stays in view** (sticky, paper-coloured) on every page, so the language, the theme and the way back are always one tap away on the long pages; on a phone it slides away while reading downwards.
+- **Home blocks vary** (R-05): systems and genres are picture grids; play styles and mechanics sit side by side as two columns of text cards (stacked on a phone). The filter fields are a bottom sheet on a phone and an inline panel from 640 px; the system field in the GM form is a searchable list (ARIA combobox) instead of a 141-option dropdown; the empty list offers "Clear filters" in place.
 - **On a phone the home browse blocks are one row that scrolls sideways** (the next tile peeking in, snapping to each); from 640 px up they are grids. "Starting soon" stays a grid, because the owner asked for no scrollbar there.
 - **The systems page has a search box** (`?q=`, accents ignored): 141 tiles are too many to scan. Its closing note tells a Game Master to choose "Other" for a missing system and, when `NEXT_PUBLIC_REPORT_URL` is set, links to tell the admins.
 - **Buttons that lead on carry the number**, such as "All 141 game systems"; the hero asks Game Masters in too ("Do you run games?" and the list button), as well as players.

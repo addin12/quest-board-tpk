@@ -62,7 +62,11 @@ test("profile, then a game with a picture: both wait for review; the picture is 
   await page.getByRole("button", { name: "Add a game" }).click();
   const form = page.getByTestId("game-form");
   await form.getByLabel("Game title").fill("Kabut di Kebun Raya");
-  await form.getByLabel("Game system").selectOption("Call of Cthulhu 7e");
+  const system = form.getByLabel("Game system", { exact: true });
+  await system.fill("cthulhu"); // the list narrows as you type; arrow keys and Enter choose
+  await expect(form.getByRole("option")).toHaveCount(4); // Call of Cthulhu 6e and 7e, Pulp Cthulhu, and Other
+  await form.getByRole("option", { name: "Call of Cthulhu 7e" }).click();
+  await expect(system).toHaveValue("Call of Cthulhu 7e");
   await form.getByLabel("Short description").fill("Penyelidikan horor satu malam di kebun raya.");
   await form.getByLabel("Full description").fill("Lima penyelidik, satu malam, dan sesuatu yang bergerak di antara pepohonan. Karakter siap main disediakan.");
   await form.getByLabel("One-shot").check();

@@ -74,3 +74,21 @@ What was recommended, and what happened (same day, after the owner asked for it)
 
 (Losing `.cloudflare.local.json` is recoverable: the setup makes a new build key and sets it on the project, and `npm run cron:deploy`
 sets it on the Worker.)
+
+## Audit of 2026-11-02 (against five reference sites, ADR-37)
+
+Rules read again from `antislop.md` (R-01 to R-40, Delivery Gate, dials). Findings and what was done:
+
+| Rule | Finding | Done |
+|---|---|---|
+| R-39 | Reduced motion covered only the button press | One global `prefers-reduced-motion` rule (animations, transitions, scroll behaviour, view transitions); a Playwright test checks it |
+| R-05 | The home page repeated one block (title, button, grid) four times | Play styles and mechanics now sit side by side |
+| R-40 | System tiles loaded 480 x 600 pictures for 200 px tiles (about 6 MB over the page) | 360 x 450 `-sm` copies, 41% fewer bytes (`npm run tiles`) |
+| R-19 | Motion needs a written purpose and must match the dial | MOTION raised to 2 by the owner; five motions, each with its purpose, in design.md; none loops or plays on load |
+| R-27 | An empty list had its way out beside it, not in it | "Clear filters" inside the empty state |
+| R-32 | The new phone sheet and the system picker are keyboard widgets | A native modal `<dialog>` (focus stays inside, Escape closes) and a standard ARIA combobox (arrows, Enter, Escape); both tested |
+| R-01 | A grain and light on the no-picture card is a gradient | Allowed with a written reason (design.md): it only appears where there is no picture |
+| R-33 | My earlier edits used string-replacement scripts | This batch used the edit tool; nothing of that kind is in the repo |
+| R-35 | The latest 14 commits had no full cross-browser run | Run before the push (see the handoff) |
+
+Not adopted, on purpose: an animation library (Motion), Uiverse components (glow and neon, R-12 and R-13), gradient backdrops (R-01, R-07), and anything copied from 21st.dev (licence unclear per component).

@@ -30,11 +30,13 @@ const RAIL = "flex snap-x snap-mandatory scroll-pl-[var(--gutter)] gap-[var(--ga
 const CARD_RAIL = "flex snap-x snap-mandatory scroll-pl-[var(--gutter)] gap-[var(--space-md)] overflow-x-auto pb-[var(--space-sm)] max-sm:-mx-[var(--gutter)] max-sm:px-[var(--gutter)] [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-4 xl:grid-cols-5";
 const RAIL_ITEM = "w-[44vw] max-w-56 shrink-0 snap-start sm:w-auto sm:max-w-none";
 const CARD_GRID = "grid grid-cols-2 gap-[var(--space-md)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
+// Two blocks side by side (BrowsePair) each have half the width, so fewer columns.
+const CARD_RAIL_HALF = "flex snap-x snap-mandatory scroll-pl-[var(--gutter)] gap-[var(--space-md)] overflow-x-auto pb-[var(--space-sm)] max-sm:-mx-[var(--gutter)] max-sm:px-[var(--gutter)] [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-2 xl:grid-cols-3";
 
-function Tiles({ tiles, href, label, cover, variant = "tile", level, rail, ranked, t }: Common & { rail?: boolean; ranked?: boolean }) {
+function Tiles({ tiles, href, label, cover, variant = "tile", level, rail, ranked, half, t }: Common & { rail?: boolean; ranked?: boolean; half?: boolean }) {
   const shown = (name: string) => (label ? label(name) : name);
   if (variant === "card") {
-    return <ul className={rail ? CARD_RAIL : CARD_GRID}>{tiles.map((x) => <li key={x.name} data-name={norm(shown(x.name))} className={`flex ${rail ? RAIL_ITEM : ""}`}><BrowseCard name={shown(x.name)} count={x.count} href={href(x.name)} t={t} level={level} /></li>)}</ul>;
+    return <ul className={rail ? (half ? CARD_RAIL_HALF : CARD_RAIL) : CARD_GRID}>{tiles.map((x) => <li key={x.name} data-name={norm(shown(x.name))} className={`flex ${rail ? RAIL_ITEM : ""}`}><BrowseCard name={shown(x.name)} count={x.count} href={href(x.name)} t={t} level={level} /></li>)}</ul>;
   }
   return (
     <ul className={rail ? RAIL : GRID}>
@@ -54,6 +56,29 @@ export function BrowseSection({ id, title, allHref, allLabel, ranked, ...rest }:
           <Link href={allHref} className="btn btn-soft">{allLabel}</Link>
         </div>
         <div className="mt-[var(--space-xl)]"><Tiles {...rest} rail ranked={ranked} /></div>
+      </div>
+    </section>
+  );
+}
+
+type Block = Common & { id: string; title: string; allHref: string; allLabel: string };
+
+/** Two home blocks side by side from 1024 px (stacked below): the page does not repeat one composition four times (R-05). */
+export function BrowsePair({ left, right }: { left: Block; right: Block }) {
+  const sides = [left, right].filter((b) => b.tiles.length > 0);
+  if (sides.length === 0) return null;
+  return (
+    <section className="section pt-0">
+      <div className={`wrap grid gap-x-[var(--space-3xl)] gap-y-[var(--section-gap-s)] ${sides.length === 2 ? "lg:grid-cols-2" : ""}`}>
+        {sides.map(({ id, title, allHref, allLabel, ...rest }) => (
+          <div key={id} role="group" aria-labelledby={id} className="min-w-0">
+            <div className="flex flex-col items-start gap-[var(--space-md)]">
+              <h2 id={id}>{title}</h2>
+              <Link href={allHref} className="btn btn-soft">{allLabel}</Link>
+            </div>
+            <div className="mt-[var(--space-xl)]"><Tiles {...rest} rail half={sides.length === 2} /></div>
+          </div>
+        ))}
       </div>
     </section>
   );

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/json-ld";
-import { BrowseSection } from "@/components/browse";
+import { BrowsePair, BrowseSection } from "@/components/browse";
 import { EmptyState, GameCard, GameRow } from "@/components/ui";
 import { GENRES, MECHANICS, STYLES, genreCover, genreLabelKey, mechanicLabelKey, styleLabelKey, type GenreKey, type MechanicKey, type StyleKey } from "@/lib/categories";
 import { gameViews, loadSiteData } from "@/lib/data";
@@ -72,8 +72,10 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
 
       <BrowseSection id="systems-h" ranked cover={systemCover} title={t("home.systemsTitle")} tiles={systems} href={filterHref("system")} allHref={paths.systems(lang)} allLabel={t("home.allSystems", { n: SYSTEMS.length })} t={t} />
       <BrowseSection id="genres-h" title={t("home.genresTitle")} tiles={genres} href={filterHref("genre")} label={(k) => t(genreLabelKey(k as GenreKey))} cover={(k) => genreCover(k as GenreKey)} allHref={paths.genres(lang)} allLabel={t("home.allGenres", { n: GENRES.length })} t={t} />
-      <BrowseSection id="styles-h" title={t("home.stylesTitle")} tiles={styles} href={filterHref("style")} label={(k) => t(styleLabelKey(k as StyleKey))} variant="card" allHref={paths.styles(lang)} allLabel={t("home.allStyles", { n: STYLES.length })} t={t} />
-      <BrowseSection id="mechanics-h" title={t("home.mechanicsTitle")} tiles={mechanics} href={filterHref("mechanic")} label={(k) => t(mechanicLabelKey(k as MechanicKey))} variant="card" allHref={paths.mechanics(lang)} allLabel={t("home.allMechanics", { n: MECHANICS.length })} t={t} />
+      <BrowsePair
+        left={{ id: "styles-h", title: t("home.stylesTitle"), tiles: styles, href: filterHref("style"), label: (k) => t(styleLabelKey(k as StyleKey)), variant: "card", allHref: paths.styles(lang), allLabel: t("home.allStyles", { n: STYLES.length }), t }}
+        right={{ id: "mechanics-h", title: t("home.mechanicsTitle"), tiles: mechanics, href: filterHref("mechanic"), label: (k) => t(mechanicLabelKey(k as MechanicKey)), variant: "card", allHref: paths.mechanics(lang), allLabel: t("home.allMechanics", { n: MECHANICS.length }), t }}
+      />
 
       {beginner.length > 0 && (
         <section className="section pt-0" aria-labelledby="new-h">

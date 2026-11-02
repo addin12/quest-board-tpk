@@ -6,6 +6,7 @@ import { SUMMARY_MAX } from "../../src/lib/areas.ts";
 import { checkGame, checkGm, hasErrors } from "../../src/lib/checks.ts";
 import { contactMessage, decodeContact, encodeContact, messageLang, waLink } from "../../src/lib/contact.ts";
 import { formatDay, formatIdr, formatWhen, initialsOf } from "../../src/lib/format.ts";
+import { smallCover } from "../../src/lib/hrefs.ts";
 import { SYSTEM_COVER_FILES, systemCover } from "../../src/lib/system-covers.ts";
 import { SYSTEMS } from "../../src/lib/systems.ts";
 import { EMPTY_FILTERS, activeFilterCount, applyFilters, filterOptions, filtersToQuery, isLive, pageList, parseFilters, systemTiles, allSystemTiles, genreTiles, allGenreTiles, type GameView } from "../../src/lib/games.ts";
@@ -330,4 +331,12 @@ test("every system picture exists, and a system without one has none", () => {
   assert.equal(systemCover("Dungeons & Dragons 3e"), systemCover("Dungeons & Dragons 3.5e"), "3e and 3.5e share the one StartPlaying picture");
   assert.equal(systemCover("Not a system"), null);
   assert.ok(SYSTEMS.filter((s) => systemCover(s)).length === SYSTEMS.length, "every listed system has a picture");
+});
+
+test("tiles load the small copy of a system or genre picture, and every one has it", () => {
+  assert.equal(smallCover("/images/systems/daggerheart.webp"), "/images/systems/daggerheart-sm.webp");
+  assert.equal(smallCover("/images/genres/horror.webp"), "/images/genres/horror-sm.webp");
+  assert.equal(smallCover("/media/covers/abc.webp"), "/media/covers/abc-sm.webp");
+  assert.equal(smallCover("/images/covers/demo.svg"), "/images/covers/demo.svg", "the demo covers have one size");
+  for (const f of SYSTEM_COVER_FILES) assert.ok(existsSync(new URL(`../../public/images/systems/${f}-sm.webp`, import.meta.url)), `${f}-sm.webp is missing: run npm run tiles`);
 });

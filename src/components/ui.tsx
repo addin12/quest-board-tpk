@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ViewTransition } from "react";
 import { Picture } from "./picture";
 import type { GameView } from "@/lib/games";
 import type { T } from "@/lib/i18n/core";
@@ -21,7 +22,7 @@ const fieldOf = (text: string) => (hueOf(text) % 2 === 0 ? "bg-ink text-paper" :
 /** A 4:5 cover (like an Instagram post). With no picture it is a solid field with the title set big, or with `quiet` an empty tinted one. */
 export function Cover({ src, seed, className = "", priority = false, sizes, quiet = false }: { src: string | null; seed: string; className?: string; priority?: boolean; sizes?: string; quiet?: boolean }) {
   return (
-    <div className={`plate ${src ? "" : quiet ? "" : `${fieldOf(seed)} flex items-end p-[var(--space-md)]`} ${className}`}>
+    <div className={`plate ${src ? "" : quiet ? "" : `${fieldOf(seed)} grain flex items-end p-[var(--space-md)]`} ${className}`}>
       {src ? (
         <Picture src={src} priority={priority} sizes={sizes ?? "(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"} />
       ) : quiet ? null : (
@@ -78,7 +79,9 @@ export function GameCard({ game, t, lang, preview = false, priority = false, hea
   const body = (
     <>
       <div className="relative">
-        <Cover src={game.cover ? smallCover(game.cover) : null} seed={game.title} className="aspect-[4/5] w-full" priority={priority} />
+        <ViewTransition name={`cover-${game.slug}`}>
+          <Cover src={game.cover ? smallCover(game.cover) : null} seed={game.title} className="aspect-[4/5] w-full" priority={priority} />
+        </ViewTransition>
         {game.full && <span className="absolute bottom-0 right-0 bg-ink px-3 py-1 text-sm font-bold text-paper">{t("game.full")}</span>}
       </div>
       <div className="mt-[var(--space-md)] flex flex-1 flex-col border-t-3 border-ink pt-[var(--space-sm)]">

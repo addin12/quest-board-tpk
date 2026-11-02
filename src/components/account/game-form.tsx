@@ -8,6 +8,7 @@ import { OTHER_SYSTEM, SYSTEMS } from "@/lib/systems";
 import { ZONES, type GameRecord } from "@/lib/types";
 import { useI18n } from "../i18n-provider";
 import { Check, Field, PictureField, errorText, field } from "./fields";
+import { SystemPicker } from "./system-picker";
 
 type Values = {
   title: string; system: string; otherSystem: string; summary: string; description: string; format: string; locationType: string; platform: string; city: string;
@@ -77,11 +78,7 @@ export function GameForm({ game, onSaved, onCancel }: { game: GameRecord | null;
         <input id="g-title" className="input" value={v.title} maxLength={100} onChange={(e) => set({ title: e.target.value })} />
       </Field>
       <Field id="g-system" label={t("acct.f.system")} error={err("system")}>
-        <select id="g-system" className="input" value={v.system} onChange={(e) => set({ system: e.target.value })}>
-          <option value="">{""}</option>
-          {SYSTEMS.map((s) => <option key={s} value={s}>{s}</option>)}
-          <option value={OTHER_SYSTEM}>{OTHER_SYSTEM}</option>
-        </select>
+        <SystemPicker id="g-system" value={v.system} options={SYSTEMS} other={OTHER_SYSTEM} onChange={(system) => set({ system })} invalid={!!err("system")} />
       </Field>
       {v.system === OTHER_SYSTEM && (
         <Field id="g-other" label={t("acct.f.otherSystem")}>

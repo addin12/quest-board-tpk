@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ViewTransition } from "react";
 import { ContactButtons } from "@/components/contact-buttons";
 import { Gone, goneMetadata } from "@/components/gone";
 import { JsonLd } from "@/components/json-ld";
@@ -86,7 +87,9 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
 
         <div className="mt-[var(--space-lg)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] lg:grid-cols-12">
           <div className="min-w-0 lg:col-span-4">
-            <Cover src={game.cover} seed={game.title} priority sizes="(min-width: 1024px) 30vw, 100vw" className="aspect-[4/5] w-full max-sm:max-w-xs" />
+            <ViewTransition name={`cover-${game.slug}`}>
+              <Cover src={game.cover} seed={game.title} priority sizes="(min-width: 1024px) 30vw, 100vw" className="aspect-[4/5] w-full max-sm:max-w-xs" />
+            </ViewTransition>
           </div>
 
           <div className="min-w-0 lg:col-span-8">

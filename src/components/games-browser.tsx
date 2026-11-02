@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { GENRES, MECHANICS, STYLES, genreLabelKey, mechanicLabelKey, styleLabelKey } from "@/lib/categories";
 import { EMPTY_FILTERS, PAGE_SIZE, activeFilterCount, applyFilters, filtersToQuery, isLive, pageList, parseFilters, type Filters, type GameView, type filterOptions } from "@/lib/games";
 import { useI18n } from "./i18n-provider";
@@ -16,7 +16,18 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
   const { t, lang } = useI18n();
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [now, setNow] = useState<number | null>(null);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false); // the inline filter panel (640 px and up)
+  const [sheet, setSheet] = useState(false); // the filter sheet (phones)
+  const [phone, setPhone] = useState(false);
+  const [swapped, setSwapped] = useState(false); // the list fades in after a change of page, and only then
+
+  useEffect(() => {
+    const m = window.matchMedia("(max-width: 639px)");
+    const apply = () => setPhone(m.matches);
+    apply(); // the screen width is only known in the browser
+    m.addEventListener("change", apply);
+    return () => m.removeEventListener("change", apply);
+  }, []);
 
   useEffect(() => {
     const f = parseFilters(window.location.search);
@@ -32,6 +43,7 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
   function set(patch: Partial<Filters>, newEntry = false) {
     const next = { ...filters, page: 1, ...patch };
     setFilters(next);
+    if (!newEntry) setSwapped(false); // only a change of page fades the list in
     window.history[newEntry ? "pushState" : "replaceState"](null, "", window.location.pathname + filtersToQuery(next));
   }
 
@@ -48,7 +60,13 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
   // a rounded rectangle, 48 px tall; the current page is filled with the accent. On a phone the numbers get a row above Previous and Next.
   const pageBtn = "btn rounded-[var(--radius-input)] border border-[color-mix(in_oklab,var(--color-ink)_35%,var(--color-paper))] bg-paper px-3 text-ink hover:not-disabled:bg-paper-3";
 
+  function clear() {
+    setFilters(EMPTY_FILTERS);
+    window.history.replaceState(null, "", window.location.pathname);
+  }
+
   function go(page: number) {
+    setSwapped(true);
     set({ page }, true);
     document.getElementById("games-top")?.scrollIntoView({ block: "start" });
   }
@@ -70,12 +88,12 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
           <label htmlFor="q" className="label">{t("games.search")}</label>
           <input id="q" type="search" className="input" value={filters.q} placeholder={t("games.searchPlaceholder")} maxLength={80} onChange={(e) => set({ q: e.target.value })} />
         </div>
-        <button type="button" className="btn btn-secondary min-w-11" aria-expanded={open} aria-controls="filter-panel" onClick={() => setOpen(!open)}>
+        <button type="button" className="btn btn-secondary min-w-11" aria-expanded={phone ? sheet : open} aria-controls="filter-panel" onClick={() => (phone ? setSheet(true) : setOpen(!open))}>
           {t("games.filters")}{filterCount > 0 ? ` (${filterCount})` : ""}
         </button>
       </div>
 
-      <div id="filter-panel" hidden={!open} className="well mt-[var(--space-md)] grid gap-[var(--space-lg)] sm:grid-cols-2 lg:grid-cols-4">
+      <FilterShell phone={phone} open={open} sheet={sheet} count={shown.length} onClose={() => setSheet(false)}>
         {select("f-system", t("games.system"), filters.system, (v) => set({ system: v }), options.systems.map((s) => ({ value: s, label: s })))}
         {select("f-genre", t("games.genre"), filters.genre, (v) => set({ genre: v }), GENRES.filter((g) => options.genres.includes(g.key)).map((g) => ({ value: g.key, label: t(genreLabelKey(g.key)) })))}
         {select("f-style", t("games.style"), filters.style, (v) => set({ style: v }), STYLES.filter((s) => options.styles.includes(s.key)).map((s) => ({ value: s.key, label: t(styleLabelKey(s.key)) })))}
@@ -96,21 +114,25 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
           <input type="checkbox" className="size-5 accent-[var(--color-accent)]" checked={filters.free} onChange={(e) => set({ free: e.target.checked })} />
           {t("games.freeOnly")}
         </label>
-      </div>
+      </FilterShell>
 
       <div className="mt-[var(--space-xl)] flex flex-wrap items-center justify-between gap-[var(--space-md)]">
         <p id="games-top" data-late className="scroll-mt-24 text-muted" role="status" aria-live="polite" data-testid="games-count">{t("games.results", { n: shown.length })}</p>
         {active > 0 && (
-          <button type="button" className="btn btn-ghost" onClick={() => { setFilters(EMPTY_FILTERS); window.history.replaceState(null, "", window.location.pathname); }}>
+          <button type="button" className="btn btn-ghost" onClick={clear}>
             {t("games.clear")}
           </button>
         )}
       </div>
 
       {shown.length === 0 ? (
-        <div data-late className="mt-[var(--space-md)]"><EmptyState title={t(games.length === 0 ? "games.noneYet" : "games.none")} /></div>
+        <div data-late className="mt-[var(--space-md)]">
+          <EmptyState title={t(games.length === 0 ? "games.noneYet" : "games.none")}>
+            {active > 0 && <button type="button" className="btn btn-soft" onClick={clear}>{t("games.clear")}</button>}
+          </EmptyState>
+        </div>
       ) : (
-        <ul data-late className="mt-[var(--space-md)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-2 lg:grid-cols-3" data-testid="games-list">
+        <ul key={page} data-late className={`mt-[var(--space-md)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-2 lg:grid-cols-3 ${swapped ? "list-in" : ""}`} data-testid="games-list">
           {visible.map((g, i) => <li key={g.id}><GameCard game={g} t={t} lang={lang} priority={i < 4} headingLevel={2} /></li>)}
         </ul>
       )}
@@ -131,5 +153,36 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
         </nav>
       )}
     </div>
+  );
+}
+
+/**
+ * The filter fields: an inline panel from 640 px up, and on a phone a bottom sheet (a native modal dialog, so focus stays inside, Escape and the
+ * backdrop close it) with a button that says how many games the filters leave.
+ */
+function FilterShell({ phone, open, sheet, count, onClose, children }: { phone: boolean; open: boolean; sheet: boolean; count: number; onClose: () => void; children: ReactNode }) {
+  const { t } = useI18n();
+  const dialog = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const d = dialog.current;
+    if (!d) return;
+    if (phone && sheet && !d.open) d.showModal();
+    if (!(phone && sheet) && d.open) d.close();
+  }, [phone, sheet]);
+
+  if (!phone) {
+    return <div id="filter-panel" hidden={!open} className="well mt-[var(--space-md)] grid gap-[var(--space-lg)] sm:grid-cols-2 lg:grid-cols-4">{children}</div>;
+  }
+  return (
+    <dialog ref={dialog} id="filter-panel" className="sheet" aria-labelledby="filter-title" onClose={onClose} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="grid gap-[var(--space-lg)]">
+        <h2 id="filter-title" className="text-[length:var(--text-title)]">{t("games.filters")}</h2>
+        {children}
+        <div className="sticky bottom-[calc(-1*var(--space-xl))] -mx-[var(--gutter)] border-t border-rule bg-paper px-[var(--gutter)] py-[var(--space-sm)]">
+          <button type="button" className="btn btn-primary w-full" onClick={onClose}>{t("games.showN", { n: count })}</button>
+        </div>
+      </div>
+    </dialog>
   );
 }
