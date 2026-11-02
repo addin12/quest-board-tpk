@@ -1,9 +1,33 @@
-# Handoff: where the project stands (2026-10-30, end of day)
+# Handoff: where the project stands (2026-11-02, end of day)
 
 For the next agent or person. Read this first, then [CLAUDE.md](../CLAUDE.md). Facts here are the ones the code and git history
 don't tell you.
 
-## State in one paragraph
+## State at the end of 2026-11-02 (read this before the older sections below)
+
+**Everything is pushed (`9b1bc29`) and CI is green; the live site is built from it.** Nothing is local-only. Live D1 has migrations 0001 to 0004
+(0004 adds `profiles.instagram`, applied 2026-11-02 before the push). The live site still has 0 games and 0 GMs, so the browse blocks, the GM search box
+and the demo-only features show only in the local demo build (`npm run build && npm run preview`, port 4173).
+
+What the day added, with the decisions in DECISIONS.md (ADR-34 to ADR-39) and design.md: 143 game systems, each with its own cover picture
+(publisher art, owner's explicit choice, credits and removal steps in [art-credits.md](art-credits.md); `npm run tiles` makes the small copies);
+40 genre pictures from StartPlaying; pager of nine games a page; search everywhere with synonyms (`src/lib/search.ts`: dnd, d&d, science fiction,
+coc, vtm ...); `SearchPicker` for the system, genre, play style and mechanic filters and the GM form's system field; a phone filter sheet; a sliding
+sticky header; five written motions (MOTION dial is 2); Plus Jakarta Sans for reading text; Instagram on the GM profile; Discord as one copy button;
+game page and GM page re-laid out; search box on `/systems/` and `/gms/`; default share image; Anti-Slop audit of 2026-11-02 in
+[anti-slop-audit.md](anti-slop-audit.md).
+
+**Open, none blocks use:** the Indonesian wording of everything new is mine (the owner is a native speaker and should review: browse blocks, pager, search
+strings, "Cari Game Master", "Pilihan untuk"); the names Nimble 5e / Nimble 2e and some editions were written without a primary source; Knave 1e has only a
+title-mark picture (no cover scan found); Shadowrun 3e and L5R 4e pictures are small scans; no real Game Master has listed a game yet, so the retention
+timers, the first approval and rebuild on live, and the first Instagram save are unproven on live data; a visitor on a slow phone can tap "Filters" before
+the page's scripts have run (see "Flaky browser tests" below); ask Game Masters to list their games (an invitation message was offered, not written).
+
+Ways of working that matter: the owner says "push" when ready; apply a database migration to the live D1 **before** pushing code that needs it
+(`npm run cloudflare:setup`; the owner added the permission rule for it on 2026-11-02); run the full Playwright suite on all three browsers before a push
+(workers are 2 and the test timeout is 60 s because Firefox and WebKit are slow on this laptop); edit source with the editor's edit tool, not with replacement scripts (R-33).
+
+## State in one paragraph (2026-10-30, older)
 
 The site is a Next 16 static export on Cloudflare Pages (EN/ID) at <https://quest-board-tpk.pages.dev>. The Cloudflare backend (D1 + R2, email-link
 accounts, ADR-25, [backend.md](backend.md)) went live on 2026-10-30 and the Google Forms + Sheet stack was retired in code (ADR-27); the Apps Script
@@ -136,4 +160,4 @@ Show text progress bars on long runs. UI changes follow the mandatory real-user 
 
 **Flaky browser tests, found and fixed on 2026-11-02:** the games list and the systems search are drawn on the server, so a button tapped (or text typed) before the page's scripts run does nothing. The tests did exactly that on a slow machine, which was the cause of the "filters narrow the list" timeouts in Firefox and WebKit. Both components now set `data-ready` once their scripts have run, and the tests wait for it. A real visitor on a slow phone can still tap too early; the `data-late` rule already hides a list that an address filters, and a fuller fix (making the Filters button work without scripts) is not done.
 
-**Instagram (ADR-38), local only:** a Game Master can now give an Instagram username. **Before pushing this, run `npm run cloudflare:setup`** so migration `0004_instagram.sql` is on the live D1; without the column every profile save on the live site would fail.
+**Instagram (ADR-38), done:** a Game Master can give an Instagram username; migration `0004_instagram.sql` was applied to the live D1 on 2026-11-02 before the push (the lesson: apply the migration first).
