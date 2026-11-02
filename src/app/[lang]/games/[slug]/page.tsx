@@ -138,7 +138,7 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
 
         <section className="ruled mt-[var(--section-gap-s)]" aria-label={t("game.about")}>
           <div className="grid gap-x-[var(--gap-columns)] gap-y-[var(--space-md)] py-[var(--space-xl)] lg:grid-cols-12">
-            <h2 id="about-h" className="max-w-none text-[length:var(--text-section)] lg:col-span-4">{t("game.about")}</h2>
+            <h2 id="about-h" className="max-w-none text-[length:var(--text-2xl)] lg:col-span-4">{t("game.about")}</h2>
             <div className="max-w-[65ch] space-y-[var(--space-md)] lg:col-span-8">
               {game.description.split(/\n{2,}/).map((p, i) => <p key={i} className="whitespace-pre-line">{p}</p>)}
             </div>
@@ -146,18 +146,18 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
 
           {game.scheduleNote && (
             <div className="grid gap-x-[var(--gap-columns)] gap-y-[var(--space-md)] py-[var(--space-xl)] lg:grid-cols-12">
-              <h2 className="max-w-none text-[length:var(--text-section)] lg:col-span-4">{t("game.schedule")}</h2>
+              <h2 className="max-w-none text-[length:var(--text-2xl)] lg:col-span-4">{t("game.schedule")}</h2>
               <p className="max-w-[65ch] whitespace-pre-line lg:col-span-8">{game.scheduleNote}</p>
             </div>
           )}
 
           <div className="grid gap-x-[var(--gap-columns)] gap-y-[var(--space-md)] py-[var(--space-xl)] lg:grid-cols-12">
-            <h2 className="max-w-none text-[length:var(--text-section)] lg:col-span-4">{t("game.cw")}</h2>
+            <h2 className="max-w-none text-[length:var(--text-2xl)] lg:col-span-4">{t("game.cw")}</h2>
             <p className="max-w-[65ch] whitespace-pre-line lg:col-span-8">{game.contentWarnings || t("game.cwNone")}</p>
           </div>
 
           <div className="grid gap-x-[var(--gap-columns)] gap-y-[var(--space-md)] py-[var(--space-xl)] lg:grid-cols-12">
-            <h2 className="max-w-none text-[length:var(--text-section)] lg:col-span-4">{t("game.safety")}</h2>
+            <h2 className="max-w-none text-[length:var(--text-2xl)] lg:col-span-4">{t("game.safety")}</h2>
             <p className="max-w-[65ch] lg:col-span-8">{game.safetyTools || t("game.safetyNone")}</p>
           </div>
         </section>
