@@ -60,7 +60,7 @@ export default async function GmPage({ params }: PageProps<"/[lang]/gm/[slug]">)
           )}
           {gm.bio && <div className="mt-[var(--space-lg)] max-w-[65ch] space-y-[var(--space-md)]">{gm.bio.split(/\n{2,}/).map((p, i) => <p key={i} className="whitespace-pre-line">{p}</p>)}</div>}
           <h2 className="mt-[var(--space-xl)] max-w-none text-[length:var(--text-title)]">{t("gm.contact")}</h2>
-          <div className="mt-[var(--space-md)]"><ContactButtons wa={encodeContact(gm.whatsapp)} discord={gm.discord} message={contactMessage(gm, null, lang)} /></div>
+          <div className="mt-[var(--space-md)]"><ContactButtons wa={encodeContact(gm.whatsapp)} discord={gm.discord} instagram={gm.instagram} message={contactMessage(gm, null, lang)} /></div>
         </div>
       </header>
 

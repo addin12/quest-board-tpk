@@ -6,7 +6,7 @@
 
 A free noticeboard for tabletop RPG games in Jabodetabek and online, run by **The Pandemonium Kollektive** (TPK), in English and Bahasa Indonesia.
 Game Masters sign in with their email and list their games, admins review them on a page of the site, and players
-message the GM directly on WhatsApp or Discord.
+message the GM directly on WhatsApp, Discord or Instagram.
 
 [![CI](https://github.com/addin12/quest-board-tpk/actions/workflows/ci.yml/badge.svg)](https://github.com/addin12/quest-board-tpk/actions/workflows/ci.yml)
 ![Node 22.13+](https://img.shields.io/badge/node-%E2%89%A522.13-3c873a)
@@ -26,7 +26,7 @@ GM signs in with an emailed link and fills in a game  →  an admin approves it 
 ```
 
 - **For players:** browse and filter games (system, genre, online or in person, city, language, level, free), open a game,
-  and tap the WhatsApp button: the chat opens with a message ready to send. Some GMs also share a Discord.
+  and tap the WhatsApp button: the chat opens with a message ready to send. Some GMs also share a Discord or an Instagram.
 - **For Game Masters:** one profile, then as many games as they run; an email when an admin decides; they can edit, mark a game full, remove it, or erase their account themselves.
 - **For admins:** a review page with a queue, a preview of the card, automatic checks (scam wording, missing date or
   number…), one-click approve or reject with reasons, undo, bulk approve and keyboard shortcuts. Adding another admin is one email address.

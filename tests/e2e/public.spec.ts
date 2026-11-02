@@ -72,11 +72,14 @@ test("a GM's profile lists their games and both ways to reach them", async ({ pa
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Raka Pratama");
   await expect(page.getByTestId("contact-whatsapp")).toBeVisible();
   await expect(page.getByTestId("contact-discord")).toContainText("raka_gm");
+  await expect(page.getByTestId("contact-instagram")).toHaveAttribute("href", "https://www.instagram.com/raka.plays/");
+  await expect(page.getByTestId("contact-instagram")).toContainText("raka.plays");
   await page.getByRole("button", { name: "Copy Discord username" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Copied" })).toBeVisible();
   await expect(page.getByTestId("games-list").or(page.getByRole("heading", { name: "Open games" }))).toBeVisible();
   await page.goto("/en/gm/bima-anggraini-0b01/");
   await expect(page.getByRole("link", { name: "Open Discord invite" })).toHaveAttribute("href", "https://discord.gg/sampleinvite");
+  await expect(page.getByTestId("contact-instagram")).toHaveCount(0); // optional: a GM without one shows no button
 });
 
 test("the list-your-game page sends GMs to the account page, and the report link is shown", async ({ page }) => {

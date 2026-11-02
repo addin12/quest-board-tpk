@@ -135,11 +135,28 @@ test("an admin approves; the public data shows only approved things of an approv
   assert.equal(pub.games.length, 1);
   assert.equal(pub.games[0].gmId, profileId);
   assert.deepEqual(pub.games[0].mechanics, ["d100"], "mechanics survive the database and reach the public data");
+  assert.equal(pub.gms[0].instagram, "raka.plays", "the Instagram link given in the profile is stored and published as a plain username");
   assert.equal(JSON.stringify(pub).includes("raka@example.com"), false, "no email in the public data");
   assert.equal(JSON.stringify(pub).includes("adminNote"), false);
   const parsed = parsePublicData(pub);
   assert.equal(parsed.data.games.length, 1);
   assert.deepEqual(parsed.warnings, [], "the site's own parser accepts it without complaint");
+  assert.equal(parsed.data.gms[0].instagram, "raka.plays");
+});
+
+test("an Instagram name is optional, and one that is not a username or a profile link is refused", async () => {
+  const w = makeWorld();
+  const gm = await w.signIn("raka@example.com");
+  for (const instagram of ["", "@raka_plays", "raka.plays", "instagram.com/raka.plays/"]) {
+    assert.equal((await w.call("PUT", "/profile", { cookie: gm, body: { ...PROFILE, instagram } })).status, 200, `"${instagram}" is accepted`);
+  }
+  for (const instagram of ["raka plays", "raka..plays", ".raka", "raka.", "https://evil.example/raka", "https://instagram.com.evil.example/raka", "https://www.instagram.com/p/abc123/", "a".repeat(31)]) {
+    const res = await w.call("PUT", "/profile", { cookie: gm, body: { ...PROFILE, instagram } });
+    assert.equal(res.status, 422, `"${instagram}" is refused`);
+    assert.equal(res.json.fields.instagram, "invalid_instagram");
+  }
+  const me = (await w.call("GET", "/me", { cookie: gm })).json.profile;
+  assert.equal(me.instagram, "raka.plays", "the last good value is what is stored");
 });
 
 test("editing a decided game sends it back to review; the same content again changes nothing", async () => {

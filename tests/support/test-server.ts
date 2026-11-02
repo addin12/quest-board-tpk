@@ -57,7 +57,7 @@ async function seed(w: World) {
   await mk(raka, { title: "Date Unknown", date: day(12) });
   await mk(raka, { title: "Panen Harapan", date: day(13) });
   const dewi = await signIn("dewi@example.com");
-  await call("PUT", "/profile", { cookie: dewi, body: { ...PROFILE, name: "Dewi Lestari", whatsapp: "0812-9999-0000", discord: "" } });
+  await call("PUT", "/profile", { cookie: dewi, body: { ...PROFILE, name: "Dewi Lestari", whatsapp: "0812-9999-0000", discord: "", instagram: "" } });
   await mk(dewi, { title: "Naga-naga Hutan Bara", date: day(14) });
 
   const owner = await signIn(OWNER);

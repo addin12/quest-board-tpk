@@ -18,7 +18,7 @@ like a scam: use the *Report this listing* link on the game's page instead.
 
 ## What data this project holds
 
-- A Game Master's profile: display name, short bio, city, optional photo, WhatsApp number, optional Discord, and the
+- A Game Master's profile: display name, short bio, city, optional photo, WhatsApp number, optional Discord and Instagram username, and the
   email address, which is also their sign-in (the email is never shown on the site).
 - A game's details: the description, place, date, price information and an optional cover picture.
 - Where it lives: a Cloudflare D1 database and an R2 bucket (pictures and daily backups) in the owner's Cloudflare account. The public site shows only what a

@@ -122,7 +122,7 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
               <h2 id="contact-h" className="max-w-none text-[length:var(--text-title)]">{t("game.contactTitle")}</h2>
               <p className="mt-[var(--space-sm)] text-ink-2">{t("game.contactBody")}</p>
               {game.full && <p className="mt-[var(--space-md)] bg-accent px-[var(--space-md)] py-[var(--space-sm)] font-bold text-accent-ink" data-testid="full-note">{t("game.fullNote")}</p>}
-              <div className="mt-[var(--space-lg)]"><ContactButtons wa={encodeContact(gm.whatsapp)} discord={gm.discord} message={contactMessage(gm, game, lang)} /></div>
+              <div className="mt-[var(--space-lg)]"><ContactButtons wa={encodeContact(gm.whatsapp)} discord={gm.discord} instagram={gm.instagram} message={contactMessage(gm, game, lang)} /></div>
               <p className="mt-[var(--space-lg)] border-t border-rule pt-[var(--space-md)] text-sm text-ink-2">{t("game.safetyNote")}</p>
               {REPORT_URL && (
                 <p className="mt-[var(--space-sm)]"><a href={REPORT_URL} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-sm font-bold underline decoration-accent decoration-2 underline-offset-4 hover:text-accent-deep">{t("game.report")} <span className="sr-only">{t("a11y.opensNewTab")}</span></a></p>

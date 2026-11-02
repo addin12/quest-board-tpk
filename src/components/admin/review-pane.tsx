@@ -265,6 +265,7 @@ function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting
               {gm.whatsapp && <a href={waLink(gm.whatsapp, contactMessage({ name: gm.name }, null, lang))} target="_blank" rel="noopener noreferrer" className="btn-secondary"><Icon name="whatsapp" /> {t("admin.testWhatsapp")}</a>}
             </p>
             {gm.discord && <p className="flex items-center gap-2"><Icon name="discord" /> <span className="tabular-nums">{gm.discord}</span></p>}
+            {gm.instagram && <p className="flex items-center gap-2"><Icon name="instagram" /> <span className="tabular-nums">{gm.instagram}</span></p>}
           </div>
         ) : (
           <p className="mt-2 text-muted">{t("admin.noGm")}</p>

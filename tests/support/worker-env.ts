@@ -99,7 +99,7 @@ export function makeWorld(startMs = Date.parse("2026-10-28T03:00:00Z")) {
   return { db, mails, bucket, hook, clock, env, call, signIn };
 }
 
-export const PROFILE = { name: "Raka Pratama", bio: "Horror GM.", city: "Depok", systems: "Call of Cthulhu, Mothership", whatsapp: "0812-3456-7890", discord: "raka_gm", consent: true };
+export const PROFILE = { name: "Raka Pratama", bio: "Horror GM.", city: "Depok", systems: "Call of Cthulhu, Mothership", whatsapp: "0812-3456-7890", discord: "raka_gm", instagram: "https://www.instagram.com/Raka.Plays/", consent: true };
 
 export const GAME = {
   title: "Mercusuar di Pulau Kabut", system: "Call of Cthulhu", summary: "The lighthouse keeper stopped answering the radio.", description: "A classic Call of Cthulhu investigation for three to five players.",

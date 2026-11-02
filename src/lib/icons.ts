@@ -25,6 +25,7 @@ export const ICON_FILES = {
   // the two contact channels a Game Master can give
   whatsapp: "whatsapp-logo",
   discord: "discord-logo",
+  instagram: "instagram-logo",
   copy: "copy",
 } as const;
 

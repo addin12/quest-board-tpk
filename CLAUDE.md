@@ -1,7 +1,7 @@
 # Quest Board TPK: agent guide
 
 A free noticeboard for tabletop RPG games in Jabodetabek and online, run by **The Pandemonium Kollektive** (TPK), Indonesia.
-Players browse and contact the GM directly (WhatsApp, optionally Discord). **No bookings, no payments.** English by default,
+Players browse and contact the GM directly (WhatsApp, optionally Discord and Instagram). **No bookings, no payments.** English by default,
 Bahasa Indonesia at `/id/`. The site itself is a static export.
 
 **Live since 2026-10-30 (ADR-25): Cloudflare Pages Functions + D1 + R2** in `worker/` and `functions/`, with email-link accounts
@@ -67,7 +67,7 @@ npm run script:deploy      # the mail relay in Apps Script
 
 - **Public data is a fixed list of fields** (`buildPublic` in `worker/src/public.ts`). Never add an email, an admin note, a status or a rejected/pending row to it.
 - **Everything the site shows is untrusted text**: render it as text (React escapes), never as HTML; links only if validated
-  (`isGoogleMapsUrl`, `cleanDiscord`, `isPhone`); re-validate at the build (`parsePublicData`), whatever the backend promised.
+  (`isGoogleMapsUrl`, `cleanDiscord`, `cleanInstagram`, `isPhone`); re-validate at the build (`parsePublicData`), whatever the backend promised.
 - **Admin power comes only from a valid session whose email is the owner or on the `admins` table** (`isAdmin`). Nothing the page sends grants it.
 - **One rules module**: what makes a game or profile valid lives in `src/lib/` and is imported by `worker/src/rules.ts`. Change it once; never copy a rule.
 - **The backend never has a service hard-wired**: D1, R2, mail, the clock and `fetch` are injected into `handle()`, so the node:test world and the Playwright test server run the real code. Keep it that way.

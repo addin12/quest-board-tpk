@@ -14,7 +14,7 @@ export function ProfileForm({ profile, onSaved, onCancel }: { profile: GmRecord 
   const { t } = useI18n();
   const [v, setV] = useState({
     name: profile?.name ?? "", bio: profile?.bio ?? "", city: profile?.city ?? "", systems: (profile?.systems ?? []).join(", "),
-    whatsapp: profile?.whatsapp ?? "", discord: profile?.discord ?? "", photoKey: profile?.photoId ?? "", consent: profile?.consent ?? false,
+    whatsapp: profile?.whatsapp ?? "", discord: profile?.discord ?? "", instagram: profile?.instagram ?? "", photoKey: profile?.photoId ?? "", consent: profile?.consent ?? false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [problem, setProblem] = useState("");
@@ -59,6 +59,9 @@ export function ProfileForm({ profile, onSaved, onCancel }: { profile: GmRecord 
       </Field>
       <Field id="p-discord" label={t("acct.f.discord")} hint={t("acct.f.discordHint")} error={field(errors, "discord", t)}>
         <input id="p-discord" className="input" value={v.discord} onChange={(e) => set({ discord: e.target.value })} />
+      </Field>
+      <Field id="p-instagram" label={t("acct.f.instagram")} hint={t("acct.f.instagramHint")} error={field(errors, "instagram", t)}>
+        <input id="p-instagram" className="input" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={v.instagram} onChange={(e) => set({ instagram: e.target.value })} />
       </Field>
       <PictureField id="p-photo" kind="photo" value={v.photoKey} onChange={(photoKey) => set({ photoKey })} label={t("acct.f.photo")} hint={t("acct.f.photoHint")} error={field(errors, "photoKey", t)} />
       <div>

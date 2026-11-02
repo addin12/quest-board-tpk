@@ -40,6 +40,28 @@ export function isGoogleMapsUrl(v: string): boolean {
   return /^maps\.google\.(com|co\.id)$/.test(host);
 }
 
+const INSTAGRAM_PATHS = new Set(["p", "reel", "reels", "explore", "accounts", "stories", "tv", "direct"]);
+
+/**
+ * Instagram: a username (letters, digits, dots and underscores, up to 30, no leading, trailing or doubled dot), given plainly, with an @, or as an
+ * instagram.com link. Kept as the plain lower-case username; "" when it is not one.
+ * @example cleanInstagram("https://www.instagram.com/Raka.Plays/") // "raka.plays"
+ */
+export function cleanInstagram(v: unknown): string {
+  let s = text(v, 200);
+  if (/^(https?:\/\/)?(www\.)?instagram\.com\//i.test(s)) {
+    try {
+      const u = new URL(/^https?:/i.test(s) ? s : `https://${s}`);
+      if (u.username || u.password || u.port) return "";
+      s = u.pathname.split("/").filter(Boolean)[0] ?? "";
+    } catch {
+      return "";
+    }
+  }
+  const handle = s.replace(/^@/, "").toLowerCase();
+  return /^[a-z0-9_]([a-z0-9_.]{0,28}[a-z0-9_])?$/.test(handle) && !handle.includes("..") && !INSTAGRAM_PATHS.has(handle) ? handle : "";
+}
+
 /** Discord: a lower-case username, or an https invite link on discord.gg or discord.com/invite. */
 export function cleanDiscord(v: unknown): string {
   const s = text(v, 200);
@@ -79,7 +101,7 @@ function parseGm(raw: unknown, warn: (m: string) => void): RawGm | null {
   if (!isPhone(r.whatsapp)) { warn(`GM ${name}: the WhatsApp number is not valid`); return null; }
   const photoId = typeof r.photoId === "string" && PICTURE.test(r.photoId) ? r.photoId : "";
   return {
-    id, slug: String(r.slug), name, bio: text(r.bio, 800, true), city: text(r.city, 60), whatsapp: r.whatsapp, discord: cleanDiscord(r.discord), photoId,
+    id, slug: String(r.slug), name, bio: text(r.bio, 800, true), city: text(r.city, 60), whatsapp: r.whatsapp, discord: cleanDiscord(r.discord), instagram: cleanInstagram(r.instagram), photoId,
     systems: (Array.isArray(r.systems) ? r.systems : []).map((s) => text(s, 40)).filter(Boolean).slice(0, 8),
   };
 }

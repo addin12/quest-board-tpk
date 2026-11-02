@@ -28,7 +28,7 @@ flowchart TB
   BUILD["npm run build<br/>build-data.mjs → next build"] -- "GET /api/public, /api/img (build key)" --> FN
   BUILD --> PAGES
   P[Player] --> PAGES
-  P -- "WhatsApp / Discord" --> GM
+  P -- "WhatsApp / Discord / Instagram" --> GM
 ```
 
 | Part | Where | Job |
@@ -86,8 +86,8 @@ sequenceDiagram
 - **Pictures** are identified by their bytes (WebP, JPEG, PNG), size-limited, and only approved ones are served publicly.
 - **WhatsApp numbers** are public by the GM's consent; they are not written plainly into the HTML (only a scraper-slowing encoding),
   but anyone who taps the button sees them.
-- **Content** is plain text: React escapes it, there is no HTML or link markup from GMs. Map links must be Google Maps, Discord links
-  must be Discord, anything else is dropped.
+- **Content** is plain text: React escapes it, there is no HTML or link markup from GMs. Map links must be Google Maps, Discord links must be Discord, an
+  Instagram entry must be a username or an instagram.com profile link (stored as the plain username); anything else is dropped.
 - Headers (`public/_headers`) set a Content Security Policy that allows scripts only from the site and Turnstile.
 
 ## Where things are

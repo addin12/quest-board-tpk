@@ -11,7 +11,7 @@ import { SYSTEM_COVER_FILES, systemCover } from "../../src/lib/system-covers.ts"
 import { SYSTEMS } from "../../src/lib/systems.ts";
 import { EMPTY_FILTERS, activeFilterCount, applyFilters, filterOptions, filtersToQuery, isLive, pageList, parseFilters, systemTiles, allSystemTiles, genreTiles, allGenreTiles, type GameView } from "../../src/lib/games.ts";
 import { DICTIONARIES, makeT } from "../../src/lib/i18n/dict.ts";
-import { cleanDiscord, isGoogleMapsUrl, isPhone, parsePublicData, text } from "../../src/lib/public-data.ts";
+import { cleanDiscord, cleanInstagram, isGoogleMapsUrl, isPhone, parsePublicData, text } from "../../src/lib/public-data.ts";
 import { buildItems, canApprove, countByStatus, filterItems, previewGame, reasonText, siteBehind, whenLabel } from "../../src/lib/admin-view.ts";
 import { flatName } from "../../scripts/fix-export.mjs";
 import { parseConfig } from "../../scripts/push-apps-script.mjs";
@@ -65,6 +65,15 @@ test("phone numbers, Discord names and map links are checked on this side as wel
   assert.equal(cleanDiscord("@Raka_GM"), "raka_gm");
   assert.equal(cleanDiscord("https://discord.gg/abc"), "https://discord.gg/abc");
   assert.equal(cleanDiscord("https://discord.gg.evil.example/abc"), "");
+  assert.equal(cleanInstagram("@Raka.Plays"), "raka.plays");
+  assert.equal(cleanInstagram("https://www.instagram.com/Raka.Plays/?hl=en"), "raka.plays");
+  assert.equal(cleanInstagram("instagram.com/raka_plays"), "raka_plays");
+  assert.equal(cleanInstagram("https://instagram.com.evil.example/raka"), "");
+  assert.equal(cleanInstagram("https://user:pw@instagram.com/raka"), "");
+  assert.equal(cleanInstagram("raka plays"), "");
+  assert.equal(cleanInstagram("raka..plays"), "");
+  assert.equal(cleanInstagram("https://www.instagram.com/explore/"), "");
+  assert.equal(cleanInstagram(""), "");
   assert.equal(isGoogleMapsUrl("https://maps.app.goo.gl/x"), true);
   assert.equal(isGoogleMapsUrl("https://google.com.evil.example/maps/x"), false);
 });
@@ -206,7 +215,7 @@ const record = (over: Partial<GameRecord> = {}): GameRecord => ({
 });
 const gmRecord = (over: Partial<GmRecord> = {}): GmRecord => ({
   kind: "gm", id: "m1abc1234", slug: "raka-abcd", status: "approved", full: false, adminNote: "", reviewedBy: "", reviewedAt: "", rejectReason: "", superseded: false,
-  submittedAt: "2026-09-30T03:00:00.000Z", email: "gm@example.com", row: 2, name: "Raka", bio: "Horror GM.", city: "Depok", systems: [], whatsapp: "6281234567890", discord: "", photoId: "", consent: true, ...over,
+  submittedAt: "2026-09-30T03:00:00.000Z", email: "gm@example.com", row: 2, name: "Raka", bio: "Horror GM.", city: "Depok", systems: [], whatsapp: "6281234567890", discord: "", instagram: "", photoId: "", consent: true, ...over,
 });
 const NOW = Date.parse("2026-10-05T00:00:00Z");
 const ids = (checks: { id: string }[]) => checks.map((c) => c.id);

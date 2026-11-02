@@ -25,7 +25,7 @@ export async function buildPublic(ctx: Ctx): Promise<RawPublicData> {
 
   return {
     generatedAt: iso(now),
-    gms: current.map((p) => ({ id: p.id, slug: p.slug, name: p.name, bio: p.bio, city: p.city, systems: parseList(p.systems), photoId: p.photo_key, whatsapp: p.whatsapp, discord: p.discord })),
+    gms: current.map((p) => ({ id: p.id, slug: p.slug, name: p.name, bio: p.bio, city: p.city, systems: parseList(p.systems), photoId: p.photo_key, whatsapp: p.whatsapp, discord: p.discord, instagram: p.instagram })),
     games: live.map((g) => ({
       id: g.id, slug: g.slug, gmId: g.profile_id, title: g.title, system: g.system, summary: g.summary, description: g.description, format: g.format, locationType: g.location_type,
       platform: g.platform, city: g.city, venueName: g.venue_name, venueMapsUrl: isGoogleMapsUrl(g.venue_maps_raw) ? g.venue_maps_raw : "", startsAt: g.starts_at, zone: g.zone,

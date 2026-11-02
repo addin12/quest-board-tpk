@@ -2,7 +2,7 @@
 // matched against it. The same limits as the site's lists (src/lib/areas.ts, categories.ts). Pure module.
 import { AREAS, SUMMARY_MAX } from "../../src/lib/areas.ts";
 import { GENRES, MAX_PER_GAME, MECHANICS, STYLES } from "../../src/lib/categories.ts";
-import { cleanDiscord, isGoogleMapsUrl, isPhone } from "../../src/lib/public-data.ts";
+import { cleanDiscord, cleanInstagram, isGoogleMapsUrl, isPhone } from "../../src/lib/public-data.ts";
 import { clip, iso } from "./util.ts";
 
 export type Errors = Record<string, string>;
@@ -31,7 +31,7 @@ const list = (v: unknown, max: number, each: number): string[] =>
     .filter((x, i, a) => x && a.indexOf(x) === i)
     .slice(0, max);
 
-export type ProfileInput = { name: string; bio: string; city: string; systems: string[]; whatsapp: string; discord: string; photoKey: string };
+export type ProfileInput = { name: string; bio: string; city: string; systems: string[]; whatsapp: string; discord: string; instagram: string; photoKey: string };
 
 export function parseProfile(raw: unknown): Parsed<ProfileInput> {
   const r = asRecord(raw);
@@ -45,10 +45,13 @@ export function parseProfile(raw: unknown): Parsed<ProfileInput> {
   const discordRaw = clip(r.discord, 200);
   const discord = cleanDiscord(discordRaw);
   if (discordRaw && !discord) errors.discord = "invalid_discord";
+  const instagramRaw = clip(r.instagram, 200);
+  const instagram = cleanInstagram(instagramRaw);
+  if (instagramRaw && !instagram) errors.instagram = "invalid_instagram";
   const photoKey = typeof r.photoKey === "string" ? r.photoKey : "";
   if (photoKey && !KEY.test(photoKey)) errors.photoKey = "invalid";
   if (r.consent !== true) errors.consent = "required";
-  return Object.keys(errors).length ? { ok: false, errors } : { ok: true, value: { name, bio: clip(r.bio, 800, true), city: city as string, systems: list(r.systems, 10, 60), whatsapp, discord, photoKey } };
+  return Object.keys(errors).length ? { ok: false, errors } : { ok: true, value: { name, bio: clip(r.bio, 800, true), city: city as string, systems: list(r.systems, 10, 60), whatsapp, discord, instagram, photoKey } };
 }
 
 export type GameInput = {

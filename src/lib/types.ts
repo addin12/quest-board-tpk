@@ -61,6 +61,8 @@ export type GmFields = {
   whatsapp: string;
   /** A lower-case username, or an https invite link; empty when not given. */
   discord: string;
+  /** A plain lower-case Instagram username (no @, no link); empty when not given. */
+  instagram: string;
 };
 
 export type RawGm = GmFields & { id: string; slug: string; photoId: string };

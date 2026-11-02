@@ -10,7 +10,7 @@ import { useI18n } from "./i18n-provider";
  * invite link, or a username to copy. `wa` is the number as lib/contact.ts encodes it, so it is not written
  * plainly into the page; it is put together when the button is tapped.
  */
-export function ContactButtons({ wa, discord, message, stacked = false }: { wa: string; discord: string; message: string; stacked?: boolean }) {
+export function ContactButtons({ wa, discord, instagram = "", message, stacked = false }: { wa: string; discord: string; instagram?: string; message: string; stacked?: boolean }) {
   const { t } = useI18n();
   const [copied, setCopied] = useState(false);
 
@@ -52,6 +52,12 @@ export function ContactButtons({ wa, discord, message, stacked = false }: { wa: 
           </button>
           <span role="status" className="sr-only">{copied ? t("common.copied") : ""}</span>
         </span>
+      )}
+      {instagram && (
+        // the username is cleaned to letters, digits, dots and underscores (cleanInstagram), so it is safe in the address
+        <a href={`https://www.instagram.com/${instagram}/`} target="_blank" rel="noopener noreferrer nofollow" className="btn btn-soft" data-testid="contact-instagram" aria-label={`${t("game.instagramOpen")} ${instagram}`}>
+          <Icon name="instagram" /> {instagram} <span className="sr-only">{t("a11y.opensNewTab")}</span>
+        </a>
       )}
     </div>
   );

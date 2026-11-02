@@ -14,6 +14,7 @@ async function fillProfile(page: Page, name = "Sari Dewanti") {
   await page.getByLabel("Short bio").fill("A GM who likes quiet horror.");
   await page.getByLabel("City", { exact: true }).selectOption("Depok");
   await page.getByLabel("WhatsApp number", { exact: true }).fill("0813-5555-0101");
+  await page.getByLabel("Instagram (optional)").fill("@Sari.Plays");
   await page.getByRole("checkbox", { name: /shown publicly on Quest Board/ }).check();
 }
 
@@ -47,6 +48,18 @@ test("one email is one account: the same address typed differently opens the sam
   await expect(page.getByText("Sari Dewanti", { exact: true })).toBeVisible();
   expect(await world.sql("SELECT COUNT(*) AS n FROM accounts")).toEqual([{ n: 1 }]);
   expect(await world.sql("SELECT COUNT(*) AS n FROM profiles")).toEqual([{ n: 1 }]);
+  expect(await world.sql("SELECT instagram FROM profiles")).toEqual([{ instagram: "sari.plays" }]); // typed with an @ and capitals, stored plain
+});
+
+test("an Instagram name that is not one is refused next to its field", async ({ page }) => {
+  const world = await newWorld(page);
+  await world.signInAs("sari@example.com");
+  await page.goto("/en/account/");
+  await fillProfile(page);
+  await page.getByLabel("Instagram (optional)").fill("sari plays");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.getByText("Enter an Instagram username like raka.plays")).toBeVisible();
+  expect(await world.sql("SELECT COUNT(*) AS n FROM profiles")).toEqual([{ n: 0 }]);
 });
 
 test("profile, then a game with a picture: both wait for review; the picture is shrunk and stored; nothing is public yet", async ({ page }) => {

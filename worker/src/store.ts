@@ -8,7 +8,7 @@ import { isGoogleMapsUrl } from "../../src/lib/public-data.ts";
 import { iso, logEvent, metaSet, parseList, randomId, slugify } from "./util.ts";
 
 export type ProfileRow = {
-  id: string; account_id: string; slug: string; name: string; bio: string; city: string; systems: string; whatsapp: string; discord: string; photo_key: string; consent: number;
+  id: string; account_id: string; slug: string; name: string; bio: string; city: string; systems: string; whatsapp: string; discord: string; instagram: string; photo_key: string; consent: number;
   status: "pending" | "approved" | "rejected"; admin_note: string; reviewed_by: string; reviewed_at: string; reject_reason: string; was_live: number; gone_at: string; created_at: string; updated_at: string; rowid?: number;
 };
 export type GameRow = {
@@ -29,7 +29,7 @@ export function gmRecord(p: ProfileRow, email: string, shares: { id: string; nam
   return {
     kind: "gm", id: p.id, slug: p.slug, status: p.status, full: false, adminNote: p.admin_note, reviewedBy: p.reviewed_by, reviewedAt: p.reviewed_at,
     rejectReason: p.reject_reason, superseded: false, submittedAt: p.created_at, email, row: p.rowid ?? 0,
-    name: p.name, bio: p.bio, city: p.city, systems: parseList(p.systems), whatsapp: p.whatsapp, discord: p.discord, photoId: p.photo_key, consent: p.consent === 1, sharesPhoneWith: shares.map((s) => s.name), sharesPhoneIds: shares.map((s) => s.id),
+    name: p.name, bio: p.bio, city: p.city, systems: parseList(p.systems), whatsapp: p.whatsapp, discord: p.discord, instagram: p.instagram, photoId: p.photo_key, consent: p.consent === 1, sharesPhoneWith: shares.map((s) => s.name), sharesPhoneIds: shares.map((s) => s.id),
   };
 }
 
@@ -65,15 +65,15 @@ export async function saveProfile(ctx: Ctx, s: Session, input: ProfileInput): Pr
   if (!p) {
     const id = randomId(9);
     const slug = `${slugify(input.name)}-${randomId(4)}`;
-    await exec(ctx.db, "INSERT INTO profiles (id, account_id, slug, name, bio, city, systems, whatsapp, discord, photo_key, consent, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)",
-      id, s.accountId, slug, input.name, input.bio, input.city, JSON.stringify(input.systems), input.whatsapp, input.discord, input.photoKey, now, now);
+    await exec(ctx.db, "INSERT INTO profiles (id, account_id, slug, name, bio, city, systems, whatsapp, discord, instagram, photo_key, consent, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)",
+      id, s.accountId, slug, input.name, input.bio, input.city, JSON.stringify(input.systems), input.whatsapp, input.discord, input.instagram, input.photoKey, now, now);
     await logEvent(ctx.db, ctx.now(), "submitted", "gm", id, input.name, "new profile", s.email);
     return { id, status: "pending", changed: true };
   }
-  const unchanged = p.name === input.name && p.bio === input.bio && p.city === input.city && same(parseList(p.systems), input.systems) && p.whatsapp === input.whatsapp && p.discord === input.discord && p.photo_key === input.photoKey;
+  const unchanged = p.name === input.name && p.bio === input.bio && p.city === input.city && same(parseList(p.systems), input.systems) && p.whatsapp === input.whatsapp && p.discord === input.discord && p.instagram === input.instagram && p.photo_key === input.photoKey;
   if (unchanged) return { id: p.id, status: p.status, changed: false };
-  await exec(ctx.db, "UPDATE profiles SET name = ?, bio = ?, city = ?, systems = ?, whatsapp = ?, discord = ?, photo_key = ?, consent = 1, status = 'pending', reject_reason = '', updated_at = ? WHERE id = ?",
-    input.name, input.bio, input.city, JSON.stringify(input.systems), input.whatsapp, input.discord, input.photoKey, now, p.id);
+  await exec(ctx.db, "UPDATE profiles SET name = ?, bio = ?, city = ?, systems = ?, whatsapp = ?, discord = ?, instagram = ?, photo_key = ?, consent = 1, status = 'pending', reject_reason = '', updated_at = ? WHERE id = ?",
+    input.name, input.bio, input.city, JSON.stringify(input.systems), input.whatsapp, input.discord, input.instagram, input.photoKey, now, p.id);
   await logEvent(ctx.db, ctx.now(), "edited", "gm", p.id, input.name, `${p.status} → pending: the GM changed it`, s.email);
   if (p.status === "approved") await markDirty(ctx);
   return { id: p.id, status: "pending", changed: true };
