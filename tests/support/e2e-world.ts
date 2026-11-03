@@ -41,7 +41,8 @@ export async function linkFor(world: World, to: string): Promise<string> {
 }
 
 /** Opens a sign-in link the way an email does: in a page that is not already on the account address (a change of only the #fragment would not reload it). */
-export async function openLink(page: Page, link: string): Promise<void> {
+export async function openLink(page: Page, link: string, options: { confirm?: boolean } = {}): Promise<void> {
   await page.goto("/en/");
   await page.goto(link);
+  if (options.confirm !== false) await page.getByTestId("signin-continue").click(); // the page names the account and waits for a click; a used link has nothing to confirm
 }

@@ -167,4 +167,4 @@ Show text progress bars on long runs. UI changes follow the mandatory real-user 
 
 ## Security audit (2026-11-03)
 
-See [docs/security-audit.md](security-audit.md) and ADR-41. Open: apply migration 0005 to the live D1 and push; decide about binding sign-in links to the browser; publish a new Apps Script deployment (the old id is in git history); optionally complete Phase 5 of the audit.
+See [docs/security-audit.md](security-audit.md) and ADR-41. Open: nothing from the audit. Re-run it after big backend changes (the skill is in the Cloudflare security-audit-skill repo; the run folder is outside this repo).

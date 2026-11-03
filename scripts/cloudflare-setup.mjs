@@ -31,6 +31,7 @@ const MIGRATIONS = [
   { file: "0002_retention.sql", applied: "SELECT 1 FROM pragma_table_info('accounts') WHERE name = 'last_seen_at'" },
   { file: "0003_mechanics.sql", applied: "SELECT 1 FROM pragma_table_info('games') WHERE name = 'mechanics'" },
   { file: "0004_instagram.sql", applied: "SELECT 1 FROM pragma_table_info('profiles') WHERE name = 'instagram'" },
+  { file: "0005_indexes.sql", applied: "SELECT 1 FROM sqlite_master WHERE type = 'index' AND name = 'games_cover_key'" },
 ];
 
 const sh = (command) => {

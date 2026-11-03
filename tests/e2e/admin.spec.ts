@@ -205,17 +205,23 @@ test("one person with two accounts is flagged and merged: the games move and the
   expect(await world.sql("SELECT COUNT(*) AS n FROM profiles")).toEqual([{ n: 2 }]);
 });
 
-test("adding an admin is one email address; the owner and yourself can't be removed", async ({ page }) => {
+test("adding an admin is one email address; only the owner removes one, and not themselves", async ({ page }) => {
   const world = await open(page);
   await page.getByTestId("tab-admins").click();
   const list = page.getByTestId("admins-list");
   await expect(list).toContainText("owner@example.com");
   await expect(list).toContainText("admin@example.com");
-  await expect(list.getByRole("button", { name: "Remove admin@example.com" }), "you can't remove yourself").toHaveCount(0);
+  await expect(list.getByRole("button", { name: /^Remove / }), "an admin who is not the owner sees no Remove button").toHaveCount(0);
   await page.getByLabel("Email address").fill("New.Friend@Example.com");
   await page.getByRole("button", { name: "Add admin" }).click();
   await expect(list).toContainText("new.friend@example.com");
   expect((await world.sql("SELECT email FROM admins")).map((r) => r.email)).toContain("new.friend@example.com");
+  await expect(list.getByRole("button", { name: /^Remove / })).toHaveCount(0);
+
+  await world.signInAs("owner@example.com");
+  await page.goto("/en/admin/");
+  await page.getByTestId("tab-admins").click();
+  await expect(list.getByRole("button", { name: "Remove owner@example.com" })).toHaveCount(0);
   await list.getByRole("button", { name: "Remove new.friend@example.com" }).click();
   await expect(list).not.toContainText("new.friend@example.com");
 });

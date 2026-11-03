@@ -41,6 +41,16 @@ export async function requestLogin(ctx: Ctx, rawEmail: unknown, ip: string): Pro
   return { ok: true };
 }
 
+/**
+ * Which address a sign-in link is for, without using the link up. The page shows it ("Sign in as …?") before it signs a browser in, so
+ * someone who was sent a link to another person's account by a stranger can see whose account they would enter.
+ */
+export async function peekLogin(ctx: Ctx, token: unknown): Promise<{ ok: true; email: string } | { ok: false; error: "invalid_link" }> {
+  if (typeof token !== "string" || token.length < 20 || token.length > 100) return { ok: false, error: "invalid_link" };
+  const row = await one<{ email: string; expires_at: string }>(ctx.db, "SELECT email, expires_at FROM login_tokens WHERE token_hash = ? AND used_at IS NULL", await sha256Hex(token));
+  return row && Date.parse(row.expires_at) > ctx.now() ? { ok: true, email: row.email } : { ok: false, error: "invalid_link" };
+}
+
 /** Turns a sign-in link's token into a session (and the account, the first time). The token works once. */
 export async function verifyLogin(ctx: Ctx, token: unknown): Promise<{ ok: true; session: string; email: string } | { ok: false; error: "invalid_link" }> {
   if (typeof token !== "string" || token.length < 20 || token.length > 100) return { ok: false, error: "invalid_link" };

@@ -25,12 +25,16 @@ test("signing in: the link in the email opens the account, the token leaves the 
   await page.getByRole("button", { name: "Email me a sign-in link" }).click();
   await expect(page.getByTestId("link-sent")).toContainText("Sari.Dewanti@Example.com");
   const link = await linkFor(world, "sari.dewanti@example.com");
-  await openLink(page, link);
-  await expect(page.getByTestId("signed-in-as")).toContainText("sari.dewanti@example.com");
+  await openLink(page, link, { confirm: false });
+  await expect(page.getByTestId("signin-confirm")).toContainText("Sign in as sari.dewanti@example.com?");
+  await expect(page.getByTestId("signed-in-as")).toHaveCount(0); // looking is not signing in
   expect(page.url()).not.toContain("#t=");
+  await page.getByTestId("signin-continue").click();
+  await expect(page.getByTestId("signed-in-as")).toContainText("sari.dewanti@example.com");
 
   await page.context().clearCookies({ name: "tpk_session" });
-  await openLink(page, link);
+  await openLink(page, link, { confirm: false });
+  await expect(page.getByTestId("signin-confirm")).toHaveCount(0);
   await expect(page.getByText("That link did not work.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Email me a sign-in link" })).toBeVisible();
 });

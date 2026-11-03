@@ -213,3 +213,22 @@ test("no tracked text file holds a live-looking Apps Script id (they belong in t
   }
   assert.deepEqual(found, []);
 });
+
+test("a sign-in link can be looked at without being used: the page names the account before signing a browser in", async () => {
+  const w = makeWorld();
+  await w.call("POST", "/login/request", { body: { email: "Raka@Example.com" } });
+  const token = /#t=([A-Za-z0-9_-]+)/.exec(w.mails.at(-1)!.body)![1]!;
+  const peek = await w.call("POST", "/login/peek", { body: { token } });
+  assert.deepEqual([peek.status, peek.json.email], [200, "raka@example.com"]);
+  assert.equal(peek.res.headers.get("Set-Cookie"), null, "looking signs nobody in");
+  assert.equal((await w.call("POST", "/login/peek", { body: { token } })).status, 200, "and does not use the link up");
+  assert.equal((await w.call("POST", "/login/peek", { body: { token: "x".repeat(40) } })).status, 400);
+  assert.equal((await w.call("POST", "/login/peek", { body: { token }, origin: "https://evil.example" })).status, 403, "from the site only");
+  assert.equal((await w.call("POST", "/login/verify", { body: { token } })).status, 200, "the click then signs in");
+  assert.equal((await w.call("POST", "/login/peek", { body: { token } })).status, 400, "a used link shows nothing");
+  w.clock.ms += 3_600_000;
+  await w.call("POST", "/login/request", { body: { email: "late@example.com" } });
+  const late = /#t=([A-Za-z0-9_-]+)/.exec(w.mails.at(-1)!.body)![1]!;
+  w.clock.ms += 16 * 60_000;
+  assert.equal((await w.call("POST", "/login/peek", { body: { token: late } })).status, 400, "after 15 minutes");
+});

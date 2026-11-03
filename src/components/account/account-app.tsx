@@ -14,7 +14,7 @@ import { errorText } from "./fields";
 import { GameForm } from "./game-form";
 import { ProfileForm } from "./profile-form";
 
-type View = { kind: "loading" } | { kind: "out"; badLink: boolean } | { kind: "in"; me: Me };
+type View = { kind: "loading" } | { kind: "out"; badLink: boolean } | { kind: "confirm"; token: string; email: string } | { kind: "in"; me: Me };
 
 /** A game's time, or a dash if it has none we can read (a broken old row must not take the whole page down). */
 function when(iso: string, lang: Parameters<typeof formatWhen>[1], zone: GameRecord["zone"]): string {
@@ -47,11 +47,12 @@ export function AccountApp() {
   }, []);
 
   useEffect(() => {
-    // A sign-in link arrives as /account/#t=<token>; the token is used once and removed from the address at once.
+    // A sign-in link arrives as /account/#t=<token>; the token is removed from the address at once. The page asks whose account the
+    // link opens and waits for a click before using it (a link sent by someone else would otherwise sign this browser in silently).
     const m = /^#t=([A-Za-z0-9_-]+)$/.exec(window.location.hash);
     if (!m) { void load(); return; } // eslint-disable-line react-hooks/set-state-in-effect -- asks the backend who is signed in
     window.history.replaceState(null, "", window.location.pathname + window.location.search);
-    void call("POST", "/login/verify", { token: m[1] }).then((r) => load(!r.ok));
+    void call<{ email: string }>("POST", "/login/peek", { token: m[1] }).then((r) => (r.ok ? setView({ kind: "confirm", token: m[1]!, email: r.data.email }) : load(true)));
   }, [load]);
 
   async function after(note: string) {
@@ -69,6 +70,20 @@ export function AccountApp() {
   }
 
   if (view.kind === "loading") return <p role="status" className="lead">{t("acct.verifying")}</p>;
+
+  if (view.kind === "confirm") {
+    const { token } = view;
+    return (
+      <div className="max-w-xl" data-testid="signin-confirm">
+        <h2 className="text-[length:var(--text-section)]">{t("acct.confirmTitle", { email: view.email })}</h2>
+        <p className="lead mt-[var(--space-md)]">{t("acct.confirmBody")}</p>
+        <p className="mt-[var(--space-lg)] flex flex-wrap gap-[var(--space-md)]">
+          <button type="button" className="btn btn-primary" data-testid="signin-continue" onClick={() => { setView({ kind: "loading" }); void call("POST", "/login/verify", { token }).then((r) => load(!r.ok)); }}>{t("acct.confirmYes")}</button>
+          <button type="button" className="btn btn-secondary" onClick={() => setView({ kind: "out", badLink: false })}>{t("acct.confirmNo")}</button>
+        </p>
+      </div>
+    );
+  }
 
   if (view.kind === "out") {
     return (

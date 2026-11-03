@@ -1,6 +1,6 @@
 // The HTTP API. One function from a Request to a Response, with everything it touches passed in (the database, the bucket,
 // the mailer, the clock), so the tests drive it without Cloudflare. The Pages Function in functions/api/ is a thin wrapper.
-import { endSession, getSession, isAdmin, pruneAuth, requestLogin, verifyLogin, SESSION_DAYS, type Ctx, type Session } from "./auth.ts";
+import { endSession, getSession, isAdmin, peekLogin, pruneAuth, requestLogin, verifyLogin, SESSION_DAYS, type Ctx, type Session } from "./auth.ts";
 import { handleAdmin } from "./admin.ts";
 import type { Bucket } from "./db.ts";
 import { deployIfDue } from "./deploy.ts";
@@ -124,6 +124,12 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
     if (!(await verifyTurnstile(env.turnstileSecret, b.turnstile, ip, env.fetcher))) return err(400, "turnstile_failed");
     const r = await requestLogin(ctx, b.email, ip);
     return r.ok ? json(200, { ok: true }) : err(r.error === "rate_limited" ? 429 : r.error === "bad_email" ? 400 : 502, r.error);
+  }
+  if (method === "POST" && path === "/login/peek") {
+    const b = await body(request);
+    if (!b) return err(400, "bad_request");
+    const r = await peekLogin(ctx, b.token);
+    return r.ok ? json(200, { ok: true, email: r.email }) : err(400, r.error);
   }
   if (method === "POST" && path === "/login/verify") {
     const b = await body(request);
