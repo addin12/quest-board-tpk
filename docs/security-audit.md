@@ -69,7 +69,7 @@ Regression tests: tests/unit/security-audit.test.ts (14 tests; the full unit sui
 
 ## Hardening notes and positive source patterns
 
-Done alongside: CI token limited to `contents: read`; preview server no longer crashes on a broken % escape and its root check has a separator; /img/ with a broken escape is a 404; OWNER_EMAIL is normalized like session emails; SECURITY.md no longer claims uploads are behind Turnstile; the build refuses demo data on Cloudflare. Still open (hardening, not findings): CSP allows inline scripts (needed by the Next export; consider hashes), BUILD_KEY travels in the query string of /api/cron, /api/health and /api/public (move to a header), Turnstile is skipped when its secret is empty, GitHub Actions are pinned by tag not SHA, `npx wrangler@4` is unpinned. The hunters' full hardening lists are in coverage-ledger.json (`hardening` on each unit).
+Done alongside: CI token limited to `contents: read`; preview server no longer crashes on a broken % escape and its root check has a separator; /img/ with a broken escape is a 404; OWNER_EMAIL is normalized like session emails; SECURITY.md no longer claims uploads are behind Turnstile; the build refuses demo data on Cloudflare. Done after the first round (ADR-42): the build key moves to an Authorization header (the URL form is removed in the next release), Turnstile fails closed on https, GitHub Actions are pinned by SHA and wrangler by version. Accepted, with reasons in ADR-42: the CSP keeps inline scripts (a Next static export cannot use hashes or nonces). The hunters' full hardening lists are in coverage-ledger.json (`hardening` on each unit).
 
 ## Coverage summary
 
