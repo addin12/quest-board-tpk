@@ -112,8 +112,17 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
     const before = list.map((i) => ({ id: i.id, status: i.rec.status, reviewedBy: i.rec.reviewedBy, reviewedAt: i.rec.reviewedAt, rejectReason: i.rec.rejectReason }));
     patchLocal(kind, ids, { status, reviewedBy: email, reviewedAt: new Date().toISOString(), rejectReason: status === "rejected" ? opts.reason ?? "" : "" });
     try {
-      const r = await call<{ publishing: boolean }>("review", { kind, ids, status, reason: opts.reason ?? "", notify: opts.notify });
+      // `seen` tells the backend which version of each record this decision is about: one the GM changed meanwhile is refused.
+      const seen = Object.fromEntries(list.map((i) => [i.id, i.rec.updatedAt ?? ""]));
+      const r = await call<{ publishing: boolean; stale?: string[] }>("review", { kind, ids, status, reason: opts.reason ?? "", notify: opts.notify, seen });
       if (r.publishing) setQueue((q) => (q ? { ...q, deploy: { ...q.deploy, pending: true } } : q));
+      const stale = new Set(r.stale ?? []);
+      if (stale.size) {
+        for (const b of before) if (stale.has(b.id)) patchLocal(kind, [b.id], { status: b.status, reviewedBy: b.reviewedBy, reviewedAt: b.reviewedAt, rejectReason: b.rejectReason });
+        void load();
+        say(t("admin.toast.stale"));
+        if (stale.size === list.length) return;
+      }
       const title = titleOf(list[0]) || t("admin.unnamed");
       const text = list.length > 1 ? t("admin.toast.bulk", { n: list.length }) : t(`admin.toast.${status}` as MsgKey, { title });
       say(text, async () => {
@@ -182,7 +191,7 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
       say(t("admin.admins.removed", { email: address }));
       return null;
     } catch (e) {
-      if (e instanceof ApiError && e.code === "forbidden") return t(e.detail.message === "owner" ? "admin.admins.cannotOwner" : "admin.admins.cannotSelf");
+      if (e instanceof ApiError && e.code === "forbidden") return t(e.detail.message === "owner" ? "admin.admins.cannotOwner" : e.detail.message === "owner_only" ? "admin.admins.ownerOnly" : "admin.admins.cannotSelf");
       return t("admin.toast.error", { error: e instanceof ApiError ? e.code : "error" });
     }
   }

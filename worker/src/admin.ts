@@ -2,7 +2,7 @@
 // Speaks the same action names and answers as the old Apps Script API, so the admin page keeps its logic.
 import { exec, many, one } from "./db.ts";
 import { isAdmin, listAdmins, type Ctx } from "./auth.ts";
-import { decisionMail, normalizeEmail } from "./email.ts";
+import { decisionMail, mergeNoticeMail, normalizeEmail } from "./email.ts";
 import { gameRecord, gmRecord, markDirty, type GameRow, type ProfileRow } from "./store.ts";
 import { DAY_MS, clip, iso, logEvent, metaGet } from "./util.ts";
 import type { AdminEntry, DeployInfo } from "../../src/lib/types.ts";
@@ -30,12 +30,15 @@ export async function queue(ctx: Ctx, deployConfigured: boolean) {
     ok: true as const,
     now: iso(ctx.now()),
     games: games.map((g) => gameRecord(g, g.email)),
-    gms: gms.map((p) => gmRecord(p, p.email, (byPhone.get(p.whatsapp) ?? []).filter((o) => o.id !== p.id).map((o) => ({ id: o.id, name: o.name })))),
+    gms: gms.map((p) => gmRecord(p, p.email, (byPhone.get(p.whatsapp) ?? []).filter((o) => o.id !== p.id).slice(0, MAX_SHARES).map((o) => ({ id: o.id, name: o.name })))),
     admins,
     owner: ctx.owner,
     deploy: await deployInfo(ctx, deployConfigured),
   };
 }
+
+/** Other profiles listed beside one that shares its WhatsApp number; more than a few is already a clear sign. */
+const MAX_SHARES = 5;
 
 type Kind = "game" | "gm";
 const kindOf = (v: unknown): Kind | "" => (v === "game" || v === "gm" ? v : "");
@@ -54,11 +57,15 @@ export async function review(ctx: Ctx, admin: string, req: Record<string, unknow
   if (!kind || (status !== "pending" && status !== "approved" && status !== "rejected") || ids.length === 0 || ids.length > 50) return fail("bad_request");
   const table = kind === "game" ? "games" : "profiles";
   const reason = status === "rejected" ? clip(req.reason, 500) : "";
+  // The page sends the `updatedAt` of each record it showed; a decision on a record the GM changed since is refused, not applied blind.
+  const seen = req.seen && typeof req.seen === "object" && !Array.isArray(req.seen) ? (req.seen as Record<string, unknown>) : null;
   const done: string[] = [];
+  const stale: string[] = [];
   let dirty = false;
   for (const id of ids) {
     const rec = await load(ctx, kind, id);
     if (!rec) continue;
+    if (seen && seen[id] !== (rec.row as { updated_at: string }).updated_at) { stale.push(id); continue; }
     const before = rec.row.status;
     const wasApproved = before === "approved";
     // Leaving the approved state starts the "no longer listed" clock; a decision always stamps who and when.
@@ -76,7 +83,7 @@ export async function review(ctx: Ctx, admin: string, req: Record<string, unknow
     done.push(id);
   }
   if (dirty) await markDirty(ctx);
-  return { ok: true as const, updated: done, publishing: dirty };
+  return { ok: true as const, updated: done, stale, publishing: dirty };
 }
 
 export async function patch(ctx: Ctx, admin: string, req: Record<string, unknown>) {
@@ -110,9 +117,11 @@ export async function addAdmin(ctx: Ctx, by: string, rawEmail: unknown) {
 }
 
 export async function removeAdmin(ctx: Ctx, by: string, rawEmail: unknown) {
-  const email = typeof rawEmail === "string" ? rawEmail.trim().toLowerCase() : "";
+  const email = normalizeEmail(rawEmail);
+  if (!email) return fail("bad_request");
   if (email === ctx.owner) return fail("forbidden", "owner");
   if (email === by) return fail("forbidden", "self");
+  if (by !== ctx.owner) return fail("forbidden", "owner_only");
   await exec(ctx.db, "DELETE FROM admins WHERE email = ?", email);
   await logEvent(ctx.db, ctx.now(), "admin removed", "", "", "", email, by);
   return { ok: true as const, admins: (await listAdmins(ctx)).map((a) => ({ email: a.email, addedBy: a.added_by, addedAt: a.added_at })) };
@@ -127,12 +136,20 @@ export async function mergeProfiles(ctx: Ctx, admin: string, fromProfileId: unkn
   const from = await one<ProfileRow>(ctx.db, "SELECT * FROM profiles WHERE id = ?", fromProfileId);
   const into = await one<ProfileRow>(ctx.db, "SELECT * FROM profiles WHERE id = ?", intoProfileId);
   if (!from || !into) return fail("not_found");
+  const fromAccount = await one<{ email: string }>(ctx.db, "SELECT email FROM accounts WHERE id = ?", from.account_id);
+  const intoAccount = await one<{ email: string }>(ctx.db, "SELECT email FROM accounts WHERE id = ?", into.account_id);
+  if (!fromAccount || !intoAccount) return fail("not_found");
+  // A merge hands the duplicate's address the other account's identity, so it must never touch an owner or admin account.
+  if ((await isAdmin(ctx, fromAccount.email)) || (await isAdmin(ctx, intoAccount.email))) return fail("forbidden", "admin_account");
   await exec(ctx.db, "UPDATE games SET profile_id = ?, updated_at = ? WHERE profile_id = ?", into.id, iso(ctx.now()), from.id);
   await exec(ctx.db, "DELETE FROM profiles WHERE id = ?", from.id);
+  await exec(ctx.db, "UPDATE accounts SET merged_into = ? WHERE merged_into = ?", into.account_id, from.account_id); // accounts merged into the duplicate earlier follow it
   await exec(ctx.db, "UPDATE accounts SET merged_into = ? WHERE id = ?", into.account_id, from.account_id);
   await exec(ctx.db, "UPDATE sessions SET account_id = ? WHERE account_id = ?", into.account_id, from.account_id);
   await logEvent(ctx.db, ctx.now(), "merged", "gm", into.id, into.name, `profile ${from.name} (${from.id}) merged into this one`, admin);
   await markDirty(ctx);
+  // The person whose account absorbed another address is told, so a merge they did not expect is noticed.
+  await ctx.mailer.send(mergeNoticeMail(intoAccount.email, fromAccount.email)).catch(() => undefined);
   return { ok: true as const };
 }
 

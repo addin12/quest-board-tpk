@@ -38,13 +38,13 @@ export function sqliteDb(): Db & { raw: DatabaseSync } {
   };
 }
 
-export function memoryBucket(): Bucket & { keys(): string[] } {
-  const files = new Map<string, { data: ArrayBuffer; type: string }>();
+export function memoryBucket(now: () => number = Date.now): Bucket & { keys(): string[] } {
+  const files = new Map<string, { data: ArrayBuffer; type: string; at: number }>();
   return {
-    put: async (key, value, options) => { files.set(key, { data: value, type: options?.httpMetadata?.contentType ?? "" }); },
+    put: async (key, value, options) => { files.set(key, { data: value, type: options?.httpMetadata?.contentType ?? "", at: now() }); },
     get: async (key) => { const f = files.get(key); return f ? { body: f.data, httpMetadata: { contentType: f.type } } : null; },
     delete: async (key) => { files.delete(key); },
-    list: async ({ prefix }) => ({ objects: [...files.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key })) }),
+    list: async ({ prefix }) => ({ objects: [...files].filter(([k]) => k.startsWith(prefix)).map(([key, f]) => ({ key, uploaded: new Date(f.at) })) }),
     keys: () => [...files.keys()],
   };
 }
@@ -57,9 +57,9 @@ export function makeWorld(startMs = Date.parse("2026-10-28T03:00:00Z")) {
   const db = sqliteDb();
   const mails: Mail[] = [];
   const mailer: Mailer = { send: async (m) => { mails.push(m); } };
-  const bucket = memoryBucket();
-  const hook: string[] = [];
   const clock = { ms: startMs };
+  const bucket = memoryBucket(() => clock.ms);
+  const hook: string[] = [];
   const env: Env = {
     ctx: { db, mailer, now: () => clock.ms, siteUrl: SITE, owner: OWNER },
     images: bucket,

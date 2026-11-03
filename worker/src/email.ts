@@ -98,6 +98,33 @@ export function decisionMail(to: string, status: "approved" | "rejected", kind: 
   };
 }
 
+/** Sent to the owner of an account when an admin links another sign-in address to it, so an unexpected merge is noticed. */
+export function mergeNoticeMail(to: string, linked: string): Mail {
+  return {
+    to,
+    subject: "Another address was linked to your account / Alamat lain ditautkan ke akunmu",
+    body:
+      `Hi,
+
+An admin linked the address ${linked} to your Quest Board account (it was a duplicate). Anyone who can open that mailbox can now sign in to your account.
+
+If this is not right, reply to this email or tell an admin right away.
+
+${SIGN}
+
+* * *
+
+` +
+      `Halo,
+
+Seorang admin menautkan alamat ${linked} ke akun Quest Board-mu (karena duplikat). Siapa pun yang bisa membuka kotak surat itu sekarang bisa masuk ke akunmu.
+
+Jika ini tidak benar, balas email ini atau beri tahu admin segera.
+
+${SIGN}`,
+  };
+}
+
 /** The warning before an unused account is erased: sign in within the grace period and nothing happens. */
 export function expiryMail(to: string, graceDays: number, siteUrl: string): Mail {
   const where = `${siteUrl.replace(/\/$/, "")}/en/account/`;

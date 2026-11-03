@@ -27,8 +27,8 @@ like a scam: use the *Report this listing* link on the game's page instead.
 ## How it is protected
 
 - The site is static files; the only server code is the backend in `worker/`. Sign-in is an emailed one-time link (15 minutes, used once), and
-  only hashes of links and sessions are stored. Every write checks the site's own `Origin`; sign-ins and uploads are rate-limited and
-  protected by Cloudflare Turnstile. The admin API accepts a signed-in session whose email is on the Admins list. Pictures are
+  only hashes of links and sessions are stored. Every write checks the site's own `Origin`; the sign-in request is protected by Cloudflare Turnstile
+  (when its secret is set), and sign-ins, uploads and writes are rate-limited. The admin API accepts a signed-in session whose email is on the Admins list. Pictures are
   identified by their bytes, and only approved ones are public. The public data is given only to a request carrying the secret build key.
 - The site sends a strict Content-Security-Policy and the usual security headers (see `public/_headers`).
 - Secrets live only in the Pages project's encrypted variables and the Workers' secrets, never in the repository. CI audits the

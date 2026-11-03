@@ -128,4 +128,4 @@ createServer(async (req, res) => {
     console.error(e);
     send(500, { error: String(e) });
   }
-}).listen(PORT, () => console.log(`Quest Board test server: ${ORIGIN}`));
+}).listen(PORT, "127.0.0.1", () => console.log(`Quest Board test server: ${ORIGIN}`));

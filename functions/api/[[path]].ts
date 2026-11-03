@@ -2,7 +2,7 @@
 // (see docs/setup.md): DB (D1), IMAGES (R2) and the variables below.
 import { handle } from "../../worker/src/handler.ts";
 import type { Bucket, Db } from "../../worker/src/db.ts";
-import { relayMailer, type Mailer } from "../../worker/src/email.ts";
+import { normalizeEmail, relayMailer, type Mailer } from "../../worker/src/email.ts";
 
 type Bindings = {
   DB: Db;
@@ -28,7 +28,8 @@ export const onRequest = async ({ request, env, waitUntil }: { request: Request;
         mailer: env.MAIL_RELAY_URL && env.MAIL_SECRET ? relayMailer(env.MAIL_RELAY_URL, env.MAIL_SECRET) : silent,
         now: Date.now,
         siteUrl: env.SITE_URL.replace(/\/$/, ""),
-        owner: env.OWNER_EMAIL.trim().toLowerCase(),
+        // Session emails are normalized (a Gmail address loses its dots), so the owner's must be too or they would never match.
+        owner: normalizeEmail(env.OWNER_EMAIL) || env.OWNER_EMAIL.trim().toLowerCase(),
       },
       images: env.IMAGES,
       buildKey: env.BUILD_KEY,

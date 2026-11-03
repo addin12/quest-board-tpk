@@ -335,7 +335,7 @@ test("gone addresses: plain ones are kept, sorted and without repeats; odd or li
 });
 
 test("the script deploy command refuses a missing or mistyped id before it pushes anything", () => {
-  const good = { scriptId: "1ZnEWSMsYzAVSS91HI85wH2-tK8cR90gzlt0Ap_d8q91kGW-bA8DtKgwj", deploymentId: "AKfycbzGMrBu01ysA1PDP4M0qnXCJXi3DoLfOWe-vbjwJVTg1aC7QAogs7pigG-ca9ZZaPSS9Q" };
+  const good = { scriptId: "test_script_id_000000000000000000000000000000000000000000", deploymentId: "test_deployment_id_0000000000000000000000000000000000000000000000000" }; // same shape as real ids, made up
   assert.deepEqual(parseConfig(good), good);
   assert.throws(() => parseConfig(undefined), /scriptId/);
   assert.throws(() => parseConfig({ ...good, scriptId: "short" }), /scriptId/);

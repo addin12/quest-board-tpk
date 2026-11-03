@@ -13,13 +13,18 @@ const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", "
 /** Answers one request from out/ (used by the preview server below and by the browser tests' server). */
 export function serveStatic(req, res) {
   const url = new URL(req.url ?? "/", "http://localhost");
-  let pathname = decodeURIComponent(url.pathname);
+  let pathname;
+  try {
+    pathname = decodeURIComponent(url.pathname);
+  } catch {
+    return void res.writeHead(400).end(); // a broken % escape, not an error in the server
+  }
   if (pathname === "/") {
     res.writeHead(302, { Location: "/en/" }).end();
     return;
   }
   let file = path.join(ROOT, pathname);
-  if (!file.startsWith(ROOT)) return void res.writeHead(403).end();
+  if (file !== ROOT && !file.startsWith(ROOT + path.sep)) return void res.writeHead(403).end(); // the separator keeps a sibling like out-secret/ out
   if (existsSync(file) && statSync(file).isDirectory()) {
     if (!pathname.endsWith("/")) return void res.writeHead(308, { Location: `${pathname}/${url.search}` }).end();
     file = path.join(file, "index.html");

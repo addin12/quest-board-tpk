@@ -25,11 +25,9 @@ export function normalizePhone(raw: unknown): string {
   return isPhone(d) ? d : "";
 }
 
+/** The first `max` distinct non-empty items. Takes at most 4x`max` raw entries, so a huge array costs no more than a small one. */
 const list = (v: unknown, max: number, each: number): string[] =>
-  (Array.isArray(v) ? v : typeof v === "string" ? v.split(",") : [])
-    .map((x) => clip(x, each))
-    .filter((x, i, a) => x && a.indexOf(x) === i)
-    .slice(0, max);
+  [...new Set((Array.isArray(v) ? v : typeof v === "string" ? v.split(",") : []).slice(0, max * 4).map((x) => clip(x, each)).filter(Boolean))].slice(0, max);
 
 export type ProfileInput = { name: string; bio: string; city: string; systems: string[]; whatsapp: string; discord: string; instagram: string; photoKey: string };
 

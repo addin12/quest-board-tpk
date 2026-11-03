@@ -164,3 +164,7 @@ Show text progress bars on long runs. UI changes follow the mandatory real-user 
 **Instagram (ADR-38), done:** a Game Master can give an Instagram username; migration `0004_instagram.sql` was applied to the live D1 on 2026-11-02 before the push (the lesson: apply the migration first).
 
 **Prepared 2026-11-03 for the owner:** [indonesian-review.md](indonesian-review.md) (the 63 Indonesian strings written since 2026-10-29, English beside Indonesian, a column for corrections) and [gm-invitation.md](gm-invitation.md) (a short and a longer invitation to Game Masters, English and Indonesian). Also fixed the same day: the "what the public sees" text and the profile consent now name Instagram next to Discord.
+
+## Security audit (2026-11-03)
+
+See [docs/security-audit.md](security-audit.md) and ADR-41. Open: apply migration 0005 to the live D1 and push; decide about binding sign-in links to the browser; publish a new Apps Script deployment (the old id is in git history); optionally complete Phase 5 of the audit.

@@ -1,6 +1,8 @@
 // Pictures: a GM's photo and a game's cover. The browser shrinks them first; the backend still checks what it is sent.
 import type { Bucket } from "./db.ts";
-import { randomId } from "./util.ts";
+import type { Ctx } from "./auth.ts";
+import { many } from "./db.ts";
+import { DAY_MS, logEvent, randomId } from "./util.ts";
 
 export type ImageKind = "cover" | "photo";
 
@@ -27,3 +29,32 @@ export async function storeImage(bucket: Bucket, kind: ImageKind, data: ArrayBuf
 }
 
 export const contentTypeOf = (key: string): string => TYPE[key.split(".").pop() as keyof typeof TYPE] ?? "application/octet-stream";
+
+/** An upload waits this long for its row to be saved before the sweep may treat it as abandoned. */
+const GRACE_MS = 2 * DAY_MS;
+/** Files deleted per run, so one sweep stays short. */
+const SWEEP_MAX = 200;
+
+/**
+ * Deletes pictures no profile or game refers to (replaced ones the immediate delete missed, uploads never attached to anything),
+ * once they are older than the grace period. Called from the daily job. Lists the first page of the bucket only, which is enough for
+ * a board of this size; the rest is picked up as earlier files go.
+ */
+export async function sweepOrphanImages(ctx: Ctx, bucket: Bucket): Promise<number> {
+  const used = new Set([
+    ...(await many<{ k: string }>(ctx.db, "SELECT photo_key AS k FROM profiles WHERE photo_key != ''")).map((r) => r.k),
+    ...(await many<{ k: string }>(ctx.db, "SELECT cover_key AS k FROM games WHERE cover_key != ''")).map((r) => r.k),
+  ]);
+  let removed = 0;
+  for (const prefix of ["covers/", "photos/"]) {
+    for (const o of (await bucket.list({ prefix })).objects) {
+      if (removed >= SWEEP_MAX) return removed;
+      const age = o.uploaded ? ctx.now() - o.uploaded.getTime() : 0; // an unknown age counts as new: never delete what cannot be dated
+      if (used.has(o.key) || age < GRACE_MS) continue;
+      await bucket.delete(o.key);
+      removed++;
+    }
+  }
+  if (removed) await logEvent(ctx.db, ctx.now(), "swept", "job", "", "", `${removed} unused picture file(s) deleted`, "the daily job");
+  return removed;
+}

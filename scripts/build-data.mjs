@@ -32,6 +32,8 @@ async function loadRaw() {
       throw new Error("The backend did not answer with JSON.");
     }
   }
+  // On Cloudflare's build, silently publishing the demo games because a variable went missing would replace the live listing.
+  if (process.env.CF_PAGES === "1") throw new Error("TPK_API_BASE is not set on the Pages build: refusing to publish demo data. Set it, or set TPK_DATA_FILE on purpose.");
   console.log("[data] TPK_API_BASE is not set: using data/sample.json (demo data, dates moved to the present)");
   return rebase(JSON.parse(readFileSync(path.join(ROOT, "data", "sample.json"), "utf8")));
 }

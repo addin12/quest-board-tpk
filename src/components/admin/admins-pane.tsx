@@ -44,7 +44,7 @@ export function AdminsPane({ admins, owner, me, onAdd, onRemove }: {
               <span className="block break-all font-semibold">{a.email}{a.email === me ? ` · ${t("admin.admins.you")}` : ""}</span>
               <span className="block text-sm text-muted">{t("admin.admins.addedBy", { email: a.addedBy })}</span>
             </span>
-            {a.email !== me && (
+            {a.email !== me && me === owner && (
               <button type="button" className="btn-ghost" aria-label={t("admin.admins.removeNamed", { email: a.email })} onClick={async () => setError(await onRemove(a.email))}>
                 <Icon name="trash" /> {t("admin.admins.remove")}
               </button>

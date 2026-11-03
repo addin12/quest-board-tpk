@@ -15,6 +15,8 @@ export type Ctx = {
 };
 
 export const LINK_MINUTES = 15;
+/** Sign-in mails per day across everyone. The mail relay sends 90 a day; the rest is kept for decision mails, warnings and alerts. */
+export const LOGIN_MAILS_PER_DAY = 60;
 export const SESSION_DAYS = 30;
 
 export type Session = { accountId: string; email: string };
@@ -24,7 +26,9 @@ export async function requestLogin(ctx: Ctx, rawEmail: unknown, ip: string): Pro
   const email = normalizeEmail(rawEmail);
   if (!email) return { ok: false, error: "bad_email" };
   const now = ctx.now();
-  if (!(await allow(ctx.db, `login:email:${email}`, 5, 3_600_000, now)) || !(await allow(ctx.db, `login:ip:${ip}`, 20, 3_600_000, now))) {
+  // The caller's own address is checked first, so a request refused for it cannot use up a slot of the address it names (that would
+  // let anyone lock a chosen person out of signing in). The daily cap keeps part of the mail quota for decisions and alerts.
+  if (!(await allow(ctx.db, `login:ip:${ip}`, 20, 3_600_000, now)) || !(await allow(ctx.db, `login:email:${email}`, 5, 3_600_000, now)) || !(await allow(ctx.db, "login:all", LOGIN_MAILS_PER_DAY, DAY_MS, now))) {
     return { ok: false, error: "rate_limited" };
   }
   const token = randomToken();
@@ -54,7 +58,13 @@ export async function verifyLogin(ctx: Ctx, token: unknown): Promise<{ ok: true;
     await logEvent(ctx.db, now, "account", "account", id, row.email, "created", row.email);
     account = { id, merged_into: null };
   }
-  const accountId = account.merged_into ?? account.id;
+  // A merged account points at the one it was merged into, which may itself have been merged since: follow the chain to its end.
+  let accountId = account.merged_into ?? account.id;
+  for (let hop = 0; hop < 8; hop++) {
+    const next = await one<{ merged_into: string | null }>(ctx.db, "SELECT merged_into FROM accounts WHERE id = ?", accountId);
+    if (!next?.merged_into) break;
+    accountId = next.merged_into;
+  }
   // Signing in is the proof the account is still wanted: it restarts the inactivity clock and cancels an expiry warning.
   await exec(ctx.db, "UPDATE accounts SET last_seen_at = ?, expiry_warned_at = NULL WHERE id = ?", iso(now), accountId);
   const session = randomToken();

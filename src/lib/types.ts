@@ -91,6 +91,8 @@ export type AdminFields = {
   rejectReason: string;
   superseded: boolean;
   submittedAt: string;
+  /** When the submitter last changed it; the admin page sends it back with a decision so an approval applies only to the version that was seen. */
+  updatedAt?: string;
   /** The Google account that submitted the form. Admin-only. */
   email: string;
   /** The row in the sheet. */

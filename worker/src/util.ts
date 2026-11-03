@@ -59,14 +59,12 @@ export const parseList = (json: string): string[] => {
 
 /**
  * A sliding-window limit: true if `key` has done fewer than `max` things in the last `windowMs`, and records this one.
- * Counted in D1, so it holds across Worker instances.
+ * Counted in D1, so it holds across Worker instances. The count and the insert are one statement, so requests that arrive together
+ * cannot all pass a check made before any of them was recorded.
  */
 export async function allow(db: Db, key: string, max: number, windowMs: number, nowMs: number): Promise<boolean> {
   await exec(db, "DELETE FROM rate_events WHERE key = ? AND at < ?", key, nowMs - windowMs);
-  const row = await one<{ n: number }>(db, "SELECT COUNT(*) AS n FROM rate_events WHERE key = ?", key);
-  if ((row?.n ?? 0) >= max) return false;
-  await exec(db, "INSERT INTO rate_events (key, at) VALUES (?, ?)", key, nowMs);
-  return true;
+  return (await exec(db, "INSERT INTO rate_events (key, at) SELECT ?, ? WHERE (SELECT COUNT(*) FROM rate_events WHERE key = ?) < ?", key, nowMs, key, max)) === 1;
 }
 
 /** Drops counters older than a day; called from the daily job. */

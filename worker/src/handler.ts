@@ -4,7 +4,7 @@ import { endSession, getSession, isAdmin, pruneAuth, requestLogin, verifyLogin, 
 import { handleAdmin } from "./admin.ts";
 import type { Bucket } from "./db.ts";
 import { deployIfDue } from "./deploy.ts";
-import { contentTypeOf, storeImage, type ImageKind } from "./images.ts";
+import { contentTypeOf, storeImage, sweepOrphanImages, type ImageKind } from "./images.ts";
 import { isPublicImage, buildPublic } from "./public.ts";
 import { parseGame, parseProfile } from "./rules.ts";
 import { eraseAccount, mine, removeGame, saveGame, saveProfile, setFull } from "./store.ts";
@@ -99,7 +99,12 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
     return json(200, { ok: true, accounts: await n("accounts"), profiles: await n("profiles"), games: await n("games"), admins: await n("admins"), deployConfigured: Boolean(env.deployHook), lastBackupAt: (await metaGet(ctx.db, "backup_ok_at")) || null, backupError: (await metaGet(ctx.db, "backup_error")) || null, lastMailOkAt: (await metaGet(ctx.db, "mail_ok_at")) || null, lastMailError: (await metaGet(ctx.db, "mail_error_at")) ? { at: await metaGet(ctx.db, "mail_error_at"), error: await metaGet(ctx.db, "mail_error") } : null });
   }
   if (method === "GET" && path.startsWith("/img/")) {
-    const key = decodeURIComponent(path.slice(5));
+    let key = "";
+    try {
+      key = decodeURIComponent(path.slice(5));
+    } catch {
+      return err(404, "not_found");
+    }
     if (!/^(?:covers|photos)\/[a-z0-9]{8,40}\.(?:webp|jpg|png)$/.test(key)) return err(404, "not_found");
     const viaKey = env.buildKey && safeEqual(url.searchParams.get("key") ?? "", env.buildKey);
     const viewer = viaKey ? null : await getSession(ctx, cookieOf(request));
@@ -154,17 +159,21 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
     if (!(await allow(ctx.db, `submit:${session.accountId}`, 30, 3_600_000, ctx.now()))) return err(429, "rate_limited");
     const r = await saveProfile(ctx, session, parsed.value);
     if (r.changed) publish();
-    return json(200, { ok: true, ...r });
+    const { dropped, ...answer } = r;
+    dropFiles(after, env, dropped);
+    return json(200, { ok: true, ...answer });
   }
 
-  if (method === "POST" && path === "/games") return writeGame(request, env, session, null, publish);
+  if (method === "POST" && path === "/games") return writeGame(request, env, session, null, publish, after);
   const m = /^\/games\/([a-z0-9]{6,20})(?:\/(full))?$/.exec(path);
   if (m) {
     const id = m[1]!;
-    if (method === "PUT" && !m[2]) return writeGame(request, env, session, id, publish);
+    if (method === "PUT" && !m[2]) return writeGame(request, env, session, id, publish, after);
     if (method === "POST" && m[2] === "full") {
       const b = await body(request);
       if (!b || typeof b.full !== "boolean") return err(400, "bad_request");
+      // Every real change can start a site build, so this shares the limit of the other writes.
+      if (!(await allow(ctx.db, `submit:${session.accountId}`, 30, 3_600_000, ctx.now()))) return err(429, "rate_limited");
       const ok = await setFull(ctx, session, id, b.full);
       if (ok) publish();
       return ok ? json(200, { ok: true }) : err(404, "not_found");
@@ -186,7 +195,12 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
   return err(404, "not_found");
 }
 
-async function writeGame(request: Request, env: Env, session: Session, id: string | null, publish: () => void): Promise<Response> {
+/** Deletes picture files nothing refers to any more (after the answer is sent; a failure is left for the daily sweep). */
+function dropFiles(after: (p: Promise<unknown>) => void, env: Env, keys: string[]): void {
+  if (keys.length) after(Promise.all(keys.map((k) => env.images.delete(k))).catch(() => undefined));
+}
+
+async function writeGame(request: Request, env: Env, session: Session, id: string | null, publish: () => void, after: (p: Promise<unknown>) => void): Promise<Response> {
   const { ctx } = env;
   const b = await body(request);
   if (!b) return err(400, "bad_request");
@@ -194,8 +208,9 @@ async function writeGame(request: Request, env: Env, session: Session, id: strin
   if (!parsed.ok) return err(422, "invalid", { fields: parsed.errors });
   if (!(await allow(ctx.db, `submit:${session.accountId}`, 30, 3_600_000, ctx.now()))) return err(429, "rate_limited");
   const r = await saveGame(ctx, session, id, parsed.value);
-  if (!r.ok) return err(r.error === "no_profile" ? 409 : 404, r.error);
+  if (!r.ok) return err(r.error === "no_profile" || r.error === "too_many" ? 409 : 404, r.error);
   if (r.changed) publish();
+  dropFiles(after, env, r.dropped);
   return json(id === null ? 201 : 200, { ok: true, id: r.id, status: r.status, changed: r.changed });
 }
 
@@ -226,6 +241,7 @@ export async function daily(env: Env): Promise<void> {
     await metaSet(ctx.db, "backup_error", `${iso(ctx.now())}: ${why}`);
     await tellOwner(ctx, "Quest Board: the daily backup failed", `The daily backup did not complete: ${why}\n\nThe site keeps working. Check GET /api/health?key=… and the Worker "quest-board-cron" in the Cloudflare dashboard.`);
   }
+  await sweepOrphanImages(ctx, env.images).catch((e) => logEvent(ctx.db, ctx.now(), "sweep_failed", "job", "", "", String(e instanceof Error ? e.message : e).slice(0, 120), "the daily job"));
   await expireInactive(ctx, async (keys) => { for (const key of keys) await env.images.delete(key); }).catch((e) => logEvent(ctx.db, ctx.now(), "expire_failed", "job", "", "", String(e instanceof Error ? e.message : e).slice(0, 120), "the daily job"));
   await deployIfDue(ctx, env.deployHook, env.fetcher, true);
   if (failure) throw failure;

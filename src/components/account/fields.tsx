@@ -8,7 +8,7 @@ import { useI18n } from "../i18n-provider";
 
 /** The words for an error code from the server (or from a failed call). */
 export function errorText(t: T, code: string): string {
-  const known = ["required", "choose_one", "invalid_phone", "invalid_discord", "invalid_instagram", "invalid_link", "invalid_date", "in_the_past", "before_start", "invalid_number", "too_long", "invalid", "rate_limited", "bad_email", "mail_failed", "turnstile_failed", "too_large", "not_an_image", "network", "server"];
+  const known = ["required", "choose_one", "invalid_phone", "invalid_discord", "invalid_instagram", "invalid_link", "invalid_date", "in_the_past", "before_start", "invalid_number", "too_long", "invalid", "rate_limited", "too_many", "bad_email", "mail_failed", "turnstile_failed", "too_large", "not_an_image", "network", "server"];
   return t(`acct.err.${known.includes(code) ? code : "invalid"}` as MsgKey, { n: SUMMARY_MAX });
 }
 
