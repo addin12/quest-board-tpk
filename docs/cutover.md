@@ -56,7 +56,7 @@ Without it the sign-in form still works, with only the per-address and per-IP li
 
 ## 5. The timers
 
-The backend needs something to call it every 10 minutes (sends a waiting build) and once a day (backs up to R2 as JSON and two CSV
+The backend needs something to call it every minute (sends a waiting build) and once a day (backs up to R2 as JSON and two CSV
 files you can open in a spreadsheet, tidies, rebuilds so ended listings leave). `npm run cron:deploy` deploys the Worker in `cron/`
 with its two cron triggers and stores the `BUILD_KEY` secret. Free plan; no GitHub secret, and none of GitHub's rule that switches
 scheduled workflows off after 60 days without repo activity.

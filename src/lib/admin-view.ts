@@ -84,3 +84,20 @@ export function siteBehind(builtAt: string, lastDeployAt: number | null, nowMs: 
   const built = Date.parse(builtAt);
   return lastDeployAt !== null && !Number.isNaN(built) && nowMs - lastDeployAt > graceMs && built < lastDeployAt;
 }
+
+export type PublishState = "live" | "waiting" | "building";
+
+/** A build takes a minute or two; after this long without a newer one the site counts as live. */
+export const BUILD_MS = 3 * 60_000;
+
+/**
+ * Where the public site is: `waiting` (changes saved, build not sent yet, at most about a minute), `building` (build sent
+ * recently), else `live`. @example publishState({ pending: false, lastAt: now - 60_000 }, now) // "building"
+ */
+export function publishState(deploy: { pending: boolean; lastAt: number | null }, nowMs: number): PublishState {
+  if (deploy.pending) return "waiting";
+  return deploy.lastAt !== null && nowMs - deploy.lastAt < BUILD_MS ? "building" : "live";
+}
+
+/** How often the admin page asks for the queue: quickly while the site is catching up, calmly otherwise. */
+export const pollDelay = (state: PublishState): number => (state === "live" ? 20_000 : 5_000);

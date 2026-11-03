@@ -12,7 +12,7 @@ import { SYSTEMS } from "../../src/lib/systems.ts";
 import { EMPTY_FILTERS, activeFilterCount, applyFilters, filterOptions, filtersToQuery, isLive, pageList, parseFilters, systemTiles, allSystemTiles, genreTiles, allGenreTiles, type GameView } from "../../src/lib/games.ts";
 import { DICTIONARIES, makeT } from "../../src/lib/i18n/dict.ts";
 import { cleanDiscord, cleanInstagram, isGoogleMapsUrl, isPhone, parsePublicData, text } from "../../src/lib/public-data.ts";
-import { buildItems, canApprove, countByStatus, filterItems, previewGame, reasonText, siteBehind, whenLabel } from "../../src/lib/admin-view.ts";
+import { buildItems, BUILD_MS, canApprove, countByStatus, filterItems, pollDelay, previewGame, publishState, reasonText, siteBehind, whenLabel } from "../../src/lib/admin-view.ts";
 import { flatName } from "../../scripts/fix-export.mjs";
 import { parseConfig } from "../../scripts/push-apps-script.mjs";
 import { PLACEHOLDER_SLUG, slugParams } from "../../src/lib/static-params.ts";
@@ -313,6 +313,16 @@ test("the admin page warns when the newest publish is missing from the page it i
   assert.equal(siteBehind(built, T, min(11)), true, "built before the publish, and the grace has passed");
   assert.equal(siteBehind("2026-10-27T10:03:00Z", T, min(60)), false, "this page was built after the publish: all is well");
   assert.equal(siteBehind("not a date", T, min(60)), false, "unreadable build time: no false alarm");
+});
+
+test("the admin page says where the site is: waiting for its build, building, or live; and polls faster while it catches up", () => {
+  const now = Date.parse("2026-10-27T10:00:00Z");
+  assert.equal(publishState({ pending: true, lastAt: now - 5_000 }, now), "waiting");
+  assert.equal(publishState({ pending: true, lastAt: null }, now), "waiting");
+  assert.equal(publishState({ pending: false, lastAt: now - 60_000 }, now), "building");
+  assert.equal(publishState({ pending: false, lastAt: now - BUILD_MS }, now), "live", "a build older than the allowance counts as done");
+  assert.equal(publishState({ pending: false, lastAt: null }, now), "live", "nothing was ever published from here");
+  assert.ok(pollDelay("waiting") < pollDelay("live") && pollDelay("building") === pollDelay("waiting"));
 });
 
 test("gone addresses: plain ones are kept, sorted and without repeats; odd or live ones are dropped; none at all is fine", () => {

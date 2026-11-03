@@ -134,7 +134,7 @@ The audit script (`scripts/audit-frontend.mjs`, with `npm run preview` running) 
 - **`getByLabel` strict mode**: labels that prefix-match two fields break it; use exact names or roles.
 - **Mailbox pollution in e2e**: the test server's mailbox is per world; read the *latest* mail, not the first.
 - **Cover/photo limits are enforced from the bytes** (sniffed). **The public image route serves only approved images**; admins and the build key see all. Don't loosen either.
-- **Build coalescing**: at most one deploy per 120 s plus a "dirty" flag; the tick timer sends the waiting one. Tests move the clock instead of sleeping.
+- **Build coalescing**: at most one deploy per 30 s plus a "dirty" flag; the tick timer sends the waiting one. Tests move the clock instead of sleeping.
 - **A secret variable in Pages cannot be read back** through the API: values the setup needs again are kept in `.cloudflare.local.json`.
 - **Turnstile never finishes in automated browsers**, and `networkidle` never settles on a page with it: wait for `load`.
 - **Apps Script is not Node**: no `fetch`/`URL` in pure helpers (names ending `_`).

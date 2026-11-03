@@ -16,7 +16,7 @@ together is [architecture.md](architecture.md); the API and data are [backend.md
 | The mail relay | the Apps Script project (`apps-script/Code.gs`), script.google.com | read **Executions** if mail stops |
 | A look inside | `GET /api/health?key=<build key>` | counts, last backup, last mail success and failure |
 
-Everything runs on free plans. A change goes live in 2 to 5 minutes: the backend asks Pages to rebuild at most once every two minutes
+Everything runs on free plans. A change goes live in 1 to 4 minutes, with nobody pressing a button: the backend asks Pages to rebuild at most once every 30 seconds
 (the 10-minute tick sends a waiting one), and the Worker forces one build a day so ended listings leave. Cloudflare's free plan allows
 500 builds a month.
 

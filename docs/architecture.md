@@ -23,7 +23,7 @@ flowchart TB
   FN --- R2
   FN -- "robot check" --> TS
   FN -- "POST mail" --> GAS
-  FN -- "deploy hook, at most one per 2 min" --> BUILD
+  FN -- "deploy hook, at most one per 30 s" --> BUILD
   CRON -- "POST /api/cron" --> FN
   BUILD["npm run build<br/>build-data.mjs → next build"] -- "GET /api/public, /api/img (build key)" --> FN
   BUILD --> PAGES
@@ -36,7 +36,7 @@ flowchart TB
 | Site | `src/` (Next.js static export) | Public pages in English and Indonesian, the sign-in and account pages, and the admin page. |
 | Backend | `worker/`, `functions/api/[[path]].ts` | Accounts, profiles, games, review, pictures, builds, backups. One handler with everything injected. |
 | Build | `scripts/build-data.mjs`, `fix-export.mjs` | Fetches and **re-validates** the public JSON, downloads and crops pictures, writes `src/generated/data.json`. |
-| Timers | `cron/worker.ts` | A tick every 10 minutes (sends a waiting build); a daily job (backup, tidy, rebuild so ended listings leave). |
+| Timers | `cron/worker.ts` | A tick every minute (sends a waiting build); a daily job (backup, tidy, rebuild so ended listings leave). |
 | Mail relay | `apps-script/Code.gs` | Sends the backend's emails from the owner's Gmail (no domain of our own). At most 90 a day. |
 
 ## A listing's life
@@ -69,7 +69,7 @@ sequenceDiagram
   F->>D: set status, reviewer, time; write an activity row
   F-->>Ad: {ok, publishing: true}
   F->>F: mark "something public changed"
-  Note over F: at most one build per 2 minutes (the tick sends a waiting one)
+  Note over F: at most one build per 30 seconds (the tick sends a waiting one)
   F->>C: POST the deploy hook
   C->>F: GET /api/public?key=… and /api/img/…
   C->>C: build and publish the site

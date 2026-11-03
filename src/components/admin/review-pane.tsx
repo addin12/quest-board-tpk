@@ -78,19 +78,22 @@ export function ReviewPane({ items, nowIso, onReview, onFull, onNote, onMerge }:
   });
 
   return (
-    <div className="mt-5">
-      <div role="tablist" aria-label={t("admin.title")} className="flex flex-wrap gap-2">
-        {STATUSES.map((s) => (
-          <button key={s} type="button" role="tab" aria-selected={status === s} onClick={() => { setStatus(s); setChecked([]); }} className={status === s ? "btn-primary" : "btn-secondary"} data-testid={`status-${s}`}>
-            {t(`admin.status.${s}` as MsgKey)} <span className="rounded-full bg-black/15 px-2 text-sm">{counts[s]}</span>
-          </button>
-        ))}
+    <div className="mt-4">
+      <div className={`grid gap-6 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)] ${selected ? "max-lg:hidden" : ""}`}>
+        <div role="tablist" aria-label={t("admin.title")} className="flex flex-wrap gap-2">
+          {STATUSES.map((s) => (
+            <button key={s} type="button" role="tab" aria-selected={status === s} onClick={() => { setStatus(s); setChecked([]); }} className={status === s ? "btn-primary" : "btn-secondary"} data-testid={`status-${s}`}>
+              {t(`admin.status.${s}` as MsgKey)} <span className="rounded-full bg-black/15 px-2 text-sm">{counts[s]}</span>
+            </button>
+          ))}
+        </div>
+        <div className="hidden items-center justify-end gap-3 text-xs text-muted lg:flex">{t("admin.shortcuts")}</div>
       </div>
 
-      <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
+      <div className="mt-3 grid gap-6 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
         <div className={selected ? "max-lg:hidden" : ""}>
-          <label htmlFor="admin-q" className="label">{t("admin.search")}</label>
-          <input id="admin-q" type="search" className="input" value={q} placeholder={t("admin.searchPlaceholder")} onChange={(e) => setQ(e.target.value)} />
+          <label htmlFor="admin-q" className="sr-only">{t("admin.search")}</label>
+          <input id="admin-q" type="search" className="input" value={q} placeholder={`${t("admin.search")}: ${t("admin.searchPlaceholder")}`} onChange={(e) => setQ(e.target.value)} />
 
           {picked.length > 0 && (
             <div className="card mt-3 flex flex-wrap items-center gap-2 p-3">
@@ -106,7 +109,6 @@ export function ReviewPane({ items, nowIso, onReview, onFull, onNote, onMerge }:
               {list.map((i) => <Row key={i.id} item={i} selected={i.id === selectedId} checkbox={status === "pending"} checked={checked.includes(i.id)} lang={lang} onSelect={() => select(i.id)} onCheck={(on) => setChecked(on ? [...checked, i.id] : checked.filter((x) => x !== i.id))} />)}
             </ul>
           )}
-          <p className="mt-4 hidden text-xs text-muted lg:block">{t("admin.shortcuts")}</p>
         </div>
 
         <div className={!selected ? "max-lg:hidden" : ""}>
@@ -114,7 +116,7 @@ export function ReviewPane({ items, nowIso, onReview, onFull, onNote, onMerge }:
             <Detail key={selected.id} item={selected} nowIso={nowIso} lang={lang} notify={notify} setNotify={setNotify} rejecting={rejecting} setRejecting={setRejecting}
               onBack={() => select(null)} onDecide={(next, reason) => decide(selected, next, reason)} onFull={(v) => onFull(selected, v)} onNote={(n) => onNote(selected, n)} onMerge={(from, into) => onMerge(from, into)} />
           ) : (
-            <p className="card hidden p-10 text-center text-muted lg:block">{t("admin.pick")}</p>
+            <p className="hidden rounded-xl border border-dashed border-border px-6 py-8 text-center text-muted lg:block">{t("admin.pick")}</p>
           )}
         </div>
       </div>

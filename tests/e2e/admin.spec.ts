@@ -92,7 +92,16 @@ test("approving: the game leaves the waiting list, the database changes, the GM 
   await expect.poll(() => world.status("games", "Mercusuar di Pulau Kabut")).toBe("pending");
   await expect(page.getByTestId("status-pending")).toContainText("4");
   expect((await world.state()).mails, "undoing sends no email").toHaveLength(1);
-  expect((await world.state()).hooks, "a second change within two minutes waits for the timer").toBe(1);
+  expect((await world.state()).hooks, "a second change within 30 seconds waits for the timer").toBe(1);
+});
+
+test("the site status follows the build by itself: waiting, then updating, with no click", async ({ page }) => {
+  const world = await open(page);
+  await row(page, "Mercusuar di Pulau Kabut").click();
+  await page.getByTestId("approve").click();
+  await expect(page.getByTestId("publish-bar")).toContainText("waiting to go live");
+  await expect.poll(async () => (await world.state()).hooks).toBe(1);
+  await expect(page.getByTestId("publish-bar")).toContainText("Updating the site", { timeout: 20_000 });
 });
 
 test("approving is blocked while something is wrong; rejecting writes the reasons in both languages", async ({ page }) => {

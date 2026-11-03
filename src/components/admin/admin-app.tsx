@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ApiError, api, signOutSession, whoami } from "@/lib/admin-api";
-import { buildItems, siteBehind, titleOf, whenLabel, type Item } from "@/lib/admin-view";
+import { buildItems, pollDelay, publishState, siteBehind, titleOf, whenLabel, type Item, type PublishState } from "@/lib/admin-view";
 import type { MsgKey } from "@/lib/i18n/core";
 import type { AdminEntry, AdminFields, DeployInfo, QueueResponse, Status } from "@/lib/types";
 import { Icon } from "../icon";
@@ -87,12 +87,16 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the phase becomes loading
   }, [signedIn, phase === "loading"]);
 
-  // Fresh data every minute while the tab is on screen (a GM may have submitted, another admin may have decided).
+  // Fresh data while the tab is on screen (a GM may have submitted, another admin may have decided): every few seconds while the
+  // site is catching up, so "live" shows by itself; calmly otherwise; and at once when the tab comes back into view.
+  const state = queue ? publishState(queue.deploy, now) : "live";
   useEffect(() => {
     if (phase !== "ready") return;
-    const id = window.setInterval(() => { if (document.visibilityState === "visible") void load(); }, 60_000);
-    return () => window.clearInterval(id);
-  }, [phase, load]);
+    const id = window.setInterval(() => { if (document.visibilityState === "visible") void load(); }, pollDelay(state));
+    const onShow = () => { if (document.visibilityState === "visible") void load(); };
+    document.addEventListener("visibilitychange", onShow);
+    return () => { window.clearInterval(id); document.removeEventListener("visibilitychange", onShow); };
+  }, [phase, load, state]);
 
   const items = useMemo(() => (queue ? buildItems(queue.games, queue.gms, now) : { games: [], gms: [] }), [queue, now]);
 
@@ -232,8 +236,7 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
 
       {phase === "ready" && queue && (
         <>
-          <PublishBar deploy={queue.deploy} lang={lang} now={now} behind={siteBehind(builtAt, queue.deploy.lastAt, now)} onPublish={publishNow} />
-          <div className="mt-6 flex flex-wrap items-center gap-2 border-b border-border pb-3">
+          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-border pb-3">
             <div role="tablist" aria-label={t("admin.title")} className="flex flex-wrap gap-2">
               {(["games", "gms", "admins"] as const).map((k) => (
                 <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={tab === k ? "btn-primary" : "btn-ghost"} data-testid={`tab-${k}`}>
@@ -242,7 +245,7 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
                 </button>
               ))}
             </div>
-            <button type="button" className="btn-ghost ml-auto" onClick={() => void load()}><Icon name="refresh" /> {t("admin.refresh")}</button>
+            <PublishStatus deploy={queue.deploy} state={state} lang={lang} now={now} behind={siteBehind(builtAt, queue.deploy.lastAt, now)} onPublish={publishNow} onRefresh={() => void load()} />
           </div>
           {tab === "games" && <ReviewPane key="games" items={items.games} nowIso={queue.now} onReview={review} onFull={markFull} onNote={saveNote} onMerge={merge} />}
           {tab === "gms" && <ReviewPane key="gms" items={items.gms} nowIso={queue.now} onReview={review} onFull={markFull} onNote={saveNote} onMerge={merge} />}
@@ -262,16 +265,19 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
   );
 }
 
-function PublishBar({ deploy, lang, now, behind, onPublish }: { deploy: DeployInfo; lang: "en" | "id"; now: number; behind: boolean; onPublish: () => void }) {
+/** One quiet line: where the public site is. Publishing is automatic; the button is only for an impatient admin. */
+function PublishStatus({ deploy, state, lang, now, behind, onPublish, onRefresh }: { deploy: DeployInfo; state: PublishState; lang: "en" | "id"; now: number; behind: boolean; onPublish: () => void; onRefresh: () => void }) {
   const { t } = useI18n();
+  const label = state === "waiting" ? t("admin.publish.pending") : state === "building" ? t("admin.publish.building") : t("admin.publish.live");
+  const tone = state === "live" ? "text-success" : "text-gold";
   return (
-    <div className="card mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3" data-testid="publish-bar">
-      <span className="font-semibold"><Icon name="globe" /> {t("admin.publish.title")}</span>
-      <span className="text-sm text-muted">{deploy.lastAt ? t("admin.publish.updated", { when: whenLabel(deploy.lastAt, lang, now) }) : t("admin.publish.never")}</span>
-      {deploy.pending && <span className="text-sm font-semibold text-gold">{t("admin.publish.pending")}</span>}
-      {!deploy.configured && <span className="text-sm text-danger">{t("admin.publish.notConfigured")}</span>}
-      {behind && deploy.lastAt && <span className="w-full text-sm font-semibold text-danger" role="status">{t("admin.publish.behind", { when: whenLabel(deploy.lastAt, lang, now) })}</span>}
-      <button type="button" className="btn-secondary ml-auto" disabled={!deploy.configured} onClick={onPublish} data-testid="publish-now"><Icon name="rocket-lunch" /> {t("admin.publish.now")}</button>
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm sm:ml-auto" data-testid="publish-bar">
+      <span className={`flex items-center gap-1.5 font-semibold ${tone}`} role="status"><Icon name={state === "live" ? "check-circle" : "refresh"} /> {label}</span>
+      <span className="text-muted">{deploy.lastAt ? t("admin.publish.updated", { when: whenLabel(deploy.lastAt, lang, now) }) : t("admin.publish.never")}</span>
+      {!deploy.configured && <span className="text-danger">{t("admin.publish.notConfigured")}</span>}
+      {behind && deploy.lastAt && <span className="w-full font-semibold text-danger" role="status">{t("admin.publish.behind", { when: whenLabel(deploy.lastAt, lang, now) })}</span>}
+      <button type="button" className="btn-ghost" disabled={!deploy.configured} onClick={onPublish} data-testid="publish-now"><Icon name="rocket-lunch" /> {t("admin.publish.now")}</button>
+      <button type="button" className="btn-ghost" onClick={onRefresh}><Icon name="refresh" /> {t("admin.refresh")}</button>
     </div>
   );
 }

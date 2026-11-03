@@ -1,6 +1,6 @@
 // The backend's timers, as a tiny Cloudflare Worker with cron triggers (cron/wrangler.toml). A Pages Function has no schedule of its
 // own. It replaced a GitHub Actions timer (ADR-26 amendment): GitHub switches scheduled workflows off after 60 days without repo activity.
-//   every 10 minutes   POST /api/cron?job=tick     sends a waiting build (changes within two minutes of the last one are held back)
+//   every minute      POST /api/cron?job=tick     sends a waiting build (changes within 30 seconds of the last one are held back)
 //   once a day         POST /api/cron?job=daily    backs up the database to the bucket, tidies old sign-ins, rebuilds so ended listings leave
 type Env = { SITE_URL: string; BUILD_KEY: string };
 

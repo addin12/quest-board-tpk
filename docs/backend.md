@@ -41,7 +41,7 @@ any number of **games**. Also: `admins`, `activity` (the audit trail), `login_to
 | `GET /public?key=`, `GET /health?key=` | the build, the owner | public data; health: counts, `lastBackupAt`, `backupError`, `lastMailOkAt`, `lastMailError` (no personal data) |
 
 Every write needs the site's own `Origin` and JSON. Sign-in and uploads are rate-limited in D1. Deploys are coalesced: at most one
-build per two minutes however many changes arrive, plus one forced build a day (`daily`).
+build per 30 seconds however many changes arrive, plus one forced build a day (`daily`).
 
 ## Also in the API
 

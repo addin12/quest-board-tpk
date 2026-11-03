@@ -4,7 +4,7 @@ import type { Ctx } from "./auth.ts";
 import { exec } from "./db.ts";
 import { iso, metaGet, metaSet } from "./util.ts";
 
-export const MIN_GAP_MS = 120_000;
+export const MIN_GAP_MS = 30_000;
 
 export type DeployResult = "idle" | "wait" | "sent" | "failed";
 

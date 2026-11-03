@@ -9,4 +9,4 @@ workers_dev = false
 SITE_URL = "https://quest-board-tpk.pages.dev"
 
 [triggers]
-crons = ["*/10 * * * *", "30 18 * * *"]
+crons = ["* * * * *", "30 18 * * *"]
