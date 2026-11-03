@@ -20,7 +20,7 @@ No severity is assigned. Each blocker is "target execution not permitted in this
 
 | Title | Fingerprint | Fix status |
 |---|---|---|
-| Live Apps Script script id and deployment id (the mail relay URL) are committed in a unit-test fixture of a repository the docs call public | `apps-script.relay-ids-committed-in-test-fixture` | Partly fixed |
+| Live Apps Script script id and deployment id (the mail relay URL) are committed in a unit-test fixture of a repository the docs call public | `apps-script.relay-ids-committed-in-test-fixture` | Fixed |
 | E2E test server binds all interfaces and exposes unauthenticated arbitrary-SQL endpoints (/__test/sql, /__test/exec) that may create files on the developer machine | `tests.test-server.unauthenticated-sql-on-all-interfaces` | Fixed |
 | Merging profiles lets an ordinary admin keep owner-level access after removal, or lock the owner out | `worker.admin.merge-ignores-owner-and-admin-roles` | Fixed |
 | Profile merge redirects one email's sign-in into another account without proof of control, so a GM-typed WhatsApp number can lead to takeover of another GM's (or an admin's) account | `worker.admin.merge-redirects-signin-without-proof` | Mitigated |
@@ -43,7 +43,7 @@ No severity is assigned. Each blocker is "target execution not permitted in this
 
 ## Implementation status (added after the audit; it changes no verdict)
 
-- **apps-script.relay-ids-committed-in-test-fixture** (Partly fixed): The fixture now uses made-up ids and a test fails if a tracked file holds an Apps Script id. The OLD ids remain in git history and still point at the live web app, so the deployment must still be replaced and the mail secret changed (waiting for permission to run the Google and Cloudflare steps).
+- **apps-script.relay-ids-committed-in-test-fixture** (Fixed): The fixture uses made-up ids and a test fails if a tracked file holds an Apps Script id. Because the old ids stay in git history, on 2026-11-03 the web app was moved to a NEW deployment with a NEW mail secret, Pages was switched to it (MAIL_RELAY_URL and MAIL_SECRET) and rebuilt, and the old deployment was retired (its address now answers 404). Checked without sending mail: the new address answers bad_request to a bad recipient with the new secret and unauthorized with the old one.
 - **tests.test-server.unauthenticated-sql-on-all-interfaces** (Fixed): tests/support/test-server.ts listens on 127.0.0.1 only.
 - **worker.admin.merge-ignores-owner-and-admin-roles** (Fixed): mergeProfiles refuses when either account is the owner or an admin (error admin_account).
 - **worker.admin.merge-redirects-signin-without-proof** (Mitigated): Admin accounts are excluded, the chain is followed correctly, and the account that absorbed an address now gets an email naming it. Residual: the admin's judgement is still the control. Owner decision: require the target account to confirm by link.
