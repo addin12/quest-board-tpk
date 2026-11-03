@@ -10,7 +10,7 @@ import { LOGIN_MAILS_PER_DAY } from "../../worker/src/auth.ts";
 import { MAX_GAMES_PER_PROFILE } from "../../worker/src/store.ts";
 import { parseProfile } from "../../worker/src/rules.ts";
 import { DAY_MS, allow } from "../../worker/src/util.ts";
-import { GAME, OWNER, PROFILE, WEBP, makeWorld } from "../support/worker-env.ts";
+import { BUILD_KEY, GAME, OWNER, PROFILE, WEBP, makeWorld } from "../support/worker-env.ts";
 
 type World = ReturnType<typeof makeWorld>;
 const admin = (w: World, cookie: string, body: Record<string, unknown>) => w.call("POST", "/admin", { cookie, body });
@@ -252,4 +252,12 @@ test("on the https site a missing Turnstile secret refuses sign-in requests inst
   assert.equal(live.status, 400);
   assert.equal(((await live.json()) as { error: string }).error, "turnstile_failed");
   assert.equal((await w.call("GET", "/health", { build: true })).json.turnstileConfigured, false, "health says whether the secret is set");
+});
+
+test("a build key in the address no longer opens anything (it would be written to access logs)", async () => {
+  const w = makeWorld();
+  assert.equal((await w.call("GET", `/public?key=${BUILD_KEY}`)).status, 403);
+  assert.equal((await w.call("GET", `/health?key=${BUILD_KEY}`)).status, 403);
+  assert.equal((await w.call("POST", `/cron?job=tick&key=${BUILD_KEY}`, { origin: null })).status, 403);
+  assert.equal((await w.call("GET", `/img/covers/abcdefgh12345678.webp?key=${BUILD_KEY}`)).status, 404, "a picture needs approval or the header");
 });

@@ -113,7 +113,7 @@ test("profile, then a game with a picture: both wait for review; the picture is 
   expect(game.cover_key).toMatch(/^covers\/[a-z0-9]{16}\.(webp|jpg)$/);
   const stored = await page.evaluate(async (key) => (await fetch(`/api/img/${key}`)).status, game.cover_key);
   expect(stored, "a picture that is not approved is private").toBe(404);
-  const pub = await (await page.request.get(`/api/public?key=${BUILD_KEY}`)).json();
+  const pub = await (await page.request.get("/api/public", { headers: { Authorization: `Bearer ${BUILD_KEY}` } })).json();
   expect(pub.games, "nothing is public before an admin approves").toEqual([]);
 });
 
@@ -166,7 +166,7 @@ test("a GM marks a game full without a review, reopens it, and removes another w
   await panen().getByRole("button", { name: "Mark as full" }).click();
   await expect(panen().getByText("Full", { exact: true })).toBeVisible();
   expect((await world.sql(COLUMN("Panen Harapan")))[0]).toMatchObject({ full: 1, status: "approved" });
-  const pub = await (await page.request.get(`/api/public?key=${BUILD_KEY}`)).json();
+  const pub = await (await page.request.get("/api/public", { headers: { Authorization: `Bearer ${BUILD_KEY}` } })).json();
   expect(pub.games.find((g: { title: string }) => g.title === "Panen Harapan").full).toBe(true);
   await panen().getByRole("button", { name: "Reopen" }).click();
   await expect(panen().getByRole("button", { name: "Mark as full" })).toBeVisible();
@@ -205,7 +205,7 @@ test("the whole journey: a GM signs up, an admin approves, and the listing is in
   await page.getByTestId("admin-row").filter({ hasText: "Mercusuar di Pulau Kabut" }).click();
   await page.getByTestId("approve").click();
   await expect.poll(() => world.status("games", "Mercusuar di Pulau Kabut")).toBe("approved");
-  const pub = await (await page.request.get(`/api/public?key=${BUILD_KEY}`)).json();
+  const pub = await (await page.request.get("/api/public", { headers: { Authorization: `Bearer ${BUILD_KEY}` } })).json();
   expect(pub.games.map((g: { title: string }) => g.title).sort()).toEqual(["Mercusuar di Pulau Kabut", "Panen Harapan"]);
   expect(JSON.stringify(pub)).not.toContain("example.com");
   const cover = pub.games.find((g: { title: string }) => g.title === "Mercusuar di Pulau Kabut").coverId as string;

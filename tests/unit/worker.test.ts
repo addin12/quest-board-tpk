@@ -6,7 +6,7 @@ import { normalizeEmail } from "../../worker/src/email.ts";
 import { parseGame, parseProfile, normalizePhone, zonedInstant } from "../../worker/src/rules.ts";
 import { deployIfDue, MIN_GAP_MS } from "../../worker/src/deploy.ts";
 import { parsePublicData } from "../../src/lib/public-data.ts";
-import { BUILD_KEY, GAME, OWNER, PROFILE, WEBP, makeWorld } from "../support/worker-env.ts";
+import { GAME, OWNER, PROFILE, WEBP, makeWorld } from "../support/worker-env.ts";
 
 test("an email is one account however it is typed: case, Gmail dots and +tags, googlemail", () => {
   assert.equal(normalizeEmail("  Raka.Pratama+games@Gmail.com "), "rakapratama@gmail.com");
@@ -115,7 +115,7 @@ test("an admin approves; the public data shows only approved things of an approv
   const profileId = (await w.call("GET", "/me", { cookie: gm })).json.profile.id as string;
 
   assert.equal((await w.call("GET", "/public")).status, 403, "the public data needs the build key");
-  const empty = (await w.call("GET", `/public?key=${BUILD_KEY}`)).json;
+  const empty = (await w.call("GET", "/public", { build: true })).json;
   assert.deepEqual([empty.gms.length, empty.games.length], [0, 0], "nothing is public before approval");
 
   assert.equal((await w.call("POST", "/admin", { cookie: gm, body: { action: "queue" } })).status, 403, "a GM is not an admin");
@@ -126,11 +126,11 @@ test("an admin approves; the public data shows only approved things of an approv
   assert.equal(queue.games[0].startsAt, "2026-11-08T12:00:00.000Z");
 
   await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "game", ids: [game], status: "approved", notify: true } });
-  assert.equal((await w.call("GET", `/public?key=${BUILD_KEY}`)).json.games.length, 0, "a game of a pending profile stays off");
+  assert.equal((await w.call("GET", "/public", { build: true })).json.games.length, 0, "a game of a pending profile stays off");
   await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "gm", ids: [profileId], status: "approved", notify: true } });
   assert.match(w.mails.at(-1)!.subject, /Approved: Raka Pratama/);
 
-  const pub = (await w.call("GET", `/public?key=${BUILD_KEY}`)).json;
+  const pub = (await w.call("GET", "/public", { build: true })).json;
   assert.equal(pub.gms.length, 1);
   assert.equal(pub.games.length, 1);
   assert.equal(pub.games[0].gmId, profileId);
@@ -187,7 +187,7 @@ test("a GM marks their own game full without a review, and removes it; the addre
   await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "game", ids: [id], status: "approved" } });
 
   assert.equal((await w.call("POST", `/games/${id}/full`, { cookie: gm, body: { full: true } })).status, 200);
-  let pub = (await w.call("GET", `/public?key=${BUILD_KEY}`)).json;
+  let pub = (await w.call("GET", "/public", { build: true })).json;
   assert.equal(pub.games[0].full, true);
 
   const stranger = await w.signIn("stranger@example.com");
@@ -196,7 +196,7 @@ test("a GM marks their own game full without a review, and removes it; the addre
   assert.equal((await w.call("DELETE", `/games/${id}`, { cookie: stranger })).status, 404);
 
   assert.equal((await w.call("DELETE", `/games/${id}`, { cookie: gm })).status, 200);
-  pub = (await w.call("GET", `/public?key=${BUILD_KEY}`)).json;
+  pub = (await w.call("GET", "/public", { build: true })).json;
   assert.equal(pub.games.length, 0);
   assert.equal(pub.goneGames.length, 1, "a game that was live keeps its address as a notice");
   assert.equal((await w.call("GET", "/me", { cookie: gm })).json.games.length, 0, "and leaves the GM's own list");
@@ -251,7 +251,7 @@ test("pictures: type is read from the bytes, size is limited, and only approved 
 
   const id = (await w.call("POST", "/games", { cookie: gm, body: { ...GAME, coverKey: key } })).json.id as string;
   assert.equal((await w.call("GET", `/img/${key}`)).status, 404, "a pending cover is private");
-  assert.equal((await w.call("GET", `/img/${key}?key=${BUILD_KEY}`)).status, 200, "the build can read it");
+  assert.equal((await w.call("GET", `/img/${key}`, { build: true })).status, 200, "the build can read it");
   const admin = await w.signIn(OWNER);
   await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "game", ids: [id], status: "approved" } });
   const shown = await w.call("GET", `/img/${key}`);
@@ -299,7 +299,7 @@ test("a person can erase their account: profile, games, pictures and email go; t
 test("the health check needs the build key and reports counts only", async () => {
   const w = makeWorld();
   assert.equal((await w.call("GET", "/health")).status, 403);
-  const h = await w.call("GET", `/health?key=${BUILD_KEY}`);
+  const h = await w.call("GET", "/health", { build: true });
   assert.deepEqual(h.json, { ok: true, accounts: 0, profiles: 0, games: 0, admins: 0, deployConfigured: true, turnstileConfigured: false, lastBackupAt: null, backupError: null, lastMailOkAt: null, lastMailError: null });
 });
 
@@ -352,16 +352,16 @@ test("the timers: only the build key may call /cron; tick sends a waiting build,
   await flip("rejected");
   assert.equal(w.hook.length, 1, "the second change waits");
   w.clock.ms += MIN_GAP_MS + 1000;
-  const tick = await w.call("POST", `/cron?job=tick&key=${BUILD_KEY}`, { origin: null });
+  const tick = await w.call("POST", "/cron?job=tick", { origin: null, build: true });
   assert.deepEqual([tick.status, tick.json.result], [200, "sent"]);
   assert.equal(w.hook.length, 2);
-  const daily = await w.call("POST", `/cron?job=daily&key=${BUILD_KEY}`, { origin: null });
+  const daily = await w.call("POST", "/cron?job=daily", { origin: null, build: true });
   assert.equal(daily.status, 200);
   assert.ok(w.bucket.keys().some((k) => k.startsWith("backups/")));
 });
 
 const DAY = 86_400_000;
-const health = async (w: ReturnType<typeof makeWorld>) => (await w.call("GET", `/health?key=${BUILD_KEY}`)).json;
+const health = async (w: ReturnType<typeof makeWorld>) => (await w.call("GET", "/health", { build: true })).json;
 
 test("health shows when mail last worked and when it last failed, with the error but never the address", async () => {
   const w = makeWorld();
@@ -397,7 +397,7 @@ test("a failed daily backup is recorded, emailed to the owner, does not stop the
 
 test("the tick tells the owner once a day when no backup has been made for 36 hours, and stays quiet otherwise", async () => {
   const w = makeWorld();
-  const tick = () => w.call("POST", `/cron?job=tick&key=${BUILD_KEY}`, { origin: null });
+  const tick = () => w.call("POST", "/cron?job=tick", { origin: null, build: true });
   const alerts = () => w.mails.filter((m) => /no backup/i.test(m.subject)).length;
   await tick();
   w.clock.ms += 35 * 3_600_000;

@@ -50,14 +50,10 @@ function fromSite(request: Request, siteUrl: string): boolean {
   return origin !== null && origin === new URL(siteUrl).origin;
 }
 
-/**
- * Whether the request carries the build key: `Authorization: Bearer <key>`. A key in the address (`?key=`) is still accepted during the move
- * to the header, because the build and the timers are updated one after the other; it ends up in access logs, so it goes away next release.
- */
-function hasBuildKey(request: Request, url: URL, buildKey: string): boolean {
+/** Whether the request carries the build key: `Authorization: Bearer <key>`. Never in the address: an address ends up in access logs. */
+function hasBuildKey(request: Request, buildKey: string): boolean {
   if (!buildKey) return false;
-  const bearer = /^Bearer (.+)$/.exec(request.headers.get("Authorization") ?? "")?.[1] ?? "";
-  return safeEqual(bearer, buildKey) || safeEqual(url.searchParams.get("key") ?? "", buildKey);
+  return safeEqual(/^Bearer (.+)$/.exec(request.headers.get("Authorization") ?? "")?.[1] ?? "", buildKey);
 }
 
 /** With no secret the check is skipped only where that is allowed (development); on the real site `required` makes a missing secret refuse every request. */
@@ -93,11 +89,11 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
 
   // Public reads
   if (method === "GET" && path === "/public") {
-    return hasBuildKey(request, url, env.buildKey) ? json(200, await buildPublic(ctx)) : err(403, "forbidden");
+    return hasBuildKey(request, env.buildKey) ? json(200, await buildPublic(ctx)) : err(403, "forbidden");
   }
   // The timers (the Worker in cron/) call this with the build key: "tick" sends a waiting build, "daily" backs up and rebuilds.
   if (method === "POST" && path === "/cron") {
-    if (!hasBuildKey(request, url, env.buildKey)) return err(403, "forbidden");
+    if (!hasBuildKey(request, env.buildKey)) return err(403, "forbidden");
     if (url.searchParams.get("job") === "daily") {
       await daily(env);
       return json(200, { ok: true, job: "daily" });
@@ -107,7 +103,7 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
     return json(200, { ok: true, job: "tick", result });
   }
   if (method === "GET" && path === "/health") {
-    if (!hasBuildKey(request, url, env.buildKey)) return err(403, "forbidden");
+    if (!hasBuildKey(request, env.buildKey)) return err(403, "forbidden");
     const n = async (table: string) => (await one<{ n: number }>(ctx.db, `SELECT COUNT(*) AS n FROM ${table}`))?.n ?? 0;
     return json(200, { ok: true, accounts: await n("accounts"), profiles: await n("profiles"), games: await n("games"), admins: await n("admins"), deployConfigured: Boolean(env.deployHook), turnstileConfigured: Boolean(env.turnstileSecret), lastBackupAt: (await metaGet(ctx.db, "backup_ok_at")) || null, backupError: (await metaGet(ctx.db, "backup_error")) || null, lastMailOkAt: (await metaGet(ctx.db, "mail_ok_at")) || null, lastMailError: (await metaGet(ctx.db, "mail_error_at")) ? { at: await metaGet(ctx.db, "mail_error_at"), error: await metaGet(ctx.db, "mail_error") } : null });
   }
@@ -119,7 +115,7 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
       return err(404, "not_found");
     }
     if (!/^(?:covers|photos)\/[a-z0-9]{8,40}\.(?:webp|jpg|png)$/.test(key)) return err(404, "not_found");
-    const viaKey = hasBuildKey(request, url, env.buildKey);
+    const viaKey = hasBuildKey(request, env.buildKey);
     const viewer = viaKey ? null : await getSession(ctx, cookieOf(request));
     // The build and admins see every picture (an admin reviews pending ones); everyone else only those of approved things.
     if (!viaKey && !(viewer && (await isAdmin(ctx, viewer.email))) && !(await isPublicImage(ctx, key))) return err(404, "not_found");
@@ -258,7 +254,7 @@ export async function daily(env: Env): Promise<void> {
     failure = e;
     const why = String(e instanceof Error ? e.message : e).slice(0, 200);
     await metaSet(ctx.db, "backup_error", `${iso(ctx.now())}: ${why}`);
-    await tellOwner(ctx, "Quest Board: the daily backup failed", `The daily backup did not complete: ${why}\n\nThe site keeps working. Check GET /api/health?key=… and the Worker "quest-board-cron" in the Cloudflare dashboard.`);
+    await tellOwner(ctx, "Quest Board: the daily backup failed", `The daily backup did not complete: ${why}\n\nThe site keeps working. Check GET /api/health (build key in an Authorization header) and the Worker "quest-board-cron" in the Cloudflare dashboard.`);
   }
   await sweepOrphanImages(ctx, env.images).catch((e) => logEvent(ctx.db, ctx.now(), "sweep_failed", "job", "", "", String(e instanceof Error ? e.message : e).slice(0, 120), "the daily job"));
   await expireInactive(ctx, async (keys) => { for (const key of keys) await env.images.delete(key); }).catch((e) => logEvent(ctx.db, ctx.now(), "expire_failed", "job", "", "", String(e instanceof Error ? e.message : e).slice(0, 120), "the daily job"));

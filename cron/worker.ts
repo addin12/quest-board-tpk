@@ -9,8 +9,8 @@ const DAILY = "30 18 * * *"; // 01:30 in Jakarta; must match the crons in wrangl
 const timers = {
   async scheduled(event: { cron: string }, env: Env): Promise<void> {
     const job = event.cron === DAILY ? "daily" : "tick";
-    // The key goes in a header (it would be logged in an address). The ?key= is kept for one release while the backend is updated.
-    const res = await fetch(`${env.SITE_URL}/api/cron?job=${job}&key=${encodeURIComponent(env.BUILD_KEY)}`, {
+    // The key goes in a header: an address would be logged.
+    const res = await fetch(`${env.SITE_URL}/api/cron?job=${job}`, {
       method: "POST",
       headers: { Origin: env.SITE_URL, Authorization: `Bearer ${env.BUILD_KEY}` },
       signal: AbortSignal.timeout(120_000),
