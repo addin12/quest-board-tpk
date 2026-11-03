@@ -71,7 +71,7 @@ sequenceDiagram
   F->>F: mark "something public changed"
   Note over F: at most one build per 30 seconds (the tick sends a waiting one)
   F->>C: POST the deploy hook
-  C->>F: GET /api/public?key=… and /api/img/…
+  C->>F: GET /api/public and /api/img/… (Authorization: Bearer key)
   C->>C: build and publish the site
 ```
 

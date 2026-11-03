@@ -35,6 +35,7 @@ export const onRequest = async ({ request, env, waitUntil }: { request: Request;
       buildKey: env.BUILD_KEY,
       deployHook: env.DEPLOY_HOOK,
       turnstileSecret: env.TURNSTILE_SECRET,
+      requireTurnstile: env.SITE_URL.startsWith("https:"),
     },
     waitUntil,
   );

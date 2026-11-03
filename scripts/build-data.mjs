@@ -24,7 +24,7 @@ async function loadRaw() {
   if (process.env.TPK_DATA_FILE) return JSON.parse(readFileSync(path.join(ROOT, process.env.TPK_DATA_FILE), "utf8"));
   if (BASE) {
     if (!BUILD_KEY) throw new Error("TPK_API_BASE is set but TPK_BUILD_KEY is not.");
-    const res = await fetch(`${BASE}/api/public?key=${encodeURIComponent(BUILD_KEY)}`, { signal: AbortSignal.timeout(60_000) });
+    const res = await fetch(`${BASE}/api/public?key=${encodeURIComponent(BUILD_KEY)}`, { headers: { Authorization: `Bearer ${BUILD_KEY}` }, signal: AbortSignal.timeout(60_000) });
     if (!res.ok) throw new Error(`The backend answered ${res.status} for ${BASE}/api/public`);
     try {
       return await res.json();
@@ -52,7 +52,7 @@ async function download(fileId) {
   const url = `${BASE}/api/img/${fileId}?key=${encodeURIComponent(BUILD_KEY)}`;
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      const res = await fetch(url, { redirect: "follow", signal: AbortSignal.timeout(30_000) });
+      const res = await fetch(url, { redirect: "follow", headers: { Authorization: `Bearer ${BUILD_KEY}` }, signal: AbortSignal.timeout(30_000) });
       const type = res.headers.get("content-type") ?? "";
       if (res.ok && type.startsWith("image/")) {
         const buf = Buffer.from(await res.arrayBuffer());

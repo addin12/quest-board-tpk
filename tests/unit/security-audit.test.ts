@@ -232,3 +232,24 @@ test("a sign-in link can be looked at without being used: the page names the acc
   w.clock.ms += 16 * 60_000;
   assert.equal((await w.call("POST", "/login/peek", { body: { token: late } })).status, 400, "after 15 minutes");
 });
+
+test("the build key works from the Authorization header, and a wrong or missing one is refused", async () => {
+  const w = makeWorld();
+  assert.equal((await w.call("GET", "/public", { build: true })).status, 200);
+  assert.equal((await w.call("GET", "/health", { build: true })).json.ok, true);
+  assert.equal((await w.call("POST", "/cron?job=tick", { build: true, origin: null })).status, 200);
+  const wrong = await handle(new Request(`${w.env.ctx.siteUrl}/api/public`, { headers: { Authorization: "Bearer not-the-key" } }), w.env);
+  assert.equal(wrong.status, 403);
+  assert.equal((await w.call("GET", "/public")).status, 403, "no key at all");
+  assert.equal((await handle(new Request(`${w.env.ctx.siteUrl}/api/public`, { headers: { Authorization: `Basic ${"x".repeat(10)}` } }), { ...w.env, buildKey: "" })).status, 403, "and an empty server key never matches an empty header");
+});
+
+test("on the https site a missing Turnstile secret refuses sign-in requests instead of skipping the check", async () => {
+  const w = makeWorld();
+  const ask = (env: typeof w.env) => handle(new Request(`${env.ctx.siteUrl}/api/login/request`, { method: "POST", headers: { Origin: env.ctx.siteUrl, "Content-Type": "application/json" }, body: JSON.stringify({ email: "raka@example.com" }) }), env);
+  assert.equal((await ask(w.env)).status, 200, "development: no secret, no check");
+  const live = await ask({ ...w.env, requireTurnstile: true });
+  assert.equal(live.status, 400);
+  assert.equal(((await live.json()) as { error: string }).error, "turnstile_failed");
+  assert.equal((await w.call("GET", "/health", { build: true })).json.turnstileConfigured, false, "health says whether the secret is set");
+});

@@ -99,7 +99,7 @@ The audit script (`scripts/audit-frontend.mjs`, with `npm run preview` running) 
 - **Billing** is unverified: the agent's token has no billing scope. The owner should check Cloudflare → Billing shows $0 and may add a usage notification.
 - **Old triggers in the Apps Script**: done 2026-11-02. The owner confirmed the Triggers page was empty and the four stubs were deleted from `Code.gs` (deployed as the next relay version).
 - **The old Google Forms and Sheet** still exist in the owner's Google account; nothing reads them. Delete when ready (the agent has no access).
-- `wrangler` is not a dependency: the scripts run it with `npx wrangler@4`, and its login lives in the user profile, not the repo.
+- `wrangler` is not a dependency: the scripts run it with `npx wrangler@4.156.2` (pinned; bump it on purpose), and its login lives in the user profile, not the repo.
 - The agent was refused by the permission classifier for reading the stored Git credential and for creating the Worker before explicit approval:
   do not retry such steps, ask the owner.
 

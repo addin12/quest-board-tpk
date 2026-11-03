@@ -22,7 +22,7 @@ const PROJECT = process.env.CF_PAGES_PROJECT || "quest-board-tpk";
 const DB_NAME = "quest-board";
 const BUCKET = "quest-board-images";
 const HOOK_NAME = "backend";
-const WRANGLER = "npx --yes wrangler@4";
+const WRANGLER = "npx --yes wrangler@4.156.2";
 const LOCAL = path.join(ROOT, ".cloudflare.local.json");
 const MIGRATIONS_DIR = path.join(ROOT, "worker", "migrations");
 // Each migration with a query that finds a row once it is applied: the SQL is not written to be applied twice, so this is the record.

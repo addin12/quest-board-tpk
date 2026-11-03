@@ -300,7 +300,7 @@ test("the health check needs the build key and reports counts only", async () =>
   const w = makeWorld();
   assert.equal((await w.call("GET", "/health")).status, 403);
   const h = await w.call("GET", `/health?key=${BUILD_KEY}`);
-  assert.deepEqual(h.json, { ok: true, accounts: 0, profiles: 0, games: 0, admins: 0, deployConfigured: true, lastBackupAt: null, backupError: null, lastMailOkAt: null, lastMailError: null });
+  assert.deepEqual(h.json, { ok: true, accounts: 0, profiles: 0, games: 0, admins: 0, deployConfigured: true, turnstileConfigured: false, lastBackupAt: null, backupError: null, lastMailOkAt: null, lastMailError: null });
 });
 
 test("the mail relay is called with the secret; an error from it is an error here", async () => {

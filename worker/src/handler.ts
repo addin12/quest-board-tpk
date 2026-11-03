@@ -25,6 +25,8 @@ export type Env = {
   deployHook: string;
   /** Cloudflare Turnstile secret; empty in development, where the check is skipped. */
   turnstileSecret: string;
+  /** True on the https site: a missing Turnstile secret then fails closed instead of skipping the check. */
+  requireTurnstile?: boolean;
   fetcher?: typeof fetch;
 };
 
@@ -48,8 +50,19 @@ function fromSite(request: Request, siteUrl: string): boolean {
   return origin !== null && origin === new URL(siteUrl).origin;
 }
 
-export async function verifyTurnstile(secret: string, token: unknown, ip: string, fetcher: typeof fetch = fetch): Promise<boolean> {
-  if (!secret) return true;
+/**
+ * Whether the request carries the build key: `Authorization: Bearer <key>`. A key in the address (`?key=`) is still accepted during the move
+ * to the header, because the build and the timers are updated one after the other; it ends up in access logs, so it goes away next release.
+ */
+function hasBuildKey(request: Request, url: URL, buildKey: string): boolean {
+  if (!buildKey) return false;
+  const bearer = /^Bearer (.+)$/.exec(request.headers.get("Authorization") ?? "")?.[1] ?? "";
+  return safeEqual(bearer, buildKey) || safeEqual(url.searchParams.get("key") ?? "", buildKey);
+}
+
+/** With no secret the check is skipped only where that is allowed (development); on the real site `required` makes a missing secret refuse every request. */
+export async function verifyTurnstile(secret: string, token: unknown, ip: string, fetcher: typeof fetch = fetch, required = false): Promise<boolean> {
+  if (!secret) return !required;
   if (typeof token !== "string" || !token || token.length > 2048) return false;
   try {
     const res = await fetcher("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body: new URLSearchParams({ secret, response: token, remoteip: ip }) });
@@ -80,11 +93,11 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
 
   // Public reads
   if (method === "GET" && path === "/public") {
-    return safeEqual(url.searchParams.get("key") ?? "", env.buildKey) && env.buildKey ? json(200, await buildPublic(ctx)) : err(403, "forbidden");
+    return hasBuildKey(request, url, env.buildKey) ? json(200, await buildPublic(ctx)) : err(403, "forbidden");
   }
   // The timers (the Worker in cron/) call this with the build key: "tick" sends a waiting build, "daily" backs up and rebuilds.
   if (method === "POST" && path === "/cron") {
-    if (!(env.buildKey && safeEqual(url.searchParams.get("key") ?? "", env.buildKey))) return err(403, "forbidden");
+    if (!hasBuildKey(request, url, env.buildKey)) return err(403, "forbidden");
     if (url.searchParams.get("job") === "daily") {
       await daily(env);
       return json(200, { ok: true, job: "daily" });
@@ -94,9 +107,9 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
     return json(200, { ok: true, job: "tick", result });
   }
   if (method === "GET" && path === "/health") {
-    if (!(env.buildKey && safeEqual(url.searchParams.get("key") ?? "", env.buildKey))) return err(403, "forbidden");
+    if (!hasBuildKey(request, url, env.buildKey)) return err(403, "forbidden");
     const n = async (table: string) => (await one<{ n: number }>(ctx.db, `SELECT COUNT(*) AS n FROM ${table}`))?.n ?? 0;
-    return json(200, { ok: true, accounts: await n("accounts"), profiles: await n("profiles"), games: await n("games"), admins: await n("admins"), deployConfigured: Boolean(env.deployHook), lastBackupAt: (await metaGet(ctx.db, "backup_ok_at")) || null, backupError: (await metaGet(ctx.db, "backup_error")) || null, lastMailOkAt: (await metaGet(ctx.db, "mail_ok_at")) || null, lastMailError: (await metaGet(ctx.db, "mail_error_at")) ? { at: await metaGet(ctx.db, "mail_error_at"), error: await metaGet(ctx.db, "mail_error") } : null });
+    return json(200, { ok: true, accounts: await n("accounts"), profiles: await n("profiles"), games: await n("games"), admins: await n("admins"), deployConfigured: Boolean(env.deployHook), turnstileConfigured: Boolean(env.turnstileSecret), lastBackupAt: (await metaGet(ctx.db, "backup_ok_at")) || null, backupError: (await metaGet(ctx.db, "backup_error")) || null, lastMailOkAt: (await metaGet(ctx.db, "mail_ok_at")) || null, lastMailError: (await metaGet(ctx.db, "mail_error_at")) ? { at: await metaGet(ctx.db, "mail_error_at"), error: await metaGet(ctx.db, "mail_error") } : null });
   }
   if (method === "GET" && path.startsWith("/img/")) {
     let key = "";
@@ -106,7 +119,7 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
       return err(404, "not_found");
     }
     if (!/^(?:covers|photos)\/[a-z0-9]{8,40}\.(?:webp|jpg|png)$/.test(key)) return err(404, "not_found");
-    const viaKey = env.buildKey && safeEqual(url.searchParams.get("key") ?? "", env.buildKey);
+    const viaKey = hasBuildKey(request, url, env.buildKey);
     const viewer = viaKey ? null : await getSession(ctx, cookieOf(request));
     // The build and admins see every picture (an admin reviews pending ones); everyone else only those of approved things.
     if (!viaKey && !(viewer && (await isAdmin(ctx, viewer.email))) && !(await isPublicImage(ctx, key))) return err(404, "not_found");
@@ -121,7 +134,7 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
   if (method === "POST" && path === "/login/request") {
     const b = await body(request);
     if (!b) return err(400, "bad_request");
-    if (!(await verifyTurnstile(env.turnstileSecret, b.turnstile, ip, env.fetcher))) return err(400, "turnstile_failed");
+    if (!(await verifyTurnstile(env.turnstileSecret, b.turnstile, ip, env.fetcher, env.requireTurnstile))) return err(400, "turnstile_failed");
     const r = await requestLogin(ctx, b.email, ip);
     return r.ok ? json(200, { ok: true }) : err(r.error === "rate_limited" ? 429 : r.error === "bad_email" ? 400 : 502, r.error);
   }

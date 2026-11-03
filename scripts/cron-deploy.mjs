@@ -6,7 +6,7 @@ import path from "node:path";
 
 const ROOT = path.join(import.meta.dirname, "..");
 const LOCAL = path.join(ROOT, ".cloudflare.local.json");
-const WRANGLER = "npx --yes wrangler@4";
+const WRANGLER = "npx --yes wrangler@4.156.2";
 const CONFIG = path.join("cron", "wrangler.toml");
 
 const buildKey = existsSync(LOCAL) ? JSON.parse(readFileSync(LOCAL, "utf8")).buildKey : "";

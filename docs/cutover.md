@@ -73,6 +73,6 @@ scheduled workflows off after 60 days without repo activity.
 
 ## If something goes wrong
 
-- `GET /api/health?key=<buildKey>` answers counts and whether the deploy hook is set.
+- `GET /api/health` with `Authorization: Bearer <buildKey>` answers counts and whether the deploy hook is set.
 - The Activity log is the `activity` table (D1 console: `SELECT * FROM activity ORDER BY id DESC LIMIT 50`).
 - Backups are in the R2 bucket under `backups/`. To restore, load the JSON's tables back with the D1 console or `wrangler d1 execute`.

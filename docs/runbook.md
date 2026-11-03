@@ -14,7 +14,7 @@ together is [architecture.md](architecture.md); the API and data are [backend.md
 | Pictures and backups | Cloudflare → R2 → `quest-board-images` (`covers/`, `photos/`, `backups/`) | download a backup |
 | The timers | Cloudflare → Workers & Pages → `quest-board-cron` | read its logs and error count |
 | The mail relay | the Apps Script project (`apps-script/Code.gs`), script.google.com | read **Executions** if mail stops |
-| A look inside | `GET /api/health?key=<build key>` | counts, last backup, last mail success and failure |
+| A look inside | `GET /api/health` with `Authorization: Bearer <build key>` | counts, last backup, last mail success and failure |
 
 Everything runs on free plans. A change goes live in 1 to 4 minutes, with nobody pressing a button: the backend asks Pages to rebuild at most once every 30 seconds
 (the 10-minute tick sends a waiting one), and the Worker forces one build a day so ended listings leave. Cloudflare's free plan allows
@@ -63,7 +63,7 @@ it was. Open Cloudflare → Deployments → the failed one → its log.
 | The log says | Cause and fix |
 |---|---|
 | `The backend answered 403` / `did not answer with JSON` | `TPK_BUILD_KEY` and `BUILD_KEY` differ. Run `npm run cloudflare:setup` (it sets both from `.cloudflare.local.json`), retry. |
-| `The backend answered 5xx` | The backend is down or the database binding is missing. Check `GET /api/health?key=…` and Pages → Settings → Bindings (`DB`, `IMAGES`). |
+| `The backend answered 5xx` | The backend is down or the database binding is missing. Check `GET /api/health` (build key header) and Pages → Settings → Bindings (`DB`, `IMAGES`). |
 | `[data] warning:` lines | A record was unusable and dropped; the build kept the good ones. Read the line (it names the game or Game Master) and ask the GM to fix it. |
 | `could not download the cover` | The picture is missing from R2. The card shows a colour instead. Ask the GM to upload it again. |
 | Something about `npm` or `node` | Cloudflare uses `NODE_VERSION` = 24. Check that variable. |
@@ -71,7 +71,7 @@ it was. Open Cloudflare → Deployments → the failed one → its log.
 Retry: Deployments → the failed one → Retry deployment. A build with bad data fails on purpose rather than publish it.
 
 ### Nobody can sign in (no email arrives)
-1. `GET /api/health?key=…` → `lastMailError` says why the last send failed (for example `mail_failed_quota`: Gmail's daily limit, it
+1. `GET /api/health` (build key header) → `lastMailError` says why the last send failed (for example `mail_failed_quota`: Gmail's daily limit, it
    clears the next day; `mail_failed_unauthorized`: the secret in the Apps Script and in `MAIL_SECRET` differ, run `npm run script:deploy`
    then `npm run cloudflare:setup`). Open the Apps Script **Executions** page for Google's own error.
 2. If Turnstile is on and the button on `/en/account/` never turns solid, the widget is blocked: check the browser console. To switch Turnstile
@@ -81,8 +81,8 @@ Retry: Deployments → the failed one → Retry deployment. A build with bad dat
 ### The owner got "no backup for N hours" or "the daily backup failed"
 The tick emails this at most once a day. Open the Worker `quest-board-cron` → Logs: a failing `daily` run shows the error. Common causes: the
 Worker was deleted or its `BUILD_KEY` secret no longer matches (run `npm run cron:deploy`), R2 is over its free limit or switched off, or the
-site was down at 01:30 Jakarta. Run the job by hand to test: `POST /api/cron?job=daily&key=<build key>` with an `Origin` header of the site.
-`GET /api/health?key=…` then shows `lastBackupAt` and `backupError`.
+site was down at 01:30 Jakarta. Run the job by hand to test: `POST /api/cron?job=daily` with an `Authorization: Bearer <build key>` header and an `Origin` header of the site.
+`GET /api/health` (build key header) then shows `lastBackupAt` and `backupError`.
 
 ### A status changed and nobody knows why
 D1 console → `SELECT * FROM activity ORDER BY id DESC LIMIT 100`. Every decision, every change a GM made, every admin added or removed,
@@ -125,7 +125,7 @@ in, the account pages, the admin page and builds need `/api`.
 | The admin page's *last publish is not in this page yet* | a publish did not reach the site |
 | An email "no backup for N hours" or "the daily backup failed" | the timer or the backup is broken (at most one a day) |
 | The Worker `quest-board-cron` error count in the dashboard | a tick or daily call failed |
-| `GET /api/health?key=<build key>` | counts, `lastBackupAt`, `backupError`, `lastMailOkAt`, `lastMailError` (no personal data) |
+| `GET /api/health` with `Authorization: Bearer <build key>` | counts, `lastBackupAt`, `backupError`, `lastMailOkAt`, `lastMailError` (no personal data) |
 | GitHub CI on every push | the code breaks something |
 | Dependabot (weekly) | outdated dependencies; its eslint major is ignored on purpose |
 

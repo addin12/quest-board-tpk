@@ -38,7 +38,7 @@ any number of **games**. Also: `admins`, `activity` (the audit trail), `login_to
 | `POST /images?kind=cover\|photo` | signed in | WebP, JPEG or PNG read from the bytes; cover up to 1.5 MB, photo up to 600 KB |
 | `GET /img/<key>` | anyone | only pictures of approved things; the build key sees all |
 | `POST /admin {action, …}` | admins | `whoami`, `queue`, `review`, `patch`, `admin.add`, `admin.remove`, `merge`, `deploy` (the old script's names) |
-| `GET /public?key=`, `GET /health?key=` | the build, the owner | public data; health: counts, `lastBackupAt`, `backupError`, `lastMailOkAt`, `lastMailError` (no personal data) |
+| `GET /public`, `GET /health` (both with `Authorization: Bearer <build key>`) | the build, the owner | public data; health: counts, `lastBackupAt`, `backupError`, `lastMailOkAt`, `lastMailError` (no personal data) |
 
 Every write needs the site's own `Origin` and JSON. Sign-in and uploads are rate-limited in D1. Deploys are coalesced: at most one
 build per 30 seconds however many changes arrive, plus one forced build a day (`daily`).
@@ -47,7 +47,7 @@ build per 30 seconds however many changes arrive, plus one forced build a day (`
 
 | Call | Who | Does |
 |---|---|---|
-| `POST /cron?job=tick\|daily&key=` | the timers (the Worker in `cron/`) | tick sends a waiting build; daily backs up to R2 (JSON of every table, plus games and profiles as CSV, kept 14 days), tidies sign-ins, rebuilds |
+| `POST /cron?job=tick\|daily` (with the same header) | the timers (the Worker in `cron/`) | tick sends a waiting build; daily backs up to R2 (JSON of every table, plus games and profiles as CSV, kept 14 days), tidies sign-ins, rebuilds |
 
 ## What the tests cover
 

@@ -71,10 +71,11 @@ export function makeWorld(startMs = Date.parse("2026-10-28T03:00:00Z")) {
 
   const pending: Promise<unknown>[] = [];
   /** One API call as a browser on the site would make it; `cookie` is the session cookie value. */
-  async function call(method: string, path: string, init: { body?: unknown; cookie?: string; origin?: string | null; raw?: ArrayBuffer; type?: string } = {}) {
+  async function call(method: string, path: string, init: { body?: unknown; cookie?: string; origin?: string | null; raw?: ArrayBuffer; type?: string; build?: boolean } = {}) {
     const headers: Record<string, string> = {};
     if (init.origin !== null) headers.Origin = init.origin ?? env.ctx.siteUrl;
     if (init.cookie) headers.Cookie = `tpk_session=${init.cookie}`;
+    if (init.build) headers.Authorization = `Bearer ${BUILD_KEY}`;
     let body: BodyInit | undefined;
     if (init.raw) { body = init.raw; headers["Content-Type"] = init.type ?? "image/webp"; }
     else if (init.body !== undefined) { body = JSON.stringify(init.body); headers["Content-Type"] = "application/json"; }
