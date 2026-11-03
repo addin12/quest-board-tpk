@@ -19,7 +19,7 @@ export function Field({ id, label, hint, error, children }: { id: string; label:
       <label htmlFor={id} className="label">{label}</label>
       {children}
       {hint && <p className="hint" id={`${id}-hint`}>{hint}</p>}
-      {error && <p role="alert" className="mt-[var(--space-xs)] text-sm font-bold text-danger">{error}</p>}
+      {error && <p role="alert" className="mt-[var(--space-xs)] text-sm font-medium text-danger">{error}</p>}
     </div>
   );
 }
@@ -74,11 +74,11 @@ export function PictureField({ id, kind, value, onChange, label, hint, error }: 
           {/* A local preview of what was just picked; a stored picture is shown as text only (it is private until approved). */}
           {/* eslint-disable-next-line @next/next/no-img-element -- a blob: preview of a file just picked */}
           {preview && <img src={preview} alt="" className={`plate ${kind === "cover" ? "aspect-[4/5] w-24" : "size-24"} object-cover`} />}
-          <span role="status" className="text-sm font-bold">{preview ? t("acct.f.picked") : t("acct.f.pickedOld")}</span>
+          <span role="status" className="text-sm font-medium">{preview ? t("acct.f.picked") : t("acct.f.pickedOld")}</span>
           <button type="button" className="btn btn-ghost" onClick={() => { setPreview(""); onChange(""); }}>{t("acct.f.removePicture")}</button>
         </div>
       )}
-      {(problem || error) && <p role="alert" className="mt-[var(--space-xs)] text-sm font-bold text-danger">{problem || error}</p>}
+      {(problem || error) && <p role="alert" className="mt-[var(--space-xs)] text-sm font-medium text-danger">{problem || error}</p>}
     </div>
   );
 }

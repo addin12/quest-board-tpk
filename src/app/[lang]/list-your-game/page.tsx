@@ -48,7 +48,7 @@ export default async function ListYourGamePage({ params }: PageProps<"/[lang]/li
         <h2 id="public-h" className="text-[length:var(--text-2xl)]">{t("post.public")}</h2>
         <ul className="ruled mt-[var(--space-lg)]">
           {[t("post.public1"), t("post.public2"), t("post.public3")].map((x) => <li key={x} className="py-[var(--space-md)]">{x}</li>)}
-          <li className="py-[var(--space-md)] font-bold">{t("post.private")}</li>
+          <li className="py-[var(--space-md)] font-medium">{t("post.private")}</li>
         </ul>
       </section>
       </div>

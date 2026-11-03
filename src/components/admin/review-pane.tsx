@@ -185,7 +185,7 @@ function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting
       <button type="button" className="btn-ghost -ml-2 mb-2 lg:hidden" onClick={onBack}><Icon name="arrow-left" /> {t("admin.back")}</button>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 id="detail-h" className="text-2xl font-bold leading-tight">{title}</h2>
+          <h2 id="detail-h" className="text-2xl font-medium leading-tight">{title}</h2>
           <p className="mt-1 text-sm text-muted">{t("admin.submitted", { date: formatWhen(rec.submittedAt || nowIso, lang, "WIB") })} · {t("admin.by", { email: rec.email })}</p>
           {rec.reviewedAt && rec.status !== "pending" && <p className="text-sm text-muted">{t("admin.reviewed", { status: t(`admin.status.${rec.status}` as MsgKey), email: rec.reviewedBy, date: formatWhen(rec.reviewedAt, lang, "WIB") })}</p>}
           {rec.status === "rejected" && rec.rejectReason && <p className="mt-1 text-sm">{rec.rejectReason}</p>}
@@ -194,7 +194,7 @@ function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting
       </div>
 
       <section className="mt-5" aria-labelledby="checks-h">
-        <h3 id="checks-h" className="text-base font-bold text-ink-2">{t("admin.checksTitle")}</h3>
+        <h3 id="checks-h" className="text-base font-medium text-ink-2">{t("admin.checksTitle")}</h3>
         {item.checks.length === 0 ? (
           <p className="mt-2 flex items-center gap-2 text-success"><Icon name="check-circle" /> {t("admin.checksOk")}</p>
         ) : (
@@ -246,7 +246,7 @@ function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting
       </section>
 
       <section className="mt-6" aria-labelledby="preview-h">
-        <h3 id="preview-h" className="text-base font-bold text-ink-2">{t("admin.previewTitle")}</h3>
+        <h3 id="preview-h" className="text-base font-medium text-ink-2">{t("admin.previewTitle")}</h3>
         {item.kind === "game" ? (
           <div className="mt-3 grid gap-6 md:grid-cols-[minmax(0,280px)_minmax(0,1fr)]">
             <div className="max-w-xs"><GameCard game={previewGame(item.rec, item.gm, nowIso)} t={t} lang={lang} preview /></div>
@@ -258,7 +258,7 @@ function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting
       </section>
 
       <section className="mt-6" aria-labelledby="contact-h">
-        <h3 id="contact-h" className="text-base font-bold text-ink-2">{t("admin.contactTitle")}</h3>
+        <h3 id="contact-h" className="text-base font-medium text-ink-2">{t("admin.contactTitle")}</h3>
         {gm ? (
           <div className="mt-2 space-y-1.5">
             {item.kind === "game" && <p className="font-semibold">{t("admin.gmOf", { name: gm.name })}</p>}
@@ -277,7 +277,7 @@ function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting
 
       {item.kind === "gm" && (item.rec as GmRecord).sharesPhoneIds?.length ? (
         <section className="mt-6" aria-labelledby="merge-h" data-testid="merge-box">
-          <h3 id="merge-h" className="text-base font-bold text-ink-2">{t("admin.mergeTitle")}</h3>
+          <h3 id="merge-h" className="text-base font-medium text-ink-2">{t("admin.mergeTitle")}</h3>
           <ul className="mt-2 space-y-2">
             {(item.rec as GmRecord).sharesPhoneIds!.map((otherId, i) => {
               const name = (item.rec as GmRecord).sharesPhoneWith![i] ?? otherId;

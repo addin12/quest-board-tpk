@@ -82,13 +82,13 @@ export function GameCard({ game, t, lang, preview = false, priority = false, hea
         <ViewTransition name={`cover-${game.slug}`}>
           <Cover src={game.cover ? smallCover(game.cover) : null} seed={game.title} className="aspect-[4/5] w-full" priority={priority} />
         </ViewTransition>
-        {game.full && <span className="absolute bottom-0 right-0 bg-ink px-3 py-1 text-sm font-bold text-paper">{t("game.full")}</span>}
+        {game.full && <span className="absolute bottom-0 right-0 bg-ink px-3 py-1 text-sm font-medium text-paper">{t("game.full")}</span>}
       </div>
       <div className="mt-[var(--space-md)] flex flex-1 flex-col border-t-3 border-ink pt-[var(--space-sm)]">
         <Heading className="bill-title">{game.title}</Heading>
         <p className="mt-[var(--space-xs)] flex flex-wrap items-baseline justify-between gap-x-[var(--space-md)]">
-          <span className="min-w-0 font-bold">{game.system}</span>
-          <span className="shrink-0 text-right font-bold">
+          <span className="min-w-0 font-medium">{game.system}</span>
+          <span className="shrink-0 text-right font-medium">
             {priceLabel(game.priceIdr, t)}
             {game.priceIdr > 0 && <small className="ml-1 text-sm font-normal text-muted">{t("common.perSeat")}</small>}
           </span>
@@ -127,7 +127,7 @@ export function BrowseCard({ name, count, href, t, level = 3 }: { name: string; 
   const Heading = level === 2 ? "h2" : "h3";
   return (
     <Link href={href} className="browse-card">
-      <Heading className="font-body text-[length:var(--text-md)] font-bold leading-snug">{name}</Heading>
+      <Heading className="font-body text-[length:var(--text-md)] font-medium leading-snug">{name}</Heading>
       <p className="mt-[var(--space-3xs)] text-sm text-muted">{t("games.count", { n: count })}</p>
     </Link>
   );
@@ -140,10 +140,10 @@ export function GameRow({ game, t, lang }: { game: GameView; t: T; lang: Lang })
       <Cover src={game.cover ? smallCover(game.cover) : null} seed={game.title} className="aspect-[4/5] w-20 shrink-0 sm:w-24" sizes="96px" />
       <div className="min-w-0 flex-1">
         <h3 className="bill-title">{game.title}</h3>
-        <p className="mt-[var(--space-2xs)] font-bold">{game.system}</p>
+        <p className="mt-[var(--space-2xs)] font-medium">{game.system}</p>
         <p className="mt-[var(--space-2xs)] text-muted">{`${formatShortDay(game.startsAt, lang, game.zone)}, ${game.locationType === "online" ? t("loc.online") : whereLabel(game, t)}`}</p>
       </div>
-      <span className="shrink-0 text-right font-bold">{priceLabel(game.priceIdr, t)}</span>
+      <span className="shrink-0 text-right font-medium">{priceLabel(game.priceIdr, t)}</span>
     </Link>
   );
 }

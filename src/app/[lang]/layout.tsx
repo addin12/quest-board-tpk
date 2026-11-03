@@ -17,7 +17,7 @@ import "../globals.css";
 // Typography: EB Garamond for heads and the wordmark (a 1500s old-style serif, the book face of a tavern's menu and broadside), Plus Jakarta Sans for everything
 // people read (Plus Jakarta Sans, drawn in Indonesia). Self-hosted at build time. Garamond has a small x-height, so heads are set larger; facts (dates, prices, seats) are always Chivo.
 const garamond = EB_Garamond({ variable: "--font-garamond", subsets: ["latin"], weight: ["400", "500"] });
-const jakarta = Plus_Jakarta_Sans({ variable: "--font-jakarta", subsets: ["latin"], weight: ["400", "700"] });
+const jakarta = Plus_Jakarta_Sans({ variable: "--font-jakarta", subsets: ["latin"] }); // variable font: the 500 and 600 weights are real, not borrowed from 400 and 700
 
 export const dynamicParams = false;
 export const viewport: Viewport = { themeColor: [{ media: "(prefers-color-scheme: light)", color: "#f5efdc" }, { media: "(prefers-color-scheme: dark)", color: "#16110d" }] };
@@ -72,13 +72,13 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
                 <p className="mt-[var(--space-md)] max-w-[44ch] text-muted">{t("footer.noBooking")}</p>
               </div>
               <div className="flex flex-col lg:col-span-3 lg:col-start-7">
-                <p className="font-bold">{t("footer.explore")}</p>
+                <p className="font-medium">{t("footer.explore")}</p>
                 <Link href={paths.games(lang)} className="inline-flex min-h-11 items-center text-muted hover:text-ink">{t("nav.games")}</Link>
                 <Link href={paths.gms(lang)} className="inline-flex min-h-11 items-center text-muted hover:text-ink">{t("nav.gms")}</Link>
                 <Link href={paths.how(lang)} className="inline-flex min-h-11 items-center text-muted hover:text-ink">{t("nav.how")}</Link>
               </div>
               <div className="flex flex-col lg:col-span-3">
-                <p className="font-bold">{t("footer.gms")}</p>
+                <p className="font-medium">{t("footer.gms")}</p>
                 <Link href={paths.list(lang)} className="inline-flex min-h-11 items-center text-muted hover:text-ink">{t("nav.list")}</Link>
                 <Link href={paths.account(lang)} className="inline-flex min-h-11 items-center text-muted hover:text-ink">{t("footer.account")}</Link>
                 <Link href={`${paths.how(lang)}#safety`} className="inline-flex min-h-11 items-center text-muted hover:text-ink">{t("footer.safety")}</Link>

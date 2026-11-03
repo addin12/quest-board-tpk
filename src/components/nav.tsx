@@ -31,7 +31,7 @@ export function NavLinks({ variant }: { variant: "header" | "tabs" }) {
           return (
             <li key={i.prefix} className="min-w-0 flex-1">
               {/* Labels may wrap to two lines: a row that scrolls sideways hid the last tab ("List your game") on a 390px phone. */}
-              <Link href={i.href(lang)} aria-current={current ? "page" : undefined} className={`flex min-h-14 items-center justify-center px-1.5 text-center text-sm leading-tight ${current ? "font-bold text-ink underline decoration-accent decoration-[3px] underline-offset-[0.4em]" : "text-muted"}`}>
+              <Link href={i.href(lang)} aria-current={current ? "page" : undefined} className={`flex min-h-14 items-center justify-center px-1.5 text-center text-sm leading-tight ${current ? "font-medium text-ink underline decoration-accent decoration-[3px] underline-offset-[0.4em]" : "text-muted"}`}>
                 {t(i.label)}
               </Link>
             </li>
@@ -46,7 +46,7 @@ export function NavLinks({ variant }: { variant: "header" | "tabs" }) {
         const current = isCurrent(pathname, lang, i.prefix);
         const action = n === ITEMS.length - 1;
         return (
-          <Link key={i.prefix} href={i.href(lang)} aria-current={current ? "page" : undefined} className={`inline-flex items-center rounded-[var(--radius-input)] ${action ? "ml-auto min-h-11 bg-accent px-4 font-bold text-accent-ink hover:bg-accent-deep" : `-mx-3 min-h-12 border-b-2 border-transparent bg-clip-padding px-3 ${current ? "bg-accent-soft hover:bg-[color-mix(in_oklab,var(--color-accent)_24%,var(--color-paper))]" : "hover:bg-paper-3"}`}`}>
+          <Link key={i.prefix} href={i.href(lang)} aria-current={current ? "page" : undefined} className={`inline-flex items-center rounded-[var(--radius-input)] ${action ? "ml-auto min-h-11 bg-accent px-4 font-medium text-accent-ink hover:bg-accent-deep" : `-mx-3 min-h-12 border-b-2 border-transparent bg-clip-padding px-3 ${current ? "bg-accent-soft hover:bg-[color-mix(in_oklab,var(--color-accent)_24%,var(--color-paper))]" : "hover:bg-paper-3"}`}`}>
             {t(i.label)}
           </Link>
         );
@@ -60,7 +60,7 @@ export function LanguageSwitcher() {
   const { t, lang } = useI18n();
   const pathname = usePathname();
   return (
-    <nav aria-label={t("lang.switch")} className="flex items-center gap-[var(--space-xs)] text-sm font-bold">
+    <nav aria-label={t("lang.switch")} className="flex items-center gap-[var(--space-xs)] text-sm font-medium">
       {LANGS.map((l) => (
         <a
           key={l}

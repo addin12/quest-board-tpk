@@ -81,7 +81,7 @@ export function EmailSignIn({ heading, lead }: { heading: string; lead: string }
         </Field>
       </div>
       {TURNSTILE_SITE_KEY && <div ref={box} role="group" className="mt-[var(--space-md)]" aria-label={t("robot.label")} />}
-      {problem && <p role="alert" className="mt-[var(--space-md)] font-bold text-danger">{problem}</p>}
+      {problem && <p role="alert" className="mt-[var(--space-md)] font-medium text-danger">{problem}</p>}
       <p className="mt-[var(--space-lg)]"><button type="submit" className="btn btn-primary" disabled={busy || (Boolean(TURNSTILE_SITE_KEY) && !token)}>{busy ? t("acct.sending") : t("acct.sendLink")}</button></p>
     </form>
   );

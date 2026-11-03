@@ -66,9 +66,9 @@ export function ProfileForm({ profile, onSaved, onCancel }: { profile: GmRecord 
       <PictureField id="p-photo" kind="photo" value={v.photoKey} onChange={(photoKey) => set({ photoKey })} label={t("acct.f.photo")} hint={t("acct.f.photoHint")} error={field(errors, "photoKey", t)} />
       <div>
         <Check id="p-consent" checked={v.consent} onChange={(consent) => set({ consent })}>{t("acct.f.consentProfile")}</Check>
-        {errors.consent && <p role="alert" className="text-sm font-bold text-danger">{errorText(t, errors.consent)}</p>}
+        {errors.consent && <p role="alert" className="text-sm font-medium text-danger">{errorText(t, errors.consent)}</p>}
       </div>
-      {problem && <p role="alert" className="font-bold text-danger">{problem}</p>}
+      {problem && <p role="alert" className="font-medium text-danger">{problem}</p>}
       <div className="flex flex-wrap items-center gap-[var(--space-lg)]">
         <button type="submit" className="btn btn-primary" disabled={busy}>{busy ? t("acct.sending") : t("acct.saveProfile")}</button>
         {onCancel && <button type="button" className="btn btn-secondary" onClick={onCancel}>{t("acct.cancel")}</button>}

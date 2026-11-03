@@ -124,7 +124,7 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
             <option value="priceAsc">{t("sort.priceAsc")}</option>
           </select>
         </div>
-        <label className="flex min-h-11 items-center gap-[var(--space-sm)] font-bold sm:col-span-2">
+        <label className="flex min-h-11 items-center gap-[var(--space-sm)] font-medium sm:col-span-2">
           <input type="checkbox" className="size-5 accent-[var(--color-accent)]" checked={filters.free} onChange={(e) => set({ free: e.target.checked })} />
           {t("games.freeOnly")}
         </label>

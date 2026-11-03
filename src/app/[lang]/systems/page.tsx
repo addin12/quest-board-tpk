@@ -26,7 +26,7 @@ export default async function SystemsPage({ params }: PageProps<"/[lang]/systems
     <BrowsePage cover={systemCover} search={{ label: t("browse.systemSearch"), placeholder: t("browse.systemPlaceholder") }} home={paths.home(lang)} path={paths.systems(lang)} emptyHeading={t("systems.noGames")} title={t("systems.title")} lead={t("systems.lead")} tiles={tiles} href={(n) => paths.games(lang, `?system=${encodeURIComponent(n)}`)} t={t}>
       <p className="mt-[var(--space-2xl)] max-w-prose text-ink-2">
         {t("systems.missing")}
-        {REPORT_URL && <> <a href={REPORT_URL} target="_blank" rel="noopener noreferrer" className="font-bold underline underline-offset-4">{t("systems.tellUs")}<span className="sr-only"> {t("a11y.opensNewTab")}</span></a></>}
+        {REPORT_URL && <> <a href={REPORT_URL} target="_blank" rel="noopener noreferrer" className="font-medium underline underline-offset-4">{t("systems.tellUs")}<span className="sr-only"> {t("a11y.opensNewTab")}</span></a></>}
       </p>
     </BrowsePage>
   );

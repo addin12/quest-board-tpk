@@ -70,7 +70,7 @@ export function SearchPicker({ id, value, options, other, any, placeholder, list
               id={`${listId}-${i}`}
               role="option"
               aria-selected={c.value === value}
-              className={`flex min-h-11 cursor-pointer items-center px-[var(--space-md)] ${i === active ? "bg-accent-soft" : ""} ${c.value === value ? "font-bold" : ""}`}
+              className={`flex min-h-11 cursor-pointer items-center px-[var(--space-md)] ${i === active ? "bg-accent-soft" : ""} ${c.value === value ? "font-medium" : ""}`}
               onMouseDown={(e) => { e.preventDefault(); choose(i); }} // keeps focus in the input
               onMouseEnter={() => setActive(i)}
             >

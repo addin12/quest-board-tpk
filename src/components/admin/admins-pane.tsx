@@ -30,7 +30,7 @@ export function AdminsPane({ admins, owner, me, onAdd, onRemove }: {
 
   return (
     <section className="mt-6 max-w-2xl" aria-labelledby="admins-h">
-      <h2 id="admins-h" className="text-2xl font-bold">{t("admin.admins.title")}</h2>
+      <h2 id="admins-h" className="text-2xl font-medium">{t("admin.admins.title")}</h2>
       <p className="mt-1 text-muted">{t("admin.admins.lead")}</p>
 
       <ul className="card mt-5 divide-y divide-border" data-testid="admins-list">

@@ -212,7 +212,7 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
     <div className="app-screen mx-auto max-w-7xl px-4 py-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">{t("admin.title")}</h1>
+          <h1 className="text-3xl font-medium">{t("admin.title")}</h1>
           <p className="mt-1 max-w-2xl text-muted">{t("admin.lead")}</p>
         </div>
         {signedIn && phase !== "signedOut" && (
@@ -232,7 +232,7 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
       {phase === "loading" && <p className="mt-10 text-center text-muted" role="status">{t("common.loading")}</p>}
       {phase === "forbidden" && (
         <div className="card mx-auto mt-10 max-w-lg p-8">
-          <h2 className="text-xl font-bold">{t("admin.notAdminTitle")}</h2>
+          <h2 className="text-xl font-medium">{t("admin.notAdminTitle")}</h2>
           <p className="mt-2 text-muted">{t("admin.notAdminBody", { email })}</p>
         </div>
       )}

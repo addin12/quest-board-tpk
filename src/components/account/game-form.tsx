@@ -96,14 +96,14 @@ export function GameForm({ game, onSaved, onCancel }: { game: GameRecord | null;
         <legend className="label">{t("acct.f.format")}</legend>
         {radio("format", "one_shot", t("format.one_shot"))}
         {radio("format", "campaign", t("format.campaign"))}
-        {err("format") && <p role="alert" className="text-sm font-bold text-danger">{err("format")}</p>}
+        {err("format") && <p role="alert" className="text-sm font-medium text-danger">{err("format")}</p>}
       </fieldset>
       <fieldset className="grid gap-[var(--space-xs)]">
         <legend className="label">{t("acct.f.genres")}</legend>
         <div className="grid gap-x-[var(--space-lg)] sm:grid-cols-2 lg:grid-cols-3">
           {GENRES.map((g) => <Check key={g.key} id={`g-genre-${g.key}`} checked={v.genres.includes(g.key)} disabled={!v.genres.includes(g.key) && v.genres.length >= MAX_PER_GAME} onChange={(on) => set({ genres: pick(v.genres, g.key, on, MAX_PER_GAME) })}>{t(genreLabelKey(g.key))}</Check>)}
         </div>
-        {err("genres") && <p role="alert" className="text-sm font-bold text-danger">{err("genres")}</p>}
+        {err("genres") && <p role="alert" className="text-sm font-medium text-danger">{err("genres")}</p>}
       </fieldset>
       <details open={moreOpen} className="grid gap-[var(--space-lg)]">
         <summary className="label cursor-pointer">{t("acct.f.more")}</summary>
@@ -125,7 +125,7 @@ export function GameForm({ game, onSaved, onCancel }: { game: GameRecord | null;
         <legend className="label">{t("acct.f.where")}</legend>
         {radio("locationType", "online", t("loc.online"))}
         {radio("locationType", "in_person", t("loc.inPerson"))}
-        {err("locationType") && <p role="alert" className="text-sm font-bold text-danger">{err("locationType")}</p>}
+        {err("locationType") && <p role="alert" className="text-sm font-medium text-danger">{err("locationType")}</p>}
       </fieldset>
       {v.locationType === "online" && (
         <Field id="g-platform" label={t("acct.f.platform")} hint={t("acct.f.platformHint")} error={err("platform")}>
@@ -207,10 +207,10 @@ export function GameForm({ game, onSaved, onCancel }: { game: GameRecord | null;
       <PictureField id="g-cover" kind="cover" value={v.coverKey} onChange={(coverKey) => set({ coverKey })} label={t("acct.f.cover")} hint={t("acct.f.coverHint")} error={err("coverKey")} />
       <div>
         <Check id="g-consent" checked={v.consent} onChange={(consent) => set({ consent })}>{t("acct.f.consentGame")}</Check>
-        {errors.consent && <p role="alert" className="text-sm font-bold text-danger">{errorText(t, errors.consent)}</p>}
+        {errors.consent && <p role="alert" className="text-sm font-medium text-danger">{errorText(t, errors.consent)}</p>}
       </div>
 
-      {problem && <p role="alert" className="font-bold text-danger">{problem}</p>}
+      {problem && <p role="alert" className="font-medium text-danger">{problem}</p>}
       <div className="flex flex-wrap items-center gap-[var(--space-lg)]">
         <button type="submit" className="btn btn-primary" disabled={busy}>{busy ? t("acct.sending") : t("acct.saveGame")}</button>
         <button type="button" className="btn btn-secondary" onClick={onCancel}>{t("acct.cancel")}</button>

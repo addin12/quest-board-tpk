@@ -100,7 +100,7 @@ export function AccountApp() {
   return (
     <div className="grid gap-[var(--space-2xl)]">
       <div className="flex flex-wrap items-center justify-between gap-[var(--space-md)]">
-        <p className="font-bold" data-testid="signed-in-as">{t("acct.signedInAs", { email: me.email })}</p>
+        <p className="font-medium" data-testid="signed-in-as">{t("acct.signedInAs", { email: me.email })}</p>
         <div className="flex flex-wrap items-center gap-[var(--space-lg)]">
           {me.admin && <Link href={paths.admin(lang)} className="btn btn-secondary">{t("acct.admin")}</Link>}
           <button type="button" className="btn btn-secondary" onClick={() => act(async () => { await call("POST", "/logout"); return { ok: true }; }, "")}>{t("acct.signOut")}</button>
@@ -120,7 +120,7 @@ export function AccountApp() {
           <div className="mt-[var(--space-lg)] grid gap-[var(--space-sm)]">
             <p className="flex flex-wrap items-center gap-[var(--space-md)]"><span className="font-display text-[length:var(--text-title)]">{profile.name}</span><Status status={profile.status} /></p>
             <p className="text-ink-2">{profile.city}</p>
-            {profile.status === "rejected" && profile.rejectReason && <p className="font-bold text-danger">{t("acct.reason", { reason: profile.rejectReason })}</p>}
+            {profile.status === "rejected" && profile.rejectReason && <p className="font-medium text-danger">{t("acct.reason", { reason: profile.rejectReason })}</p>}
             <p><button type="button" className="btn btn-secondary" onClick={() => setEditingProfile(true)}>{t("acct.editProfile")}</button></p>
           </div>
         )}
@@ -150,10 +150,10 @@ export function AccountApp() {
                       {g.full && <span className="chip chip-spot">{t("game.full")}</span>}
                     </p>
                     <p className="text-ink-2">{`${g.system}, ${when(g.startsAt, lang, g.zone)}`}</p>
-                    {g.status === "rejected" && g.rejectReason && <p className="font-bold text-danger">{t("acct.reason", { reason: g.rejectReason })}</p>}
+                    {g.status === "rejected" && g.rejectReason && <p className="font-medium text-danger">{t("acct.reason", { reason: g.rejectReason })}</p>}
                     {confirm === g.id ? (
                       <div className="flex flex-wrap items-center gap-[var(--space-lg)]" role="alert">
-                        <span className="font-bold">{t("acct.removeConfirm", { title: g.title })}</span>
+                        <span className="font-medium">{t("acct.removeConfirm", { title: g.title })}</span>
                         <button type="button" className="btn btn-danger" onClick={() => act(() => call("DELETE", `/games/${g.id}`), "")}>{t("acct.removeYes")}</button>
                         <button type="button" className="btn btn-secondary" onClick={() => setConfirm("")}>{t("acct.cancel")}</button>
                       </div>

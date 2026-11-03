@@ -3,11 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/json-ld";
 import { BrowsePair, BrowseSection } from "@/components/browse";
-import { EmptyState, GameCard, GameRow } from "@/components/ui";
+import { Cover, EmptyState, GameCard, GameRow, priceLabel } from "@/components/ui";
 import { GENRES, MECHANICS, STYLES, genreCover, genreLabelKey, mechanicLabelKey, styleLabelKey, type GenreKey, type MechanicKey, type StyleKey } from "@/lib/categories";
 import { gameViews, loadSiteData } from "@/lib/data";
 import { genreTiles, mechanicTiles, sortGames, styleTiles, systemTiles } from "@/lib/games";
-import { paths } from "@/lib/hrefs";
+import { formatShortDay } from "@/lib/format";
+import { paths, smallCover } from "@/lib/hrefs";
 import { makeT } from "@/lib/i18n/dict";
 import { languageAlternates, websiteJsonLd } from "@/lib/seo";
 import { systemCover } from "@/lib/system-covers";
@@ -24,8 +25,10 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   if (!isLang(lang)) notFound();
   const t = makeT(lang);
   const games = gameViews(loadSiteData());
-  const soon = sortGames(games, "soonest").slice(0, 6);
-  const beginner = sortGames(games.filter((g) => g.level === "beginner" && !soon.slice(0, 3).includes(g)), "soonest").slice(0, 3);
+  const upcoming = sortGames(games, "soonest").slice(0, 7);
+  const lead = upcoming[0]; // shown in the hero, so the row below starts with the next one
+  const soon = upcoming.slice(1);
+  const beginner = sortGames(games.filter((g) => g.level === "beginner" && g !== lead && !soon.slice(0, 3).includes(g)), "soonest").slice(0, 3);
   const systems = systemTiles(games).slice(0, 10);
   const genres = genreTiles(games, GENRES.map((g) => g.key)).slice(0, 10);
   const styles = styleTiles(games, STYLES.map((s) => s.key)).slice(0, 10);
@@ -36,11 +39,11 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
     <>
       <JsonLd data={websiteJsonLd(lang, t("meta.description"))} />
 
-      {/* The hero is a left-set head and the search, which is the action. Nothing is drawn: the listings below are the imagery. */}
+      {/* The hero is a left-set head and the search, which is the action, with the soonest listing beside it as a real playbill (no drawing: it is the product). With no listing yet the head takes the full width. */}
       <section>
-        <div className="wrap grid gap-[var(--space-xl)] pb-[var(--space-2xl)] pt-[var(--space-3xl)] lg:grid-cols-12">
-          <div className="lg:col-span-12">
-            <h1 className="max-w-none text-[length:var(--text-display)]"><span className="block">{t("home.title1")}</span><span className="block">{t("home.title2")}</span></h1>
+        <div className="wrap grid gap-[var(--space-xl)] pb-[var(--space-2xl)] pt-[var(--space-3xl)] lg:grid-cols-12 lg:items-center">
+          <div className={lead ? "lg:col-span-7" : "lg:col-span-12"}>
+            <h1 className={`max-w-none ${lead ? "text-[length:var(--text-display-s)]" : "text-[length:var(--text-display)]"}`}><span className="block">{t("home.title1")}</span><span className="block">{t("home.title2")}</span></h1>
             <p className="lead mt-[var(--space-lg)] text-ink-2">{t("home.lead")}</p>
             <form action={paths.games(lang)} method="get" role="search" className="mt-[var(--space-xl)] flex w-full max-w-2xl flex-col gap-[var(--space-sm)] sm:flex-row sm:items-end">
               <div className="flex-1">
@@ -51,6 +54,16 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
             </form>
             <p className="mt-[var(--space-lg)] flex flex-wrap items-center gap-x-[var(--space-md)] gap-y-[var(--space-xs)] text-ink-2">{t("home.gmHint")} <Link href={paths.list(lang)} className="btn btn-soft">{t("nav.list")}</Link></p>
           </div>
+          {lead && (
+            <Link href={paths.game(lang, lead.slug)} className="tack lg:col-span-5">
+              <Cover src={lead.cover ? smallCover(lead.cover) : null} seed={lead.title} className="aspect-[4/3] w-full" priority sizes="(min-width: 1024px) 40vw, 100vw" />
+              <div className="mt-[var(--space-md)] border-t-3 border-ink pt-[var(--space-sm)]">
+                <p className="text-sm text-muted">{t("home.soon")}</p>
+                <p className="mt-[var(--space-3xs)] font-display text-[length:var(--text-title)] leading-tight">{lead.title}</p>
+                <p className="mt-[var(--space-xs)] text-muted">{[lead.system, formatShortDay(lead.startsAt, lang, lead.zone), priceLabel(lead.priceIdr, t)].join(" · ")}</p>
+              </div>
+            </Link>
+          )}
         </div>
       </section>
 

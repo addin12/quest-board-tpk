@@ -58,7 +58,7 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
         {game.locationType === "online" ? whereLabel(game, t) : <>{game.venueName ? <span className="block">{game.venueName}</span> : null}{game.city}</>}
         {game.locationType === "in_person" && game.venueName && game.venueMapsUrl && (
           <small>
-            <a href={game.venueMapsUrl} target="_blank" rel="noopener noreferrer nofollow" className="link-spot inline-flex min-h-11 items-center font-bold text-ink" data-testid="venue-maps">
+            <a href={game.venueMapsUrl} target="_blank" rel="noopener noreferrer nofollow" className="link-spot inline-flex min-h-11 items-center font-medium text-ink" data-testid="venue-maps">
               {t("game.openMaps")} <span className="sr-only">{t("a11y.opensNewTab")}</span>
             </a>
           </small>
@@ -83,7 +83,7 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
         ]),
       ]} />
       <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-lg)]">
-        <Link href={paths.games(lang)} className="link-spot inline-flex min-h-11 items-center font-bold">{t("game.allGames")}</Link>
+        <Link href={paths.games(lang)} className="link-spot inline-flex min-h-11 items-center font-medium">{t("game.allGames")}</Link>
 
         <div className="mt-[var(--space-lg)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] lg:grid-cols-12">
           {/* From 1024 px two columns: the cover with the facts under it, and the title, contact and the text beside. Below that the four blocks (display: contents) stack in the order 1 to 4. */}
@@ -114,18 +114,18 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
             {game.summary && <p className="lead mt-[var(--space-md)] text-ink-2">{game.summary}</p>}
             <Link href={paths.gm(lang, gm.slug)} className="mt-[var(--space-lg)] inline-flex min-h-11 items-center gap-[var(--space-md)] hover:text-accent-deep">
               <Avatar name={gm.name} photo={gm.photo} size={48} />
-              <span><span className="block text-sm text-muted">{t("game.gm")}</span><span className="font-bold">{gm.name}</span></span>
+              <span><span className="block text-sm text-muted">{t("game.gm")}</span><span className="font-medium">{gm.name}</span></span>
             </Link>
             <p className="mt-[var(--space-lg)] lg:hidden"><a href="#contact" className="btn btn-primary">{t("game.contactTitle")}</a></p>
 
             <aside id="contact" className="well mt-[var(--space-xl)] scroll-mt-[var(--space-xl)]" aria-labelledby="contact-h">
               <h2 id="contact-h" className="max-w-none text-[length:var(--text-title)]">{t("game.contactTitle")}</h2>
               <p className="mt-[var(--space-sm)] text-ink-2">{t("game.contactBody")}</p>
-              {game.full && <p className="mt-[var(--space-md)] bg-accent px-[var(--space-md)] py-[var(--space-sm)] font-bold text-accent-ink" data-testid="full-note">{t("game.fullNote")}</p>}
+              {game.full && <p className="mt-[var(--space-md)] bg-accent px-[var(--space-md)] py-[var(--space-sm)] font-medium text-accent-ink" data-testid="full-note">{t("game.fullNote")}</p>}
               <div className="mt-[var(--space-lg)]"><ContactButtons wa={encodeContact(gm.whatsapp)} discord={gm.discord} instagram={gm.instagram} message={contactMessage(gm, game, lang)} /></div>
               <p className="mt-[var(--space-lg)] border-t border-rule pt-[var(--space-md)] text-sm text-ink-2">{t("game.safetyNote")}</p>
               {REPORT_URL && (
-                <p className="mt-[var(--space-sm)]"><a href={REPORT_URL} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-sm font-bold underline decoration-accent decoration-2 underline-offset-4 hover:text-accent-deep">{t("game.report")} <span className="sr-only">{t("a11y.opensNewTab")}</span></a></p>
+                <p className="mt-[var(--space-sm)]"><a href={REPORT_URL} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-sm font-medium underline decoration-accent decoration-2 underline-offset-4 hover:text-accent-deep">{t("game.report")} <span className="sr-only">{t("a11y.opensNewTab")}</span></a></p>
               )}
             </aside>
 
