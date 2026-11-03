@@ -18,8 +18,10 @@ game page and GM page re-laid out; search box on `/systems/` and `/gms/`; defaul
 [anti-slop-audit.md](anti-slop-audit.md).
 
 **Open, none blocks use:** the Indonesian wording of everything new is mine (the owner is a native speaker and should review: browse blocks, pager, search
-strings, "Cari Game Master", "Pilihan untuk"); the names Nimble 5e / Nimble 2e and some editions were written without a primary source; Knave 1e has only a
-title-mark picture (no cover scan found); Shadowrun 3e and L5R 4e pictures are small scans; no real Game Master has listed a game yet, so the retention
+strings, "Cari Game Master", "Pilihan untuk"); some editions were written without a primary source (Nimble was checked against Nimble Co. on 2026-11-03: its own names are
+"Nimble 5e" for the first book and "Nimble v2" or "Nimble 2" for the second, so the list's "Nimble 2e" is fan shorthand; search accepts "nimble v2", "2.0" and "2";
+rename it in `systems.ts`, the cover map, the demo data and the tests if the owner prefers the publisher's wording); Shadowrun 3e and L5R 4e pictures are small scans
+(no larger copy in the sources tried; Knave 1e now has its real cover); no real Game Master has listed a game yet, so the retention
 timers, the first approval and rebuild on live, and the first Instagram save are unproven on live data; (a visitor on a slow phone tapping "Filters" before the page's scripts have run is handled since 2026-11-03: the search, Filters and the pager are `pending`, read-only and ignore taps, and dim after 0.8 s); ask Game Masters to list their games (an invitation message was offered, not written).
 
 Ways of working that matter: the owner says "push" when ready; apply a database migration to the live D1 **before** pushing code that needs it

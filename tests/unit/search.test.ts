@@ -67,6 +67,8 @@ test("more abbreviations from community glossaries find the system they stand fo
     ["Level Up Advanced 5th Edition", ["a5e"]],
     ["Pokemon Tabletop United", ["ptu"]],
     ["Fate Accelerated", ["fae"]],
+    ["Nimble 2e", ["nimble v2", "nimble 2", "nimble 2.0"]],
+    ["Nimble 5e", ["nimble v1", "nimble 1.0"]],
     ["Starfinder 2e", ["sf2e"]],
     ["Star Wars RPG by Fantasy Flight Games", ["swrpg"]],
     ["Warhammer Fantasy Roleplay 4e", ["wfrp4e"]],
