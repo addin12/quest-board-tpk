@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { GENRES, MECHANICS, STYLES, genreLabelKey, mechanicLabelKey, styleLabelKey } from "@/lib/categories";
 import { EMPTY_FILTERS, PAGE_SIZE, activeFilterCount, applyFilters, filtersToQuery, isLive, pageList, parseFilters, type Filters, type GameView, type filterOptions } from "@/lib/games";
+import { paths } from "@/lib/hrefs";
 import { SearchPicker, type PickerOption } from "./search-picker";
 import { useI18n } from "./i18n-provider";
 import { EmptyState, GameCard } from "./ui";
@@ -141,6 +143,7 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
         <div data-late className="mt-[var(--space-md)]">
           <EmptyState title={t(games.length === 0 ? "games.noneYet" : "games.none")}>
             {active > 0 && <button type="button" className="btn btn-soft" onClick={clear}>{t("games.clear")}</button>}
+            {games.length === 0 && <Link href={paths.list(lang)} className="btn btn-primary">{t("nav.list")}</Link>}
           </EmptyState>
         </div>
       ) : (
