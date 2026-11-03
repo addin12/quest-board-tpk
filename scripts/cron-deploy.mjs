@@ -18,4 +18,4 @@ const run = (command, input) => {
 };
 run(`${WRANGLER} deploy --config ${CONFIG}`);
 run(`${WRANGLER} secret put BUILD_KEY --config ${CONFIG}`, `${buildKey}\n`);
-console.log("\nDone: the Worker calls /api/cron every 10 minutes (and a daily job at 01:30 Jakarta time).");
+console.log("\nDone: the Worker calls /api/cron every minute (and a daily job at 01:30 Jakarta time).");
