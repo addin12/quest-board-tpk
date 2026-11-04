@@ -125,11 +125,26 @@ export function BrowseTile({ name, count, cover, href, t, level = 3, rank }: { n
 /** A browse card with no picture (a play style or a mechanic): a rounded rectangle with the name, a short description if it has one, and how many games. */
 export function BrowseCard({ name, count, href, about, t, level = 3 }: { name: string; count: number; href: string; about?: string; t: T; level?: 2 | 3 }) {
   const Heading = level === 2 ? "h2" : "h3";
+  if (!about) {
+    return (
+      <Link href={href} className="browse-card">
+        <Heading className="font-body text-[length:var(--text-md)] font-medium leading-snug">{name}</Heading>
+        <p className="mt-[var(--space-3xs)] text-sm text-muted">{t("games.count", { n: count })}</p>
+      </Link>
+    );
+  }
+  // With a description: the name, the description, then a footer under a hairline. The dot is filled when games are listed; the arrow says the card opens them.
   return (
-    <Link href={href} className="browse-card">
-      <Heading className="font-body text-[length:var(--text-md)] font-medium leading-snug">{name}</Heading>
-      {about && <p className="mt-[var(--space-xs)] text-sm leading-normal text-ink-2">{about}</p>}
-      <p className="mt-[var(--space-xs)] text-sm text-muted">{t("games.count", { n: count })}</p>
+    <Link href={href} className="browse-card browse-card-rich">
+      <Heading className="font-body text-[length:var(--text-lg)] font-medium leading-snug">{name}</Heading>
+      <p className="mb-[var(--space-md)] mt-[var(--space-xs)] text-sm leading-relaxed text-ink-2">{about}</p>
+      <div className="mt-auto flex items-center justify-between gap-[var(--space-md)] border-t border-rule pt-[var(--space-sm)]">
+        <p className={`flex items-center gap-[var(--space-xs)] text-sm ${count > 0 ? "font-medium text-ink" : "text-muted"}`}>
+          <span aria-hidden className={`size-2 shrink-0 rounded-full ${count > 0 ? "bg-[var(--color-accent)]" : "border border-muted"}`} />
+          {t("games.count", { n: count })}
+        </p>
+        <Icon name="arrow-left" className="browse-card-go text-muted" />
+      </div>
     </Link>
   );
 }

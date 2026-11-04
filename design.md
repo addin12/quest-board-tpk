@@ -95,4 +95,4 @@ The five motions (R-19: each has a UX purpose, written here):
 Change a token in `tokens.css` (light) or the dark blocks in `globals.css` before changing a component. Check both stocks and both languages at a 400 px
 width. Run `npm run preview` and `node scripts/audit-frontend.mjs` (see [docs/anti-slop-audit.md](docs/anti-slop-audit.md)) to re-measure the rules that can be measured.
 
-- **Play styles and mechanics carry a short description** (25 to 35 words, our own wording, English and Indonesian) under the name on their browse pages; those cards are wider (three across on a desktop) than the plain count cards elsewhere.
+- **Play styles and mechanics carry a short description** (25 to 35 words, our own wording, English and Indonesian) under the name on their browse pages; those cards are wider (three across on a desktop) than the plain count cards elsewhere. Each is the name, the description, then a footer under a hairline: a dot (filled when games are listed), the count, and an arrow that says the card opens the list.
