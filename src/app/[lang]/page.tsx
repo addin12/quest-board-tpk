@@ -24,6 +24,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   if (!isLang(lang)) notFound();
   const t = makeT(lang);
   const games = gameViews(loadSiteData());
+  const [, leadFirst = "", leadRest = ""] = /^([\s\S]+?[.!?])\s+([\s\S]*)$/.exec(t("home.lead")) ?? ["", t("home.lead")];
   const soon = sortGames(games, "soonest").slice(0, 6);
   const beginner = sortGames(games.filter((g) => g.level === "beginner" && !soon.slice(0, 3).includes(g)), "soonest").slice(0, 3);
   const systems = systemTiles(games).slice(0, 10);
@@ -41,7 +42,8 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
         <div className="wrap grid justify-items-center pb-[var(--space-2xl)] pt-[var(--space-3xl)] text-center">
           <div className="grid w-full justify-items-center">
             <h1 className="max-w-none text-[length:var(--text-display)]"><span className="block">{t("home.title1")}</span><span className="block">{t("home.title2")}</span></h1>
-            <p className="lead mx-auto mt-[var(--space-lg)] text-ink-2">{t("home.lead")}</p>
+            {/* The first sentence gets a line of its own and the paragraph the full width (the lead style caps at 52ch); on a phone each still wraps. */}
+            <p className="lead mx-auto mt-[var(--space-lg)] max-w-none text-ink-2">{leadFirst}{leadRest && <span className="block">{leadRest}</span>}</p>
             <form action={paths.games(lang)} method="get" role="search" className="mt-[var(--space-xl)] flex w-full max-w-2xl flex-col gap-[var(--space-sm)] text-left sm:flex-row sm:items-end">
               <div className="flex-1">
                 <label htmlFor="home-q" className="label">{t("home.searchLabel")}</label>
