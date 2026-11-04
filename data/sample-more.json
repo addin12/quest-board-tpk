@@ -1,0 +1,1136 @@
+{
+  "gms": [
+    {
+      "id": "m1satria0",
+      "slug": "satria-wijaya-101",
+      "name": "Satria Wijaya",
+      "city": "Jakarta",
+      "whatsapp": "628110000010",
+      "discord": "satria.rolls",
+      "instagram": "satria.rolls",
+      "photoId": "",
+      "systems": [
+        "Dungeons & Dragons 5.5e 2024",
+        "Daggerheart"
+      ],
+      "bio": "Dungeon Master dari Jakarta Selatan. Aku suka sesi yang cepat, lucu, dan penuh kejutan.\n\nA Jakarta DM who likes fast, funny sessions with plenty of surprises."
+    },
+    {
+      "id": "m1ayu0000",
+      "slug": "ayu-kusuma-102",
+      "name": "Ayu Kusuma",
+      "city": "Tangerang Selatan",
+      "whatsapp": "628110000011",
+      "discord": "ayu_keeper",
+      "instagram": "ayu.keeper",
+      "photoId": "",
+      "systems": [
+        "Call of Cthulhu 7e",
+        "Pathfinder 2e"
+      ],
+      "bio": "Keeper berpengalaman di BSD. Horor pelan-pelan yang bikin merinding, tanpa jump scare murahan.\n\nA BSD keeper who prefers slow-building dread over cheap scares."
+    },
+    {
+      "id": "m1fajar00",
+      "slug": "fajar-nugroho-103",
+      "name": "Fajar Nugroho",
+      "city": "Bekasi",
+      "whatsapp": "628110000012",
+      "discord": "fajar_dm",
+      "instagram": "",
+      "photoId": "",
+      "systems": [
+        "Dungeons & Dragons 5e 2014",
+        "Pathfinder 2e"
+      ],
+      "bio": "GM veteran dari Bekasi. Aku masih setia dengan aturan 5e 2014 dan suka dungeon klasik.\n\nA veteran GM from Bekasi, still happy with the 2014 rules and classic dungeons."
+    },
+    {
+      "id": "m1citra00",
+      "slug": "citra-maharani-104",
+      "name": "Citra Maharani",
+      "city": "Depok",
+      "whatsapp": "628110000013",
+      "discord": "citra.m",
+      "instagram": "citra.menggambar",
+      "photoId": "",
+      "systems": [
+        "Daggerheart",
+        "Dungeons & Dragons 5.5e 2024"
+      ],
+      "bio": "Ilustrator yang memandu game santai di Depok. Banyak adegan roleplay dan karakter yang hangat.\n\nAn illustrator running relaxed games in Depok, heavy on warm characters and roleplay."
+    },
+    {
+      "id": "m1reza000",
+      "slug": "reza-hakim-105",
+      "name": "Reza Hakim",
+      "city": "Jakarta",
+      "whatsapp": "628110000014",
+      "discord": "reza_hakim",
+      "instagram": "rezahakim.gm",
+      "photoId": "",
+      "systems": [
+        "Call of Cthulhu 7e",
+        "Dungeons & Dragons 5e 2014"
+      ],
+      "bio": "Penggemar investigasi dan misteri. Aku menulis skenario sendiri dan menjaga ritmenya tetap ketat.\n\nI love investigation and mystery, write my own scenarios and keep the pacing tight."
+    },
+    {
+      "id": "m1maya000",
+      "slug": "maya-sari-106",
+      "name": "Maya Sari",
+      "city": "Online only",
+      "whatsapp": "628110000015",
+      "discord": "maya_sari",
+      "instagram": "mayasari.plays",
+      "photoId": "",
+      "systems": [
+        "Pathfinder 2e",
+        "Daggerheart"
+      ],
+      "bio": "GM online untuk pemain dari berbagai kota. Sesi rapi, Foundry VTT, dan jadwal yang konsisten.\n\nAn online GM for players across cities: tidy sessions, Foundry VTT and a steady schedule."
+    },
+    {
+      "id": "m1dimas00",
+      "slug": "dimas-pratama-107",
+      "name": "Dimas Pratama",
+      "city": "Bogor",
+      "whatsapp": "628110000016",
+      "discord": "dimas.dm",
+      "instagram": "dimas.dm",
+      "photoId": "",
+      "systems": [
+        "Dungeons & Dragons 5.5e 2024",
+        "Dungeons & Dragons 5e 2014"
+      ],
+      "bio": "Memandu D&D di Bogor sejak 2018. Ramah untuk pemula, dan selalu ada camilan.\n\nRunning D&D in Bogor since 2018. Beginner friendly, and there are always snacks."
+    },
+    {
+      "id": "m1intan00",
+      "slug": "intan-permata-108",
+      "name": "Intan Permata",
+      "city": "Jakarta",
+      "whatsapp": "628110000017",
+      "discord": "intan_p",
+      "instagram": "intan.permata.rpg",
+      "photoId": "",
+      "systems": [
+        "Call of Cthulhu 7e",
+        "Daggerheart"
+      ],
+      "bio": "Suka horor dan fantasi yang manis. Aku memakai X-Card di setiap meja.\n\nI like horror and sweet fantasy, and I use an X-Card at every table."
+    }
+  ],
+  "games": [
+    {
+      "id": "g101kuilt",
+      "slug": "kuil-terkubur-di-lembah-abu-101",
+      "gmId": "m1satria0",
+      "title": "Kuil Terkubur di Lembah Abu",
+      "system": "Dungeons & Dragons 5.5e 2024",
+      "summary": "A buried temple, a cursed relic and a rival party. Classic dungeon fun.",
+      "description": "Sebuah kuil terkubur muncul setelah gempa, dan semua orang ingin harta di dalamnya. Dungeon klasik dengan jebakan, teka-teki, dan satu pesaing yang licik.\n\nA classic dungeon for levels 1 to 3 with traps, puzzles and one sneaky rival party. Pre-made characters provided.",
+      "format": "one_shot",
+      "locationType": "in_person",
+      "platform": "",
+      "city": "Jakarta",
+      "venueName": "Dice & Brew, Kemang",
+      "venueMapsUrl": "https://maps.app.goo.gl/QA01Devkuilte",
+      "startsAt": "2026-10-09T11:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-10T11:00:00.000Z",
+      "priceIdr": 50000,
+      "seats": 5,
+      "language": "both",
+      "level": "beginner",
+      "minAge": 13,
+      "contentWarnings": "Fantasy violence",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "high-fantasy"
+      ],
+      "styles": [
+        "dungeon-crawl",
+        "combat-heavy"
+      ],
+      "mechanics": [
+        "d20"
+      ],
+      "coverId": "local:/images/covers/gerbang-goblin.svg",
+      "listedAt": "2026-10-04T03:00:00.000Z"
+    },
+    {
+      "id": "g102pasar",
+      "slug": "pasar-gelap-kota-bandar-102",
+      "gmId": "m1dimas00",
+      "title": "Pasar Gelap Kota Bandar",
+      "system": "Dungeons & Dragons 5.5e 2024",
+      "summary": "Smuggling, favours and a heist in a harbour city's black market.",
+      "description": "Kalian pekerja baru di pasar gelap kota pelabuhan. Satu barang curian, tiga geng, dan satu malam untuk menyelesaikan semuanya.\n\nA social-heavy one-shot: negotiate with gangs, steal a relic and slip away before dawn.",
+      "format": "one_shot",
+      "locationType": "in_person",
+      "platform": "",
+      "city": "Bogor",
+      "venueName": "Kopi Tuan Rumah, Suryakencana",
+      "venueMapsUrl": "https://maps.app.goo.gl/QA02Devpasarg",
+      "startsAt": "2026-10-11T12:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-12T12:00:00.000Z",
+      "priceIdr": 40000,
+      "seats": 5,
+      "language": "id",
+      "level": "any",
+      "minAge": 15,
+      "contentWarnings": "Crime, mild violence",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "political-intrigue"
+      ],
+      "styles": [
+        "roleplay-heavy",
+        "rule-of-cool"
+      ],
+      "mechanics": [
+        "d20"
+      ],
+      "coverId": "local:/images/covers/kapal-hantu-kapten-jenaka.svg",
+      "listedAt": "2026-10-05T03:00:00.000Z"
+    },
+    {
+      "id": "g103waris",
+      "slug": "warisan-sang-penyihir-tua-103",
+      "gmId": "m1citra00",
+      "title": "Warisan Sang Penyihir Tua",
+      "system": "Dungeons & Dragons 5.5e 2024",
+      "summary": "A six-week campaign about an old wizard's strange inheritance.",
+      "description": "Penyihir tua meninggalkan sebuah menara, tiga kunci, dan surat wasiat yang aneh. Kampanye hangat dengan banyak roleplay.\n\nA warm campaign for new and returning players. Weekly sessions, characters built together in session zero.",
+      "format": "campaign",
+      "locationType": "in_person",
+      "platform": "",
+      "city": "Depok",
+      "venueName": "Kedai Buku Senja, Margonda",
+      "venueMapsUrl": "https://maps.app.goo.gl/QA03Devwarisa",
+      "startsAt": "2026-10-12T07:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "Setiap Sabtu, 14.00 sampai 17.00, selama 6 minggu.",
+      "expiresAt": "2026-11-11T07:00:00.000Z",
+      "priceIdr": 35000,
+      "seats": 5,
+      "language": "id",
+      "level": "beginner",
+      "minAge": 12,
+      "contentWarnings": "",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "heartwarming"
+      ],
+      "styles": [
+        "roleplay-heavy",
+        "narrative"
+      ],
+      "mechanics": [
+        "d20"
+      ],
+      "coverId": "local:/images/covers/pedang-dan-teh-di-lembah-awan.svg",
+      "listedAt": "2026-10-06T03:00:00.000Z"
+    },
+    {
+      "id": "g104turna",
+      "slug": "turnamen-arena-naga-104",
+      "gmId": "m1satria0",
+      "title": "Turnamen Arena Naga",
+      "system": "Dungeons & Dragons 5.5e 2024",
+      "summary": "Tactical arena battles with minis, terrain and a dragon finale.",
+      "description": "Pertarungan arena bertingkat dengan miniatur dan peta grid. Cocok untuk yang suka taktik dan build yang rapi.\n\nTactical encounters on a grid, optimised builds welcome. Level 5 characters provided or bring your own.",
+      "format": "one_shot",
+      "locationType": "online",
+      "platform": "Discord + Foundry VTT",
+      "city": "",
+      "venueName": "",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-14T13:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-15T13:00:00.000Z",
+      "priceIdr": 25000,
+      "seats": 6,
+      "language": "both",
+      "level": "experienced",
+      "minAge": 16,
+      "contentWarnings": "Fantasy violence",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "high-fantasy"
+      ],
+      "styles": [
+        "combat-heavy",
+        "tactical"
+      ],
+      "mechanics": [
+        "d20"
+      ],
+      "coverId": "local:/images/covers/mahkota-yang-terbelah.svg",
+      "listedAt": "2026-10-07T03:00:00.000Z"
+    },
+    {
+      "id": "g105hutan",
+      "slug": "hutan-yang-berbisik-105",
+      "gmId": "m1dimas00",
+      "title": "Hutan yang Berbisik",
+      "system": "Dungeons & Dragons 5.5e 2024",
+      "summary": "A family-friendly forest mystery with talking animals and riddles.",
+      "description": "Hutan di belakang desa mulai berbisik. Sesi ramah keluarga dengan teka-teki dan hewan yang bisa bicara.\n\nA gentle one-shot for kids and parents. Short rules explanation, no scary content.",
+      "format": "one_shot",
+      "locationType": "in_person",
+      "platform": "",
+      "city": "Depok",
+      "venueName": "Taman Baca Pohon Rindang",
+      "venueMapsUrl": "https://maps.app.goo.gl/QA05Devhutany",
+      "startsAt": "2026-10-16T03:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-17T03:00:00.000Z",
+      "priceIdr": 0,
+      "seats": 6,
+      "language": "id",
+      "level": "beginner",
+      "minAge": 8,
+      "contentWarnings": "",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "cozy"
+      ],
+      "styles": [
+        "roleplay-light",
+        "puzzle-mystery"
+      ],
+      "mechanics": [
+        "d20"
+      ],
+      "coverId": "local:/images/covers/naga-naga-hutan-bara-petualangan-pemula.svg",
+      "listedAt": "2026-10-03T03:00:00.000Z"
+    },
+    {
+      "id": "g106kapal",
+      "slug": "kapal-terbang-pencari-harta-106",
+      "gmId": "m1citra00",
+      "title": "Kapal Terbang Pencari Harta",
+      "system": "Dungeons & Dragons 5.5e 2024",
+      "summary": "Rule of cool on an airship hunting a legendary treasure map.",
+      "description": "Naik kapal terbang, kejar peta harta, dan buat aksi paling keren yang bisa kamu bayangkan.\n\nAn over-the-top airship adventure where the coolest idea at the table wins. Humor welcome.",
+      "format": "one_shot",
+      "locationType": "online",
+      "platform": "Discord + Foundry VTT",
+      "city": "",
+      "venueName": "",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-19T12:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-20T12:00:00.000Z",
+      "priceIdr": 30000,
+      "seats": 5,
+      "language": "both",
+      "level": "any",
+      "minAge": 12,
+      "contentWarnings": "Cartoon violence",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "wacky"
+      ],
+      "styles": [
+        "rule-of-cool",
+        "theater-of-mind",
+        "no-gen-ai"
+      ],
+      "mechanics": [
+        "d20"
+      ],
+      "coverId": "local:/images/covers/kapal-hantu-kapten-jenaka.svg",
+      "listedAt": "2026-10-04T03:00:00.000Z"
+    },
+    {
+      "id": "g107kasti",
+      "slug": "kastil-kabut-darah-107",
+      "gmId": "m1fajar00",
+      "title": "Kastil Kabut Darah",
+      "system": "Dungeons & Dragons 5e 2014",
+      "summary": "A gothic castle, a vampire lord and a storm that never ends.",
+      "description": "Badai menjebak kalian di kastil seorang bangsawan vampir. Horor gotik dengan aturan 5e 2014.\n\nGothic horror for levels 3 to 5. Dark atmosphere, strong roleplay, and one very polite vampire.",
+      "format": "one_shot",
+      "locationType": "in_person",
+      "platform": "",
+      "city": "Bekasi",
+      "venueName": "Warung Dadu, Summarecon",
+      "venueMapsUrl": "https://maps.app.goo.gl/QA07Devkastil",
+      "startsAt": "2026-10-10T12:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-11T12:00:00.000Z",
+      "priceIdr": 45000,
+      "seats": 5,
+      "language": "id",
+      "level": "any",
+      "minAge": 16,
+      "contentWarnings": "Blood, gothic horror",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "gothic-horror"
+      ],
+      "styles": [
+        "roleplay-heavy",
+        "theater-of-mind"
+      ],
+      "mechanics": [
+        "d20"
+      ],
+      "coverId": "local:/images/covers/darah-di-balik-tirai-beludru.svg",
+      "listedAt": "2026-10-05T03:00:00.000Z"
+    },
+    {
+      "id": "g108guana",
+      "slug": "gua-naga-merah-108",
+      "gmId": "m1reza000",
+      "title": "Gua Naga Merah",
+      "system": "Dungeons & Dragons 5e 2014",
+      "summary": "Seven brave fools enter a dragon's cave. How many come out?",
+      "description": "Dungeon pendek dan mematikan dengan naga merah di dasar gua. Karakter pra-buat disediakan.\n\nA deadly one-shot with a dragon at the bottom. Quick character creation, fast combat.",
+      "format": "one_shot",
+      "locationType": "online",
+      "platform": "Discord + Foundry VTT",
+      "city": "",
+      "venueName": "",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-13T13:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-14T13:00:00.000Z",
+      "priceIdr": 60000,
+      "seats": 7,
+      "language": "both",
+      "level": "experienced",
+      "minAge": 17,
+      "contentWarnings": "Character death",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "gritty-fantasy"
+      ],
+      "styles": [
+        "dungeon-crawl",
+        "combat-heavy"
+      ],
+      "mechanics": [
+        "d20"
+      ],
+      "coverId": "local:/images/covers/gerbang-goblin.svg",
+      "listedAt": "2026-10-06T03:00:00.000Z"
+    },
+    {
+      "id": "g109pasuk",
+      "slug": "pasukan-penjaga-gerbang-109",
+      "gmId": "m1fajar00",
+      "title": "Pasukan Penjaga Gerbang",
+      "system": "Dungeons & Dragons 5e 2014",
+      "summary": "A long campaign: defend a border town from the wilds.",
+      "description": "Kalian pasukan kecil di kota perbatasan. Kampanye panjang dengan pertempuran, politik kecil, dan banyak pilihan.\n\nA long-running sandbox campaign. Play at your own pace, drop in when you can.",
+      "format": "campaign",
+      "locationType": "in_person",
+      "platform": "",
+      "city": "Bekasi",
+      "venueName": "Kafe Rolling Dice, Harapan Indah",
+      "venueMapsUrl": "https://maps.app.goo.gl/QA09Devpasuka",
+      "startsAt": "2026-10-17T07:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "Setiap dua minggu, hari Minggu 13.00 sampai 17.00.",
+      "expiresAt": "2026-11-16T07:00:00.000Z",
+      "priceIdr": 30000,
+      "seats": 5,
+      "language": "id",
+      "level": "any",
+      "minAge": 14,
+      "contentWarnings": "",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "high-fantasy"
+      ],
+      "styles": [
+        "sandbox",
+        "west-marches"
+      ],
+      "mechanics": [
+        "d20"
+      ],
+      "coverId": "local:/images/covers/mahkota-yang-terbelah.svg",
+      "listedAt": "2026-10-07T03:00:00.000Z"
+    },
+    {
+      "id": "g110misip",
+      "slug": "misi-penyelamatan-putri-raja-110",
+      "gmId": "m1dimas00",
+      "title": "Misi Penyelamatan Putri Raja",
+      "system": "Dungeons & Dragons 5e 2014",
+      "summary": "A beginner-friendly rescue mission with a twist at the castle.",
+      "description": "Putri raja diculik, dan kalian satu-satunya harapan. Pengantar yang ramah untuk pemula.\n\nPerfect for first-timers: simple rules, a patient GM and a story that rewards curiosity.",
+      "format": "one_shot",
+      "locationType": "in_person",
+      "platform": "",
+      "city": "Bogor",
+      "venueName": "Board Game Cafe Kujang",
+      "venueMapsUrl": "https://maps.app.goo.gl/QA10Devmisipe",
+      "startsAt": "2026-10-20T06:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-21T06:00:00.000Z",
+      "priceIdr": 40000,
+      "seats": 5,
+      "language": "both",
+      "level": "beginner",
+      "minAge": 10,
+      "contentWarnings": "",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "heartwarming"
+      ],
+      "styles": [
+        "roleplay-light",
+        "rules-as-written"
+      ],
+      "mechanics": [
+        "d20"
+      ],
+      "coverId": "local:/images/covers/naga-naga-hutan-bara-petualangan-pemula.svg",
+      "listedAt": "2026-10-03T03:00:00.000Z"
+    },
+    {
+      "id": "g111lelan",
+      "slug": "lelang-benda-terkutuk-111",
+      "gmId": "m1reza000",
+      "title": "Lelang Benda Terkutuk",
+      "system": "Dungeons & Dragons 5e 2014",
+      "summary": "An auction of cursed items turns into a night of betrayals.",
+      "description": "Semua orang di lelang ini menyembunyikan sesuatu. Intrik, tawar-menawar, dan kutukan yang menggigit.\n\nA social one-shot of bidding, bluffing and cursed loot. Online with theatre-of-the-mind scenes.",
+      "format": "one_shot",
+      "locationType": "online",
+      "platform": "Discord + Foundry VTT",
+      "city": "",
+      "venueName": "",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-23T13:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-24T13:00:00.000Z",
+      "priceIdr": 0,
+      "seats": 5,
+      "language": "id",
+      "level": "any",
+      "minAge": 15,
+      "contentWarnings": "",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "political-intrigue"
+      ],
+      "styles": [
+        "roleplay-heavy",
+        "narrative"
+      ],
+      "mechanics": [
+        "d20"
+      ],
+      "coverId": "local:/images/covers/lonceng-di-rawa-hitam.svg",
+      "listedAt": "2026-10-04T03:00:00.000Z"
+    },
+    {
+      "id": "g112festi",
+      "slug": "festival-lentera-di-desa-pesisir-112",
+      "gmId": "m1citra00",
+      "title": "Festival Lentera di Desa Pesisir",
+      "system": "Daggerheart",
+      "summary": "A lantern festival, a lost spirit and a gentle seaside mystery.",
+      "description": "Desa pesisir merayakan festival lentera, tapi satu roh tersesat. Cerita hangat dengan banyak momen karakter.\n\nA cozy Daggerheart one-shot. Pre-made characters with simple cards, perfect as a first game.",
+      "format": "one_shot",
+      "locationType": "in_person",
+      "platform": "",
+      "city": "Depok",
+      "venueName": "Kedai Kopi Lentera",
+      "venueMapsUrl": "https://maps.app.goo.gl/QA12Devfestiv",
+      "startsAt": "2026-10-10T07:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-11T07:00:00.000Z",
+      "priceIdr": 40000,
+      "seats": 4,
+      "language": "id",
+      "level": "beginner",
+      "minAge": 12,
+      "contentWarnings": "",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "cozy"
+      ],
+      "styles": [
+        "roleplay-heavy",
+        "narrative"
+      ],
+      "mechanics": [],
+      "coverId": "local:/images/covers/panen-harapan.svg",
+      "listedAt": "2026-10-05T03:00:00.000Z"
+    },
+    {
+      "id": "g113bayan",
+      "slug": "bayangan-di-menara-kristal-113",
+      "gmId": "m1satria0",
+      "title": "Bayangan di Menara Kristal",
+      "system": "Daggerheart",
+      "summary": "Climb a crystal tower where every floor bends the rules.",
+      "description": "Setiap lantai menara kristal punya aturan anehnya sendiri. Aksi, teka-teki, dan pilihan sulit.\n\nA Daggerheart one-shot with moves that reward bold choices. Experience with Hope and Fear helps but is not needed.",
+      "format": "one_shot",
+      "locationType": "online",
+      "platform": "Discord + Foundry VTT",
+      "city": "",
+      "venueName": "",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-15T12:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-16T12:00:00.000Z",
+      "priceIdr": 35000,
+      "seats": 4,
+      "language": "both",
+      "level": "any",
+      "minAge": 13,
+      "contentWarnings": "",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "supernatural"
+      ],
+      "styles": [
+        "rule-of-cool",
+        "puzzle-mystery"
+      ],
+      "mechanics": [],
+      "coverId": "local:/images/covers/mahkota-yang-terbelah.svg",
+      "listedAt": "2026-10-06T03:00:00.000Z"
+    },
+    {
+      "id": "g114penge",
+      "slug": "pengembara-hutan-kunang-kunang-114",
+      "gmId": "m1maya000",
+      "title": "Pengembara Hutan Kunang-kunang",
+      "system": "Daggerheart",
+      "summary": "A wandering campaign through a forest of glowing creatures.",
+      "description": "Kampanye santai tentang para pengembara di hutan kunang-kunang. Satu sesi, satu cerita kecil.\n\nA slow, episodic campaign for relaxed players. Weekly, online, with Discord and a shared map.",
+      "format": "campaign",
+      "locationType": "online",
+      "platform": "Discord + Foundry VTT",
+      "city": "",
+      "venueName": "",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-18T12:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "Setiap Rabu malam, 19.00 sampai 22.00.",
+      "expiresAt": "2026-11-17T12:00:00.000Z",
+      "priceIdr": 25000,
+      "seats": 4,
+      "language": "id",
+      "level": "beginner",
+      "minAge": 12,
+      "contentWarnings": "",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "heartwarming"
+      ],
+      "styles": [
+        "roleplay-heavy",
+        "hexcrawl"
+      ],
+      "mechanics": [],
+      "coverId": "local:/images/covers/panen-harapan.svg",
+      "listedAt": "2026-10-07T03:00:00.000Z"
+    },
+    {
+      "id": "g115duelp",
+      "slug": "duel-para-bangsawan-115",
+      "gmId": "m1intan00",
+      "title": "Duel Para Bangsawan",
+      "system": "Daggerheart",
+      "summary": "A noble duel, a stolen crown and masked guests at a ball.",
+      "description": "Pesta topeng, mahkota yang hilang, dan duel yang tak bisa dihindari. Intrik ringan dengan banyak gaya.\n\nA stylish Daggerheart one-shot of masks, banter and swordplay.",
+      "format": "one_shot",
+      "locationType": "in_person",
+      "platform": "",
+      "city": "Jakarta",
+      "venueName": "Teater Kecil, Cikini",
+      "venueMapsUrl": "https://maps.app.goo.gl/QA15Devduelpa",
+      "startsAt": "2026-10-22T12:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-23T12:00:00.000Z",
+      "priceIdr": 50000,
+      "seats": 4,
+      "language": "both",
+      "level": "any",
+      "minAge": 14,
+      "contentWarnings": "",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "romance"
+      ],
+      "styles": [
+        "roleplay-heavy",
+        "rule-of-cool"
+      ],
+      "mechanics": [],
+      "coverId": "local:/images/covers/pedang-dan-teh-di-lembah-awan.svg",
+      "listedAt": "2026-10-03T03:00:00.000Z"
+    },
+    {
+      "id": "g116miste",
+      "slug": "misteri-perpustakaan-terapung-116",
+      "gmId": "m1maya000",
+      "title": "Misteri Perpustakaan Terapung",
+      "system": "Daggerheart",
+      "summary": "A floating library hides a book that reads its readers.",
+      "description": "Perpustakaan terapung menyimpan buku yang membaca pembacanya. Misteri halus dengan suasana tenang.\n\nA mystery one-shot with soft magic and no combat. Great for newcomers to the Daggerheart system.",
+      "format": "one_shot",
+      "locationType": "online",
+      "platform": "Discord + Foundry VTT",
+      "city": "",
+      "venueName": "",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-25T13:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-26T13:00:00.000Z",
+      "priceIdr": 0,
+      "seats": 5,
+      "language": "en",
+      "level": "beginner",
+      "minAge": 12,
+      "contentWarnings": "",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "mystery"
+      ],
+      "styles": [
+        "puzzle-mystery",
+        "combat-light"
+      ],
+      "mechanics": [],
+      "coverId": "local:/images/covers/mercusuar-di-pulau-kabut.svg",
+      "listedAt": "2026-10-04T03:00:00.000Z"
+    },
+    {
+      "id": "g117kotad",
+      "slug": "kota-di-atas-awan-117",
+      "gmId": "m1maya000",
+      "title": "Kota di Atas Awan",
+      "system": "Pathfinder 2e",
+      "summary": "A weekly campaign in a city built on sky-ships and old magic.",
+      "description": "Kampanye mingguan di kota yang dibangun di atas kapal langit. Aturan Pathfinder 2e dipakai penuh dengan Foundry VTT.\n\nA weekly online campaign with full Pathfinder 2e tactics. Level 1 start, characters built in session zero.",
+      "format": "campaign",
+      "locationType": "online",
+      "platform": "Discord + Foundry VTT",
+      "city": "",
+      "venueName": "",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-08T12:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "Setiap Kamis malam, 19.30 sampai 22.30, tanpa tanggal akhir.",
+      "expiresAt": "2026-11-07T12:00:00.000Z",
+      "priceIdr": 20000,
+      "seats": 5,
+      "language": "both",
+      "level": "any",
+      "minAge": 15,
+      "contentWarnings": "",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "high-fantasy"
+      ],
+      "styles": [
+        "tactical",
+        "roleplay-heavy"
+      ],
+      "mechanics": [
+        "d20"
+      ],
+      "coverId": "local:/images/covers/abomination-vaults.svg",
+      "listedAt": "2026-10-05T03:00:00.000Z"
+    },
+    {
+      "id": "g118bandi",
+      "slug": "bandit-jalur-sutra-118",
+      "gmId": "m1fajar00",
+      "title": "Bandit Jalur Sutra",
+      "system": "Pathfinder 2e",
+      "summary": "Escort a caravan through bandit country. Every choice costs something.",
+      "description": "Kawal karavan melewati wilayah bandit. Pertarungan taktis dan pilihan yang punya konsekuensi.\n\nA tactical Pathfinder 2e one-shot, level 3 characters provided.",
+      "format": "one_shot",
+      "locationType": "online",
+      "platform": "Discord + Foundry VTT",
+      "city": "",
+      "venueName": "",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-11T13:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-12T13:00:00.000Z",
+      "priceIdr": 25000,
+      "seats": 5,
+      "language": "id",
+      "level": "experienced",
+      "minAge": 16,
+      "contentWarnings": "Violence",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "gritty-fantasy"
+      ],
+      "styles": [
+        "tactical",
+        "combat-heavy"
+      ],
+      "mechanics": [
+        "d20"
+      ],
+      "coverId": "local:/images/covers/gerbang-goblin.svg",
+      "listedAt": "2026-10-06T03:00:00.000Z"
+    },
+    {
+      "id": "g119rerun",
+      "slug": "reruntuhan-kerajaan-tenggelam-119",
+      "gmId": "m1ayu0000",
+      "title": "Reruntuhan Kerajaan Tenggelam",
+      "system": "Pathfinder 2e",
+      "summary": "Dive into a sunken kingdom full of traps, treasure and old ghosts.",
+      "description": "Kerajaan yang tenggelam muncul kembali saat air surut. Penjelajahan dungeon dengan atmosfer murung.\n\nAn exploration-heavy dungeon crawl with ghosts and traps. New players welcome.",
+      "format": "one_shot",
+      "locationType": "in_person",
+      "platform": "",
+      "city": "Tangerang Selatan",
+      "venueName": "Meja Kita Game Cafe, BSD",
+      "venueMapsUrl": "https://maps.app.goo.gl/QA19Devrerunt",
+      "startsAt": "2026-10-16T07:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-17T07:00:00.000Z",
+      "priceIdr": 45000,
+      "seats": 5,
+      "language": "both",
+      "level": "beginner",
+      "minAge": 13,
+      "contentWarnings": "",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "supernatural"
+      ],
+      "styles": [
+        "dungeon-crawl",
+        "puzzle-mystery"
+      ],
+      "mechanics": [
+        "d20"
+      ],
+      "coverId": "local:/images/covers/lonceng-di-rawa-hitam.svg",
+      "listedAt": "2026-10-07T03:00:00.000Z"
+    },
+    {
+      "id": "g120rapat",
+      "slug": "rapat-dewan-goblin-120",
+      "gmId": "m1maya000",
+      "title": "Rapat Dewan Goblin",
+      "system": "Pathfinder 2e",
+      "summary": "A comic goblin council where the players are the entertainment.",
+      "description": "Dewan goblin mengundang kalian ke rapat penting, dan semuanya berantakan. Komedi dengan sedikit aksi.\n\nA light comedy one-shot. Rules are explained as we go. No experience needed.",
+      "format": "one_shot",
+      "locationType": "online",
+      "platform": "Discord + Foundry VTT",
+      "city": "",
+      "venueName": "",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-21T12:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-22T12:00:00.000Z",
+      "priceIdr": 0,
+      "seats": 6,
+      "language": "id",
+      "level": "beginner",
+      "minAge": 10,
+      "contentWarnings": "",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "comedy"
+      ],
+      "styles": [
+        "roleplay-light",
+        "rule-of-cool"
+      ],
+      "mechanics": [
+        "d20"
+      ],
+      "coverId": "local:/images/covers/gerbang-goblin.svg",
+      "listedAt": "2026-10-03T03:00:00.000Z"
+    },
+    {
+      "id": "g121perbu",
+      "slug": "perburuan-naga-es-121",
+      "gmId": "m1fajar00",
+      "title": "Perburuan Naga Es",
+      "system": "Pathfinder 2e",
+      "summary": "A frozen mountain, an ancient dragon and a clock that is running out.",
+      "description": "Kalian punya tiga hari sebelum badai salju menutup gunung. Pertarungan besar dan banyak keputusan.\n\nA high-level boss hunt with a time limit. Optimised parties encouraged.",
+      "format": "one_shot",
+      "locationType": "online",
+      "platform": "Discord + Foundry VTT",
+      "city": "",
+      "venueName": "",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-27T13:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-28T13:00:00.000Z",
+      "priceIdr": 55000,
+      "seats": 5,
+      "language": "both",
+      "level": "experienced",
+      "minAge": 16,
+      "contentWarnings": "Violence",
+      "safetyTools": "X-Card",
+      "genres": [
+        "fantasy",
+        "high-fantasy"
+      ],
+      "styles": [
+        "combat-heavy",
+        "tactical"
+      ],
+      "mechanics": [
+        "d20"
+      ],
+      "coverId": "local:/images/covers/mahkota-yang-terbelah.svg",
+      "listedAt": "2026-10-04T03:00:00.000Z"
+    },
+    {
+      "id": "g122surat",
+      "slug": "surat-dari-rumah-sakit-tua-122",
+      "gmId": "m1ayu0000",
+      "title": "Surat dari Rumah Sakit Tua",
+      "system": "Call of Cthulhu 7e",
+      "summary": "A letter from a closed hospital and a patient who never left.",
+      "description": "Kalian menerima surat dari rumah sakit yang sudah tutup puluhan tahun. Investigasi lambat dengan horor psikologis.\n\nA slow-burn investigation for 3 to 5 players. Pre-generated investigators, no prior knowledge needed.",
+      "format": "one_shot",
+      "locationType": "in_person",
+      "platform": "",
+      "city": "Tangerang Selatan",
+      "venueName": "Ruang Cerita, BSD",
+      "venueMapsUrl": "https://maps.app.goo.gl/QA22Devsuratd",
+      "startsAt": "2026-10-12T13:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-13T13:00:00.000Z",
+      "priceIdr": 70000,
+      "seats": 5,
+      "language": "id",
+      "level": "beginner",
+      "minAge": 17,
+      "contentWarnings": "Psychological horror, medical themes",
+      "safetyTools": "X-Card",
+      "genres": [
+        "horror",
+        "mystery"
+      ],
+      "styles": [
+        "roleplay-heavy",
+        "puzzle-mystery"
+      ],
+      "mechanics": [
+        "d100",
+        "brp"
+      ],
+      "coverId": "local:/images/covers/mercusuar-di-pulau-kabut.svg",
+      "listedAt": "2026-10-05T03:00:00.000Z"
+    },
+    {
+      "id": "g123pamer",
+      "slug": "pameran-lukisan-berdarah-123",
+      "gmId": "m1reza000",
+      "title": "Pameran Lukisan Berdarah",
+      "system": "Call of Cthulhu 7e",
+      "summary": "A gallery opening, a missing painter and a canvas that watches you.",
+      "description": "Pembukaan pameran seni berubah menjadi misteri ketika sang pelukis menghilang. Horor investigasi yang elegan.\n\nA tight investigation with strong roleplay. Dark but not gory. Lines and Veils at the start.",
+      "format": "one_shot",
+      "locationType": "in_person",
+      "platform": "",
+      "city": "Jakarta",
+      "venueName": "Galeri Kopi Tengah, Menteng",
+      "venueMapsUrl": "https://maps.app.goo.gl/QA23Devpamera",
+      "startsAt": "2026-10-14T12:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-15T12:00:00.000Z",
+      "priceIdr": 80000,
+      "seats": 5,
+      "language": "both",
+      "level": "any",
+      "minAge": 16,
+      "contentWarnings": "Body horror, obsession",
+      "safetyTools": "Lines & Veils, X-Card",
+      "genres": [
+        "horror",
+        "eldritch-horror"
+      ],
+      "styles": [
+        "roleplay-heavy",
+        "puzzle-mystery"
+      ],
+      "mechanics": [
+        "d100",
+        "brp"
+      ],
+      "coverId": "local:/images/covers/kultus-di-bawah-menara-air.svg",
+      "listedAt": "2026-10-06T03:00:00.000Z"
+    },
+    {
+      "id": "g124keret",
+      "slug": "kereta-malam-terakhir-124",
+      "gmId": "m1intan00",
+      "title": "Kereta Malam Terakhir",
+      "system": "Call of Cthulhu 7e",
+      "summary": "The last night train carries one passenger too many.",
+      "description": "Kereta malam terakhir membawa satu penumpang lebih banyak dari tiket yang terjual. Misteri tertutup dalam satu gerbong.\n\nA closed-circle mystery set on a night train. Quick character creation, lots of talking.",
+      "format": "one_shot",
+      "locationType": "online",
+      "platform": "Discord + Foundry VTT",
+      "city": "",
+      "venueName": "",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-17T14:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-18T14:00:00.000Z",
+      "priceIdr": 30000,
+      "seats": 5,
+      "language": "id",
+      "level": "any",
+      "minAge": 16,
+      "contentWarnings": "Mild horror",
+      "safetyTools": "X-Card",
+      "genres": [
+        "horror",
+        "mystery"
+      ],
+      "styles": [
+        "theater-of-mind",
+        "puzzle-mystery"
+      ],
+      "mechanics": [
+        "d100",
+        "brp"
+      ],
+      "coverId": "local:/images/covers/mercusuar-di-pulau-kabut.svg",
+      "listedAt": "2026-10-07T03:00:00.000Z"
+    },
+    {
+      "id": "g125perpu",
+      "slug": "perpustakaan-kampus-setelah-tengah-malam-125",
+      "gmId": "m1ayu0000",
+      "title": "Perpustakaan Kampus Setelah Tengah Malam",
+      "system": "Call of Cthulhu 7e",
+      "summary": "Four students locked in a library with something that borrows books.",
+      "description": "Empat mahasiswa terkunci di perpustakaan kampus saat ujian. Sesuatu meminjam buku, dan tidak pernah mengembalikannya.\n\nA modern-day one-shot for experienced players, with clue-hunting and creeping dread.",
+      "format": "one_shot",
+      "locationType": "online",
+      "platform": "Discord + Foundry VTT",
+      "city": "",
+      "venueName": "",
+      "venueMapsUrl": "",
+      "startsAt": "2026-10-24T14:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-25T14:00:00.000Z",
+      "priceIdr": 25000,
+      "seats": 4,
+      "language": "both",
+      "level": "experienced",
+      "minAge": 17,
+      "contentWarnings": "Horror, isolation",
+      "safetyTools": "X-Card",
+      "genres": [
+        "horror",
+        "supernatural"
+      ],
+      "styles": [
+        "roleplay-heavy",
+        "no-gen-ai"
+      ],
+      "mechanics": [
+        "d100",
+        "brp"
+      ],
+      "coverId": "local:/images/covers/lonceng-di-rawa-hitam.svg",
+      "listedAt": "2026-10-03T03:00:00.000Z"
+    },
+    {
+      "id": "g126hotel",
+      "slug": "hotel-tanpa-kamar-nomor-tiga-belas-126",
+      "gmId": "m1intan00",
+      "title": "Hotel Tanpa Kamar Nomor Tiga Belas",
+      "system": "Call of Cthulhu 7e",
+      "summary": "A hotel without a room 13 and one guest who insists on staying there.",
+      "description": "Hotel itu tidak punya kamar nomor tiga belas, tapi seorang tamu memaksa menginap di sana. Horor atmosferik di Jakarta lama.\n\nA mood-heavy one-shot. Pre-made investigators, dim lights and a good playlist.",
+      "format": "one_shot",
+      "locationType": "in_person",
+      "platform": "",
+      "city": "Jakarta",
+      "venueName": "Hotel Lama Menteng",
+      "venueMapsUrl": "https://maps.app.goo.gl/QA26Devhotelt",
+      "startsAt": "2026-10-29T12:00:00.000Z",
+      "zone": "WIB",
+      "scheduleNote": "",
+      "expiresAt": "2026-10-30T12:00:00.000Z",
+      "priceIdr": 90000,
+      "seats": 5,
+      "language": "id",
+      "level": "any",
+      "minAge": 17,
+      "contentWarnings": "Horror, death",
+      "safetyTools": "X-Card",
+      "genres": [
+        "horror",
+        "gothic-horror"
+      ],
+      "styles": [
+        "roleplay-heavy",
+        "puzzle-mystery"
+      ],
+      "mechanics": [
+        "d100",
+        "brp"
+      ],
+      "coverId": "local:/images/covers/kultus-di-bawah-menara-air.svg",
+      "listedAt": "2026-10-04T03:00:00.000Z"
+    }
+  ]
+}

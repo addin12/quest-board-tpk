@@ -51,7 +51,7 @@ You need **Node.js 22.13 or later**.
 
 ```bash
 npm install
-npm run dev          # http://localhost:3000/en/  (10 demo games, 4 demo GMs)
+npm run dev          # http://localhost:3000/en/  (44 demo games, 12 demo GMs: data/sample.json plus data/sample-more.json)
 ```
 
 ```bash

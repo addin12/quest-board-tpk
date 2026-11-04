@@ -376,3 +376,17 @@ test("every style and mechanic has a label and a short description in both langu
     }
   }
 });
+
+test("the extra dummy data of the dev site (data/sample-more.json) is valid and adds the five systems", () => {
+  const more = JSON.parse(readFileSync(new URL("../../data/sample-more.json", import.meta.url), "utf8"));
+  const { data, warnings } = parsePublicData({ ...sample, gms: [...sample.gms, ...more.gms], games: [...sample.games, ...more.games] });
+  assert.deepEqual(warnings, [], "nothing in it is dropped");
+  assert.equal(data.games.length, sample.games.length + more.games.length);
+  assert.equal(data.gms.length, sample.gms.length + more.gms.length);
+  const bySystem = (name: string) => more.games.filter((g: { system: string }) => g.system === name).length;
+  for (const name of ["Dungeons & Dragons 5.5e 2024", "Dungeons & Dragons 5e 2014", "Daggerheart", "Pathfinder 2e", "Call of Cthulhu 7e"]) {
+    assert.ok((SYSTEMS as readonly string[]).includes(name), `${name} is a known game system`);
+    assert.ok(bySystem(name) >= 5, `${name} has at least five extra games`);
+  }
+  assert.ok(more.games.every((g: { summary: string }) => g.summary.length <= SUMMARY_MAX), "every summary fits a card");
+});

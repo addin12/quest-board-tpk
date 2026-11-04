@@ -5,7 +5,7 @@
   "description": "Quest Board for The Pandemonium Kollektive: a free listing board for tabletop RPG games. GMs sign in with their email and list games, an admin curates, players contact the GM directly.",
   "scripts": {
     "data": "node scripts/build-data.mjs",
-    "dev": "node scripts/build-data.mjs && next dev",
+    "dev": "node scripts/build-data.mjs --more && next dev",
     "build": "node scripts/build-data.mjs && next build && node scripts/fix-export.mjs",
     "preview": "node scripts/preview.mjs",
     "typecheck": "node scripts/build-data.mjs && next typegen && tsc --noEmit",
