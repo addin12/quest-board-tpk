@@ -1,0 +1,29 @@
+name: Uptime
+
+# Pings the live site every 15 minutes. A failed run makes GitHub email the repository owner, which is the alert: there is no other
+# monitor. Scheduled runs are best effort (GitHub may delay them) and GitHub switches a schedule off after 60 days without any
+# activity in the repository, so a long quiet spell means re-enabling it under Actions. docs/runbook.md says the same.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Home page answers
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --retry 3 --retry-delay 10 --retry-all-errors --max-time 20 https://quest-board-tpk.pages.dev/en/)
+          echo "home page: $code"
+          test "$code" = "200"
+      - name: Backend and database answer
+        # A picture key that cannot exist must come back as a clean JSON 404: that takes the backend and a D1 lookup. A 5xx or a timeout means one is down.
+        run: |
+          out=$(curl -s -w '\n%{http_code}' --retry 3 --retry-delay 10 --retry-all-errors --max-time 20 https://quest-board-tpk.pages.dev/api/img/covers/aaaaaaaa00000000.webp)
+          echo "$out" | tail -2
+          test "$(echo "$out" | tail -1)" = "404"
+          echo "$out" | head -1 | grep -q '"not_found"'

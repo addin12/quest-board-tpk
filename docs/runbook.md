@@ -17,7 +17,7 @@ together is [architecture.md](architecture.md); the API and data are [backend.md
 | A look inside | `GET /api/health` with `Authorization: Bearer <build key>` | counts, last backup, last mail success and failure |
 
 Everything runs on free plans. A change goes live in 1 to 4 minutes, with nobody pressing a button: the backend asks Pages to rebuild at most once every 30 seconds
-(the 10-minute tick sends a waiting one), and the Worker forces one build a day so ended listings leave. Cloudflare's free plan allows
+(the one-minute tick sends a waiting one), and the Worker forces one build a day so ended listings leave. Cloudflare's free plan allows
 500 builds a month.
 
 The build key and the other secrets are in `.cloudflare.local.json` (git-ignored, on the owner's computer) and in the Pages project's
@@ -126,6 +126,8 @@ in, the account pages, the admin page and builds need `/api`.
 | An email "no backup for N hours" or "the daily backup failed" | the timer or the backup is broken (at most one a day) |
 | The Worker `quest-board-cron` error count in the dashboard | a tick or daily call failed |
 | `GET /api/health` with `Authorization: Bearer <build key>` | counts, `lastBackupAt`, `backupError`, `lastMailOkAt`, `lastMailError` (no personal data) |
+| GitHub *Uptime* workflow (every 15 minutes, `.github/workflows/uptime.yml`) | the home page or the backend and database stopped answering: a failed run emails the repository owner. Best effort, so an outage under about 15 minutes may pass unseen. GitHub switches a schedule off after 60 days without any repository activity: re-enable it under Actions if that ever happens |
+| A review notice by email ("To review: …", sent to the owner and each admin) | a Game Master submitted or changed something; at most one per account an hour and 20 a day in all |
 | GitHub CI on every push | the code breaks something |
 | Dependabot (weekly) | outdated dependencies; its eslint major is ignored on purpose |
 

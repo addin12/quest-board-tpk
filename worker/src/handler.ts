@@ -12,7 +12,7 @@ import { backup } from "./backup.ts";
 import { recordingMailer } from "./email.ts";
 import { expireInactive } from "./retention.ts";
 import { allow, iso, logEvent, metaGet, metaSet, pruneRateEvents, safeEqual } from "./util.ts";
-import { tellOwner, watchBackup } from "./watch.ts";
+import { notifyReviewers, tellOwner, watchBackup } from "./watch.ts";
 import { one } from "./db.ts";
 
 /** The same context with a mailer that records whether mail last worked (shown by /api/health). */
@@ -173,7 +173,7 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
     if (!parsed.ok) return err(422, "invalid", { fields: parsed.errors });
     if (!(await allow(ctx.db, `submit:${session.accountId}`, 30, 3_600_000, ctx.now()))) return err(429, "rate_limited");
     const r = await saveProfile(ctx, session, parsed.value);
-    if (r.changed) publish();
+    if (r.changed) { publish(); after(notifyReviewers(ctx, session.accountId, "gm", parsed.value.name)); }
     const { dropped, ...answer } = r;
     dropFiles(after, env, dropped);
     return json(200, { ok: true, ...answer });
@@ -224,7 +224,7 @@ async function writeGame(request: Request, env: Env, session: Session, id: strin
   if (!(await allow(ctx.db, `submit:${session.accountId}`, 30, 3_600_000, ctx.now()))) return err(429, "rate_limited");
   const r = await saveGame(ctx, session, id, parsed.value);
   if (!r.ok) return err(r.error === "no_profile" || r.error === "too_many" ? 409 : 404, r.error);
-  if (r.changed) publish();
+  if (r.changed) { publish(); after(notifyReviewers(ctx, session.accountId, "game", parsed.value.title)); }
   dropFiles(after, env, r.dropped);
   return json(id === null ? 201 : 200, { ok: true, id: r.id, status: r.status, changed: r.changed });
 }

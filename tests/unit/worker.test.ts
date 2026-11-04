@@ -453,3 +453,47 @@ test("an account nobody signs in to is warned after two years and erased a month
   await daily(w.env);
   assert.equal(accountsOf(OWNER), 1, "the owner never expires");
 });
+
+test("a new or changed submission emails the owner and the admins once an hour, without the person's details", async () => {
+  const w = makeWorld();
+  const owner = await w.signIn(OWNER);
+  await w.call("POST", "/admin", { cookie: owner, body: { action: "admin.add", email: "helper@example.com" } });
+  const gm = await w.signIn("raka@example.com");
+  const notices = () => w.mails.filter((m) => /^To review:/.test(m.subject));
+
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  assert.deepEqual(notices().map((m) => m.to).sort(), ["helper@example.com", OWNER].sort(), "the owner and each admin, not the GM");
+  assert.match(notices()[0]!.subject, /To review: Raka Pratama \/ Untuk ditinjau: Raka Pratama/);
+  assert.match(notices()[0]!.body, /board\.example\/en\/admin\//);
+  assert.ok(!notices().some((m) => /raka@example\.com|6281234567890|raka_gm/.test(m.subject + m.body)), "no email address, phone or handle in the notice");
+
+  const id = (await w.call("POST", "/games", { cookie: gm, body: GAME })).json.id as string;
+  assert.equal(notices().length, 2, "a second save within the hour is not a second notice");
+  w.clock.ms += 3_600_000 + 1000;
+  await w.call("PUT", `/games/${id}`, { cookie: gm, body: { ...GAME, title: "Mercusuar Dua" } });
+  assert.equal(notices().length, 4, "an hour later it is announced again");
+  await w.call("PUT", `/games/${id}`, { cookie: gm, body: { ...GAME, title: "Mercusuar Dua" } });
+  assert.equal(notices().length, 4, "saving the same thing again changes nothing, so no notice");
+});
+
+test("review notices have a daily cap, and a failing mail relay never breaks a save", async () => {
+  const { NOTICES_PER_DAY } = await import("../../worker/src/watch.ts");
+  const w = makeWorld();
+  const cookies: string[] = [];
+  for (let i = 0; i < NOTICES_PER_DAY + 3; i++) {
+    if (i % 10 === 9) w.clock.ms += 3_600_000; // sign-ins are limited to 20 an hour per address
+    cookies.push(await w.signIn(`gm${i}@example.com`));
+  }
+  const before = w.mails.filter((m) => /^To review:/.test(m.subject)).length;
+  for (const [i, cookie] of cookies.entries()) {
+    assert.equal((await w.call("PUT", "/profile", { cookie, body: { ...PROFILE, name: `Person ${i}`, whatsapp: `08123000${String(i).padStart(4, "0")}` } })).status, 200);
+  }
+  assert.equal(w.mails.filter((m) => /^To review:/.test(m.subject)).length - before, NOTICES_PER_DAY, "one notice each (the owner is the only reviewer), then the daily cap");
+
+  const fresh = makeWorld();
+  const gm = await fresh.signIn("raka@example.com");
+  fresh.env.ctx.mailer = { send: async () => { throw new Error("relay down"); } };
+  const saved = await fresh.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  assert.equal(saved.status, 200);
+  assert.equal(saved.json.status, "pending", "the save went through although the notice could not be sent");
+});

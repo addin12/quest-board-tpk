@@ -98,6 +98,33 @@ export function decisionMail(to: string, status: "approved" | "rejected", kind: 
   };
 }
 
+/** Tells a reviewer that something is waiting. Only the kind and the title: nothing about the person (the admin page has that). */
+export function reviewNoticeMail(to: string, kind: "game" | "gm", title: string, siteUrl: string): Mail {
+  const t = clip(title, 120);
+  const page = `${siteUrl.replace(/\/$/, "")}/en/admin/`;
+  return {
+    to,
+    subject: `To review: ${t} / Untuk ditinjau: ${t}`,
+    body:
+      `Hi,
+
+A ${kind === "game" ? "game" : "Game Master profile"} is waiting for review: “${t}”.
+${page}
+
+${SIGN}
+
+* * *
+
+` +
+      `Halo,
+
+${kind === "game" ? "Sebuah game" : "Sebuah profil Game Master"} menunggu ditinjau: “${t}”.
+${page}
+
+${SIGN}`,
+  };
+}
+
 /** Sent to the owner of an account when an admin links another sign-in address to it, so an unexpected merge is noticed. */
 export function mergeNoticeMail(to: string, linked: string): Mail {
   return {

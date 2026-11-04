@@ -1,7 +1,11 @@
 // Tells the owner when the system has gone quiet. Nothing here can fix anything; it only makes a failure visible by email and in
 // /api/health. If the mail relay itself is the thing that broke, the email cannot be sent: the failure is still in /api/health.
-import type { Ctx } from "./auth.ts";
-import { DAY_MS, iso, metaGet, metaSet } from "./util.ts";
+import { listAdmins, type Ctx } from "./auth.ts";
+import { reviewNoticeMail } from "./email.ts";
+import { DAY_MS, allow, iso, metaGet, metaSet } from "./util.ts";
+
+/** Review notices a day across everyone. They share the relay's 90 mails a day with sign-ins (60 at most) and decisions, so this stays small. */
+export const NOTICES_PER_DAY = 20;
 
 /** The daily job should leave a backup every 24 hours; this much silence means the timer or the backup is broken. */
 export const BACKUP_STALE_MS = 36 * 3_600_000;
@@ -12,6 +16,21 @@ export async function tellOwner(ctx: Ctx, subject: string, body: string): Promis
     await ctx.mailer.send({ to: ctx.owner, subject, body });
   } catch {
     // already recorded by the recording mailer
+  }
+}
+
+/**
+ * Emails the owner and the admins that a submission is waiting, so a Game Master is not left waiting for someone to open the admin page.
+ * At most one notice an hour per account (a GM saving many times is one notice) and NOTICES_PER_DAY in all. Best effort: a failure here never
+ * touches the save that raised it.
+ */
+export async function notifyReviewers(ctx: Ctx, accountId: string, kind: "game" | "gm", title: string): Promise<void> {
+  try {
+    if (!(await allow(ctx.db, `notice:acct:${accountId}`, 1, 3_600_000, ctx.now())) || !(await allow(ctx.db, "notice:all", NOTICES_PER_DAY, DAY_MS, ctx.now()))) return;
+    const to = [...new Set([ctx.owner, ...(await listAdmins(ctx)).map((a) => a.email)])];
+    for (const address of to) await ctx.mailer.send(reviewNoticeMail(address, kind, title, ctx.siteUrl)).catch(() => undefined);
+  } catch {
+    // never break a save
   }
 }
 
