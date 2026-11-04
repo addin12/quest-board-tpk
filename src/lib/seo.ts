@@ -64,7 +64,7 @@ export function websiteJsonLd(lang: Lang, description: string): object[] {
       description,
       potentialAction: { "@type": "SearchAction", target: `${SITE_URL}/${lang}/games/?q={search_term_string}`, "query-input": "required name=search_term_string" },
     },
-    { "@context": "https://schema.org", "@type": "Organization", name: "The Pandemonium Kollektive", url: SITE_URL, areaServed: "ID" },
+    { "@context": "https://schema.org", "@type": "Organization", name: "Quest Board", url: SITE_URL, areaServed: "ID" },
   ];
 }
 

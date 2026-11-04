@@ -81,7 +81,7 @@ The five motions (R-19: each has a UX purpose, written here):
 - **The tavern stays at four touches and a typeface** (oak strip, double rule, a nail on each card, a rank numeral on the system tiles, Garamond). It is deliberately quiet after three heavier directions were rejected. Turning it up later means adding one touch at a time, each with a reason in the table above.
 - **Play styles and mechanics are optional and collapsed** in the GM's listing form (genres stay open): they are long and most GMs will skip them.
 
-- **The product is "Quest Board"** everywhere people read it (header, titles, emails, share text); TPK is the community behind it, named on the How it works page and in the footer line.
+- **The product is "Quest Board"** everywhere people read it (header, titles, emails and their signature, share text, structured data). No page names the community behind it (The Pandemonium Kollektive, TPK): the copy speaks of "Game Masters" and "the admins".
 - **The games list is paged, nine to a page.** The pager is numbered rounded rectangles (the current page filled with the accent), 48 px high; more than 7 pages show the first, the last and the neighbours of the current page with "…".
 
 - **The header stays in view** (sticky, paper-coloured) on every page, so the language, the theme and the way back are always one tap away on the long pages; on a phone it slides away while reading downwards.

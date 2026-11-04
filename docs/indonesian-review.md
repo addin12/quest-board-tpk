@@ -12,7 +12,15 @@ The Indonesian text written since 2026-10-29 (63 strings: 56 new, 8 changed). Th
 | `theme.toLight` | Switch to light mode | Ganti ke mode terang | |
 | `theme.darkShort` | Dark | Gelap | |
 | `theme.lightShort` | Light | Terang | |
-| `how.lead` | Quest Board is a free noticeboard run by The Pandemonium Kollektive. It lists games. It does not take bookings or payments. | Quest Board adalah papan pengumuman gratis yang dijalankan The Pandemonium Kollektive. Isinya daftar game. Tidak ada booking atau pembayaran. | |
+| `meta.title` | Quest Board · Tabletop RPG games in Jabodetabek | Quest Board · Game tabletop RPG di Jabodetabek | |
+| `meta.description` | Find tabletop RPG games run by Game Masters, online and in Jabodetabek. Browse, then message the GM directly. | Temukan game tabletop RPG yang dijalankan para Game Master, online maupun di Jabodetabek. Lihat-lihat, lalu hubungi GM-nya langsung. | |
+| `footer.tagline` | A free community board for tabletop RPG games. | Papan komunitas gratis untuk game tabletop RPG. | |
+| `home.lead` | Browse tabletop RPG games from Game Masters in Jabodetabek and online. Found a table you like? Message the Game Master directly. | Jelajahi game tabletop RPG dari para Game Master di Jabodetabek dan online. Ketemu meja yang cocok? Hubungi Game Master-nya langsung. | |
+| `gm.lead` | Every Game Master here was approved by the Quest Board admins. | Semua Game Master di sini sudah disetujui admin Quest Board. | |
+| `how.lead` | Quest Board is a free noticeboard for tabletop RPG games. It lists games. It does not take bookings or payments. | Quest Board adalah papan pengumuman gratis untuk game tabletop RPG. Isinya daftar game. Tidak ada booking atau pembayaran. | |
+| `how.g3` | An admin checks your submission. You get an email when it is approved, or if something needs changing. | Admin memeriksa kirimanmu. Kamu mendapat email saat disetujui, atau kalau ada yang perlu diubah. | |
+| `how.aboutTitle` | About Quest Board | Tentang Quest Board | |
+| `how.about` | Quest Board is for tabletop RPG players and Game Masters in Indonesia. This site is free to use and run by volunteers. | Quest Board untuk para pemain dan Game Master tabletop RPG di Indonesia. Situs ini gratis dan dijalankan oleh relawan. | |
 | `post.public2` | Your WhatsApp number, and your Discord and Instagram if you add them. Players use these to contact you. | Nomor WhatsApp-mu, serta Discord dan Instagram-mu kalau kamu isi. Pemain memakainya untuk menghubungimu. | |
 
 ## Home and browse pages

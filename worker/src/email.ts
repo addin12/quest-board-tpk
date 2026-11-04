@@ -62,7 +62,7 @@ export function relayMailer(url: string, secret: string, fetcher: typeof fetch =
   };
 }
 
-const SIGN = "The Pandemonium Kollektive";
+const SIGN = "Quest Board";
 
 export function loginMail(to: string, link: string, minutes: number): Mail {
   return {
