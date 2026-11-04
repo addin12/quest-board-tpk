@@ -126,7 +126,7 @@ in, the account pages, the admin page and builds need `/api`.
 | An email "no backup for N hours" or "the daily backup failed" | the timer or the backup is broken (at most one a day) |
 | The Worker `quest-board-cron` error count in the dashboard | a tick or daily call failed |
 | `GET /api/health` with `Authorization: Bearer <build key>` | counts, `lastBackupAt`, `backupError`, `lastMailOkAt`, `lastMailError` (no personal data) |
-| GitHub *Uptime* workflow (every 15 minutes, `.github/workflows/uptime.yml`) | the home page or the backend and database stopped answering: a failed run emails the repository owner. Best effort, so an outage under about 15 minutes may pass unseen. GitHub switches a schedule off after 60 days without any repository activity: re-enable it under Actions if that ever happens |
+| GitHub *Uptime* workflow (every 15 minutes at :07, :22, :37 and :52, `.github/workflows/uptime.yml`) | the home page or the backend and database stopped answering: a failed run emails the repository owner. Best effort, so an outage under about 15 minutes may pass unseen. GitHub switches a schedule off after 60 days without any repository activity: re-enable it under Actions if that ever happens |
 | A review notice by email ("To review: …", sent to the owner and each admin) | a Game Master submitted or changed something; at most one per account an hour and 20 a day in all |
 | GitHub CI on every push | the code breaks something |
 | Dependabot (weekly) | outdated dependencies; its eslint major is ignored on purpose |

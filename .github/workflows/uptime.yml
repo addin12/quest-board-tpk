@@ -5,7 +5,8 @@ name: Uptime
 # activity in the repository, so a long quiet spell means re-enabling it under Actions. docs/runbook.md says the same.
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    # Off the quarter-hour marks on purpose: GitHub delays or drops scheduled runs at :00, :15, :30 and :45, when it is busiest.
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
 
 permissions: {}
