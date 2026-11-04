@@ -97,7 +97,7 @@ const FILE: Record<string, string> = {
   "Mage: The Awakening 1st Edition": "mage-the-awakening-1st-edition",
   "Mutants & Masterminds 2e": "mutants-and-masterminds-2e",
   "Savage Worlds Deluxe": "savage-worlds-deluxe",
-  "Nimble 2e": "nimble-2e",
+  "Nimble v2": "nimble-2e",
   "Shadowrun 3e": "shadowrun-3e",
   "Nimble 5e": "nimble-5e",
   "Shadowrun 4e": "shadowrun-4e",

@@ -19,7 +19,7 @@ game page and GM page re-laid out; search box on `/systems/` and `/gms/`; defaul
 
 **Open, none blocks use:** the Indonesian wording of everything new is mine (the owner is a native speaker and should review: browse blocks, pager, search
 strings, "Cari Game Master", "Pilihan untuk"); some editions were written without a primary source (Nimble was checked against Nimble Co. on 2026-11-03: its own names are
-"Nimble 5e" for the first book and "Nimble v2" or "Nimble 2" for the second, so the list's "Nimble 2e" is fan shorthand; search accepts "nimble v2", "2.0" and "2";
+"Nimble 5e" for the first book and "Nimble v2" or "Nimble 2" for the second, so the list now says "Nimble v2" (renamed 2026-11-04); search still accepts "nimble 2e", "2.0" and "2";
 rename it in `systems.ts`, the cover map, the demo data and the tests if the owner prefers the publisher's wording); Shadowrun 3e and L5R 4e pictures are small scans
 (no larger copy in the sources tried; Knave 1e now has its real cover); no real Game Master has listed a game yet, so the retention
 timers, the first approval and rebuild on live, and the first Instagram save are unproven on live data; (a visitor on a slow phone tapping "Filters" before the page's scripts have run is handled since 2026-11-03: the search, Filters and the pager are `pending`, read-only and ignore taps, and dim after 0.8 s); ask Game Masters to list their games (an invitation message was offered, not written).
@@ -40,7 +40,7 @@ is hidden there until a game is listed; `/systems/` shows all 143 systems with 0
 
 Pushed and CI green up to `31c0a34`; later commits are local until the owner says "push". Since the paragraph above: browse blocks and pages for systems,
 genres, play styles and mechanics (ADR-30..33; migration `0003_mechanics.sql` is applied to the live D1); `/systems/` splits the systems without games
-into compact cards; Nimble 5e and Nimble 2e added (the names are a guess, Nimble Co. is the authority); the **demo data is 18 games** (`data/sample.json`,
+into compact cards; Nimble 5e and Nimble v2 added (named after Nimble Co.); the **demo data is 18 games** (`data/sample.json`,
 placeholder covers in `public/images/covers/`; the e2e counts depend on it) and the games list shows **nine a page** with a numbered pager
 (`PAGE_SIZE`, `pageList` in `src/lib/games.ts`; the page is `?page=N`, moving to a page is a history step; the built HTML holds page 1 only, the other
 games are reachable through the sitemap and their own pages). The product is called **Quest Board** on the site, in emails and in the share text;

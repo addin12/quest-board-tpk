@@ -72,7 +72,7 @@ const ALIASES: [RegExp, string | ((m: RegExpMatchArray) => string)][] = [
   [/gurps (\d)e/, (m) => `gurps${m[1]}e gurps`],
   // Nimble Co. calls the first book "Nimble 5e" and the second "Nimble v2" (its blog) or "Nimble 2" (its crowdfunding page); fans write "2e" or "2.0"
   [/nimble 5e/, "nimble v1 nimble 1 nimble 1e nimble 1.0 nimble5e"],
-  [/nimble 2e/, "nimble v2 nimble 2 nimble 2.0 nimble2e"],
+  [/nimble v2/, "nimble 2e nimble 2 nimble 2.0 nimble2e nimblev2"],
   [/knave (\d)e/, (m) => `knave${m[1]}e`],
   [/forged in the dark/, "fitd"],
   [/powered by the apocalypse/, "pbta"],
