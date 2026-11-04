@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BrowsePage } from "@/components/browse";
-import { STYLES, styleLabelKey, type StyleKey } from "@/lib/categories";
+import { STYLES, styleAboutKey, styleLabelKey, type StyleKey } from "@/lib/categories";
 import { allStyleTiles } from "@/lib/games";
 import { gameViews, loadSiteData } from "@/lib/data";
 import { paths } from "@/lib/hrefs";
@@ -21,6 +21,6 @@ export default async function StylesPage({ params }: PageProps<"/[lang]/styles">
   const t = makeT(lang);
   const tiles = allStyleTiles(gameViews(loadSiteData()), STYLES.map((s) => s.key));
   return (
-    <BrowsePage home={paths.home(lang)} path={paths.styles(lang)} title={t("styles.title")} lead={t("styles.lead")} tiles={tiles} href={(n) => paths.games(lang, `?style=${encodeURIComponent(n)}`)} label={(k) => t(styleLabelKey(k as StyleKey))} variant="card" t={t} />
+    <BrowsePage home={paths.home(lang)} path={paths.styles(lang)} title={t("styles.title")} lead={t("styles.lead")} tiles={tiles} href={(n) => paths.games(lang, `?style=${encodeURIComponent(n)}`)} label={(k) => t(styleLabelKey(k as StyleKey))} about={(k) => t(styleAboutKey(k as StyleKey))} variant="card" t={t} />
   );
 }

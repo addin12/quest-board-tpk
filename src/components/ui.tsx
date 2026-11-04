@@ -122,13 +122,14 @@ export function BrowseTile({ name, count, cover, href, t, level = 3, rank }: { n
   );
 }
 
-/** A browse card with no picture (a play style or a mechanic): a rounded rectangle with the name and how many games. */
-export function BrowseCard({ name, count, href, t, level = 3 }: { name: string; count: number; href: string; t: T; level?: 2 | 3 }) {
+/** A browse card with no picture (a play style or a mechanic): a rounded rectangle with the name, a short description if it has one, and how many games. */
+export function BrowseCard({ name, count, href, about, t, level = 3 }: { name: string; count: number; href: string; about?: string; t: T; level?: 2 | 3 }) {
   const Heading = level === 2 ? "h2" : "h3";
   return (
     <Link href={href} className="browse-card">
       <Heading className="font-body text-[length:var(--text-md)] font-medium leading-snug">{name}</Heading>
-      <p className="mt-[var(--space-3xs)] text-sm text-muted">{t("games.count", { n: count })}</p>
+      {about && <p className="mt-[var(--space-xs)] text-ink-2">{about}</p>}
+      <p className="mt-[var(--space-xs)] text-sm text-muted">{t("games.count", { n: count })}</p>
     </Link>
   );
 }

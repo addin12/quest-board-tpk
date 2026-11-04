@@ -17,6 +17,7 @@ import { flatName } from "../../scripts/fix-export.mjs";
 import { parseConfig } from "../../scripts/push-apps-script.mjs";
 import { PLACEHOLDER_SLUG, slugParams } from "../../src/lib/static-params.ts";
 import type { GameRecord, GmRecord, SiteGame } from "../../src/lib/types.ts";
+import { MECHANICS, STYLES, mechanicAboutKey, mechanicLabelKey, styleAboutKey, styleLabelKey } from "../../src/lib/categories.ts";
 
 const sample = JSON.parse(readFileSync(new URL("../../data/sample.json", import.meta.url), "utf8"));
 
@@ -359,4 +360,19 @@ test("tiles load the small copy of a system or genre picture, and every one has 
   assert.equal(smallCover("/media/covers/abc.webp"), "/media/covers/abc-sm.webp");
   assert.equal(smallCover("/images/covers/demo.svg"), "/images/covers/demo.svg", "the demo covers have one size");
   for (const f of SYSTEM_COVER_FILES) assert.ok(existsSync(new URL(`../../public/images/systems/${f}-sm.webp`, import.meta.url)), `${f}-sm.webp is missing: run npm run tiles`);
+});
+
+test("every style and mechanic has a label and a short description in both languages", () => {
+  for (const lang of ["en", "id"] as const) {
+    const t = makeT(lang);
+    const all = [
+      ...STYLES.map((s) => [s.key, t(styleLabelKey(s.key)), t(styleAboutKey(s.key))] as const),
+      ...MECHANICS.map((m) => [m.key, t(mechanicLabelKey(m.key)), t(mechanicAboutKey(m.key))] as const),
+    ];
+    for (const [key, label, about] of all) {
+      assert.ok(label && !label.includes(".about"), `${lang}: ${key} has a label`);
+      assert.ok(about.length >= 60 && about.length <= 200, `${lang}: the description of ${key} is ${about.length} characters (60 to 200)`);
+      assert.ok(about.endsWith("."), `${lang}: the description of ${key} is a sentence`);
+    }
+  }
 });

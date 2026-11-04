@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BrowsePage } from "@/components/browse";
-import { MECHANICS, mechanicLabelKey, type MechanicKey } from "@/lib/categories";
+import { MECHANICS, mechanicAboutKey, mechanicLabelKey, type MechanicKey } from "@/lib/categories";
 import { allMechanicTiles } from "@/lib/games";
 import { gameViews, loadSiteData } from "@/lib/data";
 import { paths } from "@/lib/hrefs";
@@ -21,6 +21,6 @@ export default async function MechanicsPage({ params }: PageProps<"/[lang]/mecha
   const t = makeT(lang);
   const tiles = allMechanicTiles(gameViews(loadSiteData()), MECHANICS.map((m) => m.key));
   return (
-    <BrowsePage home={paths.home(lang)} path={paths.mechanics(lang)} title={t("mechanics.title")} lead={t("mechanics.lead")} tiles={tiles} href={(n) => paths.games(lang, `?mechanic=${encodeURIComponent(n)}`)} label={(k) => t(mechanicLabelKey(k as MechanicKey))} variant="card" t={t} />
+    <BrowsePage home={paths.home(lang)} path={paths.mechanics(lang)} title={t("mechanics.title")} lead={t("mechanics.lead")} tiles={tiles} href={(n) => paths.games(lang, `?mechanic=${encodeURIComponent(n)}`)} label={(k) => t(mechanicLabelKey(k as MechanicKey))} about={(k) => t(mechanicAboutKey(k as MechanicKey))} variant="card" t={t} />
   );
 }

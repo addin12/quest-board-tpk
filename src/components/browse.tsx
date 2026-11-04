@@ -15,6 +15,8 @@ type Common = {
   href: (name: string) => string;
   /** The shown name when it is not the key itself (a genre or a style has a translated label). */
   label?: (name: string) => string;
+  /** A short description under the name of a card (a style or a mechanic); cards that have one go in a wider grid, three across on a desktop. */
+  about?: (name: string) => string;
   /** The picture when it is not the cover of the tile's soonest listing (a genre has its own engraving, a system its book cover); null falls back to that listing cover. */
   cover?: (name: string) => string | null;
   /** "card" is a rounded rectangle with the name only (no picture); the default is a picture tile. */
@@ -29,14 +31,16 @@ const GRID = "grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)
 const RAIL = "flex snap-x snap-mandatory scroll-pl-[var(--gutter)] gap-[var(--gap-columns)] overflow-x-auto pb-[var(--space-sm)] max-sm:-mx-[var(--gutter)] max-sm:px-[var(--gutter)] [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:gap-y-[var(--space-xl)] sm:overflow-visible lg:grid-cols-4 xl:grid-cols-5";
 const CARD_RAIL = "flex snap-x snap-mandatory scroll-pl-[var(--gutter)] gap-[var(--space-md)] overflow-x-auto pb-[var(--space-sm)] max-sm:-mx-[var(--gutter)] max-sm:px-[var(--gutter)] [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-4 xl:grid-cols-5";
 const RAIL_ITEM = "w-[44vw] max-w-56 shrink-0 snap-start sm:w-auto sm:max-w-none";
+// Cards with a description are wider: one column on a phone, two from 640 px, three from 1024 px.
+const ABOUT_GRID = "grid gap-[var(--space-md)] sm:grid-cols-2 lg:grid-cols-3";
 const CARD_GRID = "grid grid-cols-2 gap-[var(--space-md)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
 // Two blocks side by side (BrowsePair) each have half the width, so fewer columns.
 const CARD_RAIL_HALF = "flex snap-x snap-mandatory scroll-pl-[var(--gutter)] gap-[var(--space-md)] overflow-x-auto pb-[var(--space-sm)] max-sm:-mx-[var(--gutter)] max-sm:px-[var(--gutter)] [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-2 xl:grid-cols-3";
 
-function Tiles({ tiles, href, label, cover, variant = "tile", level, rail, ranked, half, t }: Common & { rail?: boolean; ranked?: boolean; half?: boolean }) {
+function Tiles({ tiles, href, label, about, cover, variant = "tile", level, rail, ranked, half, t }: Common & { rail?: boolean; ranked?: boolean; half?: boolean }) {
   const shown = (name: string) => (label ? label(name) : name);
   if (variant === "card") {
-    return <ul className={rail ? (half ? CARD_RAIL_HALF : CARD_RAIL) : CARD_GRID}>{tiles.map((x) => <li key={x.name} data-name={searchText(shown(x.name))} className={`flex ${rail ? RAIL_ITEM : ""}`}><BrowseCard name={shown(x.name)} count={x.count} href={href(x.name)} t={t} level={level} /></li>)}</ul>;
+    return <ul className={rail ? (half ? CARD_RAIL_HALF : CARD_RAIL) : about ? ABOUT_GRID : CARD_GRID}>{tiles.map((x) => <li key={x.name} data-name={searchText(shown(x.name))} className={`flex ${rail ? RAIL_ITEM : ""}`}><BrowseCard name={shown(x.name)} count={x.count} href={href(x.name)} about={about?.(x.name)} t={t} level={level} /></li>)}</ul>;
   }
   return (
     <ul className={rail ? RAIL : GRID}>
