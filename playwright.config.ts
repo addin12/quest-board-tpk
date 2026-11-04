@@ -15,6 +15,8 @@ export default defineConfig({
   // Firefox and WebKit on a busy Windows laptop can need 3 s just to load a static page; a step that takes seconds there is slowness, not a hang
   // (measured: a 9 s test took 18 s when the machine was short of memory). 60 s still catches a real hang.
   timeout: 60_000,
+  // An assertion waits up to 10 s (5 s by default): a WebKit page on a loaded machine can need longer than 5 s to hydrate, which is slowness, not a bug.
+  expect: { timeout: 10_000 },
   reporter: process.env.CI ? [["github"], ["list"]] : "list",
   use: { baseURL: `http://localhost:${PORT}`, trace: "retain-on-failure" },
   projects: [
