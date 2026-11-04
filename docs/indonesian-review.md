@@ -71,7 +71,7 @@ The Indonesian text written since 2026-10-29 (63 strings: 56 new, 8 changed). Th
 |---|---|---|---|
 | `game.instagramOpen` | Open Instagram profile | Buka profil Instagram | |
 | `gm.search` | Find a Game Master | Cari Game Master | |
-| `gm.searchPlaceholder` | Try a name, a city or a system, like “Raka”, “Depok” or “dnd” | Coba nama, kota, atau sistem, misalnya “Raka”, “Depok” atau “dnd” | |
+| `gm.searchPlaceholder` | Try a name, a city or a system, like “Raka”, “Jakarta” or “dnd” | Coba nama, kota, atau sistem, misalnya “Raka”, “Jakarta” atau “dnd” | |
 | `contact.msgEn` | Hi {gm}, I found “{title}” on Quest Board ({when}). Is there still a seat? | Hi {gm}, I found “{title}” on Quest Board ({when}). Is there still a seat? | |
 | `contact.msgId` | Halo {gm}, aku menemukan “{title}” di Quest Board ({when}). Apakah masih ada kursi? | Halo {gm}, aku menemukan “{title}” di Quest Board ({when}). Apakah masih ada kursi? | |
 | `contact.msgGmEn` | Hi {gm}, I found your profile on Quest Board. | Hi {gm}, I found your profile on Quest Board. | |
