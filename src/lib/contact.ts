@@ -10,6 +10,11 @@ import type { Lang, SiteGame, SiteGm } from "./types.ts";
 export const encodeContact = (value: string): string => btoa([...value].reverse().join(""));
 export const decodeContact = (encoded: string): string => [...atob(encoded)].reverse().join("");
 
+/** Opens the chat in a new tab. Browser only, and called from a tap: that is when the number is put together, so it is never written into the page. */
+export function openWhatsApp(encoded: string, message: string): void {
+  window.open(waLink(decodeContact(encoded), message), "_blank", "noopener,noreferrer");
+}
+
 /** The wa.me link that opens a chat with the message ready to send. `number` is digits with the country code. */
 export function waLink(number: string, message: string): string {
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;

@@ -5,11 +5,12 @@ import { ViewTransition } from "react";
 import { ContactButtons } from "@/components/contact-buttons";
 import { Gone, goneMetadata } from "@/components/gone";
 import { JsonLd } from "@/components/json-ld";
+import { StickyContact } from "@/components/sticky-contact";
 import { Avatar, Cover, languageLabel, priceLabel, whereLabel } from "@/components/ui";
 import { genreLabelKey, isGenre, isMechanic, isStyle, mechanicLabelKey, styleLabelKey } from "@/lib/categories";
 import { contactMessage, encodeContact } from "@/lib/contact";
 import { gmById, loadSiteData } from "@/lib/data";
-import { formatDay, formatWhen } from "@/lib/format";
+import { formatDay, formatShortDay, formatWhen } from "@/lib/format";
 import { paths } from "@/lib/hrefs";
 import { makeT } from "@/lib/i18n/dict";
 import { OG_IMAGE, REPORT_URL, SITE_URL } from "@/lib/site";
@@ -51,9 +52,11 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
   const styles = game.styles.filter(isStyle);
   const mechanics = game.mechanics.filter(isMechanic);
 
-  const facts: { label: string; value: React.ReactNode }[] = [
-    { label: t("game.when"), value: formatWhen(game.startsAt, lang, game.zone) },
-    { label: t("game.where"), value: (
+  // `wide`: on a phone the facts sit two to a row; these take the whole row.
+  const priceText = `${priceLabel(game.priceIdr, t)}${game.priceIdr > 0 ? ` ${t("common.perSeat")}` : ""}`;
+  const facts: { label: string; value: React.ReactNode; wide?: boolean }[] = [
+    { label: t("game.when"), wide: true, value: formatWhen(game.startsAt, lang, game.zone) },
+    { label: t("game.where"), wide: true, value: (
       <>
         {game.locationType === "online" ? whereLabel(game, t) : <>{game.venueName ? <span className="block">{game.venueName}</span> : null}{game.city}</>}
         {game.locationType === "in_person" && game.venueName && game.venueMapsUrl && (
@@ -67,7 +70,7 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
     ) },
     { label: t("game.format"), value: t(game.format === "campaign" ? "format.campaign" : "format.one_shot") },
     { label: t("game.seats"), value: t("common.seats", { n: game.seats }) },
-    { label: t("game.price"), value: <>{priceLabel(game.priceIdr, t)}{game.priceIdr > 0 && <> {t("common.perSeat")}</>}<small>{t("game.priceNote")}</small></> },
+    { label: t("game.price"), wide: true, value: <>{priceLabel(game.priceIdr, t)}{game.priceIdr > 0 && <> {t("common.perSeat")}</>}<small>{t("game.priceNote")}</small></> },
     { label: t("game.language"), value: languageLabel(game.language, t) },
     { label: t("game.level"), value: <>{t(game.level === "beginner" ? "level.beginner" : game.level === "experienced" ? "level.experienced" : "level.any")}{game.minAge > 0 && <small>{t("game.ages", { n: game.minAge })}</small>}</> },
   ];
@@ -82,7 +85,7 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
           { name: game.title, url: `${SITE_URL}${paths.game(lang, game.slug)}` },
         ]),
       ]} />
-      <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-lg)]">
+      <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-lg)] max-lg:pb-[calc(var(--tabbar-h)+6rem)]">
         <Link href={paths.games(lang)} className="link-spot inline-flex min-h-11 items-center font-medium">{t("game.allGames")}</Link>
 
         <div className="mt-[var(--space-lg)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] lg:grid-cols-12">
@@ -90,13 +93,13 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
           <div className="contents lg:block lg:col-span-4">
             <div className="order-1 min-w-0 lg:order-none">
               <ViewTransition name={`cover-${game.slug}`}>
-                <Cover src={game.cover} seed={game.title} priority sizes="(min-width: 1024px) 30vw, 100vw" className="aspect-[4/5] w-full max-sm:max-w-xs" />
+                <Cover src={game.cover} seed={game.title} priority sizes="(min-width: 1024px) 30vw, 100vw" className="aspect-[4/5] w-full max-sm:aspect-[3/2]" />
               </ViewTransition>
             </div>
 
             <dl className="panel order-3 lg:order-none lg:mt-[var(--space-lg)]">
               {facts.map((f) => (
-                <div key={f.label}>
+                <div key={f.label} className={f.wide ? "wide" : undefined}>
                   <dt>{f.label}</dt>
                   <dd>{f.value}</dd>
                 </div>
@@ -110,13 +113,12 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
               <span className="chip">{game.system}</span>
               {game.full && <span className="chip chip-spot" data-testid="full-chip">{t("game.full")}</span>}
             </p>
-            <h1 className="mt-[var(--space-md)] max-w-none text-[length:var(--text-display-s)]">{game.title}</h1>
+            <h1 className="mt-[var(--space-md)] max-w-none text-[length:var(--text-display-s)] max-sm:text-[2.125rem] max-sm:leading-[1.1]">{game.title}</h1>
             {game.summary && <p className="lead mt-[var(--space-md)] text-ink-2">{game.summary}</p>}
             <Link href={paths.gm(lang, gm.slug)} className="mt-[var(--space-lg)] inline-flex min-h-11 items-center gap-[var(--space-md)] hover:text-accent-deep">
               <Avatar name={gm.name} photo={gm.photo} size={48} />
               <span><span className="block text-sm text-muted">{t("game.gm")}</span><span className="font-medium">{gm.name}</span></span>
             </Link>
-            <p className="mt-[var(--space-lg)] lg:hidden"><a href="#contact" className="btn btn-primary">{t("game.contactTitle")}</a></p>
 
             <aside id="contact" className="well mt-[var(--space-xl)] scroll-mt-[var(--space-xl)]" aria-labelledby="contact-h">
               <h2 id="contact-h" className="max-w-none text-[length:var(--text-title)]">{t("game.contactTitle")}</h2>
@@ -169,6 +171,9 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
           </div>
         </div>
       </div>
+      {!game.full && (
+        <StickyContact wa={encodeContact(gm.whatsapp)} message={contactMessage(gm, game, lang)} targetId="contact" price={priceText} when={formatShortDay(game.startsAt, lang, game.zone)} />
+      )}
     </article>
   );
 }

@@ -31,7 +31,7 @@ export function NavLinks({ variant }: { variant: "header" | "tabs" }) {
           return (
             <li key={i.prefix} className="min-w-0 flex-1">
               {/* Labels may wrap to two lines: a row that scrolls sideways hid the last tab ("List your game") on a 390px phone. */}
-              <Link href={i.href(lang)} aria-current={current ? "page" : undefined} className={`flex min-h-14 items-center justify-center px-1.5 text-center text-sm leading-tight ${current ? "font-medium text-ink underline decoration-accent decoration-[3px] underline-offset-[0.4em]" : "text-muted"}`}>
+              <Link href={i.href(lang)} aria-current={current ? "page" : undefined} className={`flex min-h-[calc(var(--tabbar-h)-3px)] items-center justify-center px-1.5 text-center text-sm leading-tight ${current ? "font-medium text-ink underline decoration-accent decoration-[3px] underline-offset-[0.4em]" : "text-muted"}`}>
                 {t(i.label)}
               </Link>
             </li>

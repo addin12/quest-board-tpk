@@ -91,7 +91,7 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
 
   // the long lists (system, genre, style, mechanic) are searchable; the short ones stay native dropdowns
   const search = (id: string, label: string, value: string, onChange: (v: string) => void, choices: PickerOption[]) => (
-    <div>
+    <div className="max-sm:col-span-2">
       <label htmlFor={id} className="label">{label}</label>
       <SearchPicker id={id} value={value} options={choices} any={t("common.any")} placeholder={t("games.typeToSearch")} listLabel={t("games.choicesFor", { name: label })} onChange={onChange} />
     </div>
@@ -112,14 +112,14 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
         </button>
       </div>
 
-      <FilterShell phone={phone} open={open} sheet={sheet} count={shown.length} onClose={() => setSheet(false)}>
+      <FilterShell phone={phone} open={open} sheet={sheet} count={shown.length} active={active} onClear={clear} onClose={() => setSheet(false)}>
         {search("f-system", t("games.system"), filters.system, (v) => set({ system: v }), options.systems.map((s) => ({ value: s, label: s })))}
         {search("f-genre", t("games.genre"), filters.genre, (v) => set({ genre: v }), GENRES.filter((g) => options.genres.includes(g.key)).map((g) => ({ value: g.key, label: t(genreLabelKey(g.key)) })))}
         {search("f-style", t("games.style"), filters.style, (v) => set({ style: v }), STYLES.filter((s) => options.styles.includes(s.key)).map((s) => ({ value: s.key, label: t(styleLabelKey(s.key)) })))}
         {search("f-mechanic", t("games.mechanic"), filters.mechanic, (v) => set({ mechanic: v }), MECHANICS.filter((m) => options.mechanics.includes(m.key)).map((m) => ({ value: m.key, label: t(mechanicLabelKey(m.key)) })))}
         {select("f-format", t("games.format"), filters.format, (v) => set({ format: v as Filters["format"] }), [{ value: "one_shot", label: t("format.one_shot") }, { value: "campaign", label: t("format.campaign") }])}
         {select("f-where", t("games.where"), filters.where, (v) => set({ where: v as Filters["where"] }), [{ value: "online", label: t("loc.online") }, { value: "in_person", label: t("loc.inPerson") }])}
-        {select("f-level", t("games.level"), filters.level, (v) => set({ level: v as Filters["level"] }), [{ value: "beginner", label: t("level.beginner") }, { value: "experienced", label: t("level.experienced") }], t("level.any"))}
+        <div className="max-sm:col-span-2">{select("f-level", t("games.level"), filters.level, (v) => set({ level: v as Filters["level"] }), [{ value: "beginner", label: t("level.beginner") }, { value: "experienced", label: t("level.experienced") }], t("level.any"))}</div>
         {select("f-language", t("games.language"), filters.language, (v) => set({ language: v as Filters["language"] }), [{ value: "id", label: t("lang.gameId") }, { value: "en", label: t("lang.gameEn") }])}
         <div>
           <label htmlFor="f-sort" className="label">{t("games.sort")}</label>
@@ -130,7 +130,7 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
           </select>
         </div>
         {/* On wide screens it shares a row with Sort by and is laid out like that cell (an empty label line, then a box as tall as the select), so the checkbox sits level with the middle of the select. */}
-        <div className="flex flex-col sm:col-span-2">
+        <div className="col-span-2 flex flex-col">
           <span className="label invisible hidden lg:block" aria-hidden>&nbsp;</span>
           <label className="flex min-h-11 flex-1 items-center gap-[var(--space-sm)] font-medium">
             <input type="checkbox" className="size-5 accent-[var(--color-accent)]" checked={filters.free} onChange={(e) => set({ free: e.target.checked })} />
@@ -156,8 +156,8 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
           </EmptyState>
         </div>
       ) : (
-        <ul key={page} data-late className={`mt-[var(--space-md)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-2 lg:grid-cols-3 ${swapped ? "list-in" : ""}`} data-testid="games-list">
-          {visible.map((g, i) => <li key={g.id}><GameCard game={g} t={t} lang={lang} priority={i < 4} headingLevel={2} /></li>)}
+        <ul key={page} data-late className={`mt-[var(--space-md)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] max-sm:gap-y-[var(--space-sm)] sm:grid-cols-2 lg:grid-cols-3 ${swapped ? "list-in" : ""}`} data-testid="games-list">
+          {visible.map((g, i) => <li key={g.id}><GameCard game={g} t={t} lang={lang} priority={i < 4} headingLevel={2} rowOnPhone /></li>)}
         </ul>
       )}
 
@@ -184,9 +184,10 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
  * The filter fields: an inline panel from 640 px up, and on a phone a bottom sheet (a native modal dialog, so focus stays inside, Escape and the
  * backdrop close it) with a button that says how many games the filters leave.
  */
-function FilterShell({ phone, open, sheet, count, onClose, children }: { phone: boolean; open: boolean; sheet: boolean; count: number; onClose: () => void; children: ReactNode }) {
+function FilterShell({ phone, open, sheet, count, active, onClear, onClose, children }: { phone: boolean; open: boolean; sheet: boolean; count: number; active: number; onClear: () => void; onClose: () => void; children: ReactNode }) {
   const { t } = useI18n();
   const dialog = useRef<HTMLDialogElement>(null);
+  const title = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     const d = dialog.current;
@@ -200,10 +201,15 @@ function FilterShell({ phone, open, sheet, count, onClose, children }: { phone: 
   }
   return (
     <dialog ref={dialog} id="filter-panel" className="sheet" aria-labelledby="filter-title" onClose={onClose} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="grid gap-[var(--space-lg)]">
-        <h2 id="filter-title" className="text-[length:var(--text-title)]">{t("games.filters")}</h2>
+      {/* Two columns: the long pickers, Experience level (its choice is long) and Free games only take a row each; Format and Where, and Language and Sort by, pair up. */}
+      <div className="grid grid-cols-2 gap-x-[var(--space-md)] gap-y-[var(--space-lg)]">
+        <div className="col-span-2 flex items-center justify-between gap-[var(--space-md)]">
+          <h2 id="filter-title" ref={title} tabIndex={-1} className="text-[length:var(--text-title)] outline-none">{t("games.filters")}</h2>
+          {/* The button goes away once nothing is left to clear, so the focus moves to the title first. */}
+          {active > 0 && <button type="button" className="btn btn-ghost" onClick={() => { onClear(); title.current?.focus(); }}>{t("games.clear")}</button>}
+        </div>
         {children}
-        <div className="sticky bottom-[calc(-1*var(--space-xl))] -mx-[var(--gutter)] border-t border-rule bg-paper px-[var(--gutter)] py-[var(--space-sm)]">
+        <div className="sticky bottom-[calc(-1*var(--space-xl))] col-span-2 -mx-[var(--gutter)] border-t border-rule bg-paper px-[var(--gutter)] py-[var(--space-sm)]">
           <button type="button" className="btn btn-primary w-full" onClick={onClose}>{t("games.showN", { n: count })}</button>
         </div>
       </div>

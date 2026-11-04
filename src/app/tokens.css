@@ -54,6 +54,7 @@
   --dur-long: 420ms;
   --container: 1440px;
   --gutter: 64px;
+  --tabbar-h: 59px; /* the phone tab bar: a 3px rule and a 56px link (nav.tsx); the contact bar of a game page sits above it */
   --gap-columns: 32px;
   --section-gap-s: 96px;
   --section-gap: 120px;

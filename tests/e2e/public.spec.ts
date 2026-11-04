@@ -440,3 +440,38 @@ for (const scheme of ["light", "dark"] as const) {
     });
   }
 }
+
+test("on a phone a game in the list is one short row, and the game page keeps WhatsApp within reach", async ({ page, context }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/en/games/");
+  await expect(page.locator("[data-ready]")).toBeAttached();
+  const row = page.getByTestId("games-list").locator("li").first();
+  expect((await row.boundingBox())!.height, "a game is a row of a few lines, not a full card").toBeLessThan(260);
+  await expect(row.getByText(/Rp\s?75\.000|Free|Gratis/).first()).toBeVisible();
+
+  await row.getByRole("link").first().click();
+  const bar = page.getByTestId("sticky-contact");
+  await expect(bar, "the contact bar is there on a phone").toBeVisible();
+  await expect(bar).toContainText(/Rp|Free|Gratis/);
+  const cover = await page.locator("main picture, main img").first().boundingBox();
+  expect(cover!.width, "the cover fills the column").toBeGreaterThan(340);
+
+  await context.route("https://wa.me/**", (route) => route.fulfill({ contentType: "text/html", body: "chat" }));
+  const popup = context.waitForEvent("page");
+  await page.getByTestId("sticky-whatsapp").click();
+  expect(new URL((await popup).url()).pathname).toBe("/62811000000001");
+
+  await page.locator("#contact").evaluate((el) => el.scrollIntoView({ block: "center" })); // the panel in the middle of the screen, as a reader would have it
+  const tabs = page.locator("nav.fixed");
+  await expect.poll(async () => (await bar.boundingBox())!.y >= (await tabs.boundingBox())!.y - 1, { message: "the bar steps behind the tab bar while the contact panel is on screen", timeout: 10_000 }).toBe(true);
+});
+
+test("on a desktop the game page has no contact bar, and the home page shows Starting soon as a grid", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/en/games/mercusuar-di-pulau-kabut-0m01/");
+  await expect(page.getByTestId("sticky-contact")).toBeHidden();
+  await page.goto("/en/");
+  const soon = page.locator("#soon-h").locator("xpath=ancestor::section//ul");
+  const display = await soon.evaluate((el) => getComputedStyle(el).display);
+  expect(display).toBe("grid");
+});

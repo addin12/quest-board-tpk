@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { decodeContact, waLink } from "@/lib/contact";
+import { openWhatsApp } from "@/lib/contact";
 import { Icon } from "./icon";
 import { useI18n } from "./i18n-provider";
 
@@ -13,11 +13,6 @@ import { useI18n } from "./i18n-provider";
 export function ContactButtons({ wa, discord, instagram = "", message, stacked = false }: { wa: string; discord: string; instagram?: string; message: string; stacked?: boolean }) {
   const { t } = useI18n();
   const [copied, setCopied] = useState(false);
-
-  function openWhatsApp(e: React.MouseEvent<HTMLAnchorElement>) {
-    e.preventDefault();
-    window.open(waLink(decodeContact(wa), message), "_blank", "noopener,noreferrer");
-  }
 
   async function copyDiscord() {
     try {
@@ -32,7 +27,7 @@ export function ContactButtons({ wa, discord, instagram = "", message, stacked =
   const isLink = discord.startsWith("https://");
   return (
     <div className={`flex gap-[var(--space-md)] ${stacked ? "flex-col" : "flex-col sm:flex-row sm:flex-wrap sm:items-center"}`}>
-      <a href="https://wa.me/" onClick={openWhatsApp} target="_blank" rel="noopener noreferrer" className="btn btn-primary" data-testid="contact-whatsapp">
+      <a href="https://wa.me/" onClick={(e) => { e.preventDefault(); openWhatsApp(wa, message); }} target="_blank" rel="noopener noreferrer" className="btn btn-primary" data-testid="contact-whatsapp">
         <Icon name="whatsapp" /> {t("game.whatsapp")} <span className="sr-only">{t("a11y.opensNewTab")}</span>
       </a>
       {discord && isLink && (

@@ -152,6 +152,7 @@
   .browse-card:hover { background: var(--color-paper-2); border-color: var(--color-ink); }
   /* The card with a description: a column, so the footer (count and arrow) sits at the bottom whatever the length of the text beside it. */
   .browse-card-rich { display: flex; flex-direction: column; padding: var(--space-lg); }
+  @media (max-width: 39.99rem) { .browse-card-rich { padding: var(--space-md); } }
   /* The arrow is the "back" arrow turned round, so there is one arrow in the icon set. */
   .browse-card-go { transform: rotate(180deg); font-size: 1.125rem; transition: transform var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out); }
   .browse-card:hover .browse-card-go, .browse-card:focus-visible .browse-card-go { transform: translateX(3px) rotate(180deg); color: var(--color-ink); }
@@ -197,7 +198,12 @@
   .panel dt { font-weight: 400; font-size: var(--text-md); color: var(--color-muted); }
   .panel dd { margin: 0; font: 500 var(--text-md)/1.35 var(--font-body); overflow-wrap: break-word; min-width: 0; }
   .panel dd small { display: block; margin-top: var(--space-2xs); font: 400 var(--text-sm)/1.4 var(--font-body); color: var(--color-muted); }
-  @media (max-width: 40rem) { .panel > div { grid-template-columns: minmax(0, 1fr); gap: var(--space-2xs); } }
+  /* On a phone the facts sit two to a row (a `wide` one takes the row). */
+  @media (max-width: 39.99rem) {
+    .panel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-lg); }
+    .panel > div { grid-template-columns: minmax(0, 1fr); gap: var(--space-2xs); padding-block: var(--space-sm); }
+    .panel > div.wide { grid-column: 1 / -1; }
+  }
 
   .lead { font-size: var(--text-lead); line-height: 1.5; }
 
@@ -215,4 +221,21 @@
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
   .btn:active, .btn-primary:active, .btn-secondary:active, .btn-ghost:active, .btn-danger:active { transform: none; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+
+/*
+ * A game as one row on a phone (GameCard `rowOnPhone`, in the games list and on a Game Master's page): a small cover, then the title, the system and
+ * price, and when and where. The summary, the facts and the Game Master's name wait on the game page. Unlayered on purpose: these rules must beat the
+ * utility classes the parts of the card already carry.
+ */
+.bill-meta { display: none; }
+@media (max-width: 39.99rem) {
+  .bill-row { height: auto; flex-direction: row; align-items: flex-start; gap: var(--space-md); padding: var(--space-sm); }
+  .bill-row::before { display: none; }
+  .bill-row .bill-cover { width: 6rem; flex-shrink: 0; }
+  .bill-row .bill-text { min-width: 0; margin-top: 0; padding-top: 0; border-top-width: 0; }
+  .bill-row .bill-title { font-size: var(--text-lg); line-height: 1.2; }
+  .bill-row .bill-system { margin-top: var(--space-2xs); font-size: 0.9375rem; }
+  .bill-row .bill-meta { display: block; }
+  .bill-row .bill-summary, .bill-row dl, .bill-row .bill-by { display: none; }
 }

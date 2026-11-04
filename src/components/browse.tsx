@@ -28,14 +28,16 @@ type Common = {
 
 const GRID = "grid grid-cols-2 gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
 // On a phone the home blocks are one row that scrolls sideways, the next tile peeking in; from 640 px up they are the grids above.
-const RAIL = "flex snap-x snap-mandatory scroll-pl-[var(--gutter)] gap-[var(--gap-columns)] overflow-x-auto pb-[var(--space-sm)] max-sm:-mx-[var(--gutter)] max-sm:px-[var(--gutter)] [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:gap-y-[var(--space-xl)] sm:overflow-visible lg:grid-cols-4 xl:grid-cols-5";
-const CARD_RAIL = "flex snap-x snap-mandatory scroll-pl-[var(--gutter)] gap-[var(--space-md)] overflow-x-auto pb-[var(--space-sm)] max-sm:-mx-[var(--gutter)] max-sm:px-[var(--gutter)] [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-4 xl:grid-cols-5";
+/** The sideways row of a phone, the next card peeking in (the games of the home page use it too); each user adds its own gap and its grid from 640 px. */
+export const RAIL_BASE = "flex snap-x snap-mandatory scroll-pl-[var(--gutter)] overflow-x-auto pb-[var(--space-sm)] max-sm:-mx-[var(--gutter)] max-sm:px-[var(--gutter)] [scrollbar-width:none]";
+const RAIL = RAIL_BASE + " gap-[var(--gap-columns)] sm:grid sm:grid-cols-3 sm:gap-y-[var(--space-xl)] sm:overflow-visible lg:grid-cols-4 xl:grid-cols-5";
+const CARD_RAIL = RAIL_BASE + " gap-[var(--space-md)] sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-4 xl:grid-cols-5";
 const RAIL_ITEM = "w-[44vw] max-w-56 shrink-0 snap-start sm:w-auto sm:max-w-none";
 // Cards with a description are wider: one column on a phone, two from 640 px, three from 1024 px.
 const ABOUT_GRID = "grid gap-[var(--space-md)] sm:grid-cols-2 lg:grid-cols-3";
 const CARD_GRID = "grid grid-cols-2 gap-[var(--space-md)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
 // Two blocks side by side (BrowsePair) each have half the width, so fewer columns.
-const CARD_RAIL_HALF = "flex snap-x snap-mandatory scroll-pl-[var(--gutter)] gap-[var(--space-md)] overflow-x-auto pb-[var(--space-sm)] max-sm:-mx-[var(--gutter)] max-sm:px-[var(--gutter)] [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-2 xl:grid-cols-3";
+const CARD_RAIL_HALF = RAIL_BASE + " gap-[var(--space-md)] sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-2 xl:grid-cols-3";
 
 function Tiles({ tiles, href, label, about, cover, variant = "tile", level, rail, ranked, half, t }: Common & { rail?: boolean; ranked?: boolean; half?: boolean }) {
   const shown = (name: string) => (label ? label(name) : name);
@@ -98,7 +100,7 @@ export function BrowsePage({ title, lead, home, path, emptyHeading, search, chil
   const listed = emptyHeading ? rest.tiles.filter(drawn) : rest.tiles;
   const unlisted = emptyHeading ? rest.tiles.filter((x) => !drawn(x)) : [];
   return (
-    <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-2xl)]">
+    <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-2xl)] max-sm:pt-[var(--space-lg)]">
       <JsonLd data={breadcrumbJsonLd([{ name: "Quest Board", url: `${SITE_URL}${home}` }, { name: title, url: `${SITE_URL}${path}` }])} />
       <h1 className="max-w-none text-[length:var(--text-display-s)]">{title}</h1>
       <p className="lead mt-[var(--space-sm)] text-ink-2">{lead}</p>

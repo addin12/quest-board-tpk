@@ -64,13 +64,16 @@ export function whereLabel(g: Pick<GameView, "locationType" | "platform" | "city
  * A game as a playbill: the cover, then a ruled label panel. `preview` draws it without a link (the admin page shows cards
  * for games that are not on the site yet).
  * `priority`: the picture is among the first things a visitor sees, so it loads first. `headingLevel`: 2 where the page has no h2 above the cards.
+ * `rowOnPhone`: in a long list, a phone shows the game as one row (a small cover, the title, system, price, when and where) so a screen holds several.
  */
-export function GameCard({ game, t, lang, preview = false, priority = false, headingLevel = 3 }: { game: GameView; t: T; lang: Lang; preview?: boolean; priority?: boolean; headingLevel?: 2 | 3 }) {
+export function GameCard({ game, t, lang, preview = false, priority = false, headingLevel = 3, rowOnPhone = false }: { game: GameView; t: T; lang: Lang; preview?: boolean; priority?: boolean; headingLevel?: 2 | 3; rowOnPhone?: boolean }) {
   const Heading = headingLevel === 2 ? "h2" : "h3";
   const genre = game.genres.find(isGenre);
+  const whenText = formatShortDay(game.startsAt, lang, game.zone);
+  const whereText = game.locationType === "online" ? t("loc.online") : whereLabel(game, t);
   const rows: [string, string][] = [
-    [t("game.when"), formatShortDay(game.startsAt, lang, game.zone)],
-    [t("game.where"), game.locationType === "online" ? t("loc.online") : whereLabel(game, t)],
+    [t("game.when"), whenText],
+    [t("game.where"), whereText],
     [t("game.format"), t(game.format === "campaign" ? "format.campaign" : "format.one_shot")],
     [t("game.language"), languageLabel(game.language, t)],
   ];
@@ -78,31 +81,32 @@ export function GameCard({ game, t, lang, preview = false, priority = false, hea
   else if (genre) rows.push([t("games.genre"), t(genreLabelKey(genre))]);
   const body = (
     <>
-      <div className="relative">
+      <div className="bill-cover relative">
         <ViewTransition name={`cover-${game.slug}`}>
           <Cover src={game.cover ? smallCover(game.cover) : null} seed={game.title} className="aspect-[4/5] w-full" priority={priority} />
         </ViewTransition>
         {game.full && <span className="absolute bottom-0 right-0 bg-ink px-3 py-1 text-sm font-medium text-paper">{t("game.full")}</span>}
       </div>
-      <div className="mt-[var(--space-md)] flex flex-1 flex-col border-t-3 border-ink pt-[var(--space-sm)]">
+      <div className="bill-text mt-[var(--space-md)] flex flex-1 flex-col border-t-3 border-ink pt-[var(--space-sm)]">
         <Heading className="bill-title">{game.title}</Heading>
-        <p className="mt-[var(--space-xs)] flex flex-wrap items-baseline justify-between gap-x-[var(--space-md)]">
+        <p className="bill-system mt-[var(--space-xs)] flex flex-wrap items-baseline justify-between gap-x-[var(--space-md)]">
           <span className="min-w-0 font-medium">{game.system}</span>
           <span className="shrink-0 text-right font-medium">
             {priceLabel(game.priceIdr, t)}
             {game.priceIdr > 0 && <small className="ml-1 text-sm font-normal text-muted">{t("common.perSeat")}</small>}
           </span>
         </p>
-        <p className="mt-[var(--space-xs)] text-muted">{game.summary}</p>
+        {rowOnPhone && <p className="bill-meta mt-[var(--space-2xs)] text-sm text-muted">{`${whenText} · ${whereText}`}</p>}
+        <p className="bill-summary mt-[var(--space-xs)] text-muted">{game.summary}</p>
         {/* mt-auto: the facts sit at the foot of the card, so the rows line up across a row of cards whatever the title and summary lengths. */}
         <dl className="mt-auto pt-[var(--space-md)]">
           {rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
         </dl>
-        <p className="pt-[var(--space-sm)] text-sm text-muted">{t("common.by", { name: game.gmName })}</p>
+        <p className="bill-by pt-[var(--space-sm)] text-sm text-muted">{t("common.by", { name: game.gmName })}</p>
       </div>
     </>
   );
-  const cls = "bill tack";
+  const cls = rowOnPhone ? "bill tack bill-row" : "bill tack";
   return preview ? <div className={cls}>{body}</div> : <Link href={paths.game(lang, game.slug)} className={cls}>{body}</Link>;
 }
 

@@ -28,13 +28,13 @@ export default async function GamesPage({ params }: PageProps<"/[lang]/games">) 
   const t = makeT(lang);
   const games = gameViews(loadSiteData());
   return (
-    <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-2xl)]">
+    <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-2xl)] max-sm:pt-[var(--space-lg)]">
       <JsonLd data={[
         collectionJsonLd(t("games.title"), lang, games),
         breadcrumbJsonLd([{ name: "Quest Board", url: `${SITE_URL}${paths.home(lang)}` }, { name: t("games.title"), url: `${SITE_URL}${paths.games(lang)}` }]),
       ]} />
       <h1 className="max-w-none text-[length:var(--text-display-s)]">{t("games.title")}</h1>
-      <p className="lead mb-[var(--space-xl)] mt-[var(--space-sm)] text-ink-2">{t("games.count", { n: games.length })}</p>
+      <p className="lead mb-[var(--space-xl)] mt-[var(--space-sm)] text-ink-2 max-sm:mb-[var(--space-md)]">{t("games.count", { n: games.length })}</p>
       <script dangerouslySetInnerHTML={{ __html: HIDE_UNTIL_READ + ";" + REMEMBER_FILTERS_TAP }} />
       <GamesBrowser games={games} options={filterOptions(games)} />
     </div>

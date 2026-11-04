@@ -69,8 +69,8 @@ export default async function GmPage({ params }: PageProps<"/[lang]/gm/[slug]">)
         {games.length === 0 ? (
           <p className="mt-[var(--space-md)] text-muted">{t("gm.noGames")}</p>
         ) : (
-          <ul className="mt-[var(--space-lg)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-2 lg:grid-cols-3">
-            {games.map((g, i) => <li key={g.id}><GameCard game={g} t={t} lang={lang} priority={i < 6} /></li>)}
+          <ul className="mt-[var(--space-lg)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] max-sm:gap-y-[var(--space-sm)] sm:grid-cols-2 lg:grid-cols-3">
+            {games.map((g, i) => <li key={g.id}><GameCard game={g} t={t} lang={lang} priority={i < 6} rowOnPhone /></li>)}
           </ul>
         )}
       </section>

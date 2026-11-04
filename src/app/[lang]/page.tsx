@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/json-ld";
-import { BrowsePair, BrowseSection } from "@/components/browse";
+import { BrowsePair, BrowseSection, RAIL_BASE } from "@/components/browse";
 import { EmptyState, GameCard, GameRow } from "@/components/ui";
 import { GENRES, MECHANICS, STYLES, genreCover, genreLabelKey, mechanicLabelKey, styleLabelKey, type GenreKey, type MechanicKey, type StyleKey } from "@/lib/categories";
 import { gameViews, loadSiteData } from "@/lib/data";
@@ -39,11 +39,11 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
 
       {/* The hero is one centered column: the head and the search, which is the action. The soonest game is the first card of "Starting soon" below. */}
       <section>
-        <div className="wrap grid justify-items-center pb-[var(--space-2xl)] pt-[var(--space-3xl)] text-center">
+        <div className="wrap grid justify-items-center pb-[var(--space-2xl)] pt-[var(--space-3xl)] text-center max-sm:pb-[var(--space-xl)] max-sm:pt-[var(--space-xl)]">
           <div className="grid w-full justify-items-center">
-            <h1 className="max-w-none text-[length:var(--text-display)]"><span className="block">{t("home.title1")}</span><span className="block">{t("home.title2")}</span></h1>
+            <h1 className="max-w-none text-[length:var(--text-display)] max-sm:text-[length:var(--text-display-s)]"><span className="block">{t("home.title1")}</span><span className="block">{t("home.title2")}</span></h1>
             {/* The first sentence gets a line of its own and the paragraph the full width (the lead style caps at 52ch); on a phone each still wraps. */}
-            <p className="lead mx-auto mt-[var(--space-lg)] max-w-none text-ink-2">{leadFirst}{leadRest && <span className="block">{leadRest}</span>}</p>
+            <p className="lead mx-auto mt-[var(--space-lg)] max-w-none text-ink-2">{leadFirst}{leadRest && <span className="block max-sm:hidden">{leadRest}</span>}</p>
             <form action={paths.games(lang)} method="get" role="search" className="mt-[var(--space-xl)] flex w-full max-w-2xl flex-col gap-[var(--space-sm)] text-left sm:flex-row sm:items-end">
               <div className="flex-1">
                 <label htmlFor="home-q" className="label">{t("home.searchLabel")}</label>
@@ -58,15 +58,16 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
 
       <section className="section pt-0" aria-labelledby="soon-h">
         <div className="wrap">
-          <div className="flex flex-wrap items-end justify-between gap-[var(--space-md)]">
-            <h2 id="soon-h">{t("home.soon")}</h2>
+          <div className="flex items-end justify-between gap-[var(--space-md)] sm:flex-wrap">
+            <h2 id="soon-h" className="max-sm:text-[length:var(--text-title)]">{t("home.soon")}</h2>
             <Link href={paths.games(lang)} className="btn btn-soft">{t("home.browseAll")}</Link>
           </div>
+          {/* On a phone the six are one row that swipes sideways (the next card peeking in); from 640 px they are a grid. */}
           {soon.length === 0 ? (
             <div className="mt-[var(--space-xl)]"><EmptyState title={t("home.empty")}><Link href={paths.list(lang)} className="btn btn-primary">{t("nav.list")}</Link></EmptyState></div>
           ) : (
-            <ul className="mt-[var(--space-xl)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-xl)] sm:grid-cols-2 lg:grid-cols-3">
-              {soon.map((g) => <li key={g.id}><GameCard game={g} t={t} lang={lang} priority /></li>)}
+            <ul className={`mt-[var(--space-xl)] ${RAIL_BASE} gap-[var(--space-md)] sm:grid sm:grid-cols-2 sm:gap-x-[var(--gap-columns)] sm:gap-y-[var(--space-xl)] sm:overflow-visible lg:grid-cols-3`}>
+              {soon.map((g, i) => <li key={g.id} className="max-sm:w-[78vw] max-sm:max-w-72 max-sm:shrink-0 max-sm:snap-start"><GameCard game={g} t={t} lang={lang} priority={i < 3} /></li>)}
             </ul>
           )}
         </div>
