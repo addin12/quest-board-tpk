@@ -115,7 +115,7 @@ export const en = {
   "common.any": "Any",
   "home.title1": "Find your table.",
   "home.title2": "Message your Game Master.",
-  "home.lead": "Browse tabletop RPG games from Game Masters in Jabodetabek and online. Found a table you like? Message the Game Master directly.",
+  "home.lead": "Browse tabletop RPG games run by Game Masters, from one-shots to long campaigns. Found a table you like? Message the Game Master directly.",
   "home.searchLabel": "Search games",
   "home.searchPlaceholder": "Try “horror”, “Pathfinder” or “Depok”",
   "home.soon": "Starting soon",

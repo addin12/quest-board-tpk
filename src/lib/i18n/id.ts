@@ -116,7 +116,7 @@ export const id: Record<MsgKey, string> = {
   "common.any": "Semua",
   "home.title1": "Temukan mejamu.",
   "home.title2": "Hubungi Game Master-mu.",
-  "home.lead": "Jelajahi game tabletop RPG dari para Game Master di Jabodetabek dan online. Ketemu meja yang cocok? Hubungi Game Master-nya langsung.",
+  "home.lead": "Jelajahi game tabletop RPG yang dipandu para Game Master, dari one-shot sampai kampanye panjang. Ketemu meja yang cocok? Hubungi Game Master-nya langsung.",
   "home.searchLabel": "Cari game",
   "home.searchPlaceholder": "Coba “horror”, “Pathfinder” atau “Depok”",
   "home.soon": "Segera dimulai",
