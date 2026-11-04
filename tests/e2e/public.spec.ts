@@ -151,7 +151,7 @@ test("an address that filters or pages the list does not show the unfiltered lis
 
 test("the browse pages list every system, genre, style and mechanic and lead into the filtered list", async ({ page }) => {
   await page.goto("/en/");
-  await page.getByRole("link", { name: /game systems/ }).click();
+  await page.getByRole("link", { name: `All ${SYSTEMS.length} game systems`, exact: true }).click(); // the button; the Browse tile above it has the same words in a longer name
   await expect(page).toHaveURL(/\/en\/systems\/$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Game systems");
   await expect(page.getByRole("link", { name: /Nimble 5e/ })).toContainText("0 games");
@@ -338,8 +338,8 @@ test("on a slow phone a tap on Filters before the scripts have run opens the Fil
 
 test("the home page: a ranked row of systems, counts on the buttons, a way in for Game Masters, and a header that stays", async ({ page }) => {
   await page.goto("/en/");
-  await expect(page.getByRole("link", { name: `All ${SYSTEMS.length} game systems` })).toBeVisible();
-  await expect(page.getByRole("link", { name: "All 40 genres" })).toBeVisible();
+  await expect(page.getByRole("link", { name: `All ${SYSTEMS.length} game systems`, exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "All 40 genres", exact: true })).toBeVisible();
   await expect(page.locator('section[aria-labelledby="systems-h"] .rank').first()).toHaveText("1");
   await expect(page.getByText("Do you run games?")).toBeVisible();
   await expect(page.getByRole("main").getByRole("link", { name: "List your game" }).first()).toHaveAttribute("href", "/en/list-your-game/");
@@ -474,4 +474,56 @@ test("on a desktop the game page has no contact bar, and the home page shows Sta
   const soon = page.locator("#soon-h").locator("xpath=ancestor::section//ul");
   const display = await soon.evaluate((el) => getComputedStyle(el).display);
   expect(display).toBe("grid");
+});
+
+test("on a phone the quick filters under the search narrow the list in one tap, and a second tap clears them", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/en/games/");
+  await expect(page.locator("[data-ready]")).toBeAttached();
+  const count = page.getByTestId("games-count");
+  const all = await count.innerText();
+  const online = page.getByRole("button", { name: "Online", exact: true });
+  await online.click();
+  await expect(online).toHaveAttribute("aria-pressed", "true");
+  await expect(page).toHaveURL(/where=online/);
+  await expect(count).not.toHaveText(all);
+  await page.getByRole("button", { name: "Campaign", exact: true }).click();
+  await expect(page).toHaveURL(/format=campaign/);
+  await online.click();
+  await expect(online).toHaveAttribute("aria-pressed", "false");
+  await expect(page).not.toHaveURL(/where=/);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(page.getByRole("group", { name: "Quick filters" }), "the chips are for a phone: the desktop has the filter panel").toBeHidden();
+});
+
+test("on a phone the tab bar has an icon on every tab, and the browse pages keep a search under the masthead", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/en/styles/");
+  const tabs = page.locator("nav.fixed").getByRole("link");
+  await expect(tabs).toHaveCount(4);
+  for (let i = 0; i < 4; i++) await expect(tabs.nth(i).locator("svg")).toBeVisible();
+  const search = page.getByRole("search").first();
+  await expect(search.getByRole("searchbox")).toBeVisible();
+  await search.getByRole("searchbox").fill("mercusuar");
+  await search.getByRole("searchbox").press("Enter");
+  await expect(page).toHaveURL(/\/en\/games\/\?q=mercusuar/);
+
+  await page.goto("/en/gms/");
+  await expect(page.locator("#header-q"), "the Game Masters list has a search of its own").toHaveCount(0);
+});
+
+test("the home page opens the four browse pages from large tiles, and on a phone the contact bar has a sheet with every way to reach the GM", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/en/");
+  const gateway = page.locator('section[aria-labelledby="gateway-h"]');
+  await expect(gateway.getByRole("link")).toHaveCount(4);
+  for (const path of ["systems", "genres", "styles", "mechanics"]) await expect(gateway.locator(`a[href="/en/${path}/"]`)).toBeVisible();
+
+  await page.goto("/en/games/mercusuar-di-pulau-kabut-0m01/");
+  await page.getByTestId("sticky-more").click();
+  const sheet = page.getByTestId("contact-sheet");
+  await expect(sheet.getByTestId("contact-discord")).toBeVisible();
+  await expect(sheet.getByTestId("contact-instagram")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(sheet).toBeHidden();
 });

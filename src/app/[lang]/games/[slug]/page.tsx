@@ -172,7 +172,7 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
         </div>
       </div>
       {!game.full && (
-        <StickyContact wa={encodeContact(gm.whatsapp)} message={contactMessage(gm, game, lang)} targetId="contact" price={priceText} when={formatShortDay(game.startsAt, lang, game.zone)} />
+        <StickyContact wa={encodeContact(gm.whatsapp)} discord={gm.discord} instagram={gm.instagram} message={contactMessage(gm, game, lang)} targetId="contact" price={priceText} when={formatShortDay(game.startsAt, lang, game.zone)} />
       )}
     </article>
   );

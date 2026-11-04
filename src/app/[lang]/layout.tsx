@@ -6,6 +6,7 @@ import { I18nProvider } from "@/components/i18n-provider";
 import { DiceMark } from "@/components/dice-mark";
 import { HeaderShell } from "@/components/header-shell";
 import { LanguageSwitcher, NavLinks } from "@/components/nav";
+import { HeaderSearch } from "@/components/header-search";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { makeT, publicMessages } from "@/lib/i18n/dict";
 import { paths } from "@/lib/hrefs";
@@ -61,6 +62,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
                 <div className="hidden min-w-0 flex-1 lg:block lg:pl-4 xl:pl-10"><NavLinks variant="header" /></div>
                 <div className="flex items-center gap-[var(--space-sm)]"><ThemeToggle /><LanguageSwitcher /></div>
               </div>
+              <HeaderSearch />
             </div>
           </HeaderShell>
           <main id="main" className="flex-1">{children}</main>

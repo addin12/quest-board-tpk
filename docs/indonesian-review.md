@@ -29,11 +29,9 @@ The Indonesian text written since 2026-10-29 (63 strings: 56 new, 8 changed). Th
 |---|---|---|---|
 | `home.systemsTitle` | Browse by system | Cari berdasarkan sistem | |
 | `home.allSystems` | All {n} game systems | Semua {n} sistem game | |
-| `home.stylesTitle` | Browse by style | Cari berdasarkan gaya bermain | |
 | `home.allStyles` | All {n} play styles | Semua {n} gaya bermain | |
 | `styles.title` | Play styles | Gaya bermain | |
 | `styles.lead` | Every play style a Game Master can list a game under. The ones with games listed come first. | Semua gaya bermain yang bisa dipakai Game Master untuk memasang game. Yang sedang punya game ada di urutan pertama. | |
-| `home.mechanicsTitle` | Browse by mechanic | Cari berdasarkan mekanik | |
 | `home.allMechanics` | All {n} mechanics | Semua {n} mekanik | |
 | `mechanics.title` | Game mechanics | Mekanik permainan | |
 | `mechanics.lead` | Every mechanic a Game Master can list a game under: the dice or cards behind the rules. The ones with games listed come first. | Semua mekanik yang bisa dipakai Game Master untuk memasang game: dadu atau kartu di balik aturannya. Yang sedang punya game ada di urutan pertama. | |
@@ -96,6 +94,10 @@ The Indonesian text written since 2026-10-29 (63 strings: 56 new, 8 changed). Th
 | `acct.mergeDecline` | Decline | Tolak | |
 | `acct.mergeDone` | Merged. {email} now opens this account. | Sudah digabung. {email} sekarang membuka akun ini. | |
 | `acct.mergeDeclined` | Declined. Nothing changed. | Ditolak. Tidak ada yang berubah. | |
+| `games.chipFree` | Free | Gratis | |
+| `games.quick` | Quick filters | Filter cepat | |
+| `home.browseTitle` | Browse | Jelajahi | |
+| `game.moreTitle` | More ways to reach the GM | Cara lain menghubungi GM | |
 | `admin.merge` | Ask to merge into {name} | Minta gabung ke {name} | |
 | `admin.mergeConfirm` | Ask the owner of {name} to confirm? Nothing moves until they accept. | Minta pemilik {name} untuk mengonfirmasi? Tidak ada yang pindah sebelum mereka setuju. | |
 | `admin.mergeAsked` | Request sent. Nothing moves until the owner of the other account accepts it. | Permintaan terkirim. Tidak ada yang pindah sebelum pemilik akun lain menyetujuinya. | |

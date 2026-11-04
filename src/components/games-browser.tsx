@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { GENRES, MECHANICS, STYLES, genreLabelKey, mechanicLabelKey, styleLabelKey } from "@/lib/categories";
 import { EMPTY_FILTERS, PAGE_SIZE, activeFilterCount, applyFilters, filtersToQuery, isLive, pageList, parseFilters, type Filters, type GameView, type filterOptions } from "@/lib/games";
+import { clickedBackdrop } from "@/lib/dialog";
 import { paths } from "@/lib/hrefs";
 import { SearchPicker, type PickerOption } from "./search-picker";
 import { useI18n } from "./i18n-provider";
@@ -97,6 +98,14 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
     </div>
   );
 
+  const quick = [
+    { label: t("loc.online"), on: filters.where === "online", toggle: () => set({ where: filters.where === "online" ? "" : "online" }) },
+    { label: t("loc.inPerson"), on: filters.where === "in_person", toggle: () => set({ where: filters.where === "in_person" ? "" : "in_person" }) },
+    { label: t("format.one_shot"), on: filters.format === "one_shot", toggle: () => set({ format: filters.format === "one_shot" ? "" : "one_shot" }) },
+    { label: t("format.campaign"), on: filters.format === "campaign", toggle: () => set({ format: filters.format === "campaign" ? "" : "campaign" }) },
+    { label: t("level.beginner"), on: filters.level === "beginner", toggle: () => set({ level: filters.level === "beginner" ? "" : "beginner" }) },
+    { label: t("games.chipFree"), on: filters.free, toggle: () => set({ free: !filters.free }) },
+  ];
   const ready = now !== null;
   const wait = ready ? "" : "pending"; // until the scripts have run, the search, the Filters button and the pager ignore taps (and look it, if it takes long)
 
@@ -110,6 +119,11 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
         <button type="button" data-filters-btn className={`btn btn-secondary min-w-11 ${wait}`} aria-disabled={!ready || undefined} aria-expanded={phone ? sheet : open} aria-controls="filter-panel" onClick={() => (phone ? setSheet(true) : setOpen(!open))}>
           {t("games.filters")}{filterCount > 0 ? ` (${filterCount})` : ""}
         </button>
+      </div>
+
+      {/* The five filters people reach for first, one tap each, under the search on a phone (a second tap on one clears it). The sheet below has the rest. */}
+      <div role="group" aria-label={t("games.quick")} className="mt-[var(--space-sm)] flex gap-[var(--space-xs)] overflow-x-auto pb-1 [scrollbar-width:none] max-sm:-mx-[var(--gutter)] max-sm:px-[var(--gutter)] sm:hidden">
+        {quick.map((c) => <button key={c.label} type="button" className={`chip-toggle ${wait}`} aria-pressed={c.on} onClick={c.toggle}>{c.label}</button>)}
       </div>
 
       <FilterShell phone={phone} open={open} sheet={sheet} count={shown.length} active={active} onClear={clear} onClose={() => setSheet(false)}>
@@ -200,7 +214,7 @@ function FilterShell({ phone, open, sheet, count, active, onClear, onClose, chil
     return <div id="filter-panel" hidden={!open} className="well mt-[var(--space-md)] grid gap-[var(--space-lg)] sm:grid-cols-2 lg:grid-cols-4">{children}</div>;
   }
   return (
-    <dialog ref={dialog} id="filter-panel" className="sheet" aria-labelledby="filter-title" onClose={onClose} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <dialog ref={dialog} id="filter-panel" className="sheet" aria-labelledby="filter-title" onClose={onClose} onClick={(e) => { if (clickedBackdrop(e)) onClose(); }}>
       {/* Two columns: the long pickers, Experience level (its choice is long) and Free games only take a row each; Format and Where, and Language and Sort by, pair up. */}
       <div className="grid grid-cols-2 gap-x-[var(--space-md)] gap-y-[var(--space-lg)]">
         <div className="col-span-2 flex items-center justify-between gap-[var(--space-md)]">

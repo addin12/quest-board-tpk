@@ -27,6 +27,12 @@ export const ICON_FILES = {
   discord: "discord-logo",
   instagram: "instagram-logo",
   copy: "copy",
+  // the tab bar, the search field and the contact sheet
+  games: "dice-five",
+  "game-masters": "users-three",
+  "list-game": "plus-circle",
+  search: "magnifying-glass",
+  more: "dots-three",
 } as const;
 
 export type IconName = keyof typeof ICON_FILES;

@@ -6,7 +6,8 @@ import { SITE_URL } from "@/lib/site";
 import type { T } from "@/lib/i18n/core";
 import { searchText } from "@/lib/search";
 import { TileSearch } from "./tile-search";
-import { BrowseCard, BrowseTile } from "./ui";
+import { smallCover } from "@/lib/hrefs";
+import { BrowseCard, BrowseTile, Cover } from "./ui";
 
 type Tile = { name: string; count: number; cover: string | null };
 type Common = {
@@ -36,13 +37,11 @@ const RAIL_ITEM = "w-[44vw] max-w-56 shrink-0 snap-start sm:w-auto sm:max-w-none
 // Cards with a description are wider: one column on a phone, two from 640 px, three from 1024 px.
 const ABOUT_GRID = "grid gap-[var(--space-md)] sm:grid-cols-2 lg:grid-cols-3";
 const CARD_GRID = "grid grid-cols-2 gap-[var(--space-md)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
-// Two blocks side by side (BrowsePair) each have half the width, so fewer columns.
-const CARD_RAIL_HALF = RAIL_BASE + " gap-[var(--space-md)] sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-2 xl:grid-cols-3";
 
-function Tiles({ tiles, href, label, about, cover, variant = "tile", level, rail, ranked, half, t }: Common & { rail?: boolean; ranked?: boolean; half?: boolean }) {
+function Tiles({ tiles, href, label, about, cover, variant = "tile", level, rail, ranked, t }: Common & { rail?: boolean; ranked?: boolean }) {
   const shown = (name: string) => (label ? label(name) : name);
   if (variant === "card") {
-    return <ul className={rail ? (half ? CARD_RAIL_HALF : CARD_RAIL) : about ? ABOUT_GRID : CARD_GRID}>{tiles.map((x) => <li key={x.name} data-name={searchText(shown(x.name))} className={`flex ${rail ? RAIL_ITEM : ""}`}><BrowseCard name={shown(x.name)} count={x.count} href={href(x.name)} about={about?.(x.name)} t={t} level={level} /></li>)}</ul>;
+    return <ul className={rail ? CARD_RAIL : about ? ABOUT_GRID : CARD_GRID}>{tiles.map((x) => <li key={x.name} data-name={searchText(shown(x.name))} className={`flex ${rail ? RAIL_ITEM : ""}`}><BrowseCard name={shown(x.name)} count={x.count} href={href(x.name)} about={about?.(x.name)} t={t} level={level} /></li>)}</ul>;
   }
   return (
     <ul className={rail ? RAIL : GRID}>
@@ -67,24 +66,29 @@ export function BrowseSection({ id, title, allHref, allLabel, ranked, ...rest }:
   );
 }
 
-type Block = Common & { id: string; title: string; allHref: string; allLabel: string };
-
-/** Two home blocks side by side from 1024 px (stacked below): the page does not repeat one composition four times (R-05). */
-export function BrowsePair({ left, right }: { left: Block; right: Block }) {
-  const sides = [left, right].filter((b) => b.tiles.length > 0);
-  if (sides.length === 0) return null;
+/**
+ * The four ways in to the whole board as large picture tiles: systems, genres, play styles, mechanics. The first and the last are wide on a phone
+ * (a grid of unequal tiles, not four of a kind); from 1024 px they are four across. A tile with no picture shows a coloured field.
+ */
+export function BrowseGateway({ title, items }: { title: string; items: { href: string; title: string; hint: string; cover: string | null }[] }) {
   return (
-    <section className="section pt-0">
-      <div className={`wrap grid gap-x-[var(--space-3xl)] gap-y-[var(--section-gap-s)] ${sides.length === 2 ? "lg:grid-cols-2" : ""}`}>
-        {sides.map(({ id, title, allHref, allLabel, ...rest }) => (
-          <div key={id} role="group" aria-labelledby={id} className="min-w-0">
-            <div className="flex flex-col items-start gap-[var(--space-md)]">
-              <h2 id={id}>{title}</h2>
-              <Link href={allHref} className="btn btn-soft">{allLabel}</Link>
-            </div>
-            <div className="mt-[var(--space-xl)]"><Tiles {...rest} rail half={sides.length === 2} /></div>
-          </div>
-        ))}
+    <section className="section pt-0" aria-labelledby="gateway-h">
+      <div className="wrap">
+        <h2 id="gateway-h">{title}</h2>
+        <ul className="mt-[var(--space-xl)] grid grid-cols-2 gap-[var(--space-md)] lg:grid-cols-4">
+          {items.map((it, i) => {
+            const wide = i === 0 || i === items.length - 1;
+            return (
+              <li key={it.href} className={wide ? "col-span-2 lg:col-span-1" : undefined}>
+                <Link href={it.href} className="bill">
+                  <Cover src={it.cover ? smallCover(it.cover) : null} seed={it.title} quiet className={`w-full ${wide ? "aspect-[2/1] lg:aspect-[4/5]" : "aspect-[4/5]"}`} />
+                  <h3 className="bill-title mt-[var(--space-sm)] text-[length:var(--text-lg)]">{it.title}</h3>
+                  <p className="mt-[var(--space-3xs)] text-sm text-muted">{it.hint}</p>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </section>
   );

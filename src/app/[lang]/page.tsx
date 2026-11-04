@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/json-ld";
-import { BrowsePair, BrowseSection, RAIL_BASE } from "@/components/browse";
+import { BrowseGateway, BrowseSection, RAIL_BASE } from "@/components/browse";
 import { EmptyState, GameCard, GameRow } from "@/components/ui";
-import { GENRES, MECHANICS, STYLES, genreCover, genreLabelKey, mechanicLabelKey, styleLabelKey, type GenreKey, type MechanicKey, type StyleKey } from "@/lib/categories";
+import { GENRES, MECHANICS, STYLES, genreCover, genreLabelKey, type GenreKey } from "@/lib/categories";
 import { gameViews, loadSiteData } from "@/lib/data";
-import { genreTiles, mechanicTiles, sortGames, styleTiles, systemTiles } from "@/lib/games";
+import { genreTiles, sortGames, systemTiles } from "@/lib/games";
 import { paths } from "@/lib/hrefs";
 import { makeT } from "@/lib/i18n/dict";
 import { languageAlternates, websiteJsonLd } from "@/lib/seo";
@@ -29,8 +29,16 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   const beginner = sortGames(games.filter((g) => g.level === "beginner" && !soon.slice(0, 3).includes(g)), "soonest").slice(0, 3);
   const systems = systemTiles(games).slice(0, 10);
   const genres = genreTiles(games, GENRES.map((g) => g.key)).slice(0, 10);
-  const styles = styleTiles(games, STYLES.map((s) => s.key)).slice(0, 10);
-  const mechanics = mechanicTiles(games, MECHANICS.map((m) => m.key)).slice(0, 10);
+  // Play styles and mechanics have no pictures of their own: their tiles borrow the cover of a listed game that has one.
+  const pictured = games.filter((g) => g.cover);
+  const styled = pictured.find((g) => g.styles.length > 0);
+  const mechanical = pictured.find((g) => g.mechanics.length > 0 && g !== styled) ?? pictured.find((g) => g.mechanics.length > 0);
+  const gateway = [
+    { href: paths.systems(lang), title: t("systems.title"), hint: t("home.allSystems", { n: SYSTEMS.length }), cover: systems[0] ? (systemCover(systems[0].name) ?? systems[0].cover) : null },
+    { href: paths.genres(lang), title: t("genres.title"), hint: t("home.allGenres", { n: GENRES.length }), cover: genres[0] ? genreCover(genres[0].name as GenreKey) : null },
+    { href: paths.styles(lang), title: t("styles.title"), hint: t("home.allStyles", { n: STYLES.length }), cover: styled?.cover ?? null },
+    { href: paths.mechanics(lang), title: t("mechanics.title"), hint: t("home.allMechanics", { n: MECHANICS.length }), cover: mechanical?.cover ?? null },
+  ];
   const filterHref = (key: string) => (name: string) => paths.games(lang, `?${key}=${encodeURIComponent(name)}`);
 
   return (
@@ -73,13 +81,10 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
         </div>
       </section>
 
+      <BrowseGateway title={t("home.browseTitle")} items={gateway} />
+
       <BrowseSection id="systems-h" ranked cover={systemCover} title={t("home.systemsTitle")} tiles={systems} href={filterHref("system")} allHref={paths.systems(lang)} allLabel={t("home.allSystems", { n: SYSTEMS.length })} t={t} />
       <BrowseSection id="genres-h" title={t("home.genresTitle")} tiles={genres} href={filterHref("genre")} label={(k) => t(genreLabelKey(k as GenreKey))} cover={(k) => genreCover(k as GenreKey)} allHref={paths.genres(lang)} allLabel={t("home.allGenres", { n: GENRES.length })} t={t} />
-      <BrowsePair
-        left={{ id: "styles-h", title: t("home.stylesTitle"), tiles: styles, href: filterHref("style"), label: (k) => t(styleLabelKey(k as StyleKey)), variant: "card", allHref: paths.styles(lang), allLabel: t("home.allStyles", { n: STYLES.length }), t }}
-        right={{ id: "mechanics-h", title: t("home.mechanicsTitle"), tiles: mechanics, href: filterHref("mechanic"), label: (k) => t(mechanicLabelKey(k as MechanicKey)), variant: "card", allHref: paths.mechanics(lang), allLabel: t("home.allMechanics", { n: MECHANICS.length }), t }}
-      />
-
       {beginner.length > 0 && (
         <section className="section pt-0" aria-labelledby="new-h">
           <div className="wrap grid gap-[var(--space-2xl)] lg:grid-cols-12">
