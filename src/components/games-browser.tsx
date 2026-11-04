@@ -129,10 +129,14 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
             <option value="priceAsc">{t("sort.priceAsc")}</option>
           </select>
         </div>
-        <label className="flex min-h-11 items-center gap-[var(--space-sm)] font-medium sm:col-span-2">
-          <input type="checkbox" className="size-5 accent-[var(--color-accent)]" checked={filters.free} onChange={(e) => set({ free: e.target.checked })} />
-          {t("games.freeOnly")}
-        </label>
+        {/* On wide screens it shares a row with Sort by and is laid out like that cell (an empty label line, then a box as tall as the select), so the checkbox sits level with the middle of the select. */}
+        <div className="flex flex-col sm:col-span-2">
+          <span className="label invisible hidden lg:block" aria-hidden>&nbsp;</span>
+          <label className="flex min-h-11 flex-1 items-center gap-[var(--space-sm)] font-medium">
+            <input type="checkbox" className="size-5 accent-[var(--color-accent)]" checked={filters.free} onChange={(e) => set({ free: e.target.checked })} />
+            {t("games.freeOnly")}
+          </label>
+        </div>
       </FilterShell>
 
       <div className="mt-[var(--space-xl)] flex flex-wrap items-center justify-between gap-[var(--space-md)]">
