@@ -432,6 +432,8 @@ for (const scheme of ["light", "dark"] as const) {
     test(`${path}: accessibility check (${scheme})`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: scheme });
       await page.goto(path, { waitUntil: "networkidle" });
+      // Before the page's scripts have run the list controls are deliberately dimmed (`.pending`, slow phones); a slow WebKit run measured that.
+      await page.waitForFunction(() => !document.querySelector(".pending"));
       expect(await axe(page)).toEqual([]);
     });
   }
