@@ -37,6 +37,7 @@ test("a game must fit Jabodetabek and online, and its short description 80 chara
   assert.equal(bad({ genres: ["horror", "sci-fi", "mystery", "cozy"] }).genres, "invalid");
   assert.equal(bad({ genres: ["not-a-genre"] }).genres, "invalid");
   assert.equal(bad({ mechanics: ["d20", "pbta"] }).mechanics, undefined, "up to three known mechanics are fine");
+  assert.equal(bad({ mechanics: ["year-zero", "2d20", "mork-borg"] }).mechanics, undefined, "and so are the ones taken over from StartPlaying");
   assert.equal(bad({ mechanics: ["d20", "d100", "2d6", "pbta"] }).mechanics, "invalid");
   assert.equal(bad({ mechanics: ["roll-under-the-moon"] }).mechanics, "invalid");
   const saved = parseGame({ ...GAME, mechanics: ["d20"] }, now);

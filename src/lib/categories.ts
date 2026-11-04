@@ -79,6 +79,19 @@ export const MECHANICS = [
   { key: "osr" },
   { key: "card-based" },
   { key: "no-dice" },
+  // the rest are the mechanics StartPlaying lists (startplaying.games/play/mechanics), in its order
+  { key: "brp" },
+  { key: "storyteller" },
+  { key: "exploding-dice" },
+  { key: "year-zero" },
+  { key: "interlock" },
+  { key: "2d20" },
+  { key: "mork-borg" },
+  { key: "narrative-dice" },
+  { key: "d616" },
+  { key: "illuminated-worlds" },
+  { key: "fudge" },
+  { key: "essence20" },
 ] as const satisfies readonly { key: string }[];
 
 export type GenreKey = (typeof GENRES)[number]["key"];

@@ -114,4 +114,16 @@ The Indonesian text written since 2026-10-29 (63 strings: 56 new, 8 changed). Th
 | `mechanic.osr` | Old-school (OSR) | Old-school (OSR) | |
 | `mechanic.card-based` | Card-based | Berbasis kartu | |
 | `mechanic.no-dice` | Diceless or narrative | Tanpa dadu, naratif | |
+| `mechanic.brp` | Basic Roleplaying (BRP) | Basic Roleplaying (BRP) | |
+| `mechanic.storyteller` | Storyteller System | Storyteller System | |
+| `mechanic.exploding-dice` | Exploding dice | Dadu meledak | |
+| `mechanic.year-zero` | Year Zero Engine | Year Zero Engine | |
+| `mechanic.interlock` | Interlock System | Interlock System | |
+| `mechanic.2d20` | 2d20 System | 2d20 System | |
+| `mechanic.mork-borg` | Powered by Mörk Borg | Powered by Mörk Borg | |
+| `mechanic.narrative-dice` | Narrative Dice System | Narrative Dice System | |
+| `mechanic.d616` | d616 Role-Playing System | d616 Role-Playing System | |
+| `mechanic.illuminated-worlds` | Illuminated Worlds System | Illuminated Worlds System | |
+| `mechanic.fudge` | Fudge System | Fudge System | |
+| `mechanic.essence20` | Essence20 System | Essence20 System | |
 

@@ -97,3 +97,12 @@ test("every word must match, and nothing matches nothing", () => {
   assert.equal(SYSTEMS.filter((s) => finds(s, "dnd")).length >= 6, true, "all the D&D editions answer to dnd");
   assert.equal(SYSTEMS.filter((s) => finds(s, "zzzz")).length, 0);
 });
+
+test("the mechanics taken over from StartPlaying are found by what people type", () => {
+  assert.ok(finds("Powered by Mörk Borg", "mork borg"), "accents are off");
+  assert.ok(finds("Narrative Dice System", "genesys"));
+  assert.ok(finds("Year Zero Engine", "yze"));
+  assert.ok(finds("Basic Roleplaying (BRP)", "chaosium"));
+  assert.ok(finds("2d20 System", "modiphius"));
+  assert.ok(!finds("2d20 System", "genesys"), "and not by each other's names");
+});
