@@ -21,7 +21,8 @@ export async function call<T = Record<string, unknown>>(method: "GET" | "POST" |
   return { ok: false, status: res.status, error: json?.error ?? (res.status >= 500 ? "server" : "invalid"), fields: json?.fields, message: json?.message };
 }
 
-export type Me = { ok: true; email: string; profile: GmRecord | null; games: GameRecord[]; admin: boolean };
+export type MergeOffer = { id: string; name: string; email: string; askedAt: string };
+export type Me = { ok: true; email: string; profile: GmRecord | null; games: GameRecord[]; admin: boolean; mergeOffers: MergeOffer[] };
 
 /** The picture sizes: a cover is 4:5 (as on the cards), a photo is a square. */
 const SIZES = { cover: { w: 1080, h: 1350, type: "image/webp", q: 0.82 }, photo: { w: 400, h: 400, type: "image/webp", q: 0.85 } } as const;

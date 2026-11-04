@@ -109,6 +109,21 @@ export function AccountApp() {
 
       {message && <div role="status" data-testid="message"><Notice tone="success">{message}</Notice></div>}
 
+      {me.mergeOffers.length > 0 && (
+        <section aria-labelledby="merge-h" className="well max-w-2xl" data-testid="merge-offers">
+          <h2 id="merge-h" className="max-w-none text-[length:var(--text-title)]">{t("acct.mergeTitle")}</h2>
+          {me.mergeOffers.map((o) => (
+            <div key={o.id} className="mt-[var(--space-md)]" data-testid="merge-offer">
+              <p className="text-ink-2">{t("acct.mergeBody", { email: o.email, name: o.name })}</p>
+              <p className="mt-[var(--space-lg)] flex flex-wrap items-center gap-[var(--space-md)]">
+                <button type="button" className="btn btn-primary" onClick={() => act(() => call("POST", "/merge/respond", { id: o.id, accept: true }), t("acct.mergeDone", { email: o.email }))}>{t("acct.mergeAccept")}</button>
+                <button type="button" className="btn btn-secondary" onClick={() => act(() => call("POST", "/merge/respond", { id: o.id, accept: false }), t("acct.mergeDeclined"))}>{t("acct.mergeDecline")}</button>
+              </p>
+            </div>
+          ))}
+        </section>
+      )}
+
       <section aria-labelledby="profile-h">
         <h2 id="profile-h">{t("acct.profileTitle")}</h2>
         {!profile || editingProfile ? (

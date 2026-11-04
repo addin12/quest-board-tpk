@@ -37,7 +37,10 @@ the old version stays off the site until you approve it again.
 ## Two profiles, one person
 
 If two profiles share a WhatsApp number, each is flagged *Look closer* with the other's name. If it is the same person with two email
-addresses, open the one that should go and use **Merge into…**: the games move to the profile you keep, and both emails still sign in to it.
+addresses, open the one that should go and use **Ask to merge into…**. Nothing moves yet: the person whose profile you keep is emailed, sees the
+other address on their account page, and must **Accept** while signed in. Only then do the games move and both emails sign in to one account. A
+request that is not answered lapses after 7 days; you can ask again (twice a day at most). Contact the person yourself first if you doubt it is
+the same person: a copied WhatsApp number proves nothing. Owner and admin accounts cannot be merged.
 
 ## Things worth knowing
 

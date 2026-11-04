@@ -1,7 +1,7 @@
 // The HTTP API. One function from a Request to a Response, with everything it touches passed in (the database, the bucket,
 // the mailer, the clock), so the tests drive it without Cloudflare. The Pages Function in functions/api/ is a thin wrapper.
 import { endSession, getSession, isAdmin, peekLogin, pruneAuth, requestLogin, verifyLogin, SESSION_DAYS, type Ctx, type Session } from "./auth.ts";
-import { handleAdmin } from "./admin.ts";
+import { handleAdmin, respondMerge } from "./admin.ts";
 import type { Bucket } from "./db.ts";
 import { deployIfDue } from "./deploy.ts";
 import { contentTypeOf, storeImage, sweepOrphanImages, type ImageKind } from "./images.ts";
@@ -162,6 +162,15 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
     const result = await handleAdmin(ctx, session.email, b, Boolean(env.deployHook), async () => (await deployIfDue(ctx, env.deployHook, env.fetcher, true)) === "sent");
     if (result.ok && (b.action === "review" || b.action === "patch" || b.action === "merge")) publish();
     return json(result.ok ? 200 : result.error === "forbidden" ? 403 : 400, result);
+  }
+
+  if (method === "POST" && path === "/merge/respond") {
+    const b = await body(request);
+    if (!b) return err(400, "bad_request");
+    const result = await respondMerge(ctx, session, b.id, b.accept);
+    if (!result.ok) return err(result.error === "forbidden" ? 403 : result.error === "not_found" ? 404 : 400, result.error, result.message ? { message: result.message } : {});
+    if (result.merged) publish();
+    return json(200, result);
   }
 
   if (method === "POST" && path === "/images") return upload(request, env, session, url.searchParams.get("kind") === "photo" ? "photo" : "cover");

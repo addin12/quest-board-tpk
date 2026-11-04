@@ -20,7 +20,7 @@ any number of **games**. Also: `admins`, `activity` (the audit trail), `login_to
 | One account per verified email; `a.b+x@gmail.com` is `ab@gmail.com` | `normalizeEmail`, `accounts.email UNIQUE` |
 | One profile per account, many games, all tied to the session's account | `profiles.account_id UNIQUE`, `store.ts` |
 | Same WhatsApp number on two profiles is flagged to the admin | `sharesPhoneWith` in the queue, `check.duplicatePhone` |
-| Admin merges a duplicate into the real account (games move, the email still signs in) | `merge` action, `accounts.merged_into` |
+| An admin asks to merge a duplicate into the real account; its owner accepts while signed in, then the games move and the email still signs in (ADR-45) | `merge` action → `merge_requests`, `POST /merge/respond`, `accounts.merged_into` |
 | Jabodetabek and online only; short description at most 80 characters | `worker/src/rules.ts`, `src/lib/areas.ts` (enforced, not just warned) |
 | A GM marks a game full or removes it without a review | `POST /games/:id/full`, `DELETE /games/:id` |
 | Any other change goes back to review (same as before) | `saveProfile`, `saveGame` |
@@ -35,6 +35,7 @@ any number of **games**. Also: `admins`, `activity` (the audit trail), `login_to
 | `POST /logout`, `GET /me` | signed in | end the session; the account, its profile and its games |
 | `PUT /profile`, `POST /games`, `PUT /games/:id` | signed in | create or change; invalid input answers 422 with `fields` |
 | `POST /games/:id/full {full}`, `DELETE /games/:id`, `DELETE /account` | owner of it | self-service |
+| `POST /merge/respond {id, accept}` | owner of the account the request is for | accept or decline an admin's merge request (`GET /me` lists them as `mergeOffers`); anyone else gets 404 |
 | `POST /images?kind=cover\|photo` | signed in | WebP, JPEG or PNG read from the bytes; cover up to 1.5 MB, photo up to 600 KB |
 | `GET /img/<key>` | anyone | only pictures of approved things; the build key sees all |
 | `POST /admin {action, …}` | admins | `whoami`, `queue`, `review`, `patch`, `admin.add`, `admin.remove`, `merge`, `deploy` (the old script's names) |

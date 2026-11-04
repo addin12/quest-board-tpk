@@ -14,6 +14,13 @@ import { BUILD_KEY, GAME, OWNER, PROFILE, WEBP, makeWorld } from "../support/wor
 
 type World = ReturnType<typeof makeWorld>;
 const admin = (w: World, cookie: string, body: Record<string, unknown>) => w.call("POST", "/admin", { cookie, body });
+/** The two steps of a merge: an admin asks, the owner of the account that stays accepts while signed in. */
+async function merge(w: World, adminCookie: string, intoCookie: string, fromId: string, intoId: string) {
+  const asked = await admin(w, adminCookie, { action: "merge", fromId, intoId });
+  if (asked.status !== 200) return asked;
+  const offers = (await w.call("GET", "/me", { cookie: intoCookie })).json.mergeOffers as any[];
+  return w.call("POST", "/merge/respond", { cookie: intoCookie, body: { id: offers.at(-1).id, accept: true } });
+}
 const count = (w: World, sql: string, ...v: unknown[]) => (w.db.raw.prepare(sql).get(...(v as never[])) as { n: number }).n;
 
 /** A sign-in request that arrives from a chosen IP address (the fixture's `call` has no way to set one). */
@@ -80,8 +87,8 @@ test("a merge never touches an owner or admin account, follows chains, and tells
     return cookie;
   };
   await mk("a@example.com", "Alpha GM", "081200000001");
-  await mk("b@example.com", "Beta GM", "081200000002");
-  await mk("c@example.com", "Gamma GM", "081200000003");
+  const beta = await mk("b@example.com", "Beta GM", "081200000002");
+  const gamma = await mk("c@example.com", "Gamma GM", "081200000003");
   const helper = await mk("helper@example.com", "Helper GM", "081200000004");
   const owner = await w.signIn(OWNER);
   await admin(w, owner, { action: "admin.add", email: "helper@example.com" });
@@ -94,11 +101,11 @@ test("a merge never touches an owner or admin account, follows chains, and tells
   void helper;
 
   const before = w.mails.length;
-  assert.equal((await admin(w, owner, { action: "merge", fromId: await id("Alpha GM"), intoId: await id("Beta GM") })).status, 200);
+  assert.equal((await merge(w, owner, beta, await id("Alpha GM"), await id("Beta GM"))).status, 200);
   assert.equal(w.mails.length, before + 1);
-  assert.equal(w.mails[before]!.to, "b@example.com", "the account that absorbed an address is told");
+  assert.equal(w.mails[before]!.to, "b@example.com", "the account that would absorb an address is asked, and told which one");
   assert.match(w.mails[before]!.body, /a@example\.com/);
-  assert.equal((await admin(w, owner, { action: "merge", fromId: await id("Beta GM"), intoId: await id("Gamma GM") })).status, 200);
+  assert.equal((await merge(w, owner, gamma, await id("Beta GM"), await id("Gamma GM"))).status, 200);
   const viaA = await w.signIn("a@example.com");
   assert.equal((await w.call("GET", "/me", { cookie: viaA })).json.profile.name, "Gamma GM", "the first address follows the chain to the last account");
 });
@@ -112,7 +119,7 @@ test("erasing an account that others were merged into works, and leaves no name 
   await w.call("PUT", "/profile", { cookie: dup, body: { ...PROFILE, name: "Raka Duplicate" } });
   const owner = await w.signIn(OWNER);
   const gms = (await admin(w, owner, { action: "queue" })).json.gms as any[];
-  await admin(w, owner, { action: "merge", fromId: gms.find((g) => g.name === "Raka Duplicate").id, intoId: gms.find((g) => g.name === "Raka Pratama").id });
+  await merge(w, owner, real, gms.find((g) => g.name === "Raka Duplicate").id, gms.find((g) => g.name === "Raka Pratama").id);
 
   assert.equal((await w.call("DELETE", "/account", { cookie: real })).status, 200);
   assert.equal(count(w, "SELECT COUNT(*) AS n FROM accounts WHERE email LIKE 'raka%'"), 0, "both addresses are gone");
@@ -260,4 +267,63 @@ test("a build key in the address no longer opens anything (it would be written t
   assert.equal((await w.call("GET", `/health?key=${BUILD_KEY}`)).status, 403);
   assert.equal((await w.call("POST", `/cron?job=tick&key=${BUILD_KEY}`, { origin: null })).status, 403);
   assert.equal((await w.call("GET", `/img/covers/abcdefgh12345678.webp?key=${BUILD_KEY}`)).status, 404, "a picture needs approval or the header");
+});
+
+test("a merge happens only when the owner of the account that stays accepts it: an admin's click alone moves nothing", async () => {
+  const w = makeWorld();
+  const victim = await w.signIn("victim@example.com");
+  await w.call("PUT", "/profile", { cookie: victim, body: PROFILE });
+  await w.call("POST", "/games", { cookie: victim, body: GAME });
+  const attacker = await w.signIn("attacker@example.com");
+  await w.call("PUT", "/profile", { cookie: attacker, body: { ...PROFILE, name: "Attacker" } }); // the same WhatsApp number, copied from the public page
+  const owner = await w.signIn(OWNER);
+  const gms = (await admin(w, owner, { action: "queue" })).json.gms as any[];
+  const [from, into] = [gms.find((g) => g.name === "Attacker").id, gms.find((g) => g.name === "Raka Pratama").id];
+
+  assert.equal((await admin(w, owner, { action: "merge", fromId: from, intoId: into })).status, 200, "the admin asks");
+  const again = await w.signIn("attacker@example.com");
+  assert.equal((await w.call("GET", "/me", { cookie: again })).json.profile.name, "Attacker", "the attacker's address still opens the attacker's own account");
+  assert.equal((await w.call("GET", "/me", { cookie: again })).json.mergeOffers.length, 0, "and the offer is not shown to them");
+  const offers = (await w.call("GET", "/me", { cookie: victim })).json.mergeOffers as any[];
+  assert.equal(offers.length, 1);
+  assert.equal(offers[0].email, "attacker@example.com", "the victim is shown the address that wants in");
+
+  const respond = (cookie: string, accept: boolean) => w.call("POST", "/merge/respond", { cookie, body: { id: offers[0].id, accept } });
+  assert.equal((await respond(again, true)).status, 404, "the address that would gain access cannot accept for the victim");
+  assert.equal((await respond(owner, true)).status, 404, "nor can an admin");
+  assert.equal(count(w, "SELECT COUNT(*) AS n FROM profiles"), 2);
+
+  assert.equal((await respond(victim, false)).status, 200, "the victim declines");
+  assert.equal(count(w, "SELECT COUNT(*) AS n FROM merge_requests"), 0);
+  assert.equal((await respond(victim, true)).status, 404, "a declined request cannot be accepted later");
+  assert.equal((await w.call("GET", "/me", { cookie: await w.signIn("attacker@example.com") })).json.profile.name, "Attacker");
+});
+
+test("a merge request expires after 7 days, is asked at most twice a day, and goes with the profile when it is erased", async () => {
+  const w = makeWorld();
+  const real = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: real, body: PROFILE });
+  const dup = await w.signIn("raka.second@example.com");
+  await w.call("PUT", "/profile", { cookie: dup, body: { ...PROFILE, name: "Raka Duplicate" } });
+  const owner = await w.signIn(OWNER);
+  const gms = (await admin(w, owner, { action: "queue" })).json.gms as any[];
+  const ask = () => admin(w, owner, { action: "merge", fromId: gms.find((g) => g.name === "Raka Duplicate").id, intoId: gms.find((g) => g.name === "Raka Pratama").id });
+
+  assert.equal((await ask()).status, 200);
+  assert.equal((await ask()).status, 200, "asking again replaces the request");
+  assert.equal(count(w, "SELECT COUNT(*) AS n FROM merge_requests"), 1);
+  assert.equal((await ask()).status, 400, "but a third ask in a day is refused: it would mail the same person again");
+  const id = ((await w.call("GET", "/me", { cookie: real })).json.mergeOffers as any[])[0].id;
+
+  w.clock.ms += 8 * DAY_MS;
+  const later = await w.signIn("raka@example.com");
+  assert.equal(((await w.call("GET", "/me", { cookie: later })).json.mergeOffers as any[]).length, 0, "an old request is no longer shown");
+  assert.equal((await w.call("POST", "/merge/respond", { cookie: later, body: { id, accept: true } })).status, 404, "or accepted");
+  assert.equal(count(w, "SELECT COUNT(*) AS n FROM profiles"), 2);
+
+  const owner2 = await w.signIn(OWNER);
+  assert.equal((await admin(w, owner2, { action: "merge", fromId: gms.find((g) => g.name === "Raka Duplicate").id, intoId: gms.find((g) => g.name === "Raka Pratama").id })).status, 200);
+  assert.equal(count(w, "SELECT COUNT(*) AS n FROM merge_requests"), 1, "the new request replaced the expired one");
+  assert.equal((await w.call("DELETE", "/account", { cookie: later })).status, 200);
+  assert.equal(count(w, "SELECT COUNT(*) AS n FROM merge_requests"), 0, "erasing the profile removes the request");
 });

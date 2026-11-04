@@ -1,10 +1,10 @@
 // The admin side: the review queue, decisions, featuring, admins and merging duplicate accounts.
 // Speaks the same action names and answers as the old Apps Script API, so the admin page keeps its logic.
 import { exec, many, one } from "./db.ts";
-import { isAdmin, listAdmins, type Ctx } from "./auth.ts";
-import { decisionMail, mergeNoticeMail, normalizeEmail } from "./email.ts";
-import { gameRecord, gmRecord, markDirty, type GameRow, type ProfileRow } from "./store.ts";
-import { DAY_MS, clip, iso, logEvent, metaGet } from "./util.ts";
+import { isAdmin, listAdmins, type Ctx, type Session } from "./auth.ts";
+import { decisionMail, mergeRequestMail, normalizeEmail } from "./email.ts";
+import { MERGE_REQUEST_DAYS, gameRecord, gmRecord, markDirty, type GameRow, type ProfileRow } from "./store.ts";
+import { DAY_MS, allow, clip, iso, logEvent, metaGet, randomId } from "./util.ts";
 import type { AdminEntry, DeployInfo } from "../../src/lib/types.ts";
 
 export type AdminFail = { ok: false; error: string; message?: string };
@@ -127,11 +127,10 @@ export async function removeAdmin(ctx: Ctx, by: string, rawEmail: unknown) {
   return { ok: true as const, admins: (await listAdmins(ctx)).map((a) => ({ email: a.email, addedBy: a.added_by, addedAt: a.added_at })) };
 }
 
-/**
- * Moves everything of a duplicate account into the real one. `fromProfileId` is the duplicate's profile (the one the admin page flags);
- * its games go to the other account's profile and the duplicate account's sign-ins are redirected, so its email keeps working.
- */
-export async function mergeProfiles(ctx: Ctx, admin: string, fromProfileId: unknown, intoProfileId: unknown) {
+type Sides = { from: ProfileRow; into: ProfileRow; fromEmail: string; intoEmail: string };
+
+/** Both profiles of a merge and their addresses, or why it cannot happen. */
+async function mergeSides(ctx: Ctx, fromProfileId: unknown, intoProfileId: unknown): Promise<Sides | AdminFail> {
   if (typeof fromProfileId !== "string" || typeof intoProfileId !== "string" || fromProfileId === intoProfileId) return fail("bad_request");
   const from = await one<ProfileRow>(ctx.db, "SELECT * FROM profiles WHERE id = ?", fromProfileId);
   const into = await one<ProfileRow>(ctx.db, "SELECT * FROM profiles WHERE id = ?", intoProfileId);
@@ -141,16 +140,55 @@ export async function mergeProfiles(ctx: Ctx, admin: string, fromProfileId: unkn
   if (!fromAccount || !intoAccount) return fail("not_found");
   // A merge hands the duplicate's address the other account's identity, so it must never touch an owner or admin account.
   if ((await isAdmin(ctx, fromAccount.email)) || (await isAdmin(ctx, intoAccount.email))) return fail("forbidden", "admin_account");
+  return { from, into, fromEmail: fromAccount.email, intoEmail: intoAccount.email };
+}
+
+/**
+ * An admin asks for two profiles to be merged. Nothing moves: the person whose account would absorb the other address is mailed, and
+ * the merge happens when they accept it while signed in (`respondMerge`). A mail failure leaves the request open, and the person sees
+ * it on their account page. `fromProfileId` is the duplicate (the one the admin page flags), `intoProfileId` the account that stays.
+ */
+export async function requestMerge(ctx: Ctx, admin: string, fromProfileId: unknown, intoProfileId: unknown) {
+  const sides = await mergeSides(ctx, fromProfileId, intoProfileId);
+  if ("ok" in sides) return sides;
+  const { from, into, fromEmail, intoEmail } = sides;
+  if (!(await allow(ctx.db, `mergeask:${into.id}`, 2, DAY_MS, ctx.now()))) return fail("rate_limited"); // clicking again must not mail the same person over and over
+  await exec(ctx.db, "DELETE FROM merge_requests WHERE created_at < ? OR (from_profile_id = ? AND into_profile_id = ?)", iso(ctx.now() - MERGE_REQUEST_DAYS * DAY_MS), from.id, into.id);
+  await exec(ctx.db, "INSERT INTO merge_requests (id, from_profile_id, into_profile_id, requested_by, created_at) VALUES (?, ?, ?, ?, ?)", randomId(12), from.id, into.id, admin, iso(ctx.now()));
+  await logEvent(ctx.db, ctx.now(), "merge asked", "gm", into.id, into.name, `profile ${from.name} (${from.id}) asked to merge into this one`, admin);
+  await ctx.mailer.send(mergeRequestMail(intoEmail, fromEmail, ctx.siteUrl)).catch(() => logEvent(ctx.db, ctx.now(), "mail failed", "gm", into.id, into.name, "the merge request email could not be sent", admin));
+  return { ok: true as const, requested: true as const };
+}
+
+/**
+ * The person whose account was asked to absorb another address answers. Only the signed-in owner of the target account can: the request
+ * says whose account it is for, and any other session gets "not_found" so nothing is learned about other people's requests.
+ */
+export async function respondMerge(ctx: Ctx, s: Session, requestId: unknown, accept: unknown) {
+  if (typeof requestId !== "string" || typeof accept !== "boolean") return fail("bad_request");
+  const req = await one<{ id: string; from_profile_id: string; into_profile_id: string }>(ctx.db, "SELECT id, from_profile_id, into_profile_id FROM merge_requests WHERE id = ? AND created_at >= ?", requestId, iso(ctx.now() - MERGE_REQUEST_DAYS * DAY_MS));
+  const into = req ? await one<ProfileRow>(ctx.db, "SELECT * FROM profiles WHERE id = ?", req.into_profile_id) : null;
+  if (!req || !into || into.account_id !== s.accountId) return fail("not_found");
+  if (!accept) {
+    await exec(ctx.db, "DELETE FROM merge_requests WHERE id = ?", req.id);
+    await logEvent(ctx.db, ctx.now(), "merge declined", "gm", into.id, into.name, `a request to merge ${req.from_profile_id} into this profile was declined`, s.email);
+    return { ok: true as const, merged: false as const };
+  }
+  const sides = await mergeSides(ctx, req.from_profile_id, req.into_profile_id);
+  if ("ok" in sides) {
+    if (sides.error === "not_found") await exec(ctx.db, "DELETE FROM merge_requests WHERE id = ?", req.id); // the duplicate is gone already
+    return sides;
+  }
+  const { from } = sides;
   await exec(ctx.db, "UPDATE games SET profile_id = ?, updated_at = ? WHERE profile_id = ?", into.id, iso(ctx.now()), from.id);
   await exec(ctx.db, "DELETE FROM profiles WHERE id = ?", from.id);
   await exec(ctx.db, "UPDATE accounts SET merged_into = ? WHERE merged_into = ?", into.account_id, from.account_id); // accounts merged into the duplicate earlier follow it
   await exec(ctx.db, "UPDATE accounts SET merged_into = ? WHERE id = ?", into.account_id, from.account_id);
   await exec(ctx.db, "UPDATE sessions SET account_id = ? WHERE account_id = ?", into.account_id, from.account_id);
-  await logEvent(ctx.db, ctx.now(), "merged", "gm", into.id, into.name, `profile ${from.name} (${from.id}) merged into this one`, admin);
+  await exec(ctx.db, "DELETE FROM merge_requests WHERE from_profile_id = ? OR into_profile_id = ?", from.id, from.id);
+  await logEvent(ctx.db, ctx.now(), "merged", "gm", into.id, into.name, `profile ${from.name} (${from.id}) merged into this one, accepted by its owner`, s.email);
   await markDirty(ctx);
-  // The person whose account absorbed another address is told, so a merge they did not expect is noticed.
-  await ctx.mailer.send(mergeNoticeMail(intoAccount.email, fromAccount.email)).catch(() => undefined);
-  return { ok: true as const };
+  return { ok: true as const, merged: true as const };
 }
 
 /** One admin API call, after the caller has been signed in. */
@@ -163,7 +201,7 @@ export async function handleAdmin(ctx: Ctx, email: string, req: Record<string, u
     case "patch": return patch(ctx, email, req);
     case "admin.add": return addAdmin(ctx, email, req.email);
     case "admin.remove": return removeAdmin(ctx, email, req.email);
-    case "merge": return mergeProfiles(ctx, email, req.fromId, req.intoId);
+    case "merge": return requestMerge(ctx, email, req.fromId, req.intoId);
     case "deploy": return (await deployNow()) ? { ok: true as const } : fail("deploy_failed");
     default: return fail("bad_request");
   }

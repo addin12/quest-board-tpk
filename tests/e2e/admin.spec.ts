@@ -199,10 +199,20 @@ test("one person with two accounts is flagged and merged: the games move and the
   await row(page, "Raka P.").click();
   await expect(page.getByTestId("admin-checks")).toContainText("same WhatsApp number");
   const box = page.getByTestId("merge-box");
-  await box.getByRole("button", { name: "Merge into Raka Pratama" }).click();
-  await box.getByRole("button", { name: /Merge this profile into Raka Pratama/ }).click();
-  await expect(row(page, "Raka P.")).toHaveCount(0);
+  await box.getByRole("button", { name: "Ask to merge into Raka Pratama" }).click();
+  await box.getByRole("button", { name: /Ask the owner of Raka Pratama to confirm/ }).click();
+  await expect.poll(async () => (await world.sql("SELECT COUNT(*) AS n FROM merge_requests"))[0]!.n).toBe(1);
+  expect(await world.sql("SELECT COUNT(*) AS n FROM profiles"), "asking moves nothing").toEqual([{ n: 3 }]);
+
+  // The owner of the real account answers on their own page; only then do the two accounts become one.
+  await world.signInAs("raka@example.com");
+  await page.goto("/en/account/");
+  await expect(page.getByTestId("merge-offers")).toContainText("raka.second@example.com");
+  await page.getByTestId("merge-offers").getByRole("button", { name: "Accept" }).click();
+  await expect(page.getByTestId("message")).toContainText("Merged.");
+  await expect(page.getByTestId("merge-offers")).toHaveCount(0);
   expect(await world.sql("SELECT COUNT(*) AS n FROM profiles")).toEqual([{ n: 2 }]);
+  expect(await world.sql("SELECT COUNT(*) AS n FROM merge_requests")).toEqual([{ n: 0 }]);
 });
 
 test("adding an admin is one email address; only the owner removes one, and not themselves", async ({ page }) => {

@@ -125,17 +125,22 @@ ${SIGN}`,
   };
 }
 
-/** Sent to the owner of an account when an admin links another sign-in address to it, so an unexpected merge is noticed. */
-export function mergeNoticeMail(to: string, linked: string): Mail {
+/**
+ * Asked of the owner of an account before an admin links another sign-in address to it (nothing happens until they accept while signed
+ * in). The address is named, so they can tell a duplicate of their own from a stranger's.
+ */
+export function mergeRequestMail(to: string, linked: string, siteUrl: string): Mail {
+  const page = `${siteUrl.replace(/\/$/, "")}/en/account/`;
   return {
     to,
-    subject: "Another address was linked to your account / Alamat lain ditautkan ke akunmu",
+    subject: "Please confirm: link another address to your account / Mohon konfirmasi: tautkan alamat lain ke akunmu",
     body:
       `Hi,
 
-An admin linked the address ${linked} to your Quest Board account (it was a duplicate). Anyone who can open that mailbox can now sign in to your account.
+An admin asks to link the address ${linked} to your Quest Board account (they think it is a duplicate of yours). If you accept, anyone who can open that mailbox can sign in to your account.
 
-If this is not right, reply to this email or tell an admin right away.
+Nothing changes until you sign in and accept. If you do not know this address, decline, or ignore this email: the request expires in 7 days.
+${page}
 
 ${SIGN}
 
@@ -144,9 +149,10 @@ ${SIGN}
 ` +
       `Halo,
 
-Seorang admin menautkan alamat ${linked} ke akun Quest Board-mu (karena duplikat). Siapa pun yang bisa membuka kotak surat itu sekarang bisa masuk ke akunmu.
+Seorang admin meminta untuk menautkan alamat ${linked} ke akun Quest Board-mu (dianggap duplikat dari akunmu). Jika kamu setuju, siapa pun yang bisa membuka kotak surat itu bisa masuk ke akunmu.
 
-Jika ini tidak benar, balas email ini atau beri tahu admin segera.
+Tidak ada yang berubah sebelum kamu masuk dan menyetujui. Jika kamu tidak mengenal alamat ini, tolak, atau abaikan email ini: permintaan kedaluwarsa dalam 7 hari.
+${page}
 
 ${SIGN}`,
   };

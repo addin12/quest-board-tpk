@@ -33,7 +33,7 @@ encrypted variables. Losing the file is recoverable: `npm run cloudflare:setup` 
 | Add an admin | Admin page → Admins → Add admin (their email address; they sign in with an emailed link) |
 | Remove an admin | Admin page → Admins → Remove (only the owner can) |
 | Feature a game | Admin page → open an approved game → Feature |
-| Merge two profiles of one person | Admin page → open the profile that should go → *Merge into…* |
+| Merge two profiles of one person | Admin page → open the profile that should go → *Ask to merge into…*; the person it merges into accepts on their account page (request lapses after 7 days) |
 | Read what happened | D1 console: `SELECT * FROM activity ORDER BY id DESC LIMIT 50` |
 
 ## Changing the code

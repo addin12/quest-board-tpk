@@ -218,6 +218,10 @@ test("two accounts with one WhatsApp number are flagged, and an admin merges the
   assert.deepEqual(real.sharesPhoneWith, ["Raka P."]);
 
   assert.equal((await w.call("POST", "/admin", { cookie: admin, body: { action: "merge", fromId: dup.id, intoId: real.id } })).status, 200);
+  assert.equal((await w.call("GET", "/me", { cookie: a })).json.games.length, 0, "asking moves nothing");
+  const offer = (await w.call("GET", "/me", { cookie: a })).json.mergeOffers[0];
+  assert.equal(offer.email, "raka.second@example.com", "the owner of the real account is shown which address asks to join");
+  assert.equal((await w.call("POST", "/merge/respond", { cookie: a, body: { id: offer.id, accept: true } })).status, 200);
   assert.equal((await w.call("GET", "/me", { cookie: a })).json.games.length, 1, "the game moved to the real profile");
   const again = await w.signIn("raka.second@example.com");
   assert.equal((await w.call("GET", "/me", { cookie: again })).json.profile.name, "Raka Pratama", "the duplicate's email now opens the real account");

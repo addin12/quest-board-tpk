@@ -5,7 +5,7 @@ import type { Ctx, Session } from "./auth.ts";
 import type { GameInput, ProfileInput } from "./rules.ts";
 import type { GameRecord, GmRecord } from "../../src/lib/types.ts";
 import { isGoogleMapsUrl } from "../../src/lib/public-data.ts";
-import { iso, logEvent, metaSet, parseList, randomId, slugify } from "./util.ts";
+import { DAY_MS, iso, logEvent, metaSet, parseList, randomId, slugify } from "./util.ts";
 
 export type ProfileRow = {
   id: string; account_id: string; slug: string; name: string; bio: string; city: string; systems: string; whatsapp: string; discord: string; instagram: string; photo_key: string; consent: number;
@@ -47,11 +47,26 @@ export function gameRecord(g: GameRow, email: string): GameRecord {
 /** The parts of a record only admins see: the private note and who reviewed it. The GM keeps the reject reason, which is written for them. */
 const forGm = <R extends { adminNote: string; reviewedBy: string }>(r: R): R => ({ ...r, adminNote: "", reviewedBy: "" });
 
-/** What a GM sees of their own account: the profile and their games (removed ones left out). */
+/** How long an admin's request to merge another profile into yours waits for an answer. */
+export const MERGE_REQUEST_DAYS = 7;
+
+/** What a GM sees of their own account: the profile, their games (removed ones left out) and the merge requests waiting for their answer. */
 export async function mine(ctx: Ctx, s: Session) {
   const p = await profileOf(ctx, s.accountId);
   const games = p ? await many<GameRow>(ctx.db, "SELECT rowid, * FROM games WHERE profile_id = ? AND removed = 0 ORDER BY created_at DESC", p.id) : [];
-  return { email: s.email, profile: p ? forGm(gmRecord(p, s.email)) : null, games: games.map((g) => forGm(gameRecord(g, s.email))) };
+  const offers = p
+    ? await many<{ id: string; name: string; email: string; created_at: string }>(
+        ctx.db,
+        "SELECT r.id, p.name, a.email, r.created_at FROM merge_requests r JOIN profiles p ON p.id = r.from_profile_id JOIN accounts a ON a.id = p.account_id WHERE r.into_profile_id = ? AND r.created_at >= ? ORDER BY r.created_at",
+        p.id, iso(ctx.now() - MERGE_REQUEST_DAYS * DAY_MS),
+      )
+    : [];
+  return {
+    email: s.email,
+    profile: p ? forGm(gmRecord(p, s.email)) : null,
+    games: games.map((g) => forGm(gameRecord(g, s.email))),
+    mergeOffers: offers.map((o) => ({ id: o.id, name: o.name, email: o.email, askedAt: o.created_at })),
+  };
 }
 
 // ── Writes ────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -159,6 +174,7 @@ export async function eraseAccount(ctx: Ctx, s: Session): Promise<string[]> {
   const emails = [s.email, ...merged.map((m) => m.email)];
   if (p) {
     await exec(ctx.db, "DELETE FROM games WHERE profile_id = ?", p.id);
+    await exec(ctx.db, "DELETE FROM merge_requests WHERE from_profile_id = ? OR into_profile_id = ?", p.id, p.id);
     await exec(ctx.db, "DELETE FROM profiles WHERE id = ?", p.id);
   }
   // The merged-in accounts point at this one, so they go first (a foreign key would stop the delete otherwise).

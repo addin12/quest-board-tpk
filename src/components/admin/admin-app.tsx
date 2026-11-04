@@ -165,7 +165,7 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
   async function merge(fromId: string, intoId: string): Promise<boolean> {
     try {
       await call("merge", { fromId, intoId });
-      await load();
+      say(t("admin.mergeAsked"));
       return true;
     } catch (e) {
       say(t("admin.toast.error", { error: e instanceof ApiError ? e.code : "error" }));

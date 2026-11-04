@@ -82,6 +82,15 @@ The Indonesian text written since 2026-10-29 (63 strings: 56 new, 8 changed). Th
 | `acct.f.systemList` | Matching game systems | Sistem game yang cocok | |
 | `acct.err.invalid_instagram` | Enter an Instagram username like raka.plays, or the link to your profile (instagram.com/…). | Masukkan username Instagram seperti raka.plays, atau tautan profilmu (instagram.com/…). | |
 | `acct.eraseBody` | This deletes your profile, all your games, your pictures and your email address from Quest Board. It cannot be undone. | Ini menghapus profilmu, semua game-mu, gambar-gambarmu, dan alamat emailmu dari Quest Board. Tidak bisa dibatalkan. | |
+| `acct.mergeTitle` | Another address wants to join this account | Alamat lain ingin bergabung ke akun ini | |
+| `acct.mergeBody` | An admin thinks {email} (profile “{name}”) is you. If you accept, that address signs in to this account and its games move here. If you do not know it, decline. | Seorang admin mengira {email} (profil “{name}”) adalah kamu. Jika kamu setuju, alamat itu masuk ke akun ini dan game-nya pindah ke sini. Jika kamu tidak mengenalnya, tolak. | |
+| `acct.mergeAccept` | Accept | Setuju | |
+| `acct.mergeDecline` | Decline | Tolak | |
+| `acct.mergeDone` | Merged. {email} now opens this account. | Sudah digabung. {email} sekarang membuka akun ini. | |
+| `acct.mergeDeclined` | Declined. Nothing changed. | Ditolak. Tidak ada yang berubah. | |
+| `admin.merge` | Ask to merge into {name} | Minta gabung ke {name} | |
+| `admin.mergeConfirm` | Ask the owner of {name} to confirm? Nothing moves until they accept. | Minta pemilik {name} untuk mengonfirmasi? Tidak ada yang pindah sebelum mereka setuju. | |
+| `admin.mergeAsked` | Request sent. Nothing moves until the owner of the other account accepts it. | Permintaan terkirim. Tidak ada yang pindah sebelum pemilik akun lain menyetujuinya. | |
 
 ## Names of genres, play styles and mechanics
 
