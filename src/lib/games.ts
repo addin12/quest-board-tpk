@@ -47,7 +47,7 @@ export function parseFilters(search: string): Filters {
     mechanic: (p.get("mechanic") ?? "").slice(0, 40),
     format: oneOf(p.get("format"), ["", "one_shot", "campaign"] as const, ""),
     where: oneOf(p.get("where"), ["", "online", "in_person"] as const, ""),
-    level: oneOf(p.get("level"), ["", "beginner", "any", "experienced"] as const, ""),
+    level: oneOf(p.get("level"), ["", "beginner", "experienced"] as const, ""), // "all experience levels" is no filter, so an old ?level=any is read as that
     language: oneOf(p.get("language"), ["", "id", "en"] as const, ""),
     free: p.get("free") === "1",
     sort: oneOf(p.get("sort"), ["soonest", "newest", "priceAsc"] as const, "soonest"),

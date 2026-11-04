@@ -119,7 +119,7 @@ export function GamesBrowser({ games, options }: { games: GameView[]; options: R
         {search("f-mechanic", t("games.mechanic"), filters.mechanic, (v) => set({ mechanic: v }), MECHANICS.filter((m) => options.mechanics.includes(m.key)).map((m) => ({ value: m.key, label: t(mechanicLabelKey(m.key)) })))}
         {select("f-format", t("games.format"), filters.format, (v) => set({ format: v as Filters["format"] }), [{ value: "one_shot", label: t("format.one_shot") }, { value: "campaign", label: t("format.campaign") }])}
         {select("f-where", t("games.where"), filters.where, (v) => set({ where: v as Filters["where"] }), [{ value: "online", label: t("loc.online") }, { value: "in_person", label: t("loc.inPerson") }])}
-        {select("f-level", t("games.level"), filters.level, (v) => set({ level: v as Filters["level"] }), [{ value: "beginner", label: t("level.beginner") }, { value: "any", label: t("level.any") }, { value: "experienced", label: t("level.experienced") }])}
+        {select("f-level", t("games.level"), filters.level, (v) => set({ level: v as Filters["level"] }), [{ value: "beginner", label: t("level.beginner") }, { value: "experienced", label: t("level.experienced") }], t("level.any"))}
         {select("f-language", t("games.language"), filters.language, (v) => set({ language: v as Filters["language"] }), [{ value: "id", label: t("lang.gameId") }, { value: "en", label: t("lang.gameEn") }])}
         <div>
           <label htmlFor="f-sort" className="label">{t("games.sort")}</label>
