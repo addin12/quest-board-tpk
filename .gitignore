@@ -33,3 +33,8 @@ Thumbs.db
 
 # The backend's generated keys (scripts/cloudflare-setup.mjs)
 .cloudflare.local.json
+
+# Token Savior index cache (local trial)
+.token-savior-cache.json
+CLAUDE.local.md
+.claude/settings.local.json
