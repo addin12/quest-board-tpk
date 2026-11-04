@@ -360,7 +360,7 @@ export const id: Record<MsgKey, string> = {
   "admin.publish.behind": "Pembaruan situs terakhir ({when}) belum ada di halaman ini. Muat ulang; kalau tetap begitu, kemungkinan build gagal: cek Deployments di Cloudflare.",
   "admin.publish.now": "Tayangkan sekarang",
   "admin.publish.started": "Sedang menayangkan. Situs diperbarui dalam satu-dua menit.",
-  "admin.publish.notConfigured": "Penayangan belum disiapkan: tambahkan deploy hook Cloudflare (docs/setup.md).",
+  "admin.publish.notConfigured": "Penayangan belum disiapkan: tambahkan deploy hook Cloudflare (docs/cutover.md).",
   "admin.publish.failed": "Tidak bisa memulai penayangan.",
   "admin.admins.title": "Admin",
   "admin.admins.lead": "Semua yang terdaftar di sini bisa masuk ke halaman ini dengan alamat email tersebut dan meninjau kiriman.",

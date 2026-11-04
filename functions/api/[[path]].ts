@@ -1,5 +1,5 @@
 // Cloudflare Pages Function: every /api/* request. All the logic is in worker/src; this only wires up the bindings
-// (see docs/setup.md): DB (D1), IMAGES (R2) and the variables below.
+// (see docs/cutover.md): DB (D1), IMAGES (R2) and the variables below.
 import { handle } from "../../worker/src/handler.ts";
 import type { Bucket, Db } from "../../worker/src/db.ts";
 import { normalizeEmail, relayMailer, type Mailer } from "../../worker/src/email.ts";

@@ -307,20 +307,32 @@ test("the Game Masters page can be searched by name, city or system, and the sho
   await expect(shown).toHaveCount(1);
 });
 
-test("before the page's scripts have run the search and Filters say so and ignore taps; afterwards they work", async ({ page }) => {
+test("before the page's scripts have run the search says so and ignores taps, a tap on Filters is remembered; afterwards they work", async ({ page }) => {
   await page.route("**/_next/static/**/*.js", async (route) => { await new Promise((r) => setTimeout(r, 2500)); await route.continue(); }); // a slow phone
   await page.goto("/en/games/", { waitUntil: "domcontentloaded" });
   const search = page.getByLabel("Search", { exact: true });
   const filters = page.getByRole("button", { name: /Filters/ });
   await expect(search).toHaveJSProperty("readOnly", true);
   await expect(filters).toHaveAttribute("aria-disabled", "true");
-  expect(await filters.evaluate((el) => getComputedStyle(el).pointerEvents), "taps go through to nothing").toBe("none");
+  expect(await search.evaluate((el) => getComputedStyle(el).pointerEvents), "the search takes no taps yet").toBe("none");
+  await filters.click({ force: true }); // a real tap is not held back by aria-disabled; too early for the page's own handler: only the inline script sees it
+  await expect(page.locator("html")).toHaveAttribute("data-ft", "1");
   await expect(page.locator("[data-ready]")).toBeAttached({ timeout: 20_000 });
   await expect(search).toHaveJSProperty("readOnly", false);
   await expect(filters).not.toHaveAttribute("aria-disabled", "true");
+  await expect(page.getByLabel("Where", { exact: true }), "the early tap opened Filters").toBeVisible();
+  await expect(page.locator("html")).not.toHaveAttribute("data-ft", "1");
   await search.fill("kumu");
   await expect(page.getByTestId("games-count")).toHaveText("Showing 1 game");
-  await filters.click();
+});
+
+test("on a slow phone a tap on Filters before the scripts have run opens the Filters sheet as soon as they have", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route("**/_next/static/**/*.js", async (route) => { await new Promise((r) => setTimeout(r, 2500)); await route.continue(); });
+  await page.goto("/en/games/", { waitUntil: "domcontentloaded" });
+  await page.getByRole("button", { name: /Filters/ }).click({ force: true }); // a real tap is not held back by aria-disabled
+  await expect(page.locator("[data-ready]")).toBeAttached({ timeout: 20_000 });
+  await expect(page.getByRole("dialog"), "the sheet is open without a second tap").toBeVisible();
   await expect(page.getByLabel("Where", { exact: true })).toBeVisible();
 });
 

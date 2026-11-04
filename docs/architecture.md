@@ -13,7 +13,7 @@ flowchart TB
     FN["Pages Function /api<br/>worker/src/handler.ts"]
     D1[(D1: accounts, profiles,<br/>games, admins, activity)]
     R2[(R2: pictures,<br/>daily backups)]
-    CRON["Worker quest-board-cron<br/>every 10 min + daily"]
+    CRON["Worker quest-board-cron<br/>every minute + daily"]
     TS[Turnstile]
   end
   GAS["Apps Script mail relay<br/>(the owner's Gmail)"]

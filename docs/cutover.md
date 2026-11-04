@@ -49,6 +49,14 @@ npm run cloudflare:setup     stores that secret as MAIL_SECRET
 Gmail's own sending limit applies; if the board grows past about 90 sign-ins and decisions a day, switch the mailer to a sending
 service (`worker/src/email.ts`: one file).
 
+**Rotating the relay** (its address or secret leaked), done once on 2026-11-03 without a gap in mail:
+
+1. Push `Code.gs` with a new secret and create a NEW web-app deployment (`clasp deploy` without `-i`); the old one keeps working with the old secret.
+2. Put the new `deploymentId` and `mailSecret` in `.apps-script.local.json`, and the new address in the `mailRelayUrl` override of `.cloudflare.local.json` (the override wins over the deployment id).
+3. `npm run cloudflare:setup`, then rebuild through the deploy hook so the Function picks up the new variables.
+4. Check the new address without sending mail: a request with a bad recipient answers `bad_request` with the right secret and `unauthorized` with a wrong one.
+5. Only then `clasp undeploy` the old deployment id.
+
 ## 4. Turnstile (the robot check), optional but recommended
 
 `npm run cloudflare:setup -- --turnstile` makes the widget (free) and stores its keys; rebuild afterwards (the site key is a build variable).

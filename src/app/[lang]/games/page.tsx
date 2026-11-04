@@ -13,6 +13,9 @@ import { isLang } from "@/lib/types";
 /** Runs before the list is drawn: a shared address with a query (?page=2, ?system=…) hides the unfiltered list until GamesBrowser has read it. The timer is a way out if the page never loads. */
 const HIDE_UNTIL_READ = 'if(location.search.length>1){var d=document.documentElement;d.dataset.q="1";setTimeout(function(){delete d.dataset.q},3000)}';
 
+/** A tap on Filters before the page's scripts have run is remembered (the list opens Filters when it is ready) instead of being lost on a slow phone. */
+const REMEMBER_FILTERS_TAP = 'document.addEventListener("click",function(e){var t=e.target;if(t&&t.closest&&t.closest("[data-filters-btn]")&&!document.querySelector("[data-ready]"))document.documentElement.dataset.ft="1"})';
+
 export async function generateMetadata({ params }: PageProps<"/[lang]/games">): Promise<Metadata> {
   const { lang } = await params;
   if (!isLang(lang)) return {};
@@ -32,7 +35,7 @@ export default async function GamesPage({ params }: PageProps<"/[lang]/games">) 
       ]} />
       <h1 className="max-w-none text-[length:var(--text-display-s)]">{t("games.title")}</h1>
       <p className="lead mb-[var(--space-xl)] mt-[var(--space-sm)] text-ink-2">{t("games.count", { n: games.length })}</p>
-      <script dangerouslySetInnerHTML={{ __html: HIDE_UNTIL_READ }} />
+      <script dangerouslySetInnerHTML={{ __html: HIDE_UNTIL_READ + ";" + REMEMBER_FILTERS_TAP }} />
       <GamesBrowser games={games} options={filterOptions(games)} />
     </div>
   );

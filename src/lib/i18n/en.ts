@@ -359,7 +359,7 @@ export const en = {
   "admin.publish.behind": "The last publish ({when}) is not in this page yet. Reload; if it stays like this, the build probably failed: check Deployments in Cloudflare.",
   "admin.publish.now": "Publish now",
   "admin.publish.started": "Publishing. The site updates in a minute or two.",
-  "admin.publish.notConfigured": "Publishing is not set up: add the Cloudflare deploy hook (docs/setup.md).",
+  "admin.publish.notConfigured": "Publishing is not set up: add the Cloudflare deploy hook (docs/cutover.md).",
   "admin.publish.failed": "Could not start publishing.",
   "admin.admins.title": "Admins",
   "admin.admins.lead": "Everyone listed here can sign in on this page with that email address and review submissions.",
