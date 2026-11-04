@@ -128,7 +128,7 @@ export function BrowseCard({ name, count, href, about, t, level = 3 }: { name: s
   return (
     <Link href={href} className="browse-card">
       <Heading className="font-body text-[length:var(--text-md)] font-medium leading-snug">{name}</Heading>
-      {about && <p className="mt-[var(--space-xs)] text-ink-2">{about}</p>}
+      {about && <p className="mt-[var(--space-xs)] text-sm leading-normal text-ink-2">{about}</p>}
       <p className="mt-[var(--space-xs)] text-sm text-muted">{t("games.count", { n: count })}</p>
     </Link>
   );
