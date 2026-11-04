@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   images: { unoptimized: true },
   experimental: { globalNotFound: true },
+  // Development only: lets the dev server (npm run dev) be opened through an ngrok address; the static build ignores it.
+  allowedDevOrigins: ["*.ngrok-free.dev", "*.ngrok-free.app", "*.ngrok.app", "*.ngrok.dev"],
 };
 
 export default nextConfig;
