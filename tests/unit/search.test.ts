@@ -106,3 +106,9 @@ test("the mechanics taken over from StartPlaying are found by what people type",
   assert.ok(finds("2d20 System", "modiphius"));
   assert.ok(!finds("2d20 System", "genesys"), "and not by each other's names");
 });
+
+test("the No Gen-AI style is found by what people type, in both languages", () => {
+  for (const typed of ["no ai", "ai free", "ai-free", "genai", "without ai"]) assert.ok(finds("No Gen-AI", typed), `"${typed}" finds No Gen-AI`);
+  assert.ok(finds("Tanpa Gen-AI", "no ai"), "the Indonesian name is found by the English words too");
+  assert.ok(!finds("Sandbox", "no ai"), "other styles are not caught");
+});

@@ -98,6 +98,7 @@ const ALIASES: [RegExp, string | ((m: RegExpMatchArray) => string)][] = [
   [/west-? ?marches/, "west marches westmarches"],
   [/eldritch horror|gothic horror/, "horror cosmic lovecraftian lovecraft gothic eldritch"],
   [/hexcrawl/, "hex crawl hexcrawl"],
+  [/\b(?:no|tanpa) gen-?ai\b/, "no ai ai free ai-free without ai genai generative ai"],
   [/political intrigue/, "politics intrigue"],
   [/espionage/, "spy spies espionage"],
   [/heartwarming/, "wholesome heartwarming"],

@@ -103,6 +103,8 @@ export const id: Record<MsgKey, string> = {
   "style.organized-play.about": "Semua karakter memakai satu set aturan yang sama, jadi karakter mana pun bisa bergabung di meja mana pun dalam program dan langsung main.",
   "style.play-by-post": "Play-by-post",
   "style.play-by-post.about": "Game berjalan lewat pesan tertulis selama beberapa hari. Pemain membalas saat sempat, jadi ada waktu untuk berpikir dan bermain dengan ritmenya sendiri.",
+  "style.no-gen-ai": "Tanpa Gen-AI",
+  "style.no-gen-ai.about": "Meja ini bermain tanpa AI generatif: tanpa skenario, gambar, atau karakter buatan AI, dan tanpa alat AI selama sesi.",
   "theme.toDark": "Ganti ke mode gelap",
   "theme.toLight": "Ganti ke mode terang",
   "theme.darkShort": "Gelap",

@@ -65,6 +65,7 @@ export const STYLES = [
   { key: "west-marches" },
   { key: "organized-play" },
   { key: "play-by-post" },
+  { key: "no-gen-ai" },
 ] as const satisfies readonly { key: string }[];
 
 /** How a game resolves things: the dice or cards behind the rules. A game carries at most MAX_PER_GAME of them. */

@@ -102,6 +102,8 @@ export const en = {
   "style.organized-play.about": "Every character follows one shared rule set, so any character can join any table in the program and start playing right away.",
   "style.play-by-post": "Play-by-post",
   "style.play-by-post.about": "The game runs through written messages over days. Players post when they can, with time to think and play at their own pace.",
+  "style.no-gen-ai": "No Gen-AI",
+  "style.no-gen-ai.about": "The table plays without generative AI: no AI-written scenarios, art or characters, and no AI tools used during the session.",
   "theme.toDark": "Switch to dark mode",
   "theme.toLight": "Switch to light mode",
   "theme.darkShort": "Dark",
