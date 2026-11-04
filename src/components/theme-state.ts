@@ -8,7 +8,7 @@ const KEY = "tpk-theme";
 const html = () => document.documentElement;
 const prefersDark = () => window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-/** Both theme controls (the header toggle and the footer's three-way switch) read the one `data-theme` attribute, so they never disagree. */
+/** The header toggle reads the one `data-theme` attribute that the page-load script and `setThemeChoice` write, so they never disagree. */
 function subscribe(onChange: () => void): () => void {
   const observer = new MutationObserver(onChange);
   observer.observe(html(), { attributes: true, attributeFilter: ["data-theme"] });

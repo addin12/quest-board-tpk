@@ -5,7 +5,6 @@ import type { MsgKey } from "./core.ts";
 
 export const id: Record<MsgKey, string> = {
   "nav.skip": "Langsung ke konten",
-  "theme.current": "Tema: {current}",
   "lang.gameId": "Bahasa Indonesia",
   "lang.gameEn": "English",
   "lang.gameBoth": "Indonesia & English",
@@ -87,10 +86,6 @@ export const id: Record<MsgKey, string> = {
   "style.west-marches": "West Marches",
   "style.organized-play": "Organized play",
   "style.play-by-post": "Play-by-post",
-  "theme.system": "Otomatis",
-  "theme.light": "Perkamen (terang)",
-  "theme.dark": "Cahaya lilin (gelap)",
-  "theme.switch": "Tema: {current}. Ganti ke {next}",
   "theme.toDark": "Ganti ke mode gelap",
   "theme.toLight": "Ganti ke mode terang",
   "theme.darkShort": "Gelap",

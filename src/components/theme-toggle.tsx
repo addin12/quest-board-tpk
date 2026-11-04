@@ -6,8 +6,7 @@ import { setThemeChoice, useResolvedTheme } from "./theme-state";
 
 /**
  * The quick light/dark toggle in the header. It names the mode it switches to (a moon and "Dark" while the page is light), so the
- * label is the action. Under 1024 px only the icon shows, the full name stays in the accessible name; the footer has the
- * three-way switch with Automatic.
+ * label is the action. Under 1024 px only the icon shows, the full name stays in the accessible name. It is the only theme control.
  */
 export function ThemeToggle() {
   const { t } = useI18n();

@@ -6,7 +6,6 @@ import { I18nProvider } from "@/components/i18n-provider";
 import { DiceMark } from "@/components/dice-mark";
 import { HeaderShell } from "@/components/header-shell";
 import { LanguageSwitcher, NavLinks } from "@/components/nav";
-import { ThemeSwitcher } from "@/components/theme-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { makeT, publicMessages } from "@/lib/i18n/dict";
 import { paths } from "@/lib/hrefs";
@@ -83,9 +82,6 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
                 <Link href={paths.account(lang)} className="inline-flex min-h-11 items-center text-muted hover:text-ink">{t("footer.account")}</Link>
                 <Link href={`${paths.how(lang)}#safety`} className="inline-flex min-h-11 items-center text-muted hover:text-ink">{t("footer.safety")}</Link>
               </div>
-            </div>
-            <div className="wrap flex flex-wrap items-center justify-between gap-[var(--space-md)] border-t border-rule py-[var(--space-md)] text-sm text-muted">
-              <ThemeSwitcher />
             </div>
             <div className="oak-strip" />
           </footer>

@@ -399,14 +399,16 @@ test("search engines get a sitemap with both languages and structured data witho
   await expect(page.locator('link[rel="alternate"][hreflang="id"]')).toHaveAttribute("href", "http://localhost:4174/id/games/mercusuar-di-pulau-kabut-0m01/");
 });
 
-test("light, dark and automatic: the choice is remembered", async ({ page }) => {
+test("the header toggle switches between light and dark, and the choice is remembered; the footer has no theme control", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/en/");
-  await page.getByRole("button", { name: /^Theme: Automatic/ }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-  await page.reload();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-  await page.getByRole("button", { name: /^Theme: Parchment/ }).click();
+  await expect(page.getByRole("contentinfo").getByRole("button")).toHaveCount(0);
+  await page.getByRole("button", { name: "Switch to dark mode" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.getByRole("button", { name: "Switch to light mode" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 });
 
 for (const path of PAGES) {

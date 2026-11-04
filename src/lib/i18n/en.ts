@@ -4,7 +4,6 @@
 
 export const en = {
   "nav.skip": "Skip to content",
-  "theme.current": "Theme: {current}",
   "lang.gameId": "Bahasa Indonesia",
   "lang.gameEn": "English",
   "lang.gameBoth": "Indonesian & English",
@@ -86,10 +85,6 @@ export const en = {
   "style.west-marches": "West Marches",
   "style.organized-play": "Organized play",
   "style.play-by-post": "Play-by-post",
-  "theme.system": "Automatic",
-  "theme.light": "Parchment (light)",
-  "theme.dark": "Candlelight (dark)",
-  "theme.switch": "Theme: {current}. Switch to {next}",
   "theme.toDark": "Switch to dark mode",
   "theme.toLight": "Switch to light mode",
   "theme.darkShort": "Dark",
