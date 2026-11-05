@@ -602,7 +602,6 @@ export const id: Record<MsgKey, string> = {
   "acct.err.server": "Ada masalah di sisi kami. Coba lagi sebentar lagi.",
   "acct.saved": "Tersimpan. Admin akan meninjaunya sebelum tampil di situs.",
   "acct.savedSame": "Tidak ada yang berubah.",
-  "acct.savedLive": "Tersimpan. Tetap berstatus disetujui: tidak perlu ditinjau lagi.",
   "acct.savedFull": "Tersimpan.",
   "acct.eraseTitle": "Hapus akunku",
   "acct.eraseBody": "Ini menghapus profilmu, semua game-mu, gambar-gambarmu, dan alamat emailmu dari Quest Board. Tidak bisa dibatalkan.",
