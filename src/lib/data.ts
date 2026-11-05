@@ -4,7 +4,7 @@ import "server-only";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import type { SiteData, SiteGm } from "./types.ts";
-import type { GameView } from "./games.ts";
+import { gameViewsOf, type GameView } from "./games.ts";
 
 let cache: SiteData | null = null;
 
@@ -14,11 +14,6 @@ export function loadSiteData(): SiteData {
 }
 
 /** Games with their Game Master's name attached, soonest first. */
-export function gameViews(data: SiteData = loadSiteData()): GameView[] {
-  const names = new Map(data.gms.map((g) => [g.id, g.name]));
-  return data.games
-    .map((g) => ({ ...g, gmName: names.get(g.gmId) ?? "" }))
-    .sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
-}
+export const gameViews = (data: SiteData = loadSiteData()): GameView[] => gameViewsOf(data);
 
 export const gmById = (data: SiteData, id: string): SiteGm | undefined => data.gms.find((g) => g.id === id);

@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { openWhatsApp } from "@/lib/contact";
 import { clickedBackdrop } from "@/lib/dialog";
 import { ContactButtons } from "./contact-buttons";
 import { Icon } from "./icon";
 import { useI18n } from "./i18n-provider";
+import { useWhatsApp } from "./use-whatsapp";
 
 /** How much of the contact panel must be on screen (above the two bars) for this bar to step aside. */
 const SHOWN = 0.15;
@@ -14,10 +14,11 @@ const SHOWN = 0.15;
  * On a phone, the one action of a game page stays within reach: the price and the day on the left, WhatsApp on the right, above the tab bar.
  * If the Game Master gave Discord or Instagram too, a "more" button opens a sheet with all the ways to reach them.
  * It steps out of the way while the contact panel itself is on screen (`targetId`), and does not exist from 1024 px, where the panel is beside the text.
- * `wa` is the number as lib/contact.ts encodes it; it is put together only when the button is tapped, like the one in the contact panel.
+ * The phone number is not in the page: the button asks the server for the number of `gmId` when it is tapped, like the one in the contact panel.
  */
-export function StickyContact({ wa, discord, instagram, message, price, when, targetId }: { wa: string; discord: string; instagram: string; message: string; price: string; when: string; targetId: string }) {
+export function StickyContact({ gmId, discord, instagram, message, price, when, targetId }: { gmId: string; discord: string; instagram: string; message: string; price: string; when: string; targetId: string }) {
   const { t } = useI18n();
+  const wa = useWhatsApp(gmId, message);
   const [covered, setCovered] = useState(false);
   const [sheet, setSheet] = useState(false);
   const bar = useRef<HTMLDivElement>(null);
@@ -53,14 +54,14 @@ export function StickyContact({ wa, discord, instagram, message, price, when, ta
         <div className="flex items-center justify-between gap-[var(--space-sm)]">
           <p className="min-w-0 flex-1 leading-tight">
             <span className="block truncate font-medium">{price}</span>
-            <span className="block truncate text-sm text-muted">{when}</span>
+            {wa.problem ? <span role="alert" className="block text-sm font-medium text-danger">{t(wa.problem)}</span> : <span className="block truncate text-sm text-muted">{when}</span>}
           </p>
           {(discord || instagram) && (
             <button type="button" className="btn btn-soft shrink-0 !px-3" aria-label={t("game.moreTitle")} aria-haspopup="dialog" onClick={() => setSheet(true)} data-testid="sticky-more">
               <Icon name="more" className="text-[1.5rem]" />
             </button>
           )}
-          <a href="https://wa.me/" onClick={(e) => { e.preventDefault(); openWhatsApp(wa, message); }} target="_blank" rel="noopener noreferrer" aria-label={`${t("game.whatsapp")} ${t("a11y.opensNewTab")}`} className="btn btn-primary shrink-0" data-testid="sticky-whatsapp">
+          <a href="https://wa.me/" onClick={(e) => { e.preventDefault(); void wa.open(); }} target="_blank" rel="noopener noreferrer" aria-label={`${t("game.whatsapp")} ${t("a11y.opensNewTab")}`} className="btn btn-primary shrink-0" data-testid="sticky-whatsapp">
             <Icon name="whatsapp" /> WhatsApp
           </a>
         </div>
@@ -71,7 +72,7 @@ export function StickyContact({ wa, discord, instagram, message, price, when, ta
         {sheet && (
           <div className="grid gap-[var(--space-lg)]">
             <h2 id="contact-sheet-h" className="text-[length:var(--text-title)]">{t("game.moreTitle")}</h2>
-            <ContactButtons wa={wa} discord={discord} instagram={instagram} message={message} stacked />
+            <ContactButtons gmId={gmId} discord={discord} instagram={instagram} message={message} stacked />
             <button type="button" className="btn btn-secondary w-full" onClick={() => setSheet(false)}>{t("acct.cancel")}</button>
           </div>
         )}

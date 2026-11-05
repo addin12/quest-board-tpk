@@ -1,5 +1,8 @@
-// Telling Cloudflare Pages to rebuild the site after a change, without building for every click: at most one build per
-// `MIN_GAP_MS`, however many changes arrive. A change only sets a "dirty" mark; this runs on each change and on a timer.
+// Telling Cloudflare Pages to rebuild the site after a change, without building for every click. What visitors see between builds comes from the
+// live data (GET /api/live, ADR-48), so a build only refreshes the static pages that search engines and link previews read: at most one per
+// `MIN_GAP_MS` for an ordinary change, and one per `URGENT_GAP_MS` when a listing has just gone live (its page does not exist until a build, and its
+// owner is about to share the link), up to URGENT_MAX_PER_DAY a day so the free plan's 500 builds a month last. A change only sets a "dirty" mark;
+// this runs on each change and on a timer.
 //
 // The mark is not cleared when the hook is accepted but when the site shows it has caught up: every build writes /build.json (scripts/build-data.mjs)
 // with the time its data was read, and the timer compares it with the mark. A build that failed, was refused (the monthly build limit, too many
@@ -8,7 +11,10 @@ import type { Ctx } from "./auth.ts";
 import { exec } from "./db.ts";
 import { iso, metaGet, metaSet } from "./util.ts";
 
-export const MIN_GAP_MS = 30_000;
+export const MIN_GAP_MS = 2 * 3_600_000;
+/** The gap after a listing went live (see the top of this file), and how many such quick builds a day. */
+export const URGENT_GAP_MS = 10 * 60_000;
+export const URGENT_MAX_PER_DAY = 12;
 /** A build that has not landed this long after its hook was sent is sent again; the next wait is twice as long, up to RETRY_MAX_MS. */
 export const RETRY_BASE_MS = 10 * 60_000;
 export const RETRY_MAX_MS = 60 * 60_000;
@@ -34,12 +40,23 @@ async function siteBuiltAt(ctx: Ctx, fetcher: typeof fetch): Promise<number | nu
 /** The site has caught up with the change marked at `dirty`: the mark goes (unless a newer change replaced it meanwhile) and so does any "stuck" note. */
 async function settle(ctx: Ctx, dirty: string): Promise<void> {
   await exec(ctx.db, "DELETE FROM meta WHERE key = 'dirty' AND value = ?", dirty);
+  await exec(ctx.db, "DELETE FROM meta WHERE key = 'dirty_urgent' AND value <= ?", dirty); // an urgent mark older than the change the site has caught up with is done
   await exec(ctx.db, "DELETE FROM meta WHERE key IN ('deploy_attempts', 'deploy_failed_since')");
 }
 
 async function noteFailure(ctx: Ctx): Promise<"failed"> {
   if (!(await metaGet(ctx.db, "deploy_failed_since"))) await metaSet(ctx.db, "deploy_failed_since", iso(ctx.now()));
   return "failed";
+}
+
+/** When the builds of the last 24 hours were sent (epoch ms), kept in "meta": the quick builds stop when there were too many. */
+async function recentSends(ctx: Ctx): Promise<number[]> {
+  try {
+    const list = JSON.parse((await metaGet(ctx.db, "build_sends")) || "[]") as unknown;
+    return Array.isArray(list) ? list.filter((n): n is number => typeof n === "number" && ctx.now() - n < 86_400_000) : [];
+  } catch {
+    return [];
+  }
 }
 
 /**
@@ -51,7 +68,13 @@ export async function deployIfDue(ctx: Ctx, hookUrl: string, fetcher: typeof fet
   let dirty = await metaGet(ctx.db, "dirty");
   if (!dirty && !force) return "idle";
   const last = await metaGet(ctx.db, "lastDeploy");
-  if (!force && last && now - Date.parse(last) < MIN_GAP_MS) return "wait";
+  const sends = await recentSends(ctx);
+  // Quick only while the change that asked for it has not been sent: once it is on its way, a later ordinary change waits the long gap.
+  const urgentMark = await metaGet(ctx.db, "dirty_urgent");
+  const urgent = Boolean(urgentMark) && (!last || Date.parse(urgentMark) > Date.parse(last)) && sends.length < URGENT_MAX_PER_DAY;
+  // The gap spaces out builds for NEW changes. A change whose build was already sent is not held to it: whether that build landed, and when to send it again, is the retry ladder below.
+  const alreadySent = Boolean(dirty && last && Date.parse(last) >= Date.parse(dirty));
+  if (!force && last && !alreadySent && now - Date.parse(last) < (urgent ? URGENT_GAP_MS : MIN_GAP_MS)) return "wait";
 
   let attempts = 1;
   if (!force && dirty && last && Date.parse(last) >= Date.parse(dirty)) {
@@ -86,6 +109,7 @@ export async function deployIfDue(ctx: Ctx, hookUrl: string, fetcher: typeof fet
     else await exec(ctx.db, "DELETE FROM meta WHERE key = 'lastDeploy'");
     return noteFailure(ctx);
   }
+  await metaSet(ctx.db, "build_sends", JSON.stringify([...sends, now].slice(-50)));
   await metaSet(ctx.db, "deploy_attempts", String(attempts));
   if (attempts >= STUCK_AFTER) await noteFailure(ctx);
   return "sent";

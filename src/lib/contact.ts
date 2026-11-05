@@ -1,18 +1,36 @@
-// How a player reaches a GM. WhatsApp is required for every GM, Discord is optional. The number is not written
-// plainly into the page: it travels reversed and base64-encoded in a data attribute and is put together when
-// the player taps the button. That only stops simple scrapers; anyone who taps the button can see the number.
-// Pure module (btoa and atob exist in browsers and Node).
-import { makeT } from "./i18n/dict.ts";
+// How a player reaches a GM. WhatsApp is required for every GM, Discord is optional. The phone number is in neither the page nor the public data (ADR-48):
+// a tap asks the server for the number of that one Game Master (POST /api/contact, rate-limited per visitor), and the chat opens with it. A scraper
+// therefore cannot read numbers off the site; it would have to tap, a few at a time. Discord and Instagram names are public by design.
 import { formatWhen } from "./format.ts";
 import type { Lang, SiteGame, SiteGm } from "./types.ts";
 
-/** @example decodeContact(encodeContact("6281234567890")) // "6281234567890" */
-export const encodeContact = (value: string): string => btoa([...value].reverse().join(""));
-export const decodeContact = (encoded: string): string => [...atob(encoded)].reverse().join("");
+export type ContactAnswer = { ok: true; whatsapp: string } | { ok: false; reason: "busy" | "failed" };
 
-/** Opens the chat in a new tab. Browser only, and called from a tap: that is when the number is put together, so it is never written into the page. */
-export function openWhatsApp(encoded: string, message: string): void {
-  window.open(waLink(decodeContact(encoded), message), "_blank", "noopener,noreferrer");
+/** Asks the server for a live Game Master's number. "busy" means this connection has asked for too many; "failed" is anything else. */
+export async function askContact(gmId: string, fetcher: typeof fetch = fetch): Promise<ContactAnswer> {
+  try {
+    const res = await fetcher("/api/contact", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ gm: gmId }) });
+    if (res.status === 429) return { ok: false, reason: "busy" };
+    const answer = (await res.json().catch(() => ({}))) as { whatsapp?: unknown };
+    return res.ok && typeof answer.whatsapp === "string" && /^[1-9]\d{7,14}$/.test(answer.whatsapp) ? { ok: true, whatsapp: answer.whatsapp } : { ok: false, reason: "failed" };
+  } catch {
+    return { ok: false, reason: "failed" };
+  }
+}
+
+/**
+ * Opens the chat. Browser only, called from a tap: the tab is opened first, inside the tap (a phone's pop-up blocker only allows that), and pointed at the
+ * chat when the number arrives; if the number cannot be had the tab is closed again.
+ */
+export async function openWhatsApp(gmId: string, message: string): Promise<ContactAnswer> {
+  const tab = window.open("", "_blank");
+  if (tab) tab.opener = null; // the chat is another site: it gets no handle on this one
+  const answer = await askContact(gmId);
+  if (!answer.ok) { tab?.close(); return answer; }
+  const link = waLink(answer.whatsapp, message);
+  if (tab) tab.location.href = link;
+  else window.location.assign(link); // pop-ups are blocked: leave in this tab instead
+  return answer;
 }
 
 /** The wa.me link that opens a chat with the message ready to send. `number` is digits with the country code. */
@@ -26,10 +44,15 @@ export function messageLang(game: Pick<SiteGame, "language"> | null, pageLang: L
   return game.language === "both" ? pageLang : game.language;
 }
 
+const MESSAGES = {
+  en: { game: "Hi {gm}, I found “{title}” on Quest Board ({when}). Is there still a seat?", gm: "Hi {gm}, I found your profile on Quest Board." },
+  id: { game: "Halo {gm}, aku menemukan “{title}” di Quest Board ({when}). Apakah masih ada kursi?", gm: "Halo {gm}, aku menemukan profilmu di Quest Board." },
+} as const;
+const fill = (template: string, vars: Record<string, string>) => template.replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? "");
+
 /** "Hi Raka, I found “Mercusuar” on Quest Board (Sun 12 Oct, 19.00 WIB). Is there still a seat?" */
 export function contactMessage(gm: Pick<SiteGm, "name">, game: SiteGame | null, pageLang: Lang): string {
   const lang = messageLang(game, pageLang);
-  const t = makeT(lang);
-  if (!game) return t(lang === "id" ? "contact.msgGmId" : "contact.msgGmEn", { gm: gm.name });
-  return t(lang === "id" ? "contact.msgId" : "contact.msgEn", { gm: gm.name, title: game.title, when: formatWhen(game.startsAt, lang, game.zone) });
+  if (!game) return fill(MESSAGES[lang].gm, { gm: gm.name });
+  return fill(MESSAGES[lang].game, { gm: gm.name, title: game.title, when: formatWhen(game.startsAt, lang, game.zone) });
 }

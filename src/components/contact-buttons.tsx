@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { openWhatsApp } from "@/lib/contact";
 import { Icon } from "./icon";
 import { useI18n } from "./i18n-provider";
+import { useWhatsApp } from "./use-whatsapp";
 
 /**
  * Reach a GM: WhatsApp (always) opens a chat with the message ready to send; Discord (if they gave one) is an
- * invite link, or a username to copy. `wa` is the number as lib/contact.ts encodes it, so it is not written
- * plainly into the page; it is put together when the button is tapped.
+ * invite link, or a username to copy. The phone number is not in the page: the button asks the server for the number of `gmId` when it is tapped.
  */
-export function ContactButtons({ wa, discord, instagram = "", message, stacked = false }: { wa: string; discord: string; instagram?: string; message: string; stacked?: boolean }) {
+export function ContactButtons({ gmId, discord, instagram = "", message, stacked = false }: { gmId: string; discord: string; instagram?: string; message: string; stacked?: boolean }) {
   const { t } = useI18n();
   const [copied, setCopied] = useState(false);
+  const wa = useWhatsApp(gmId, message);
 
   async function copyDiscord() {
     try {
@@ -27,9 +27,10 @@ export function ContactButtons({ wa, discord, instagram = "", message, stacked =
   const isLink = discord.startsWith("https://");
   return (
     <div className={`flex gap-[var(--space-md)] ${stacked ? "flex-col" : "flex-col sm:flex-row sm:flex-wrap sm:items-center"}`}>
-      <a href="https://wa.me/" onClick={(e) => { e.preventDefault(); openWhatsApp(wa, message); }} target="_blank" rel="noopener noreferrer" className="btn btn-primary" data-testid="contact-whatsapp">
+      <a href="https://wa.me/" onClick={(e) => { e.preventDefault(); void wa.open(); }} target="_blank" rel="noopener noreferrer" className="btn btn-primary" aria-busy={wa.busy} data-testid="contact-whatsapp">
         <Icon name="whatsapp" /> {t("game.whatsapp")} <span className="sr-only">{t("a11y.opensNewTab")}</span>
       </a>
+      {wa.problem && <p role="alert" className="max-w-[40ch] text-sm font-medium text-danger" data-testid="contact-problem">{t(wa.problem)}</p>}
       {discord && isLink && (
         <a href={discord} target="_blank" rel="noopener noreferrer" className="btn btn-soft" data-testid="contact-discord">
           <Icon name="discord" /> {t("game.discordOpen")} <span className="sr-only">{t("a11y.opensNewTab")}</span>

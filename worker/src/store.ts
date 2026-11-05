@@ -5,6 +5,7 @@ import type { Ctx, Session } from "./auth.ts";
 import type { GameInput, ProfileInput } from "./rules.ts";
 import type { GameRecord, GmRecord } from "../../src/lib/types.ts";
 import { isGoogleMapsUrl } from "../../src/lib/public-data.ts";
+import { scamSignals } from "../../src/lib/scam-signals.ts";
 import { DAY_MS, eventStmt, iso, logEvent, metaGet, metaSet, parseList, randomId, slugify } from "./util.ts";
 
 export type ProfileRow = {
@@ -23,11 +24,14 @@ export type GameRow = {
  * Marks that the site is behind. The mark is always later than the previous mark and than the last build sent, even for two changes in one
  * millisecond, so the build sent for one change is never taken for the one after it (worker/src/deploy.ts compares the two).
  */
-export async function markDirty(ctx: Ctx): Promise<void> {
+export async function markDirty(ctx: Ctx, urgent = false): Promise<void> {
   const dirty = await metaGet(ctx.db, "dirty");
   const last = await metaGet(ctx.db, "lastDeploy");
   const after = Math.max(dirty ? Date.parse(dirty) : 0, last ? Date.parse(last) : 0) + 1;
-  await metaSet(ctx.db, "dirty", iso(Math.max(ctx.now(), after)));
+  const at = iso(Math.max(ctx.now(), after));
+  await metaSet(ctx.db, "dirty", at);
+  // A listing that has just gone live has no page until the next build: ask for a quick one (worker/src/deploy.ts decides how quick).
+  if (urgent) await metaSet(ctx.db, "dirty_urgent", at);
 }
 
 export const profileOf = (ctx: Ctx, accountId: string) => one<ProfileRow>(ctx.db, "SELECT rowid, * FROM profiles WHERE account_id = ?", accountId);
@@ -83,41 +87,59 @@ export async function mine(ctx: Ctx, s: Session) {
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
 /**
- * Creates the profile or changes it. A change to a profile that was decided puts it back to "pending" (it leaves the site until
- * an admin approves again); sending the same content again changes nothing.
+ * Publish first (ADR-48): what a Game Master saves is live at once. Only wording that often means a scam (src/lib/scam-signals.ts) holds a
+ * listing back for an admin's look; nothing else is checked before it shows. A record an admin hid stays hidden until an admin looks again:
+ * the Game Master's edit puts it in the held list, it does not bring it back by itself.
  */
+export type SaveStatus = GameRow["status"];
+
+/** True when this text needs a person's look before it shows. */
+const needsLook = (...texts: string[]): boolean => scamSignals(texts.join("\n")).length > 0;
+
+/** The status a saved record gets. `current` is null for a new record; `touchedByAdmin` is whether an admin ever decided on it. */
+function statusAfterSave(current: SaveStatus | null, held: boolean, touchedByAdmin: boolean): SaveStatus {
+  if (current === "rejected") return "pending"; // hidden by an admin: only an admin brings it back
+  if (held) return "pending";
+  if (current === "pending" && touchedByAdmin) return "pending"; // an admin put it back to waiting on purpose
+  return "approved";
+}
+
+/** The SQL that moves a row to `status`: becoming live starts its public life, leaving it starts the "no longer listed" clock. */
+const MOVE = "status = ?, was_live = CASE WHEN ? = 'approved' THEN 1 ELSE was_live END, gone_at = CASE WHEN ? = 'approved' THEN '' WHEN was_live = 1 AND status = 'approved' THEN ? ELSE gone_at END";
+
+/** Creates the profile or changes it; sending the same content again changes nothing. The profile is live as soon as it is saved. */
 export async function saveProfile(ctx: Ctx, s: Session, input: ProfileInput): Promise<{ id: string; status: ProfileRow["status"]; changed: boolean; dropped: string[] }> {
   const now = iso(ctx.now());
   const p = await profileOf(ctx, s.accountId);
+  const held = needsLook(input.name, input.bio);
   if (!p) {
     const id = randomId(9);
     const slug = `${slugify(input.name)}-${randomId(4)}`;
-    await exec(ctx.db, "INSERT INTO profiles (id, account_id, slug, name, bio, city, systems, whatsapp, discord, instagram, photo_key, consent, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)",
-      id, s.accountId, slug, input.name, input.bio, input.city, JSON.stringify(input.systems), input.whatsapp, input.discord, input.instagram, input.photoKey, now, now);
-    await logEvent(ctx.db, ctx.now(), "submitted", "gm", id, input.name, "new profile", s.email);
-    return { id, status: "pending", changed: true, dropped: [] };
+    const status = statusAfterSave(null, held, false);
+    await exec(ctx.db, "INSERT INTO profiles (id, account_id, slug, name, bio, city, systems, whatsapp, discord, instagram, photo_key, consent, status, was_live, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)",
+      id, s.accountId, slug, input.name, input.bio, input.city, JSON.stringify(input.systems), input.whatsapp, input.discord, input.instagram, input.photoKey, status, status === "approved" ? 1 : 0, now, now);
+    await logEvent(ctx.db, ctx.now(), "submitted", "gm", id, input.name, status === "approved" ? "new profile, live" : "new profile, held for a look", s.email);
+    if (status === "approved") await markDirty(ctx, true);
+    return { id, status, changed: true, dropped: [] };
   }
   const unchanged = p.name === input.name && p.bio === input.bio && p.city === input.city && same(parseList(p.systems), input.systems) && p.whatsapp === input.whatsapp && p.discord === input.discord && p.instagram === input.instagram && p.photo_key === input.photoKey;
   if (unchanged) return { id: p.id, status: p.status, changed: false, dropped: [] };
-  await exec(ctx.db, "UPDATE profiles SET name = ?, bio = ?, city = ?, systems = ?, whatsapp = ?, discord = ?, instagram = ?, photo_key = ?, consent = 1, status = 'pending', reject_reason = '', updated_at = ? WHERE id = ?",
-    input.name, input.bio, input.city, JSON.stringify(input.systems), input.whatsapp, input.discord, input.instagram, input.photoKey, now, p.id);
-  await logEvent(ctx.db, ctx.now(), "edited", "gm", p.id, input.name, `${p.status} → pending: the GM changed it`, s.email);
-  if (p.status === "approved") await markDirty(ctx);
-  return { id: p.id, status: "pending", changed: true, dropped: p.photo_key && p.photo_key !== input.photoKey ? [p.photo_key] : [] };
+  const status = statusAfterSave(p.status, held, p.reviewed_by !== "");
+  await exec(ctx.db, `UPDATE profiles SET name = ?, bio = ?, city = ?, systems = ?, whatsapp = ?, discord = ?, instagram = ?, photo_key = ?, consent = 1, ${MOVE}, reject_reason = '', updated_at = ? WHERE id = ?`,
+    input.name, input.bio, input.city, JSON.stringify(input.systems), input.whatsapp, input.discord, input.instagram, input.photoKey, status, status, status, now, now, p.id);
+  await logEvent(ctx.db, ctx.now(), "edited", "gm", p.id, input.name, `${p.status} → ${status}: the GM changed it`, s.email);
+  if (p.status === "approved" || status === "approved") await markDirty(ctx, p.status !== "approved");
+  return { id: p.id, status, changed: true, dropped: p.photo_key && p.photo_key !== input.photoKey ? [p.photo_key] : [] };
 }
 
 /** Games a profile may have at once (removed ones do not count). A real GM runs a handful; the cap keeps the site's tables small. */
 export const MAX_GAMES_PER_PROFILE = 30;
+/** New games one profile may add in a day: with no review in front, this is what keeps one account from filling the board. */
+export const MAX_NEW_GAMES_PER_DAY = 10;
 
 export type SaveGameResult = { ok: true; id: string; status: GameRow["status"]; changed: boolean; dropped: string[] } | { ok: false; error: "no_profile" | "not_found" | "too_many" };
 
-/**
- * The columns of a game a GM may change without a new review: when it is, what it costs, how many seats, and the line about the schedule. They
- * are details of the same game, not something to moderate; every other field (words, picture, place, rating) goes back to review.
- */
-const PRACTICAL_COLUMNS = ["starts_at", "schedule_note", "expires_at", "price_idr", "seats"];
-
-/** Creates a game for the signed-in GM (`gameId` null) or changes one of theirs. Same "back to pending" rule as the profile. */
+/** Creates a game for the signed-in GM (`gameId` null) or changes one of theirs. It is live as soon as it is saved (see the note above saveProfile). */
 export async function saveGame(ctx: Ctx, s: Session, gameId: string | null, input: GameInput): Promise<SaveGameResult> {
   const p = await profileOf(ctx, s.accountId);
   if (!p) return { ok: false, error: "no_profile" };
@@ -125,37 +147,34 @@ export async function saveGame(ctx: Ctx, s: Session, gameId: string | null, inpu
   const values = [input.title, input.system, input.summary, input.description, input.format, input.locationType, input.platform, input.city, input.venueName, input.venueMapsRaw, input.startsAt, input.zone,
     input.scheduleNote, input.expiresAt, input.priceIdr, input.seats, input.language, input.level, input.minAge, input.contentWarnings, input.safetyTools, JSON.stringify(input.genres), JSON.stringify(input.styles), JSON.stringify(input.mechanics), input.coverKey];
   const cols = "title, system, summary, description, format, location_type, platform, city, venue_name, venue_maps_raw, starts_at, zone, schedule_note, expires_at, price_idr, seats, language, level, min_age, content_warnings, safety_tools, genres, styles, mechanics, cover_key";
+  const held = needsLook(input.title, input.summary, input.description, input.venueName, input.scheduleNote, input.platform);
   if (gameId === null) {
     const open = await one<{ n: number }>(ctx.db, "SELECT COUNT(*) AS n FROM games WHERE profile_id = ? AND removed = 0", p.id);
     if ((open?.n ?? 0) >= MAX_GAMES_PER_PROFILE) return { ok: false, error: "too_many" };
+    const today = await one<{ n: number }>(ctx.db, "SELECT COUNT(*) AS n FROM games WHERE profile_id = ? AND created_at > ?", p.id, iso(ctx.now() - DAY_MS));
+    if ((today?.n ?? 0) >= MAX_NEW_GAMES_PER_DAY) return { ok: false, error: "too_many" };
     const id = randomId(9);
     const slug = `${slugify(input.title)}-${randomId(4)}`;
-    await exec(ctx.db, `INSERT INTO games (id, profile_id, slug, ${cols}, consent, created_at, updated_at) VALUES (?, ?, ?, ${values.map(() => "?").join(", ")}, 1, ?, ?)`, id, p.id, slug, ...values, now, now);
-    await logEvent(ctx.db, ctx.now(), "submitted", "game", id, input.title, "new game", s.email);
-    return { ok: true, id, status: "pending", changed: true, dropped: [] };
+    const status = statusAfterSave(null, held, false);
+    await exec(ctx.db, `INSERT INTO games (id, profile_id, slug, ${cols}, consent, status, was_live, created_at, updated_at) VALUES (?, ?, ?, ${values.map(() => "?").join(", ")}, 1, ?, ?, ?, ?)`, id, p.id, slug, ...values, status, status === "approved" ? 1 : 0, now, now);
+    await logEvent(ctx.db, ctx.now(), "submitted", "game", id, input.title, status === "approved" ? "new game, live" : "new game, held for a look", s.email);
+    if (status === "approved") await markDirty(ctx, true);
+    return { ok: true, id, status, changed: true, dropped: [] };
   }
   const g = await one<GameRow>(ctx.db, "SELECT rowid, * FROM games WHERE id = ? AND profile_id = ? AND removed = 0", gameId, p.id);
   if (!g) return { ok: false, error: "not_found" };
   const before = gameRecord(g, s.email);
-  // What an admin reads and judges (words, pictures, place, rating) versus the practical details a GM keeps current (see PRACTICAL_COLUMNS).
-  const sameContent = before.title === input.title && before.system === input.system && before.summary === input.summary && before.description === input.description && before.format === input.format &&
+  const unchanged = before.title === input.title && before.system === input.system && before.summary === input.summary && before.description === input.description && before.format === input.format &&
     before.locationType === input.locationType && before.platform === input.platform && before.city === input.city && before.venueName === input.venueName && before.venueMapsRaw === input.venueMapsRaw &&
-    before.zone === input.zone && before.language === input.language && before.level === input.level && before.minAge === input.minAge && before.contentWarnings === input.contentWarnings &&
+    before.startsAt === input.startsAt && before.zone === input.zone && before.scheduleNote === input.scheduleNote && before.expiresAt === input.expiresAt && before.priceIdr === input.priceIdr &&
+    before.seats === input.seats && before.language === input.language && before.level === input.level && before.minAge === input.minAge && before.contentWarnings === input.contentWarnings &&
     before.safetyTools === input.safetyTools && same(before.genres, input.genres) && same(before.styles, input.styles) && same(before.mechanics, input.mechanics) && before.coverId === input.coverKey;
-  const samePractical = before.startsAt === input.startsAt && before.scheduleNote === input.scheduleNote && before.expiresAt === input.expiresAt && before.priceIdr === input.priceIdr && before.seats === input.seats;
-  if (sameContent && samePractical) return { ok: true, id: g.id, status: g.status, changed: false, dropped: [] };
-  if (sameContent && g.status === "approved") {
-    // Only the practical details changed on a listing that is live: nothing for an admin to judge, so it stays approved and goes out with the next build.
-    const set = PRACTICAL_COLUMNS.map((c) => `${c} = ?`).join(", ");
-    await exec(ctx.db, `UPDATE games SET ${set}, updated_at = ? WHERE id = ?`, input.startsAt, input.scheduleNote, input.expiresAt, input.priceIdr, input.seats, now, g.id);
-    await logEvent(ctx.db, ctx.now(), "changed", "game", g.id, g.title, "the GM updated date, price or seats; still approved", s.email);
-    await markDirty(ctx);
-    return { ok: true, id: g.id, status: "approved", changed: true, dropped: [] };
-  }
-  await exec(ctx.db, `UPDATE games SET ${cols.split(", ").map((c) => `${c} = ?`).join(", ")}, consent = 1, status = 'pending', reject_reason = '', updated_at = ? WHERE id = ?`, ...values, now, g.id);
-  await logEvent(ctx.db, ctx.now(), "edited", "game", g.id, input.title, `${g.status} → pending: the GM changed it`, s.email);
-  if (g.status === "approved") await markDirty(ctx);
-  return { ok: true, id: g.id, status: "pending", changed: true, dropped: g.cover_key && g.cover_key !== input.coverKey ? [g.cover_key] : [] };
+  if (unchanged) return { ok: true, id: g.id, status: g.status, changed: false, dropped: [] };
+  const status = statusAfterSave(g.status, held, g.reviewed_by !== "");
+  await exec(ctx.db, `UPDATE games SET ${cols.split(", ").map((c) => `${c} = ?`).join(", ")}, consent = 1, ${MOVE}, reject_reason = '', updated_at = ? WHERE id = ?`, ...values, status, status, status, now, now, g.id);
+  await logEvent(ctx.db, ctx.now(), "edited", "game", g.id, input.title, `${g.status} → ${status}: the GM changed it`, s.email);
+  if (g.status === "approved" || status === "approved") await markDirty(ctx, g.status !== "approved");
+  return { ok: true, id: g.id, status, changed: true, dropped: g.cover_key && g.cover_key !== input.coverKey ? [g.cover_key] : [] };
 }
 
 /** The GM marks one of their games full (or open again). No review: it changes only a badge and the list order. */
@@ -217,6 +236,7 @@ export async function eraseAccount(ctx: Ctx, s: Session): Promise<string[]> {
   add("DELETE FROM accounts WHERE id = ?", s.accountId);
   for (let i = 0; i < subjects.length; i += 80) { // D1 allows 100 values in a statement
     const part = subjects.slice(i, i + 80);
+    add(`DELETE FROM reports WHERE subject_id IN (${marks(part.length)})`, ...part);
     add(`UPDATE activity SET title = '', detail = '' WHERE subject_id IN (${marks(part.length)})`, ...part);
   }
   add(`UPDATE activity SET title = '', detail = '', actor = 'erased' WHERE actor IN (${marks(emails.length)})`, ...emails); // what the person did themselves

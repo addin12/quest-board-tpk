@@ -10,7 +10,7 @@ import { LOGIN_MAILS_PER_DAY } from "../../worker/src/auth.ts";
 import { MAX_GAMES_PER_PROFILE } from "../../worker/src/store.ts";
 import { parseProfile } from "../../worker/src/rules.ts";
 import { DAY_MS, allow } from "../../worker/src/util.ts";
-import { BUILD_KEY, GAME, OWNER, PROFILE, WEBP, makeWorld } from "../support/worker-env.ts";
+import { BUILD_KEY, GAME, HELD, HELD_GAME, OWNER, PROFILE, WEBP, makeWorld } from "../support/worker-env.ts";
 
 type World = ReturnType<typeof makeWorld>;
 const admin = (w: World, cookie: string, body: Record<string, unknown>) => w.call("POST", "/admin", { cookie, body });
@@ -149,12 +149,12 @@ test("an approval applies only to the version the admin saw", async () => {
   const w = makeWorld();
   const gm = await w.signIn("raka@example.com");
   await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
-  const id = (await w.call("POST", "/games", { cookie: gm, body: GAME })).json.id as string;
+  const id = (await w.call("POST", "/games", { cookie: gm, body: HELD_GAME })).json.id as string;
   const owner = await w.signIn(OWNER);
   const seen = (await admin(w, owner, { action: "queue" })).json.games[0].updatedAt as string;
   assert.ok(seen);
   w.clock.ms += 60_000;
-  await w.call("PUT", `/games/${id}`, { cookie: gm, body: { ...GAME, description: "A different game entirely." } });
+  await w.call("PUT", `/games/${id}`, { cookie: gm, body: { ...HELD_GAME, description: `A different game entirely. ${HELD}` } });
   const late = await admin(w, owner, { action: "review", kind: "game", ids: [id], status: "approved", seen: { [id]: seen } });
   assert.deepEqual(late.json.stale, [id]);
   assert.deepEqual(late.json.updated, []);
@@ -176,7 +176,7 @@ test("marking a game full shares the write limit, and a profile has a limit on g
   w.clock.ms += 2 * 3_600_000;
   let last = 0;
   for (let i = 1; i < MAX_GAMES_PER_PROFILE + 1; i++) {
-    if (i % 25 === 0) w.clock.ms += 2 * 3_600_000; // stay under the hourly write limit
+    w.clock.ms += 3 * 3_600_000; // stay under the hourly write limit and the ten new games a day
     last = (await w.call("POST", "/games", { cookie: gm, body: { ...GAME, title: `Game ${i}` } })).status;
   }
   assert.equal(last, 409, "the 31st open game is refused");

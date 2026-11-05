@@ -1,6 +1,6 @@
 // Cloudflare Pages Function: every /api/* request. All the logic is in worker/src; this only wires up the bindings
 // (see docs/cutover.md): DB (D1), IMAGES (R2) and the variables below.
-import { handle } from "../../worker/src/handler.ts";
+import { handle, type EdgeCache } from "../../worker/src/handler.ts";
 import type { Bucket, Db } from "../../worker/src/db.ts";
 import { normalizeEmail, relayMailer, type Mailer } from "../../worker/src/email.ts";
 
@@ -21,6 +21,9 @@ type Bindings = {
 /** Without the relay's address and secret (a preview or a local run) the sign-in links are not sent anywhere: nobody can sign in, which is the safe failure. */
 const silent: Mailer = { send: async () => { throw new Error("mail_not_configured"); } };
 
+/** Cloudflare's per-data-centre cache, if this runtime has it (the API's live data is kept there for a few seconds). */
+const edgeCache = (): EdgeCache | undefined => (globalThis as unknown as { caches?: { default?: EdgeCache } }).caches?.default;
+
 export const onRequest = async ({ request, env, waitUntil }: { request: Request; env: Bindings; waitUntil: (p: Promise<unknown>) => void }): Promise<Response> =>
   handle(
     request,
@@ -38,6 +41,7 @@ export const onRequest = async ({ request, env, waitUntil }: { request: Request;
       deployHook: env.DEPLOY_HOOK,
       turnstileSecret: env.TURNSTILE_SECRET,
       requireTurnstile: env.SITE_URL.startsWith("https:"),
+      cache: edgeCache(),
     },
     waitUntil,
   );

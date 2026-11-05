@@ -14,6 +14,7 @@ import { expireInactive } from "./retention.ts";
 import { allow, iso, logEvent, metaGet, metaSet, pruneRateEvents, safeEqual } from "./util.ts";
 import { digestReviewers, tellOwner, watchBackup, watchDeploy } from "./watch.ts";
 import { one } from "./db.ts";
+import { allowReveal, contactOf, report } from "./reports.ts";
 
 /** The same context with a mailer that records whether mail last worked (shown by /api/health). */
 const logged = (c: Ctx): Ctx => ({ ...c, mailer: recordingMailer(budgetedMailer(c.mailer, c.db, c.now), c.db, c.now) });
@@ -28,7 +29,11 @@ export type Env = {
   /** True on the https site: a missing Turnstile secret then fails closed instead of skipping the check. */
   requireTurnstile?: boolean;
   fetcher?: typeof fetch;
+  /** The edge cache (Cloudflare's `caches.default`) that keeps the live data for a few seconds, so the database is not asked for every visitor. Absent in tests. */
+  cache?: EdgeCache;
 };
+
+export type EdgeCache = { match(request: Request): Promise<Response | undefined>; put(request: Request, response: Response): Promise<void> };
 
 const COOKIE = "tpk_session";
 const JSON_HEADERS = { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" };
@@ -91,6 +96,15 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
   if (method === "GET" && path === "/public") {
     return hasBuildKey(request, env.buildKey) ? json(200, await buildPublic(ctx)) : err(403, "forbidden");
   }
+  // The live data: what the site shows between builds. Public, cached for a few seconds at the edge; no phone numbers (see POST /contact).
+  if (method === "GET" && path === "/live") {
+    const key = new Request(new URL("/api/live", request.url).toString());
+    const hit = await env.cache?.match(key).catch(() => undefined);
+    if (hit) return hit;
+    const res = json(200, await buildPublic(ctx), { "Cache-Control": "public, max-age=10, s-maxage=20" });
+    if (env.cache) after(env.cache.put(key, res.clone()).catch(() => undefined));
+    return res;
+  }
   // The timers (the Worker in cron/) call this with the build key: "tick" sends a waiting build, "daily" backs up and rebuilds.
   if (method === "POST" && path === "/cron") {
     if (!hasBuildKey(request, env.buildKey)) return err(403, "forbidden");
@@ -123,12 +137,29 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
     if (!viaKey && !(viewer && (await isAdmin(ctx, viewer.email))) && !(await isPublicImage(ctx, key))) return err(404, "not_found");
     const object = await env.images.get(key);
     if (!object) return err(404, "not_found");
-    return new Response(object.body as BodyInit, { headers: { "Content-Type": contentTypeOf(key), "Cache-Control": viaKey || viewer ? "private, max-age=300" : "public, max-age=86400", "X-Content-Type-Options": "nosniff" } });
+    // A replaced picture gets a new key, so the bytes behind a key never change: a public one may be kept for good.
+    return new Response(object.body as BodyInit, { headers: { "Content-Type": contentTypeOf(key), "Cache-Control": viaKey || viewer ? "private, max-age=300" : "public, max-age=31536000, immutable", "X-Content-Type-Options": "nosniff" } });
   }
 
   // Everything below changes or reads something private: the same site only, JSON in and out.
   if (method !== "GET" && !fromSite(request, ctx.siteUrl)) return err(403, "forbidden");
 
+  // A visitor asks for a Game Master's phone number (on a tap) or reports a listing. No account needed; both are rate-limited per address.
+  if (method === "POST" && path === "/contact") {
+    const b = await body(request);
+    if (!b) return err(400, "bad_request");
+    if (!(await allowReveal(ctx, ip))) return err(429, "rate_limited");
+    const number = await contactOf(ctx, b.gm);
+    return number ? json(200, { ok: true, whatsapp: number }) : err(404, "not_found");
+  }
+  if (method === "POST" && path === "/report") {
+    const b = await body(request);
+    if (!b) return err(400, "bad_request");
+    const r = await report(ctx, ip, { kind: b.kind, id: b.id, reason: b.reason });
+    if (!r.ok) return err(r.error === "rate_limited" ? 429 : r.error === "not_found" ? 404 : 400, r.error);
+    if (r.held) publish();
+    return json(200, { ok: true });
+  }
   if (method === "POST" && path === "/login/request") {
     const b = await body(request);
     if (!b) return err(400, "bad_request");

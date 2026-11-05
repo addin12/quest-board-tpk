@@ -4,6 +4,7 @@ import { exec, many, one, type Stmt } from "./db.ts";
 import { isAdmin, listAdmins, type Ctx, type Session } from "./auth.ts";
 import { decisionMail, mergeRequestMail, normalizeEmail } from "./email.ts";
 import { MERGE_REQUEST_DAYS, gameRecord, gmRecord, markDirty, type GameRow, type ProfileRow } from "./store.ts";
+import { reportCounts } from "./reports.ts";
 import { DAY_MS, allow, clip, eventStmt, iso, logEvent, metaGet, randomId } from "./util.ts";
 import { REVIEW_MAX_IDS, type AdminEntry, type DeployInfo } from "../../src/lib/types.ts";
 
@@ -29,14 +30,15 @@ export async function queue(ctx: Ctx, deployConfigured: boolean) {
     "SELECT g.rowid, g.*, a.email FROM games g JOIN profiles p ON p.id = g.profile_id JOIN accounts a ON a.id = p.account_id WHERE g.removed = 0 AND g.expires_at > ? ORDER BY g.created_at",
     cutoff,
   );
+  const reports = await reportCounts(ctx);
   const byPhone = new Map<string, ProfileRow[]>();
   for (const p of gms) byPhone.set(p.whatsapp, [...(byPhone.get(p.whatsapp) ?? []), p]);
   const admins: AdminEntry[] = (await listAdmins(ctx)).map((a) => ({ email: a.email, addedBy: a.added_by, addedAt: a.added_at }));
   return {
     ok: true as const,
     now: iso(ctx.now()),
-    games: games.map((g) => gameRecord(g, g.email)),
-    gms: gms.map((p) => gmRecord(p, p.email, (byPhone.get(p.whatsapp) ?? []).filter((o) => o.id !== p.id).slice(0, MAX_SHARES).map((o) => ({ id: o.id, name: o.name })))),
+    games: games.map((g) => ({ ...gameRecord(g, g.email), reports: reports.get(g.id) ?? 0 })),
+    gms: gms.map((p) => ({ ...gmRecord(p, p.email, (byPhone.get(p.whatsapp) ?? []).filter((o) => o.id !== p.id).slice(0, MAX_SHARES).map((o) => ({ id: o.id, name: o.name }))), reports: reports.get(p.id) ?? 0 })),
     admins,
     owner: ctx.owner,
     deploy: await deployInfo(ctx, deployConfigured),
@@ -86,6 +88,7 @@ export async function review(ctx: Ctx, admin: string, req: Record<string, unknow
   const stale: string[] = [];
   const hidden: string[] = []; // approved games whose Game Master profile is not approved: the site shows none of them yet
   let dirty = false;
+  let urgent = false;
   const at = iso(ctx.now());
   for (const id of ids) {
     const rec = records.get(id);
@@ -96,11 +99,13 @@ export async function review(ctx: Ctx, admin: string, req: Record<string, unknow
     // Leaving the approved state starts the "no longer listed" clock; a decision always stamps who and when.
     writes.push(ctx.db.prepare(`UPDATE ${table} SET status = ?, reviewed_by = ?, reviewed_at = ?, reject_reason = ?, was_live = CASE WHEN ? = 'approved' THEN 1 ELSE was_live END, gone_at = CASE WHEN ? = 'approved' THEN '' WHEN ? = 1 THEN ? ELSE gone_at END WHERE id = ?`)
       .bind(status, admin, at, reason, status, status, wasApproved ? 1 : 0, at, id));
+    writes.push(ctx.db.prepare("DELETE FROM reports WHERE subject_kind = ? AND subject_id = ?").bind(kind, id)); // the decision answers them
     writes.push(eventStmt(ctx.db, ctx.now(), "decision", kind, id, rec.title, `${before} → ${status}${reason ? `: ${reason}` : ""}`, admin));
     // The site lists a game only while its Game Master's profile is approved too, so approving a game of a pending profile changes nothing public yet.
     const waitingForGm = kind === "game" && status === "approved" && (rec.row as { gm_status?: string }).gm_status !== "approved";
     if (waitingForGm) hidden.push(id);
     if (before !== status && (wasApproved || (status === "approved" && !waitingForGm))) dirty = true;
+    if (before !== "approved" && status === "approved" && !waitingForGm) urgent = true; // a listing going live has no page yet: ask for a quick build
     if (req.notify === true && before !== status && (status === "approved" || status === "rejected")) mails.push({ id, to: rec.row.email, title: rec.title, slug: rec.slug, waitingForGm });
     done.push(id);
   }
@@ -114,7 +119,7 @@ export async function review(ctx: Ctx, admin: string, req: Record<string, unknow
       await logEvent(ctx.db, ctx.now(), "mail failed", kind, m.id, m.title, "the decision email could not be sent", admin).catch(() => undefined);
     }
   }
-  if (dirty) await markDirty(ctx);
+  if (dirty) await markDirty(ctx, urgent);
   return { ok: true as const, updated: done, stale, publishing: dirty, mailFailed, hidden };
 }
 

@@ -98,10 +98,9 @@ function parseGm(raw: unknown, warn: (m: string) => void): RawGm | null {
   const id = typeof r.id === "string" ? r.id : "";
   const name = text(r.name, 60);
   if (!ID.test(id) || !SLUG.test(String(r.slug)) || !name) { warn(`GM ${id || "?"}: missing id, slug or name`); return null; }
-  if (!isPhone(r.whatsapp)) { warn(`GM ${name}: the WhatsApp number is not valid`); return null; }
   const photoId = typeof r.photoId === "string" && PICTURE.test(r.photoId) ? r.photoId : "";
   return {
-    id, slug: String(r.slug), name, bio: text(r.bio, 800, true), city: text(r.city, 60), whatsapp: r.whatsapp, discord: cleanDiscord(r.discord), instagram: cleanInstagram(r.instagram), photoId,
+    id, slug: String(r.slug), name, bio: text(r.bio, 800, true), city: text(r.city, 60), discord: cleanDiscord(r.discord), instagram: cleanInstagram(r.instagram), photoId,
     systems: (Array.isArray(r.systems) ? r.systems : []).map((s) => text(s, 40)).filter(Boolean).slice(0, 8),
   };
 }

@@ -121,8 +121,8 @@ async function main() {
 
   const site = {
     generatedAt: data.generatedAt,
-    gms: data.gms.map((gm) => ({ ...omit(gm, "photoId"), photo: photos.get(gm.id) ?? null })),
-    games: data.games.map((g) => ({ ...omit(g, "coverId"), cover: covers.get(g.id) ?? null })),
+    gms: data.gms.map((gm) => ({ ...omit(gm, "photoId"), photo: photos.get(gm.id) ?? null, photoKey: gm.photoId })),
+    games: data.games.map((g) => ({ ...omit(g, "coverId"), cover: covers.get(g.id) ?? null, coverKey: g.coverId })),
     goneGames: data.goneGames,
     goneGms: data.goneGms,
   };

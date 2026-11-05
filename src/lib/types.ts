@@ -1,7 +1,7 @@
 // The shapes of the data. Pure module (no imports), shared by the site, the build script, the admin page and tests.
 //
 // Where the data comes from: the Cloudflare backend (worker/) answers
-//   GET  /api/public?key=      -> RawPublicData   (approved, unexpired, public fields only; pictures are bucket keys)
+//   GET  /api/public (build key) and GET /api/live (anyone, cached) -> RawPublicData   (live, unexpired, public fields only: no phone numbers; pictures are bucket keys)
 //   POST /api/admin {action:"queue"} -> GameRecord[] and GmRecord[]  (admins only; everything, including emails and notes)
 // scripts/build-data.mjs turns RawPublicData into SiteData (pictures downloaded, resized and referenced by path).
 
@@ -57,26 +57,31 @@ export type GameFields = {
   mechanics: string[];
 };
 
-/** What a GM writes about themself. */
-export type GmFields = {
+/** What a GM writes about themself and the public may read. The phone number is NOT here: it never travels with the public data (ADR-48). */
+export type GmPublicFields = {
   name: string;
   bio: string;
   city: string;
   systems: string[];
-  /** Digits with the country code, no plus sign: "6281234567890". */
-  whatsapp: string;
   /** A lower-case username, or an https invite link; empty when not given. */
   discord: string;
   /** A plain lower-case Instagram username (no @, no link); empty when not given. */
   instagram: string;
 };
 
-export type RawGm = GmFields & { id: string; slug: string; photoId: string };
+/** Everything a GM writes about themself; the admin sees all of it, a visitor gets the phone number only by asking for it (POST /api/contact). */
+export type GmFields = GmPublicFields & {
+  /** Digits with the country code, no plus sign: "6281234567890". */
+  whatsapp: string;
+};
+
+export type RawGm = GmPublicFields & { id: string; slug: string; photoId: string };
 export type RawGame = GameFields & { id: string; slug: string; gmId: string; coverId: string; full: boolean; listedAt: string };
 export type RawPublicData = { generatedAt: string; gms: RawGm[]; games: RawGame[]; goneGames: string[]; goneGms: string[] };
 
-export type SiteGm = GmFields & { id: string; slug: string; photo: string | null };
-export type SiteGame = GameFields & { id: string; slug: string; gmId: string; cover: string | null; full: boolean; listedAt: string };
+/** `photoKey` / `coverKey` are the picture's key in the bucket, kept so live data can tell whether the picture the build cropped is still the current one. */
+export type SiteGm = GmPublicFields & { id: string; slug: string; photo: string | null; photoKey?: string };
+export type SiteGame = GameFields & { id: string; slug: string; gmId: string; cover: string | null; coverKey?: string; full: boolean; listedAt: string };
 /** `goneGames` / `goneGms`: addresses of listings that were live and are not now; each gets a "no longer listed" page. */
 export type SiteData = { generatedAt: string; gms: SiteGm[]; games: SiteGame[]; goneGames: string[]; goneGms: string[] };
 
@@ -99,6 +104,8 @@ export type AdminFields = {
   submittedAt: string;
   /** When the submitter last changed it; the admin page sends it back with a decision so an approval applies only to the version that was seen. */
   updatedAt?: string;
+  /** How many different visitors reported it in the last two weeks (the third holds it back for a look). Admin-only. */
+  reports?: number;
   /** The Google account that submitted the form. Admin-only. */
   email: string;
   /** The row in the sheet. */

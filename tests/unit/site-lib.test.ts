@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { SUMMARY_MAX } from "../../src/lib/areas.ts";
 import { checkGame, checkGm, hasErrors } from "../../src/lib/checks.ts";
-import { contactMessage, decodeContact, encodeContact, messageLang, waLink } from "../../src/lib/contact.ts";
+import { askContact, contactMessage, messageLang, waLink } from "../../src/lib/contact.ts";
 import { formatDay, formatIdr, formatWhen, initialsOf } from "../../src/lib/format.ts";
 import { smallCover } from "../../src/lib/hrefs.ts";
 import { SYSTEM_COVER_FILES, systemCover } from "../../src/lib/system-covers.ts";
@@ -36,13 +36,10 @@ test("bad records are dropped with a warning; the rest of the data is kept", () 
   bad.games[2].format = "weekend";
   bad.games[3].priceIdr = -5;
   bad.games[4].venueMapsUrl = "https://evil.example/maps";
-  bad.gms[3].whatsapp = "0812-call-me";
   const { data, warnings } = parsePublicData(bad);
-  const orphans = bad.games.filter((g: { gmId: string }) => g.gmId === bad.gms[3].id).length;
-  assert.equal(warnings.length, 6 + orphans, warnings.join("\n")); // 4 bad games, the bad link, the bad number, and every game of the dropped GM
+  assert.equal(warnings.length, 5, warnings.join(", ")); // 4 bad games and the bad link
   assert.ok(!data.games.some((g) => g.id === bad.games[0].id));
-  assert.ok(!data.gms.some((g) => g.id === bad.gms[3].id), "a GM without a valid number is not listed");
-  assert.ok(!data.games.some((g) => g.gmId === bad.gms[3].id), "and neither are their games");
+  assert.ok(!("whatsapp" in data.gms[0]), "a phone number in the data is not carried into the site: a visitor asks for it on a tap");
   assert.equal(data.games.find((g) => g.id === bad.games[4].id)?.venueMapsUrl, "", "the game stays; only the link goes");
 });
 
@@ -189,11 +186,36 @@ test("a game stops showing when its time is up, and the filter choices come from
 });
 
 // ── contacting a GM ──────────────────────────────────────────────────────────────────────────
-test("the number is not plain in the page, and the chat opens with the message ready", () => {
-  const enc = encodeContact("6281234567890");
-  assert.ok(!enc.includes("62812"));
-  assert.equal(decodeContact(enc), "6281234567890");
+test("the chat opens with the message ready", () => {
   assert.equal(waLink("6281234567890", "Hi “Naga” & co"), "https://wa.me/6281234567890?text=Hi%20%E2%80%9CNaga%E2%80%9D%20%26%20co");
+});
+
+test("a phone number is asked for on a tap: one Game Master at a time, and only a real number is believed", async () => {
+  const asked: { url: string; body: string }[] = [];
+  const answer = (status: number, body: unknown) => (async (url: string, init: { body: string }) => { asked.push({ url, body: init.body }); return new Response(JSON.stringify(body), { status }); }) as unknown as typeof fetch;
+  assert.deepEqual(await askContact("gm1abc", answer(200, { ok: true, whatsapp: "6281234567890" })), { ok: true, whatsapp: "6281234567890" });
+  assert.deepEqual(asked, [{ url: "/api/contact", body: JSON.stringify({ gm: "gm1abc" }) }]);
+  assert.deepEqual(await askContact("gm1abc", answer(429, { ok: false })), { ok: false, reason: "busy" });
+  assert.deepEqual(await askContact("gm1abc", answer(404, { ok: false })), { ok: false, reason: "failed" });
+  assert.deepEqual(await askContact("gm1abc", answer(200, { ok: true, whatsapp: "not a number" })), { ok: false, reason: "failed" }, "an odd answer never reaches wa.me");
+  assert.deepEqual(await askContact("gm1abc", (async () => { throw new Error("offline"); }) as unknown as typeof fetch), { ok: false, reason: "failed" });
+});
+
+test("live data becomes the site's shape: pictures the build cropped are kept while current, new ones come from the bucket, bad records are dropped", async () => {
+  const { toSite } = await import("../../src/lib/live.ts");
+  const raw = structuredClone(sample) as unknown as { gms: Record<string, unknown>[]; games: Record<string, unknown>[] };
+  const known = parsePublicData(structuredClone(sample)).data;
+  const cropped = { games: [{ ...known.games[0], cover: "/media/covers/old.webp", coverKey: "covers/aaaaaaaa11111111.webp" }], gms: [] };
+  raw.games[0].coverId = "covers/aaaaaaaa11111111.webp";
+  raw.games[1].coverId = "covers/bbbbbbbb22222222.webp";
+  raw.games[2].coverId = "";
+  raw.games[3].startsAt = "not a date";
+  const site = toSite(raw, cropped);
+  assert.equal(site.games.find((g) => g.id === raw.games[0].id)?.cover, "/media/covers/old.webp", "the same picture keeps the cropped file");
+  assert.equal(site.games.find((g) => g.id === raw.games[1].id)?.cover, "/api/img/covers/bbbbbbbb22222222.webp", "a new picture is read from the bucket");
+  assert.equal(site.games.find((g) => g.id === raw.games[2].id)?.cover, null);
+  assert.ok(!site.games.some((g) => g.id === raw.games[3].id), "a record the checks reject is dropped, as at build time");
+  assert.ok(site.gms.every((m) => !("whatsapp" in m)));
 });
 
 test("the first message is in the game's language, or the page's when the game uses both", () => {

@@ -83,8 +83,8 @@ export function makeWorld(startMs = Date.parse("2026-10-28T03:00:00Z")) {
 
   const pending: Promise<unknown>[] = [];
   /** One API call as a browser on the site would make it; `cookie` is the session cookie value. */
-  async function call(method: string, path: string, init: { body?: unknown; cookie?: string; origin?: string | null; raw?: ArrayBuffer; type?: string; build?: boolean } = {}) {
-    const headers: Record<string, string> = {};
+  async function call(method: string, path: string, init: { body?: unknown; cookie?: string; origin?: string | null; raw?: ArrayBuffer; type?: string; build?: boolean; headers?: Record<string, string> } = {}) {
+    const headers: Record<string, string> = { ...init.headers };
     if (init.origin !== null) headers.Origin = init.origin ?? env.ctx.siteUrl;
     if (init.cookie) headers.Cookie = `tpk_session=${init.cookie}`;
     if (init.build) headers.Authorization = `Bearer ${BUILD_KEY}`;
@@ -119,6 +119,14 @@ export const GAME = {
   format: "one_shot", locationType: "in_person", city: "Depok", venueName: "Kumu Ground Coffee", venueMapsRaw: "https://maps.app.goo.gl/abc123", date: "2026-11-08", time: "19:00", zone: "WIB",
   priceIdr: 75000, seats: 5, language: "both", level: "beginner", minAge: 16, genres: ["horror"], styles: ["roleplay-heavy"], mechanics: ["d100"], consent: true,
 };
+
+/**
+ * Wording the scam check holds back for a look (gambling spam). Everything else a Game Master saves is live at once (ADR-48), so a test that needs
+ * something waiting for an admin saves a profile or game with this in it.
+ */
+export const HELD = "slot gacor maxwin";
+export const HELD_PROFILE = { ...PROFILE, bio: `Horror GM. ${HELD}` };
+export const HELD_GAME = { ...GAME, description: `${GAME.description} ${HELD}` };
 
 /** A few bytes that pass for a WebP file. */
 export const WEBP = (() => { const b = new Uint8Array(64); b.set([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50]); return b.buffer; })();

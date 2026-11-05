@@ -73,6 +73,12 @@ export function activeFilterCount(f: Filters): number {
 
 export type GameView = SiteGame & { gmName: string };
 
+/** Games with their Game Master's name attached, soonest first. */
+export function gameViewsOf(data: { games: readonly SiteGame[]; gms: readonly { id: string; name: string }[] }): GameView[] {
+  const names = new Map(data.gms.map((g) => [g.id, g.name]));
+  return data.games.map((g) => ({ ...g, gmName: names.get(g.gmId) ?? "" })).sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
+}
+
 export { norm };
 
 /** Every word of the search must appear somewhere in the title, system, summary, city, venue, GM's name, platform, genres, styles or mechanics; synonyms count (src/lib/search.ts). */

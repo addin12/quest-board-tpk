@@ -6,7 +6,7 @@ import { normalizeEmail } from "../../worker/src/email.ts";
 import { parseGame, parseProfile, normalizePhone, zonedInstant } from "../../worker/src/rules.ts";
 import { deployIfDue, MIN_GAP_MS } from "../../worker/src/deploy.ts";
 import { parsePublicData } from "../../src/lib/public-data.ts";
-import { GAME, OWNER, PROFILE, WEBP, makeWorld, sqliteDb as sqliteDbForTests } from "../support/worker-env.ts";
+import { GAME, HELD_GAME, HELD_PROFILE, OWNER, PROFILE, WEBP, makeWorld, sqliteDb as sqliteDbForTests } from "../support/worker-env.ts";
 
 test("an email is one account however it is typed: case, Gmail dots and +tags, googlemail", () => {
   assert.equal(normalizeEmail("  Raka.Pratama+games@Gmail.com "), "rakapratama@gmail.com");
@@ -105,10 +105,10 @@ test("one account has one profile and any number of games, however the email is 
   assert.equal((await w.call("POST", "/games", { cookie: a, body: { ...GAME, title: "Darah di Balik Tirai", summary: "Intrik politik antar vampir." } })).status, 201);
   const games = (await w.call("GET", "/me", { cookie: a })).json.games;
   assert.equal(games.length, 2);
-  assert.ok(games.every((g: any) => g.status === "pending"));
+  assert.ok(games.every((g: any) => g.status === "approved"), "what a Game Master saves is live at once");
 });
 
-test("an admin approves; the public data shows only approved things of an approved profile, in the old shape", async () => {
+test("what a Game Master saves is live at once and public without a phone number; a held profile stays off until an admin releases it", async () => {
   const w = makeWorld();
   const gm = await w.signIn("raka@example.com");
   await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
@@ -116,8 +116,19 @@ test("an admin approves; the public data shows only approved things of an approv
   const profileId = (await w.call("GET", "/me", { cookie: gm })).json.profile.id as string;
 
   assert.equal((await w.call("GET", "/public")).status, 403, "the public data needs the build key");
-  const empty = (await w.call("GET", "/public", { build: true })).json;
-  assert.deepEqual([empty.gms.length, empty.games.length], [0, 0], "nothing is public before approval");
+  const pub = (await w.call("GET", "/public", { build: true })).json;
+  assert.equal(pub.gms.length, 1, "the profile is live without anyone approving it");
+  assert.equal(pub.games.length, 1);
+  assert.equal(pub.games[0].gmId, profileId);
+  assert.deepEqual(pub.games[0].mechanics, ["d100"], "mechanics survive the database and reach the public data");
+  assert.equal(pub.gms[0].instagram, "raka.plays", "the Instagram link given in the profile is stored and published as a plain username");
+  assert.equal(JSON.stringify(pub).includes("raka@example.com"), false, "no email in the public data");
+  assert.equal(JSON.stringify(pub).includes("adminNote"), false);
+  assert.equal("whatsapp" in pub.gms[0], false, "no phone number in the public data");
+  assert.equal(JSON.stringify(pub).includes("81234567890"), false);
+  const parsed = parsePublicData(pub);
+  assert.equal(parsed.data.games.length, 1);
+  assert.deepEqual(parsed.warnings, [], "the site's own parser accepts it without complaint");
 
   assert.equal((await w.call("POST", "/admin", { cookie: gm, body: { action: "queue" } })).status, 403, "a GM is not an admin");
   const admin = await w.signIn(OWNER);
@@ -125,24 +136,17 @@ test("an admin approves; the public data shows only approved things of an approv
   assert.equal(queue.gms[0].email, "raka@example.com");
   assert.equal(queue.games[0].title, GAME.title);
   assert.equal(queue.games[0].startsAt, "2026-11-08T12:00:00.000Z");
+  assert.equal(game, queue.games[0].id);
 
-  await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "game", ids: [game], status: "approved", notify: true } });
-  assert.equal((await w.call("GET", "/public", { build: true })).json.games.length, 0, "a game of a pending profile stays off");
-  await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "gm", ids: [profileId], status: "approved", notify: true } });
-  assert.match(w.mails.at(-1)!.subject, /Approved: Raka Pratama/);
-
-  const pub = (await w.call("GET", "/public", { build: true })).json;
-  assert.equal(pub.gms.length, 1);
-  assert.equal(pub.games.length, 1);
-  assert.equal(pub.games[0].gmId, profileId);
-  assert.deepEqual(pub.games[0].mechanics, ["d100"], "mechanics survive the database and reach the public data");
-  assert.equal(pub.gms[0].instagram, "raka.plays", "the Instagram link given in the profile is stored and published as a plain username");
-  assert.equal(JSON.stringify(pub).includes("raka@example.com"), false, "no email in the public data");
-  assert.equal(JSON.stringify(pub).includes("adminNote"), false);
-  const parsed = parsePublicData(pub);
-  assert.equal(parsed.data.games.length, 1);
-  assert.deepEqual(parsed.warnings, [], "the site's own parser accepts it without complaint");
-  assert.equal(parsed.data.gms[0].instagram, "raka.plays");
+  // wording that often means a scam is saved but held for a look
+  const other = await w.signIn("held@example.com");
+  const held = await w.call("PUT", "/profile", { cookie: other, body: { ...HELD_PROFILE, name: "Held One", whatsapp: "0811-1111-1111" } });
+  assert.equal(held.json.status, "pending");
+  assert.equal((await w.call("GET", "/public", { build: true })).json.gms.length, 1, "a held profile is not public");
+  const heldId = (await w.call("GET", "/me", { cookie: other })).json.profile.id as string;
+  await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "gm", ids: [heldId], status: "approved", notify: true } });
+  assert.match(w.mails.at(-1)!.subject, /Approved: Held One/);
+  assert.equal((await w.call("GET", "/public", { build: true })).json.gms.length, 2, "released by an admin");
 });
 
 test("an Instagram name is optional, and one that is not a username or a profile link is refused", async () => {
@@ -160,50 +164,54 @@ test("an Instagram name is optional, and one that is not a username or a profile
   assert.equal(me.instagram, "raka.plays", "the last good value is what is stored");
 });
 
-test("editing a decided game sends it back to review; the same content again changes nothing", async () => {
+test("editing a live game keeps it live; wording that looks like a scam holds it, and a clean fix releases it again; the same content changes nothing", async () => {
   const w = makeWorld();
   const gm = await w.signIn("raka@example.com");
   await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
   const id = (await w.call("POST", "/games", { cookie: gm, body: GAME })).json.id as string;
-  const admin = await w.signIn(OWNER);
-  await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "game", ids: [id], status: "approved" } });
+  const live = async () => ((await w.call("GET", "/public", { build: true })).json.games as any[]).find((g) => g.id === id);
 
   const same = await w.call("PUT", `/games/${id}`, { cookie: gm, body: GAME });
   assert.deepEqual([same.json.changed, same.json.status], [false, "approved"]);
-  const changed = await w.call("PUT", `/games/${id}`, { cookie: gm, body: { ...GAME, title: "A different title" } });
-  assert.deepEqual([changed.json.changed, changed.json.status], [true, "pending"]);
+  const changed = await w.call("PUT", `/games/${id}`, { cookie: gm, body: { ...GAME, title: "A different title", seats: 6, priceIdr: 120000 } });
+  assert.deepEqual([changed.json.changed, changed.json.status], [true, "approved"], "no review for an edit");
+  const now = await live();
+  assert.deepEqual([now.title, now.seats, now.priceIdr], ["A different title", 6, 120000], "and the site data has it at once");
+
+  const held = await w.call("PUT", `/games/${id}`, { cookie: gm, body: { ...HELD_GAME, title: "A different title" } });
+  assert.equal(held.json.status, "pending", "scam wording holds it back");
+  assert.equal(await live(), undefined, "a held game is off the site");
+  const fixed = await w.call("PUT", `/games/${id}`, { cookie: gm, body: GAME });
+  assert.equal(fixed.json.status, "approved", "a clean fix of something only the checks held releases it");
+  assert.ok(await live());
+
   const other = await w.signIn("other@example.com");
   await w.call("PUT", "/profile", { cookie: other, body: { ...PROFILE, whatsapp: "0811-1111-1111" } });
   assert.equal((await w.call("PUT", `/games/${id}`, { cookie: other, body: GAME })).status, 404, "nobody edits another GM's game");
 });
 
-test("seats, price and date of a live game can change without a new review; words and pictures cannot", async () => {
+test("a game or profile an admin hid stays hidden when its Game Master edits it: the edit only puts it in the held list", async () => {
   const w = makeWorld();
   const gm = await w.signIn("raka@example.com");
   await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
   const id = (await w.call("POST", "/games", { cookie: gm, body: GAME })).json.id as string;
-  const profileId = (await w.call("GET", "/me", { cookie: gm })).json.profile.id as string;
   const admin = await w.signIn(OWNER);
-  await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "gm", ids: [profileId], status: "approved" } });
+  await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "game", ids: [id], status: "rejected", reason: "Not a tabletop game" } });
+  assert.equal(((await w.call("GET", "/public", { build: true })).json.games as any[]).length, 0, "hidden");
+  const edited = await w.call("PUT", `/games/${id}`, { cookie: gm, body: { ...GAME, title: "Now a tabletop game" } });
+  assert.equal(edited.json.status, "pending", "back in front of an admin, not live by itself");
+  assert.equal(((await w.call("GET", "/public", { build: true })).json.games as any[]).length, 0);
+  await w.call("PUT", `/games/${id}`, { cookie: gm, body: { ...GAME, title: "Now a tabletop game", seats: 4 } });
+  assert.equal((await w.call("GET", "/me", { cookie: gm })).json.games[0].status, "pending", "another edit does not release it either");
   await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "game", ids: [id], status: "approved" } });
-
-  const practical = await w.call("PUT", `/games/${id}`, { cookie: gm, body: { ...GAME, seats: 6, priceIdr: 120000, scheduleNote: "moved to the second Saturday" } });
-  assert.deepEqual([practical.json.changed, practical.json.status], [true, "approved"], "still approved");
-  const pub = (await w.call("GET", "/public", { build: true })).json;
-  const live = pub.games.find((g: any) => g.id === id);
-  assert.ok(live, "and still on the site");
-  assert.deepEqual([live.seats, live.priceIdr], [6, 120000], "with the new details");
-  assert.ok((await w.call("GET", "/health", { build: true })).json.deploy.pending, "the site is told to rebuild");
-
-  const words = await w.call("PUT", `/games/${id}`, { cookie: gm, body: { ...GAME, seats: 6, priceIdr: 120000, scheduleNote: "moved to the second Saturday", summary: "A new pitch that needs a reader." } });
-  assert.equal(words.json.status, "pending", "a change of words goes back to review");
+  assert.equal(((await w.call("GET", "/public", { build: true })).json.games as any[]).length, 1, "an admin brings it back");
 });
 
-test("approving a game whose Game Master is still pending is flagged, and the email does not promise a listing", async () => {
+test("approving a held game whose Game Master is also held is flagged, and the email does not promise a listing", async () => {
   const w = makeWorld();
   const gm = await w.signIn("raka@example.com");
-  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
-  const id = (await w.call("POST", "/games", { cookie: gm, body: GAME })).json.id as string;
+  await w.call("PUT", "/profile", { cookie: gm, body: HELD_PROFILE });
+  const id = (await w.call("POST", "/games", { cookie: gm, body: HELD_GAME })).json.id as string;
   const profileId = (await w.call("GET", "/me", { cookie: gm })).json.profile.id as string;
   const admin = await w.signIn(OWNER);
   const first = await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "game", ids: [id], status: "approved", notify: true } });
@@ -296,8 +304,8 @@ test("pictures: type is read from the bytes, size is limited, and only approved 
   const key = up.json.key as string;
   assert.match(key, /^covers\/[a-z0-9]{16}\.webp$/);
 
-  const id = (await w.call("POST", "/games", { cookie: gm, body: { ...GAME, coverKey: key } })).json.id as string;
-  assert.equal((await w.call("GET", `/img/${key}`)).status, 404, "a pending cover is private");
+  const id = (await w.call("POST", "/games", { cookie: gm, body: { ...HELD_GAME, coverKey: key } })).json.id as string;
+  assert.equal((await w.call("GET", `/img/${key}`)).status, 404, "the cover of a held game is private");
   assert.equal((await w.call("GET", `/img/${key}`, { build: true })).status, 200, "the build can read it");
   const admin = await w.signIn(OWNER);
   await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "game", ids: [id], status: "approved" } });
@@ -510,7 +518,7 @@ test("an account nobody signs in to is warned after two years and erased a month
 async function submit(w: ReturnType<typeof makeWorld>, from: number, n: number) {
   for (let i = from; i < from + n; i++) {
     const cookie = await w.signIn(`gm${i}@example.com`);
-    await w.call("PUT", "/profile", { cookie, body: { ...PROFILE, name: `Person ${i}`, whatsapp: `08123000${String(i).padStart(4, "0")}` } });
+    await w.call("PUT", "/profile", { cookie, body: { ...HELD_PROFILE, name: `Person ${i}`, whatsapp: `08123000${String(i).padStart(4, "0")}` } });
   }
 }
 const tick = (w: ReturnType<typeof makeWorld>) => w.call("POST", "/cron?job=tick", { origin: null, build: true });
@@ -604,7 +612,7 @@ test("a decision mail runs into its own share, the admin is told, and sign-ins a
   for (let i = 0; i < MAIL_BUDGET.decision + 2; i++) {
     const cookie = await w.signIn(`gm${i}@example.com`);
     if (i % 10 === 9) w.clock.ms += 3_600_000;
-    await w.call("PUT", "/profile", { cookie, body: { ...PROFILE, name: `Person ${i}`, whatsapp: `08123000${String(i).padStart(4, "0")}` } });
+    await w.call("PUT", "/profile", { cookie, body: { ...HELD_PROFILE, name: `Person ${i}`, whatsapp: `08123000${String(i).padStart(4, "0")}` } });
   }
   const owner = await w.signIn(OWNER);
   const all = ((await w.call("POST", "/admin", { cookie: owner, body: { action: "queue" } })).json.gms as any[]).map((g) => g.id as string);
@@ -634,7 +642,7 @@ test("a long review makes a handful of database queries, decides every record or
   const w = makeWorld();
   for (let i = 0; i < REVIEW_MAX_IDS + 1; i++) {
     const cookie = await w.signIn(`gm${i}@example.com`);
-    await w.call("PUT", "/profile", { cookie, body: { ...PROFILE, name: `Person ${i}`, whatsapp: `08123000${String(i).padStart(4, "0")}` } });
+    await w.call("PUT", "/profile", { cookie, body: { ...HELD_PROFILE, name: `Person ${i}`, whatsapp: `08123000${String(i).padStart(4, "0")}` } });
   }
   const owner = await w.signIn(OWNER);
   const ids = ((await w.call("POST", "/admin", { cookie: owner, body: { action: "queue" } })).json.gms as any[]).map((g) => g.id as string);
@@ -656,7 +664,7 @@ test("a long review makes a handful of database queries, decides every record or
 test("a decision email that cannot be sent is reported to the admin, and the decision stands", async () => {
   const w = makeWorld();
   const gm = await w.signIn("raka@example.com");
-  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  await w.call("PUT", "/profile", { cookie: gm, body: HELD_PROFILE });
   const owner = await w.signIn(OWNER);
   const id = ((await w.call("POST", "/admin", { cookie: owner, body: { action: "queue" } })).json.gms as any[])[0].id as string;
   w.env.ctx.mailer = { send: async () => { throw new Error("relay down"); } };
@@ -670,7 +678,10 @@ test("erasing a Game Master with many games stays inside the query budget, in on
   const w = makeWorld();
   const gm = await w.signIn("raka@example.com");
   await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
-  for (let i = 0; i < 25; i++) await w.call("POST", "/games", { cookie: gm, body: { ...GAME, title: `Game ${i}` } });
+  for (let i = 0; i < 25; i++) {
+    await w.call("POST", "/games", { cookie: gm, body: { ...GAME, title: `Game ${i}` } });
+    w.clock.ms += 3 * 3_600_000; // a profile may add ten games a day
+  }
   assert.equal((w.db.raw.prepare("SELECT COUNT(*) AS n FROM games").get() as { n: number }).n, 25);
   w.db.count.n = 0;
   assert.equal((await w.call("DELETE", "/account", { cookie: gm })).status, 200);
@@ -682,7 +693,7 @@ test("a change stays marked until the site says it has caught up; a build that n
   const { deployState, RETRY_BASE_MS } = await import("../../worker/src/deploy.ts");
   const w = makeWorld();
   const gm = await w.signIn("raka@example.com");
-  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  await w.call("PUT", "/profile", { cookie: gm, body: HELD_PROFILE });
   const owner = await w.signIn(OWNER);
   const id = ((await w.call("POST", "/admin", { cookie: owner, body: { action: "queue" } })).json.gms as any[])[0].id as string;
   await w.call("POST", "/admin", { cookie: owner, body: { action: "review", kind: "gm", ids: [id], status: "approved" } });
@@ -722,7 +733,7 @@ test("a change stays marked until the site says it has caught up; a build that n
 test("a rejected build hook leaves the change marked and is retried; a change made while a build was on its way is not lost", async () => {
   const w = makeWorld();
   const gm = await w.signIn("raka@example.com");
-  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  await w.call("PUT", "/profile", { cookie: gm, body: HELD_PROFILE });
   const owner = await w.signIn(OWNER);
   const id = ((await w.call("POST", "/admin", { cookie: owner, body: { action: "queue" } })).json.gms as any[])[0].id as string;
   const okFetch = w.env.fetcher;
@@ -740,4 +751,119 @@ test("a rejected build hook leaves the change marked and is retried; a change ma
   w.clock.ms += 60_000;
   await w.call("POST", "/admin", { cookie: owner, body: { action: "review", kind: "gm", ids: [id], status: "rejected", reason: "x" } });
   assert.equal((await deployState(w.env.ctx)).pending, true, "the newer change is still waiting");
+});
+
+// ── publish first: the daily cap, the live data, the phone number on a tap, reports (ADR-48) ───────────────────────────
+
+test("a profile may add ten new games a day, then it must wait", async () => {
+  const { MAX_NEW_GAMES_PER_DAY } = await import("../../worker/src/store.ts");
+  const w = makeWorld();
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  let last = 0;
+  for (let i = 0; i < MAX_NEW_GAMES_PER_DAY + 1; i++) last = (await w.call("POST", "/games", { cookie: gm, body: { ...GAME, title: `Game ${i}` } })).status;
+  assert.equal(last, 409, "the eleventh in a day is refused");
+  w.clock.ms += 25 * 3_600_000;
+  assert.equal((await w.call("POST", "/games", { cookie: gm, body: { ...GAME, title: "Tomorrow" } })).status, 201, "and allowed again the next day");
+});
+
+test("the live data is public, cached for a few seconds at the edge, and never carries a phone number", async () => {
+  const w = makeWorld();
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  await w.call("POST", "/games", { cookie: gm, body: GAME });
+  const store = new Map<string, Response>();
+  w.env.cache = {
+    match: async (r) => store.get(r.url)?.clone(),
+    put: async (r, res) => { store.set(r.url, res); },
+  };
+  const first = await w.call("GET", "/live");
+  assert.equal(first.status, 200, "no key needed");
+  assert.match(first.res.headers.get("Cache-Control") ?? "", /s-maxage=20/);
+  assert.equal(first.json.games.length, 1);
+  assert.equal(JSON.stringify(first.json).includes("whatsapp"), false);
+  assert.equal(JSON.stringify(first.json).includes("81234567890"), false);
+  await new Promise((r) => setTimeout(r, 20));
+  await w.call("POST", "/games", { cookie: gm, body: { ...GAME, title: "A second game" } });
+  assert.equal((await w.call("GET", "/live")).json.games.length, 1, "a second read inside the cache window is served from the cache");
+  store.clear();
+  assert.equal((await w.call("GET", "/live")).json.games.length, 2, "and a fresh one sees the new game");
+});
+
+test("a phone number is given only on a tap for a live Game Master, a few at a time, from the site itself", async () => {
+  const { REVEALS_PER_IP_HOUR } = await import("../../worker/src/reports.ts");
+  const w = makeWorld();
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  const id = (await w.call("GET", "/me", { cookie: gm })).json.profile.id as string;
+  const ask = (gmId: unknown, ip = "203.0.113.5") => w.call("POST", "/contact", { body: { gm: gmId }, headers: { "CF-Connecting-IP": ip } });
+  const ok = await ask(id);
+  assert.equal(ok.status, 200);
+  assert.equal(ok.json.whatsapp, "6281234567890");
+  assert.equal((await ask("nobody-here")).status, 404);
+  assert.equal((await ask(42)).status, 404);
+  assert.equal((await w.call("POST", "/contact", { body: { gm: id }, origin: "https://evil.example" })).status, 403, "only the site itself may ask");
+
+  const other = await w.signIn("held@example.com");
+  await w.call("PUT", "/profile", { cookie: other, body: { ...HELD_PROFILE, name: "Held One", whatsapp: "0811-1111-1111" } });
+  const heldId = (await w.call("GET", "/me", { cookie: other })).json.profile.id as string;
+  assert.equal((await ask(heldId, "203.0.113.6")).status, 404, "a held profile does not give its number");
+
+  let refused = 0;
+  for (let i = 0; i < REVEALS_PER_IP_HOUR + 5; i++) if ((await ask(id, "198.51.100.9")).status === 429) refused++;
+  assert.ok(refused >= 5, "one address cannot collect numbers in bulk");
+  assert.equal((await ask(id, "198.51.100.77")).status, 200, "another address is not affected");
+});
+
+test("three different visitors reporting a listing hold it for an admin's look; the decision clears the reports; one address counts once", async () => {
+  const { REPORTS_TO_HOLD } = await import("../../worker/src/reports.ts");
+  const w = makeWorld();
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  const id = (await w.call("POST", "/games", { cookie: gm, body: GAME })).json.id as string;
+  const send = (ip: string, reason = "looks wrong") => w.call("POST", "/report", { body: { kind: "game", id, reason }, headers: { "CF-Connecting-IP": ip } });
+  const live = async () => ((await w.call("GET", "/public", { build: true })).json.games as any[]).length;
+
+  assert.equal((await send("203.0.113.1")).status, 200);
+  assert.equal((await send("203.0.113.1")).status, 200, "the same address again is accepted but counts once");
+  assert.equal((await send("203.0.113.2")).status, 200);
+  assert.equal(await live(), 1, "two people are not enough");
+  assert.equal(REPORTS_TO_HOLD, 3);
+  assert.equal((await send("203.0.113.3")).status, 200);
+  assert.equal(await live(), 0, "the third holds it back");
+  assert.equal((await w.call("GET", "/me", { cookie: gm })).json.games[0].status, "pending");
+
+  const admin = await w.signIn(OWNER);
+  const queue = (await w.call("POST", "/admin", { cookie: admin, body: { action: "queue" } })).json;
+  assert.equal(queue.games[0].reports, 3, "the admin sees how many people reported it");
+  await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "game", ids: [id], status: "approved" } });
+  assert.equal(await live(), 1, "an admin releases it");
+  assert.equal((await send("203.0.113.4")).status, 200);
+  assert.equal(await live(), 1, "the old reports were answered: one new report does not hold it again");
+
+  assert.equal((await w.call("POST", "/report", { body: { kind: "game", id: "no-such-game" } })).status, 404);
+  assert.equal((await w.call("POST", "/report", { body: { kind: "other", id } })).status, 400);
+  assert.equal((await w.call("POST", "/report", { body: { kind: "game", id }, origin: "https://evil.example" })).status, 403);
+});
+
+test("a listing that has just gone live asks for a quick build; an edit waits for the long gap; quick builds stop after a day's worth", async () => {
+  const { MIN_GAP_MS, URGENT_GAP_MS, URGENT_MAX_PER_DAY } = await import("../../worker/src/deploy.ts");
+  const w = makeWorld();
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  assert.equal(w.hook.length, 1, "a new profile builds at once");
+  const id = (await w.call("POST", "/games", { cookie: gm, body: GAME })).json.id as string;
+  w.site.generatedAt = new Date(w.clock.ms + 1000).toISOString();
+  w.clock.ms += URGENT_GAP_MS + 1000;
+  const tick = async () => (await w.call("POST", "/cron?job=tick", { origin: null, build: true })).json.result as string;
+  assert.equal(await tick(), "sent", "a new game is on the site within ten minutes");
+  w.site.generatedAt = new Date(w.clock.ms + 1000).toISOString();
+  w.clock.ms += 60_000;
+  await tick();
+  await w.call("PUT", `/games/${id}`, { cookie: gm, body: { ...GAME, seats: 2 } });
+  w.clock.ms += URGENT_GAP_MS + 1000;
+  assert.equal(await tick(), "wait", "an edit is not worth a quick build");
+  w.clock.ms += MIN_GAP_MS;
+  assert.equal(await tick(), "sent", "it goes out with the long gap");
+  assert.ok(URGENT_MAX_PER_DAY * URGENT_GAP_MS <= 24 * 3_600_000 * 5, "a sane budget of quick builds");
 });
