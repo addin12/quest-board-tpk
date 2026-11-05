@@ -142,9 +142,9 @@ export function GameForm({ game, gmName, heading, onSaved, onCancel }: { game: G
         <ol className="flex flex-wrap gap-[var(--space-2xs)] max-sm:hidden">
           {STEPS.map((s, i) => (
             <li key={s}>
-              <button type="button" onClick={() => go(i)} aria-current={i === step ? "step" : undefined} aria-label={t(STEP_TITLE[s])}
+              <button type="button" onClick={() => go(i)} aria-current={i === step ? "step" : undefined}
                 className={`inline-flex min-h-11 items-center gap-[var(--space-xs)] rounded-[var(--radius-input)] px-[var(--space-sm)] ${i === step ? "bg-paper-3 font-medium text-ink" : i < step ? "text-ink hover:bg-paper-3" : "text-muted hover:bg-paper-3 hover:text-ink"}`}>
-                <span className="tabular-nums">{i + 1}</span><span>{t(STEP_TITLE[s])}</span>
+                <span aria-hidden className="tabular-nums">{i + 1}</span><span>{t(STEP_TITLE[s])}</span>
               </button>
             </li>
           ))}
