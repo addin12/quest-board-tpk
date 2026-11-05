@@ -27,6 +27,7 @@ export const ICON_FILES = {
   discord: "discord-logo",
   instagram: "instagram-logo",
   copy: "copy",
+  calendar: "calendar-blank",
   // the tab bar, the search field and the contact sheet
   games: "dice-five",
   "game-masters": "users-three",

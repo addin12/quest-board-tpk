@@ -483,3 +483,20 @@ test("the home page's model: the six soonest, three more beginner games that are
   assert.equal(homeModel([]).soon.length, 0, "an empty board is a valid model");
   assert.deepEqual(homeModel([]).systems, []);
 });
+
+test("the calendar file for a game: UTC times, an end from the session length, escaped text, lines folded at 75 octets with CRLF", async () => {
+  const { gameIcs, icsFileName, icsFold, icsText, icsTime } = await import("../../src/lib/ics.ts");
+  assert.equal(icsTime(Date.parse("2026-11-14T12:00:00.000Z")), "20261114T120000Z");
+  assert.equal(icsText("a, b; c\\d\nnext"), "a\\, b\\; c\\\\d\\nnext");
+  const game = { id: "g0abc1234", title: "Mercusuar, di Pulau Kabut", summary: "A lighthouse; a radio.", startsAt: "2026-11-14T12:00:00.000Z", sessionHours: 4, locationType: "in_person" as const, venueName: "Kumu Ground Coffee", city: "Depok", platform: "" };
+  const ics = gameIcs(game, "https://quest-board-tpk.pages.dev/en/games/x/", Date.parse("2026-11-05T03:00:00Z"));
+  assert.ok(ics.startsWith("BEGIN:VCALENDAR\r\n") && ics.endsWith("END:VCALENDAR\r\n"));
+  for (const line of ["DTSTART:20261114T120000Z", "DTEND:20261114T160000Z", "SUMMARY:Mercusuar\\, di Pulau Kabut", "LOCATION:Kumu Ground Coffee\\, Depok", "UID:g0abc1234@quest-board"]) assert.ok(ics.includes(line), line);
+  assert.ok(gameIcs({ ...game, sessionHours: 0 }, "u", 0).includes("DTEND:20261114T150000Z"), "three hours when the Game Master did not say");
+  assert.ok(gameIcs({ ...game, locationType: "online", platform: "Discord", venueName: "", city: "" }, "u", 0).includes("LOCATION:Discord"));
+  const long = icsFold("X:" + "é".repeat(80)); // two bytes each
+  for (const part of long.split("\r\n")) assert.ok(new TextEncoder().encode(part).length <= 75, "no line over 75 octets");
+  assert.equal(long.replace(/\r\n /g, ""), "X:" + "é".repeat(80), "folding loses nothing");
+  assert.equal(icsFileName("Mercusuar di Pulau Kabut!"), "mercusuar-di-pulau-kabut.ics");
+  assert.equal(icsFileName("???"), "game.ics");
+});

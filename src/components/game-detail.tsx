@@ -12,6 +12,7 @@ import { ContactButtons } from "./contact-buttons";
 import { GoneNotice } from "./gone-notice";
 import { useI18n } from "./i18n-provider";
 import { ReportButton } from "./report-button";
+import { ShareActions } from "./share-actions";
 import { StickyContact } from "./sticky-contact";
 import { Avatar, Cover, languageLabel, priceLabel, whereLabel } from "./ui";
 import { useLive } from "./use-live";
@@ -118,6 +119,7 @@ export function GameDetail({ slug, initial, onFound }: { slug: string; initial: 
               {game.full && <p className="mt-[var(--space-md)] bg-accent px-[var(--space-md)] py-[var(--space-sm)] font-medium text-accent-ink" data-testid="full-note">{t("game.fullNote")}</p>}
               <div className="mt-[var(--space-lg)]"><ContactButtons gmId={gm.id} discord={gm.discord} instagram={gm.instagram} message={message} /></div>
               <p className="mt-[var(--space-lg)] border-t border-rule pt-[var(--space-md)] text-sm text-ink-2">{t("game.safetyNote")}</p>
+              <ShareActions game={game} />
               <ReportButton kind="game" id={game.id} />
             </aside>
 

@@ -32,6 +32,25 @@ test("find a game, follow the links, message the GM on WhatsApp", async ({ page,
   expect(url.searchParams.get("text")).toMatch(/^Hi Raka Pratama, I found “Mercusuar di Pulau Kabut” on Quest Board \(.* WIB\)\. Is there still a seat\?$/);
 });
 
+test("a game can be added to a calendar (a .ics file made in the browser) and passed on over WhatsApp", async ({ page }) => {
+  await page.goto(GAME);
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByTestId("add-to-calendar").click()]);
+  expect(download.suggestedFilename()).toMatch(/^mercusuar-di-pulau-kabut.*\.ics$/);
+  const chunks: Buffer[] = [];
+  for await (const c of await download.createReadStream()) chunks.push(c as Buffer);
+  const ics = Buffer.concat(chunks).toString("utf8");
+  expect(ics).toContain("BEGIN:VCALENDAR");
+  expect(ics).toContain("SUMMARY:Mercusuar di Pulau Kabut");
+  expect(ics).toMatch(/DTSTART:\d{8}T\d{6}Z/);
+  expect(ics).toContain("/en/games/mercusuar-di-pulau-kabut-0m01/");
+
+  const share = page.getByTestId("share-whatsapp");
+  const href = (await share.getAttribute("href")) ?? "";
+  expect(href).toMatch(/^https:\/\/wa\.me\/\?text=/);
+  expect(decodeURIComponent(href)).toContain("/en/games/mercusuar-di-pulau-kabut-0m01/");
+  expect(href, "no Game Master phone number goes into a share link").not.toContain("62811");
+});
+
 test("the search on the home page leads to the games that match", async ({ page }) => {
   await page.goto("/en/");
   await page.getByLabel("Search games").fill("kumu");
