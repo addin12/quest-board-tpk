@@ -107,11 +107,33 @@ matching entry was changed in the D1 console by hand.
   from `.cloudflare.local.json` and run `npm run cloudflare:setup`: it makes a new one and sets it.
 
 ### The database was damaged or deleted
-Every night the Worker copies every table to R2 as `backups/<date>.json`, and the games and profiles as CSV you can open in a spreadsheet
-(the newest 14 days are kept). Download the newest JSON. To restore, create a new D1 database, apply the migrations
-(`npm run cloudflare:setup` does it), and load each table's rows back with `wrangler d1 execute` (the JSON holds `tables.<name>` as arrays of
-rows). Then `npm run cloudflare:setup` again to point the project at it. A backup contains personal data: it is in the same Cloudflare
-account; do not share it.
+There are two ways back. Both replace what is there now, so decide first which moment to go back to, and expect to lose what changed after it.
+
+**A mistake in the last 7 days** (rows deleted or changed by accident, a bad migration): Cloudflare keeps the database's history (D1 Time Travel:
+7 days on the free plan, 30 on the paid one) and puts the whole database back to a moment, in place.
+1. `npx --yes wrangler@4.156.2 d1 time-travel info quest-board --timestamp="2026-11-06T10:00:00+07:00"` shows that the moment can be reached.
+2. `npx --yes wrangler@4.156.2 d1 time-travel restore quest-board --timestamp=<the same moment as Unix seconds>` restores it. Wrangler prints a
+   bookmark of the state it replaced: keep it, it undoes the restore (`--bookmark=<it>`).
+3. Ask for a build (the admin page's **Publish now** button) so the static pages match.
+
+**The database is gone, or the damage is older than 7 days**: the nightly backup. Every night the Worker copies the tables to R2 as
+`backups/<date>.json` (accounts, profiles, games, admins, activity, merge requests, reports), with the games and profiles as CSV you can open in
+a spreadsheet; the newest 14 days are kept. Sign-in links and sessions, rate limits and the backend's own state are left out on purpose: people
+sign in again and the rest starts afresh (`NOT_BACKED_UP` in `worker/src/backup.ts`; a unit test fails if a new table is in neither list).
+1. Cloudflare → R2 → `quest-board-images` → `backups/` → download the newest `<date>.json`.
+2. `npm run restore:sql -- <folder>/<date>.json` writes `<date>.restore.sql` next to it and prints how many rows each table has. Check the
+   numbers look right.
+3. If the database still exists but is damaged beyond 7 days, delete it first (Cloudflare → D1 → `quest-board` → Settings → Delete). Download
+   the backups before this: deleting the database does not touch R2, but check anyway.
+4. `npm run cloudflare:setup` makes an empty `quest-board` database, applies every migration and binds the site to it.
+5. `npx --yes wrangler@4.156.2 d1 execute quest-board --remote --file <folder>/<date>.restore.sql` loads the rows (one transaction: all or
+   nothing; references are checked at the end).
+6. Ask for a build (admin page → **Publish now**), sign in to the account page and open a few games and Game Masters to check.
+7. Delete the downloaded `.json` and `.restore.sql`: they hold personal data.
+
+The restore is tested: `tests/unit/worker.test.ts` takes a nightly backup of a database with every kind of row (a merged account included),
+loads the SQL into a fresh database and compares every table. The backups sit in the same Cloudflare account as the database; a copy outside
+it (for example a weekly download kept somewhere private) is the owner's choice and is not set up.
 
 ### Mail is over the limit
 Apps Script allows about 100 emails a day on a free Gmail account and the relay stops at 90. The backend splits those 90 by kind, each over a rolling

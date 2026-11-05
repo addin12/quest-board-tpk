@@ -76,6 +76,8 @@ wiring: `functions/api/[[path]].ts`, `worker/src/email.ts`, `verifyTurnstile`.
   `/api/health` shows them. The error is the relay's code (`mail_failed_quota`, `mail_failed_unauthorized`…), never an address.
 - **Backups:** the daily job records `backup_ok_at` or `backup_error`; on failure it emails the owner, still runs the rest, and fails the
   timer call. The 10-minute tick (`watchBackup`, `worker/src/watch.ts`) emails the owner once a day while no backup has succeeded for 36 hours.
+  The JSON holds every table in `TABLES` (`worker/src/backup.ts`); `NOT_BACKED_UP` names the rest and why. `restoreSql` turns a backup into SQL for an
+  empty database (`npm run restore:sql`, docs/runbook.md); a unit test restores a full backup and compares every table (ADR-55).
 - **Retention** (`worker/src/retention.ts`, run by the daily job): an account with no sign-in for 730 days is emailed; if still unused 30
   days later it is erased with its profile, games and pictures. Signing in (`last_seen_at`, `expiry_warned_at` in `0002_retention.sql`) cancels it.
   Admins and the owner never expire. At most 20 per step per run.

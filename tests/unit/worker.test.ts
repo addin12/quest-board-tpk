@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // The Cloudflare backend (worker/src): accounts, one profile per account, games, review, self-service, images, builds.
 import assert from "node:assert/strict";
+import { readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 import { normalizeEmail } from "../../worker/src/email.ts";
 import { parseGame, parseProfile, normalizePhone, zonedInstant } from "../../worker/src/rules.ts";
@@ -390,6 +391,55 @@ test("the daily job: backs up everything to the bucket, keeps two weeks, rebuild
   assert.equal(w.bucket.keys().length, 45, "two weeks and today, three files a day");
   assert.equal(w.bucket.keys().includes("backups/2026-10-28.json"), false, "the oldest is gone");
   assert.ok(w.hook.length >= 1, "the daily job asks for a build");
+});
+
+test("every table the migrations make is either in the backup or left out on purpose", async () => {
+  const { TABLES, NOT_BACKED_UP } = await import("../../worker/src/backup.ts");
+  const dir = new URL("../../worker/migrations/", import.meta.url);
+  const sql = readdirSync(dir).filter((f) => f.endsWith(".sql")).map((f) => readFileSync(new URL(f, dir), "utf8")).join("\n");
+  const made = [...sql.matchAll(/CREATE TABLE (?:IF NOT EXISTS )?(\w+)/g)].map((m) => m[1]!).sort();
+  assert.deepEqual(made, [...TABLES, ...Object.keys(NOT_BACKED_UP)].sort(), "a new table needs a place in TABLES (worker/src/backup.ts) or a reason in NOT_BACKED_UP");
+});
+
+test("a nightly backup restores: loaded into a fresh database, every table it holds comes back row for row", async () => {
+  const { TABLES, restoreSql } = await import("../../worker/src/backup.ts");
+  const { daily } = await import("../../worker/src/handler.ts");
+  const w = makeWorld();
+  // A duplicate account merged into one made after it (accounts.merged_into points forward, so the restore must check references at the end),
+  // a second duplicate whose merge still waits, a live game with a report on it, a second admin, and text with quotes, a semicolon and a new line.
+  const dup = await w.signIn("raka.second@example.com");
+  await w.call("PUT", "/profile", { cookie: dup, body: { ...PROFILE, name: "Raka P." } });
+  const real = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: real, body: { ...PROFILE, bio: "It's \"quiet\" horror; -- two lines\nof it." } });
+  const other = await w.signIn("raka.third@example.com");
+  await w.call("PUT", "/profile", { cookie: other, body: { ...PROFILE, name: "R. Pratama" } });
+  const game = (await w.call("POST", "/games", { cookie: real, body: GAME })).json.id as string;
+  await w.call("POST", "/report", { body: { kind: "game", id: game, reason: "the 'date' looks wrong" }, headers: { "CF-Connecting-IP": "203.0.113.9" } });
+  const admin = await w.signIn(OWNER);
+  await w.call("POST", "/admin", { cookie: admin, body: { action: "admin.add", email: "helper@example.com" } });
+  const gms = (await w.call("POST", "/admin", { cookie: admin, body: { action: "queue" } })).json.gms as { id: string; name: string }[];
+  const idOf = (name: string) => gms.find((g) => g.name === name)!.id;
+  await w.call("POST", "/admin", { cookie: admin, body: { action: "merge", fromId: idOf("Raka P."), intoId: idOf("Raka Pratama") } });
+  const offer = (await w.call("GET", "/me", { cookie: real })).json.mergeOffers[0];
+  assert.equal((await w.call("POST", "/merge/respond", { cookie: real, body: { id: offer.id, accept: true } })).status, 200);
+  await w.call("POST", "/admin", { cookie: admin, body: { action: "merge", fromId: idOf("R. Pratama"), intoId: idOf("Raka Pratama") } });
+
+  await daily(w.env);
+  const key = w.bucket.keys().find((k) => /^backups\/\d{4}-\d{2}-\d{2}\.json$/.test(k))!;
+  const snap = JSON.parse(new TextDecoder().decode((await w.bucket.get(key))!.body as ArrayBuffer));
+  for (const t of TABLES) assert.ok(snap.tables[t].length > 0, `the test puts rows in ${t}`);
+  assert.ok(snap.tables.accounts.some((a: { merged_into: string | null }) => a.merged_into), "a merged account is in the backup");
+
+  const fresh = sqliteDbForTests();
+  fresh.raw.exec(`BEGIN;\n${restoreSql(snap)}COMMIT;`); // D1 runs a file as one transaction; Node's SQLite checks foreign keys like D1
+  const rows = (db: ReturnType<typeof sqliteDbForTests>, t: string) => db.raw.prepare(`SELECT * FROM ${t}`).all().map((r) => JSON.stringify(r)).sort();
+  for (const t of TABLES) assert.deepEqual(rows(fresh, t), rows(w.db, t), `${t} comes back as it was`);
+});
+
+test("a restore refuses a backup with a column name that is not one", async () => {
+  const { restoreSql } = await import("../../worker/src/backup.ts");
+  assert.throws(() => restoreSql({ tables: { accounts: [{ "id) VALUES (1); DROP TABLE games; --": "x" }] } }), /not a column name/);
+  assert.equal(restoreSql({ tables: {} }), "PRAGMA defer_foreign_keys = true;\n", "an empty or older backup gives an empty load");
 });
 
 test("the CSV copy quotes everything and defuses spreadsheet formulas", async () => {
