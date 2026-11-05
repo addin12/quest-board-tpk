@@ -105,7 +105,7 @@ export function sortGames<G extends GameView>(games: G[], sort: SortKey): G[] {
   return copy.sort((a, b) => notFullFirst(a, b) || byStart(a, b)); // soonest first, full games last
 }
 
-type Tile = { name: string; count: number; cover: string | null };
+export type Tile = { name: string; count: number; cover: string | null };
 
 /** One tile per key that has listings, the most listed first (ties A to Z), with the cover of its soonest listing that has one. */
 function rankTiles(games: readonly GameView[], keysOf: (g: GameView) => readonly string[]): Tile[] {

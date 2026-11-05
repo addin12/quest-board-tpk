@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { BrowsePage } from "@/components/browse";
-import { MECHANICS, mechanicAboutKey, mechanicLabelKey, type MechanicKey } from "@/lib/categories";
-import { allMechanicTiles } from "@/lib/games";
+import { LiveBrowse } from "@/components/live-pages";
+import { MECHANICS } from "@/lib/categories";
 import { gameViews, loadSiteData } from "@/lib/data";
-import { paths } from "@/lib/hrefs";
+import { allMechanicTiles } from "@/lib/games";
 import { makeT } from "@/lib/i18n/dict";
+import { coverRefs } from "@/lib/live";
 import { languageAlternates } from "@/lib/seo";
 import { isLang } from "@/lib/types";
 
@@ -15,12 +15,12 @@ export async function generateMetadata({ params }: PageProps<"/[lang]/mechanics"
   return { title: makeT(lang)("mechanics.title"), alternates: languageAlternates(lang, "/mechanics/") };
 }
 
+/** The tiles and their counts are written at build time (the first paint search engines read) and follow the live data in the browser (components/live-pages.tsx). */
 export default async function MechanicsPage({ params }: PageProps<"/[lang]/mechanics">) {
   const { lang } = await params;
   if (!isLang(lang)) notFound();
-  const t = makeT(lang);
-  const tiles = allMechanicTiles(gameViews(loadSiteData()), MECHANICS.map((m) => m.key));
+  const games = gameViews(loadSiteData());
   return (
-    <BrowsePage home={paths.home(lang)} path={paths.mechanics(lang)} title={t("mechanics.title")} lead={t("mechanics.lead")} tiles={tiles} href={(n) => paths.games(lang, `?mechanic=${encodeURIComponent(n)}`)} label={(k) => t(mechanicLabelKey(k as MechanicKey))} about={(k) => t(mechanicAboutKey(k as MechanicKey))} variant="card" t={t} />
+    <LiveBrowse kind="mechanics" initialTiles={allMechanicTiles(games, MECHANICS.map((m) => m.key))} covers={coverRefs(games)}></LiveBrowse>
   );
 }

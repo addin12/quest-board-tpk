@@ -10,6 +10,7 @@ import { smallCover } from "../../src/lib/hrefs.ts";
 import { SYSTEM_COVER_FILES, systemCover } from "../../src/lib/system-covers.ts";
 import { SYSTEMS } from "../../src/lib/systems.ts";
 import { listingTips } from "../../src/lib/listing-tips.ts";
+import { homeModel } from "../../src/lib/home.ts";
 import { EMPTY_FILTERS, activeFilterCount, applyFilters, weekendRange, filterOptions, filtersToQuery, isLive, pageList, parseFilters, systemTiles, allSystemTiles, genreTiles, allGenreTiles, type GameView } from "../../src/lib/games.ts";
 import { DICTIONARIES, makeT } from "../../src/lib/i18n/dict.ts";
 import { cleanDiscord, cleanInstagram, isGoogleMapsUrl, isPhone, parsePublicData, text } from "../../src/lib/public-data.ts";
@@ -470,4 +471,15 @@ test("dates and prices are written the same in the build and in every browser: n
   assert.equal(formatIdr(0), "Rp 0");
   assert.equal(formatIdr(1250000), "Rp 1.250.000");
   assert.throws(() => formatWhen("not a date", "en", "WIB"), RangeError, "a bad date is an error for the caller to handle, as it was");
+});
+
+test("the home page's model: the six soonest, three more beginner games that are not among the first three, the most listed systems, and borrowed covers", () => {
+  const all = games();
+  const m = homeModel(all);
+  assert.equal(m.soon.length, Math.min(6, all.length));
+  assert.deepEqual(m.soon.map((g) => g.id), [...all].sort((a, b) => Number(a.full) - Number(b.full) || Date.parse(a.startsAt) - Date.parse(b.startsAt)).slice(0, 6).map((g) => g.id), "soonest first, full games last");
+  assert.ok(m.beginner.every((g) => g.level === "beginner" && !m.soon.slice(0, 3).some((s) => s.id === g.id)));
+  assert.ok(m.systems.length <= 10 && m.systems.every((x, i, a) => i === 0 || a[i - 1]!.count >= x.count), "the most listed first");
+  assert.equal(homeModel([]).soon.length, 0, "an empty board is a valid model");
+  assert.deepEqual(homeModel([]).systems, []);
 });

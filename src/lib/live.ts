@@ -8,7 +8,11 @@ import type { SiteData, SiteGame, SiteGm } from "./types.ts";
 export const LIVE_URL = "/api/live";
 
 /** What the build knew (the page's own data): lets a picture it cropped be reused while it is still the current one. */
-export type Known = { games?: readonly SiteGame[]; gms?: readonly SiteGm[] };
+export type Known = { games?: readonly Pick<SiteGame, "id" | "cover" | "coverKey">[]; gms?: readonly Pick<SiteGm, "id" | "photo" | "photoKey">[] };
+
+/** The pictures the build already cropped, by game and Game Master: what a page hands its live component so it can keep them (see Known). */
+export const coverRefs = (games: readonly SiteGame[]) => games.filter((g) => g.cover && g.coverKey).map((g) => ({ id: g.id, cover: g.cover, coverKey: g.coverKey }));
+export const photoRefs = (gms: readonly SiteGm[]) => gms.filter((g) => g.photo && g.photoKey).map((g) => ({ id: g.id, photo: g.photo, photoKey: g.photoKey }));
 
 /** The live data in the site's shape. Anything the site's checks reject is dropped, as it is at build time. */
 export function toSite(raw: unknown, known: Known = {}): SiteData {

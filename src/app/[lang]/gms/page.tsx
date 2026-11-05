@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { TileSearch } from "@/components/tile-search";
-import { EmptyState, GmCard } from "@/components/ui";
+import { GmList } from "@/components/live-pages";
 import { loadSiteData } from "@/lib/data";
+import { photoRefs } from "@/lib/live";
 import { makeT } from "@/lib/i18n/dict";
-import { searchText } from "@/lib/search";
 import { languageAlternates } from "@/lib/seo";
 import { isLang } from "@/lib/types";
 
@@ -19,26 +18,13 @@ export default async function GmsPage({ params }: PageProps<"/[lang]/gms">) {
   if (!isLang(lang)) notFound();
   const t = makeT(lang);
   const { gms, games } = loadSiteData();
-  const open = (id: string) => games.filter((g) => g.gmId === id).length;
-  const sorted = [...gms].sort((a, b) => open(b.id) - open(a.id) || a.name.localeCompare(b.name));
-  // what the search box looks in: the name, the city, the systems they run and the bio (synonyms count: "dnd" finds a GM who runs Dungeons & Dragons)
-  const searchable = (gm: (typeof gms)[number]) => searchText([gm.name, gm.city, ...gm.systems, gm.bio].join(" "));
+  const open: Record<string, number> = {};
+  for (const x of games) open[x.gmId] = (open[x.gmId] ?? 0) + 1;
   return (
     <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-2xl)]">
       <h1 className="max-w-none text-[length:var(--text-display-s)]">{t("gm.title")}</h1>
       <p className="lead mt-[var(--space-sm)] text-ink-2">{t("gm.lead")}</p>
-      {sorted.length === 0 ? (
-        <div className="mt-[var(--space-xl)]"><EmptyState title={t("gm.empty")} /></div>
-      ) : (
-        <>
-          <div className="mb-[var(--space-xl)] mt-[var(--space-lg)]">
-            <TileSearch targetId="gm-list" label={t("gm.search")} placeholder={t("gm.searchPlaceholder")} names={sorted.map(searchable)} />
-          </div>
-          <ul id="gm-list" className="ruled grid gap-x-[var(--gap-columns)] md:grid-cols-2">
-            {sorted.map((gm, i) => <li key={gm.id} data-name={searchable(gm)}><GmCard gm={gm} openGames={open(gm.id)} t={t} lang={lang} priority={i < 4} /></li>)}
-          </ul>
-        </>
-      )}
+      <GmList initialGms={gms} initialOpen={open} photos={photoRefs(gms)} />
     </div>
   );
 }

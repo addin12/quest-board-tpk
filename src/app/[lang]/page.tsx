@@ -2,16 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/json-ld";
-import { BrowseGateway, BrowseSection, RAIL_BASE } from "@/components/browse";
-import { EmptyState, GameCard, GameRow } from "@/components/ui";
-import { GENRES, MECHANICS, STYLES, genreCover, genreLabelKey, type GenreKey } from "@/lib/categories";
+import { HomeSections } from "@/components/live-pages";
 import { gameViews, loadSiteData } from "@/lib/data";
-import { genreTiles, sortGames, systemTiles } from "@/lib/games";
+import { homeModel } from "@/lib/home";
+import { coverRefs } from "@/lib/live";
 import { paths } from "@/lib/hrefs";
 import { makeT } from "@/lib/i18n/dict";
 import { languageAlternates, websiteJsonLd } from "@/lib/seo";
-import { systemCover } from "@/lib/system-covers";
-import { SYSTEMS } from "@/lib/systems";
 import { isLang } from "@/lib/types";
 
 export async function generateMetadata({ params }: PageProps<"/[lang]">): Promise<Metadata> {
@@ -25,22 +22,6 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   const t = makeT(lang);
   const games = gameViews(loadSiteData());
   const [, leadFirst = "", leadRest = ""] = /^([\s\S]+?[.!?])\s+([\s\S]*)$/.exec(t("home.lead")) ?? ["", t("home.lead")];
-  const soon = sortGames(games, "soonest").slice(0, 6);
-  const beginner = sortGames(games.filter((g) => g.level === "beginner" && !soon.slice(0, 3).includes(g)), "soonest").slice(0, 3);
-  const systems = systemTiles(games).slice(0, 10);
-  const genres = genreTiles(games, GENRES.map((g) => g.key)).slice(0, 10);
-  // Play styles and mechanics have no pictures of their own: their tiles borrow the cover of a listed game that has one.
-  const pictured = games.filter((g) => g.cover);
-  const styled = pictured.find((g) => g.styles.length > 0);
-  const mechanical = pictured.find((g) => g.mechanics.length > 0 && g !== styled) ?? pictured.find((g) => g.mechanics.length > 0);
-  const gateway = [
-    { href: paths.systems(lang), title: t("systems.title"), hint: t("home.allSystems", { n: SYSTEMS.length }), cover: systems[0] ? (systemCover(systems[0].name) ?? systems[0].cover) : null },
-    { href: paths.genres(lang), title: t("genres.title"), hint: t("home.allGenres", { n: GENRES.length }), cover: genres[0] ? genreCover(genres[0].name as GenreKey) : null },
-    { href: paths.styles(lang), title: t("styles.title"), hint: t("home.allStyles", { n: STYLES.length }), cover: styled?.cover ?? null },
-    { href: paths.mechanics(lang), title: t("mechanics.title"), hint: t("home.allMechanics", { n: MECHANICS.length }), cover: mechanical?.cover ?? null },
-  ];
-  const filterHref = (key: string) => (name: string) => paths.games(lang, `?${key}=${encodeURIComponent(name)}`);
-
   return (
     <>
       <JsonLd data={websiteJsonLd(lang, t("meta.description"))} />
@@ -64,41 +45,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
         </div>
       </section>
 
-      <section className="section pt-0" aria-labelledby="soon-h">
-        <div className="wrap">
-          <div className="flex items-end justify-between gap-[var(--space-md)] sm:flex-wrap">
-            <h2 id="soon-h" className="max-sm:text-[length:var(--text-title)]">{t("home.soon")}</h2>
-            <Link href={paths.games(lang)} className="btn btn-soft">{t("home.browseAll")}</Link>
-          </div>
-          {/* On a phone the six are one row that swipes sideways (the next card peeking in); from 640 px they are a grid. */}
-          {soon.length === 0 ? (
-            <div className="mt-[var(--space-xl)]"><EmptyState title={t("home.empty")}><Link href={paths.list(lang)} className="btn btn-primary">{t("nav.list")}</Link></EmptyState></div>
-          ) : (
-            <ul className={`mt-[var(--space-xl)] ${RAIL_BASE} gap-[var(--space-md)] sm:grid sm:grid-cols-2 sm:gap-x-[var(--gap-columns)] sm:gap-y-[var(--space-xl)] sm:overflow-visible lg:grid-cols-3`}>
-              {soon.map((g, i) => <li key={g.id} className="max-sm:w-[78vw] max-sm:max-w-72 max-sm:shrink-0 max-sm:snap-start"><GameCard game={g} t={t} lang={lang} priority={i < 3} /></li>)}
-            </ul>
-          )}
-        </div>
-      </section>
-
-      <BrowseGateway title={t("home.browseTitle")} items={gateway} />
-
-      <BrowseSection id="systems-h" ranked cover={systemCover} title={t("home.systemsTitle")} tiles={systems} href={filterHref("system")} allHref={paths.systems(lang)} allLabel={t("home.allSystems", { n: SYSTEMS.length })} t={t} />
-      <BrowseSection id="genres-h" title={t("home.genresTitle")} tiles={genres} href={filterHref("genre")} label={(k) => t(genreLabelKey(k as GenreKey))} cover={(k) => genreCover(k as GenreKey)} allHref={paths.genres(lang)} allLabel={t("home.allGenres", { n: GENRES.length })} t={t} />
-      {beginner.length > 0 && (
-        <section className="section pt-0" aria-labelledby="new-h">
-          <div className="wrap grid gap-[var(--space-2xl)] lg:grid-cols-12">
-            <div className="lg:col-span-5">
-              <h2 id="new-h">{t("home.newTitle")}</h2>
-              <p className="lead mt-[var(--space-md)]">{t("home.newBody")}</p>
-              <p className="mt-[var(--space-xl)]"><Link href={paths.games(lang, "?level=beginner")} className="btn btn-primary">{t("home.moreBeginner")}</Link></p>
-            </div>
-            <ul className="ruled lg:col-span-6 lg:col-start-7">
-              {beginner.map((g) => <li key={g.id}><GameRow game={g} t={t} lang={lang} /></li>)}
-            </ul>
-          </div>
-        </section>
-      )}
+      <HomeSections initial={homeModel(games)} covers={coverRefs(games)} />
 
       <section className="section border-t-4 border-double border-ink" aria-labelledby="gm-h">
         <div className="wrap">

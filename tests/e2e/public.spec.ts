@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { SYSTEMS } from "../../src/lib/systems.ts";
 import { newWorld } from "../support/e2e-world.ts";
 import { GAME as GAME_FIXTURE, PROFILE } from "../support/worker-env.ts";
@@ -100,19 +100,37 @@ test("the list-your-game page sends GMs to the account page, and a visitor can r
   await expect(page.getByTestId("report-done")).toBeVisible();
 });
 
-test("a game that went live after the last build opens through the 404 page, keeps its address, and its Game Master can be messaged", async ({ page, context }) => {
-  const origin = "http://localhost:4174";
-  const { cookie } = await (await page.request.post("/__test/session", { data: { email: "baru@example.com" } })).json();
+/** A Game Master who signs up after the site was built: a profile and one game, made through the real API. Returns the game's address. */
+async function goLive(page: Page, context: BrowserContext, who: { email: string; name: string; phone: string; title: string; inDays: number }): Promise<string> {
+  const { cookie } = await (await page.request.post("/__test/session", { data: { email: who.email } })).json();
   // An explicit Cookie header replaces the context's cookies, so the world's own cookie goes in it too (without it the test server answers from whichever world was made last).
   const world = (await context.cookies()).find((c) => c.name === "tpk_world")!.value;
-  const headers = { Cookie: `tpk_world=${world}; tpk_session=${cookie}`, Origin: origin };
-  const profile = await page.request.put("/api/profile", { headers, data: { ...PROFILE, name: "Gilang Baru", whatsapp: "0813-5555-0001", discord: "", instagram: "" } });
+  const headers = { Cookie: `tpk_world=${world}; tpk_session=${cookie}`, Origin: "http://localhost:4174" };
+  const profile = await page.request.put("/api/profile", { headers, data: { ...PROFILE, name: who.name, whatsapp: who.phone, discord: "", instagram: "" } });
   expect(profile.status()).toBe(200);
-  const date = new Date(Date.now() + 9 * 86_400_000).toISOString().slice(0, 10);
-  const created = await page.request.post("/api/games", { headers, data: { ...GAME_FIXTURE, title: "Kabut Setelah Build", date } });
+  const date = new Date(Date.now() + who.inDays * 86_400_000).toISOString().slice(0, 10);
+  const created = await page.request.post("/api/games", { headers, data: { ...GAME_FIXTURE, title: who.title, date } });
   expect(created.status()).toBe(201);
   const live = await (await page.request.get("/api/live")).json();
-  const slug = live.games.find((g: { title: string }) => g.title === "Kabut Setelah Build").slug as string;
+  return live.games.find((g: { title: string }) => g.title === who.title).slug as string;
+}
+
+test("home, the all-systems page and the Game Master list follow a game added after the build, with no rebuild", async ({ page, context }) => {
+  await goLive(page, context, { email: "segera@example.com", name: "Sari Segera", phone: "0813-5555-0002", title: "Permainan Paling Awal", inDays: 1 });
+
+  await page.goto("/en/");
+  const soon = page.getByRole("heading", { name: "Starting soon" }).locator("xpath=ancestor::section[1]");
+  await expect(soon.getByText("Permainan Paling Awal").first(), "the soonest game is the first card of Starting soon").toBeVisible();
+
+  await page.goto("/en/gms/");
+  await expect(page.getByText("Sari Segera").first()).toBeVisible();
+
+  await page.goto("/en/systems/");
+  await expect(page.getByRole("link", { name: /Call of Cthulhu/ }).first()).toBeVisible();
+});
+
+test("a game that went live after the last build opens through the 404 page, keeps its address, and its Game Master can be messaged", async ({ page, context }) => {
+  const slug = await goLive(page, context, { email: "baru@example.com", name: "Gilang Baru", phone: "0813-5555-0001", title: "Kabut Setelah Build", inDays: 9 });
 
   const res = await page.goto(`/en/games/${slug}/`); // the static site has no page for it: the 404 page hands it to /view/
   expect(res?.status(), "the address itself is a 404 for a crawler").toBe(404);
