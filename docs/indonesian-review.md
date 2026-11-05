@@ -175,3 +175,31 @@ Written for this site (not copied from StartPlaying); each sits under its name o
 | `mechanic.illuminated-worlds.about` | From Candela Obscura, built on Forged in the Dark and the Year Zero Engine. Roll d6s and read the highest to play teams of investigators. | Dari Candela Obscura, dibangun di atas Forged in the Dark dan Year Zero Engine. Lempar d6 dan baca yang tertinggi untuk memainkan tim penyelidik. | |
 | `mechanic.fudge.about` | A generic system with four dice marked plus, minus or blank, designed as a base for other games. Add your skill and compare with a difficulty. | Sistem generik dengan empat dadu bertanda plus, minus, atau kosong, dirancang sebagai dasar untuk game lain. Tambahkan skill dan bandingkan dengan tingkat kesulitan. | |
 | `mechanic.essence20.about` | Renegade Game Studios' system for Power Rangers, Transformers and G.I. Joe. Roll a d20 and a second die set by your skill, and beat a target number. | Sistem Renegade Game Studios untuk Power Rangers, Transformers, dan G.I. Joe. Lempar d20 dan satu dadu kedua sesuai skill-mu, lalu lampaui angka target. | |
+
+## Publish first: new and changed Indonesian (2026-11-05, ADR-48)
+
+The agent's wording; the "Indonesian now" column is what the site shows. The earlier section "Review changes and mail" (2026-11-05, drafts) was dropped with that feature, except the mail rows, which still apply.
+
+| Key | Indonesian now | Your correction |
+|---|---|---|
+| `gm.lead` | Para Game Master di sini mendaftarkan sendiri game mereka; admin turun tangan kalau ada laporan. | |
+| `how.g3` | Listing-mu langsung tampil begitu kamu simpan. Admin baru memeriksanya kalau dilaporkan atau kata-katanya tampak seperti spam; kamu akan mendapat email. | |
+| `how.g4` | Listing tampil di sini dalam semenit. Untuk mengubahnya, masuk lalu ubah: perubahan langsung tampil. Kamu juga bisa menandai game penuh atau menghapusnya sendiri. | |
+| `post.step3Title` / `post.step3Body` | 3. Langsung tampil / Game-mu tampil di situs dalam semenit. Admin hanya turun tangan kalau sebuah listing dilaporkan atau tampak seperti spam, dan memberi tahu lewat email. | |
+| `post.changeBody` | Masuk lalu ubah. Perubahan langsung tampil. Kamu juga bisa menandai game penuh atau menghapusnya sendiri. | |
+| `post.public2` | Discord dan Instagram-mu kalau kamu isi, serta nomor WhatsApp-mu: nomornya hanya muncul untuk orang yang mengetuk tombol WhatsApp, tidak pernah dicantumkan di halaman. | |
+| `acct.status.pending` / `approved` / `rejected` | Ditahan untuk diperiksa / Tampil / Disembunyikan admin | |
+| `acct.reviewNote` | Yang kamu simpan langsung tampil. Admin hanya memeriksa listing yang dilaporkan atau yang kata-katanya tampak seperti spam. | |
+| `acct.saved` / `acct.savedHeld` | Tersimpan. Sudah tampil di situs. / Tersimpan. Kata-katanya perlu diperiksa sebentar oleh admin sebelum tampil. | |
+| `acct.f.consentProfile` | Saya setuju nama tampilan, bio, kota, dan foto saya (serta Discord dan Instagram, bila saya isi) ditampilkan publik di Quest Board, dan nomor WhatsApp saya ditampilkan kepada siapa pun yang mengetuk tombol WhatsApp di halaman saya. | |
+| `game.contactFailed` / `game.contactBusy` | Nomor belum bisa diambil sekarang. Coba lagi sebentar lagi. / Sambungan ini sudah meminta banyak nomor. Coba lagi satu jam lagi. | |
+| `game.reportBody` / `game.reportLabel` | Ceritakan apa yang salah (boleh dikosongkan). Jika tiga orang berbeda melaporkan sebuah iklan, iklan itu disembunyikan sampai admin memeriksanya. / Apa yang salah? | |
+| `game.reportSend` / `game.reportCancel` / `game.reportThanks` / `game.reportFailed` | Kirim laporan / Batal / Terima kasih. Kami akan memeriksanya. / Laporan belum terkirim. Coba lagi sebentar lagi. | |
+| `view.loading` / `view.notFoundTitle` / `view.notFoundBody` | Memuat… / Iklan itu tidak ditemukan / Mungkin sudah selesai atau diturunkan, atau alamatnya salah. | |
+| `admin.status.*` | Ditahan / Tampil / Disembunyikan | |
+| `admin.approve` / `admin.reject` / `admin.toPending` / `admin.rejectTitle` / `admin.rejectConfirm` | Tampilkan / Sembunyikan… / Kembali ke ditahan / Mengapa disembunyikan? / Sembunyikan | |
+| `admin.toast.approved` / `rejected` / `pending` / `bulk` | "{title}" ditampilkan. / "{title}" disembunyikan. / "{title}" dikembalikan ke ditahan. / {n} item ditampilkan. | |
+| `admin.reports` | Dilaporkan {n} pengunjung berbeda dalam dua minggu terakhir. | |
+| `admin.publish.pending` | Salinan statis situs (yang dibaca mesin pencari) menunggu pembaruan berikutnya. Pengunjung sudah melihat perubahannya. | |
+| email: listing live (Indonesian half) | "sudah diperiksa dan tampil di Quest Board." / "perubahan langsung tampil." | |
+| email: hidden (Indonesian half, subject "Disembunyikan: …") | "disembunyikan oleh admin." / "admin akan memeriksanya lagi." | |
