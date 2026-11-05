@@ -112,15 +112,17 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
   async function decide(kind: "game" | "gm", ids: string[], body: Record<string, unknown>, seen?: Record<string, unknown>) {
     let publishing = false;
     let mailFailed = 0;
+    let hidden = 0;
     const stale: string[] = [];
     for (let i = 0; i < ids.length; i += REVIEW_MAX_IDS) {
       const part = ids.slice(i, i + REVIEW_MAX_IDS);
-      const r = await call<{ publishing: boolean; stale?: string[]; mailFailed?: string[] }>("review", { ...body, kind, ids: part, ...(seen ? { seen: Object.fromEntries(part.map((id) => [id, seen[id]])) } : {}) });
+      const r = await call<{ publishing: boolean; stale?: string[]; mailFailed?: string[]; hidden?: string[] }>("review", { ...body, kind, ids: part, ...(seen ? { seen: Object.fromEntries(part.map((id) => [id, seen[id]])) } : {}) });
       publishing = publishing || r.publishing;
       stale.push(...(r.stale ?? []));
       mailFailed += (r.mailFailed ?? []).length;
+      hidden += (r.hidden ?? []).length;
     }
-    return { publishing, stale, mailFailed };
+    return { publishing, stale, mailFailed, hidden };
   }
 
   async function review(list: Item[], status: Status, opts: { reason?: string; notify: boolean }) {
@@ -143,7 +145,7 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
       }
       const title = titleOf(list[0]) || t("admin.unnamed");
       const done = list.length > 1 ? t("admin.toast.bulk", { n: list.length }) : t(`admin.toast.${status}` as MsgKey, { title });
-      const text = r.mailFailed > 0 ? `${done} ${t("admin.toast.mailFailed", { n: r.mailFailed })}` : done;
+      const text = [done, r.hidden > 0 ? t("admin.toast.hiddenUntilGm", { n: r.hidden }) : "", r.mailFailed > 0 ? t("admin.toast.mailFailed", { n: r.mailFailed }) : ""].filter(Boolean).join(" ");
       say(text, async () => {
         for (const b of before) patchLocal(kind, [b.id], { status: b.status, reviewedBy: b.reviewedBy, reviewedAt: b.reviewedAt, rejectReason: b.rejectReason });
         try {

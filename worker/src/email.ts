@@ -99,10 +99,21 @@ export function loginMail(to: string, link: string, minutes: number): Mail {
 }
 
 /** What a GM gets when an admin approves or rejects a profile or a game. */
-export function decisionMail(to: string, status: "approved" | "rejected", kind: "game" | "gm", title: string, slug: string, reason: string, siteUrl: string): Mail {
+export function decisionMail(to: string, status: "approved" | "rejected", kind: "game" | "gm", title: string, slug: string, reason: string, siteUrl: string, waitingForGm = false): Mail {
   const link = (lang: string) => (siteUrl ? `\n${siteUrl.replace(/\/$/, "")}/${lang}/${kind === "game" ? "games" : "gm"}/${slug}/` : "");
   const edit = siteUrl ? `${siteUrl.replace(/\/$/, "")}/en/account/` : "";
   const t = clip(title, 120);
+  if (status === "approved" && waitingForGm) {
+    // The game is approved, but the site lists a game only with an approved Game Master profile: say so, do not promise it is on the board.
+    return {
+      to,
+      kind: "decision",
+      subject: `Approved, waiting for your profile: ${t} / Disetujui, menunggu profilmu: ${t}`,
+      body:
+        `Hi,\n\n“${t}” was approved, but it will appear on the Quest Board only once your Game Master profile is approved too.\n\nYou can check the state of both at ${edit}.\n\n${SIGN}\n\n* * *\n\n` +
+        `Halo,\n\n“${t}” sudah disetujui, tetapi baru tampil di Quest Board setelah profil Game Master-mu juga disetujui.\n\nKamu bisa melihat keadaan keduanya di ${edit}.\n\n${SIGN}`,
+    };
+  }
   if (status === "approved") {
     return {
       to,

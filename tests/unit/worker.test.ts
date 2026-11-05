@@ -170,11 +170,53 @@ test("editing a decided game sends it back to review; the same content again cha
 
   const same = await w.call("PUT", `/games/${id}`, { cookie: gm, body: GAME });
   assert.deepEqual([same.json.changed, same.json.status], [false, "approved"]);
-  const changed = await w.call("PUT", `/games/${id}`, { cookie: gm, body: { ...GAME, seats: 6 } });
+  const changed = await w.call("PUT", `/games/${id}`, { cookie: gm, body: { ...GAME, title: "A different title" } });
   assert.deepEqual([changed.json.changed, changed.json.status], [true, "pending"]);
   const other = await w.signIn("other@example.com");
   await w.call("PUT", "/profile", { cookie: other, body: { ...PROFILE, whatsapp: "0811-1111-1111" } });
   assert.equal((await w.call("PUT", `/games/${id}`, { cookie: other, body: GAME })).status, 404, "nobody edits another GM's game");
+});
+
+test("seats, price and date of a live game can change without a new review; words and pictures cannot", async () => {
+  const w = makeWorld();
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  const id = (await w.call("POST", "/games", { cookie: gm, body: GAME })).json.id as string;
+  const profileId = (await w.call("GET", "/me", { cookie: gm })).json.profile.id as string;
+  const admin = await w.signIn(OWNER);
+  await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "gm", ids: [profileId], status: "approved" } });
+  await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "game", ids: [id], status: "approved" } });
+
+  const practical = await w.call("PUT", `/games/${id}`, { cookie: gm, body: { ...GAME, seats: 6, priceIdr: 120000, scheduleNote: "moved to the second Saturday" } });
+  assert.deepEqual([practical.json.changed, practical.json.status], [true, "approved"], "still approved");
+  const pub = (await w.call("GET", "/public", { build: true })).json;
+  const live = pub.games.find((g: any) => g.id === id);
+  assert.ok(live, "and still on the site");
+  assert.deepEqual([live.seats, live.priceIdr], [6, 120000], "with the new details");
+  assert.ok((await w.call("GET", "/health", { build: true })).json.deploy.pending, "the site is told to rebuild");
+
+  const words = await w.call("PUT", `/games/${id}`, { cookie: gm, body: { ...GAME, seats: 6, priceIdr: 120000, scheduleNote: "moved to the second Saturday", summary: "A new pitch that needs a reader." } });
+  assert.equal(words.json.status, "pending", "a change of words goes back to review");
+});
+
+test("approving a game whose Game Master is still pending is flagged, and the email does not promise a listing", async () => {
+  const w = makeWorld();
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  const id = (await w.call("POST", "/games", { cookie: gm, body: GAME })).json.id as string;
+  const profileId = (await w.call("GET", "/me", { cookie: gm })).json.profile.id as string;
+  const admin = await w.signIn(OWNER);
+  const first = await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "game", ids: [id], status: "approved", notify: true } });
+  assert.deepEqual(first.json.hidden, [id], "the admin is told it stays off the site");
+  assert.equal(first.json.publishing, false, "nothing public changed, so no rebuild");
+  const mail = w.mails.find((m) => /^Approved/.test(m.subject))!;
+  assert.match(mail.subject, /waiting for your profile/);
+  assert.match(mail.body, /only once your Game Master profile is approved/);
+  assert.ok(!/will appear on the Quest Board within a few minutes/.test(mail.body));
+
+  await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "gm", ids: [profileId], status: "approved" } });
+  const second = await w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind: "game", ids: [id], status: "approved" } });
+  assert.deepEqual(second.json.hidden, [], "nothing hidden when the profile is approved");
 });
 
 test("a GM marks their own game full without a review, and removes it; the address keeps a notice", async () => {

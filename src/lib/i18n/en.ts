@@ -399,6 +399,7 @@ export const en = {
   "admin.toast.bulk": "Approved {n} items.",
   "admin.toast.error": "That did not work ({error}).",
   "admin.toast.stale": "Not applied: the Game Master changed it after you opened it. The list was refreshed; look at the new version.",
+  "admin.toast.hiddenUntilGm": "{n} approved game(s) stay off the site until their Game Master profile is approved too.",
   "admin.toast.mailFailed": "Saved, but {n} decision email(s) could not be sent: tell them yourself.",
   "admin.undo": "Undo",
   "admin.publish.title": "Site",

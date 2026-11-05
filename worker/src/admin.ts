@@ -60,7 +60,7 @@ async function load(ctx: Ctx, kind: Kind, id: string): Promise<{ row: (GameRow |
 async function loadMany(ctx: Ctx, kind: Kind, ids: string[]): Promise<Map<string, { row: (GameRow | ProfileRow) & { email: string }; title: string; slug: string }>> {
   const marks = ids.map(() => "?").join(", ");
   const rows = kind === "game"
-    ? await many<GameRow & { email: string }>(ctx.db, `SELECT g.*, a.email FROM games g JOIN profiles p ON p.id = g.profile_id JOIN accounts a ON a.id = p.account_id WHERE g.id IN (${marks}) AND g.removed = 0`, ...ids)
+    ? await many<GameRow & { email: string; gm_status: string }>(ctx.db, `SELECT g.*, a.email, p.status AS gm_status FROM games g JOIN profiles p ON p.id = g.profile_id JOIN accounts a ON a.id = p.account_id WHERE g.id IN (${marks}) AND g.removed = 0`, ...ids)
     : await many<ProfileRow & { email: string }>(ctx.db, `SELECT p.*, a.email FROM profiles p JOIN accounts a ON a.id = p.account_id WHERE p.id IN (${marks})`, ...ids);
   return new Map(rows.map((row) => [row.id, { row, title: kind === "game" ? (row as GameRow).title : (row as ProfileRow).name, slug: row.slug }]));
 }
@@ -81,9 +81,10 @@ export async function review(ctx: Ctx, admin: string, req: Record<string, unknow
   const seen = req.seen && typeof req.seen === "object" && !Array.isArray(req.seen) ? (req.seen as Record<string, unknown>) : null;
   const records = await loadMany(ctx, kind, ids);
   const writes: Stmt[] = [];
-  const mails: { id: string; to: string; title: string; slug: string }[] = [];
+  const mails: { id: string; to: string; title: string; slug: string; waitingForGm: boolean }[] = [];
   const done: string[] = [];
   const stale: string[] = [];
+  const hidden: string[] = []; // approved games whose Game Master profile is not approved: the site shows none of them yet
   let dirty = false;
   const at = iso(ctx.now());
   for (const id of ids) {
@@ -96,22 +97,25 @@ export async function review(ctx: Ctx, admin: string, req: Record<string, unknow
     writes.push(ctx.db.prepare(`UPDATE ${table} SET status = ?, reviewed_by = ?, reviewed_at = ?, reject_reason = ?, was_live = CASE WHEN ? = 'approved' THEN 1 ELSE was_live END, gone_at = CASE WHEN ? = 'approved' THEN '' WHEN ? = 1 THEN ? ELSE gone_at END WHERE id = ?`)
       .bind(status, admin, at, reason, status, status, wasApproved ? 1 : 0, at, id));
     writes.push(eventStmt(ctx.db, ctx.now(), "decision", kind, id, rec.title, `${before} → ${status}${reason ? `: ${reason}` : ""}`, admin));
-    if (before !== status && (wasApproved || status === "approved")) dirty = true;
-    if (req.notify === true && before !== status && (status === "approved" || status === "rejected")) mails.push({ id, to: rec.row.email, title: rec.title, slug: rec.slug });
+    // The site lists a game only while its Game Master's profile is approved too, so approving a game of a pending profile changes nothing public yet.
+    const waitingForGm = kind === "game" && status === "approved" && (rec.row as { gm_status?: string }).gm_status !== "approved";
+    if (waitingForGm) hidden.push(id);
+    if (before !== status && (wasApproved || (status === "approved" && !waitingForGm))) dirty = true;
+    if (req.notify === true && before !== status && (status === "approved" || status === "rejected")) mails.push({ id, to: rec.row.email, title: rec.title, slug: rec.slug, waitingForGm });
     done.push(id);
   }
   if (writes.length) await ctx.db.batch(writes);
   const mailFailed: string[] = [];
   for (const m of mails) {
     try {
-      await ctx.mailer.send(decisionMail(m.to, status as "approved" | "rejected", kind, m.title, m.slug, reason, ctx.siteUrl));
+      await ctx.mailer.send(decisionMail(m.to, status as "approved" | "rejected", kind, m.title, m.slug, reason, ctx.siteUrl, m.waitingForGm));
     } catch {
       mailFailed.push(m.id);
       await logEvent(ctx.db, ctx.now(), "mail failed", kind, m.id, m.title, "the decision email could not be sent", admin).catch(() => undefined);
     }
   }
   if (dirty) await markDirty(ctx);
-  return { ok: true as const, updated: done, stale, publishing: dirty, mailFailed };
+  return { ok: true as const, updated: done, stale, publishing: dirty, mailFailed, hidden };
 }
 
 export async function patch(ctx: Ctx, admin: string, req: Record<string, unknown>) {

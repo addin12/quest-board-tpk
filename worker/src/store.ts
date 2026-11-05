@@ -111,6 +111,12 @@ export const MAX_GAMES_PER_PROFILE = 30;
 
 export type SaveGameResult = { ok: true; id: string; status: GameRow["status"]; changed: boolean; dropped: string[] } | { ok: false; error: "no_profile" | "not_found" | "too_many" };
 
+/**
+ * The columns of a game a GM may change without a new review: when it is, what it costs, how many seats, and the line about the schedule. They
+ * are details of the same game, not something to moderate; every other field (words, picture, place, rating) goes back to review.
+ */
+const PRACTICAL_COLUMNS = ["starts_at", "schedule_note", "expires_at", "price_idr", "seats"];
+
 /** Creates a game for the signed-in GM (`gameId` null) or changes one of theirs. Same "back to pending" rule as the profile. */
 export async function saveGame(ctx: Ctx, s: Session, gameId: string | null, input: GameInput): Promise<SaveGameResult> {
   const p = await profileOf(ctx, s.accountId);
@@ -131,12 +137,21 @@ export async function saveGame(ctx: Ctx, s: Session, gameId: string | null, inpu
   const g = await one<GameRow>(ctx.db, "SELECT rowid, * FROM games WHERE id = ? AND profile_id = ? AND removed = 0", gameId, p.id);
   if (!g) return { ok: false, error: "not_found" };
   const before = gameRecord(g, s.email);
-  const unchanged = before.title === input.title && before.system === input.system && before.summary === input.summary && before.description === input.description && before.format === input.format &&
+  // What an admin reads and judges (words, pictures, place, rating) versus the practical details a GM keeps current (see PRACTICAL_COLUMNS).
+  const sameContent = before.title === input.title && before.system === input.system && before.summary === input.summary && before.description === input.description && before.format === input.format &&
     before.locationType === input.locationType && before.platform === input.platform && before.city === input.city && before.venueName === input.venueName && before.venueMapsRaw === input.venueMapsRaw &&
-    before.startsAt === input.startsAt && before.zone === input.zone && before.scheduleNote === input.scheduleNote && before.expiresAt === input.expiresAt && before.priceIdr === input.priceIdr &&
-    before.seats === input.seats && before.language === input.language && before.level === input.level && before.minAge === input.minAge && before.contentWarnings === input.contentWarnings &&
+    before.zone === input.zone && before.language === input.language && before.level === input.level && before.minAge === input.minAge && before.contentWarnings === input.contentWarnings &&
     before.safetyTools === input.safetyTools && same(before.genres, input.genres) && same(before.styles, input.styles) && same(before.mechanics, input.mechanics) && before.coverId === input.coverKey;
-  if (unchanged) return { ok: true, id: g.id, status: g.status, changed: false, dropped: [] };
+  const samePractical = before.startsAt === input.startsAt && before.scheduleNote === input.scheduleNote && before.expiresAt === input.expiresAt && before.priceIdr === input.priceIdr && before.seats === input.seats;
+  if (sameContent && samePractical) return { ok: true, id: g.id, status: g.status, changed: false, dropped: [] };
+  if (sameContent && g.status === "approved") {
+    // Only the practical details changed on a listing that is live: nothing for an admin to judge, so it stays approved and goes out with the next build.
+    const set = PRACTICAL_COLUMNS.map((c) => `${c} = ?`).join(", ");
+    await exec(ctx.db, `UPDATE games SET ${set}, updated_at = ? WHERE id = ?`, input.startsAt, input.scheduleNote, input.expiresAt, input.priceIdr, input.seats, now, g.id);
+    await logEvent(ctx.db, ctx.now(), "changed", "game", g.id, g.title, "the GM updated date, price or seats; still approved", s.email);
+    await markDirty(ctx);
+    return { ok: true, id: g.id, status: "approved", changed: true, dropped: [] };
+  }
   await exec(ctx.db, `UPDATE games SET ${cols.split(", ").map((c) => `${c} = ?`).join(", ")}, consent = 1, status = 'pending', reject_reason = '', updated_at = ? WHERE id = ?`, ...values, now, g.id);
   await logEvent(ctx.db, ctx.now(), "edited", "game", g.id, input.title, `${g.status} → pending: the GM changed it`, s.email);
   if (g.status === "approved") await markDirty(ctx);

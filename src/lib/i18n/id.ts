@@ -400,6 +400,7 @@ export const id: Record<MsgKey, string> = {
   "admin.toast.bulk": "{n} item disetujui.",
   "admin.toast.error": "Gagal ({error}).",
   "admin.toast.stale": "Tidak diterapkan: Game Master mengubahnya setelah kamu membukanya. Daftar sudah disegarkan; lihat versi barunya.",
+  "admin.toast.hiddenUntilGm": "{n} game yang disetujui belum tampil di situs sampai profil Game Master-nya juga disetujui.",
   "admin.toast.mailFailed": "Tersimpan, tetapi {n} email keputusan gagal terkirim: kabari mereka langsung.",
   "admin.undo": "Urungkan",
   "admin.publish.title": "Situs",
