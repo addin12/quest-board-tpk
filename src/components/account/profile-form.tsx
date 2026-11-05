@@ -25,11 +25,12 @@ export function ProfileForm({ profile, onSaved, onCancel }: { profile: GmRecord 
     e.preventDefault();
     setBusy(true);
     setProblem("");
-    const r = await call<{ changed: boolean }>("PUT", "/profile", v);
+    const r = await call<{ changed: boolean; status?: string }>("PUT", "/profile", v);
     setBusy(false);
     if (r.ok) {
       setErrors({});
-      onSaved(t(r.data.changed ? "acct.saved" : "acct.savedSame"));
+      onSaved(t(!r.data.changed ? "acct.savedSame" : r.data.status === "approved" ? "acct.savedLive" : "acct.saved")); // approved: the waiting change was withdrawn
+
     } else if (r.status === 422 && r.fields) {
       setErrors(r.fields);
       setProblem(t("acct.err.fix"));

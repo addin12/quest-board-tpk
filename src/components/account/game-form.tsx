@@ -53,11 +53,12 @@ export function GameForm({ game, onSaved, onCancel }: { game: GameRecord | null;
     setBusy(true);
     setProblem("");
     const body = { ...v, system: v.system === OTHER_SYSTEM ? OTHER_SYSTEM : v.system, priceIdr: v.priceIdr.trim(), seats: v.seats.trim(), minAge: v.minAge.trim(), keepUntil: v.keepUntil };
-    const r = game ? await call<{ changed: boolean }>("PUT", `/games/${game.id}`, body) : await call<{ changed: boolean }>("POST", "/games", body);
+    const r = game ? await call<{ changed: boolean; status?: string }>("PUT", `/games/${game.id}`, body) : await call<{ changed: boolean; status?: string }>("POST", "/games", body);
     setBusy(false);
     if (r.ok) {
       setErrors({});
-      onSaved(t(r.data.changed ? "acct.saved" : "acct.savedSame"));
+      // A change to the date, price or seats of a live game needs no review: it stays approved and goes to the site by itself.
+      onSaved(t(!r.data.changed ? "acct.savedSame" : r.data.status === "approved" ? "acct.savedLive" : "acct.saved"));
     } else if (r.status === 422 && r.fields) {
       setErrors(r.fields);
       setProblem(t("acct.err.fix"));

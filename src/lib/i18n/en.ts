@@ -601,6 +601,7 @@ export const en = {
   "acct.err.server": "Something went wrong on our side. Try again in a minute.",
   "acct.saved": "Saved. An admin will review it before it shows on the site.",
   "acct.savedSame": "Nothing changed.",
+  "acct.savedLive": "Saved. It stays approved: no review is needed.",
   "acct.savedFull": "Saved.",
   "acct.eraseTitle": "Erase my account",
   "acct.eraseBody": "This deletes your profile, all your games, your pictures and your email address from Quest Board. It cannot be undone.",

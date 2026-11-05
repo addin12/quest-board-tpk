@@ -137,7 +137,7 @@ test("what the server refuses is shown next to the field", async ({ page }) => {
   expect(await world.sql("SELECT COUNT(*) AS n FROM games")).toEqual([{ n: 0 }]);
 });
 
-test("editing an approved game sends it back to review; saving the same thing again changes nothing", async ({ page }) => {
+test("editing an approved game: seats stay approved, words wait as a draft beside the live version; saving the same thing again changes nothing", async ({ page }) => {
   const world = await newWorld(page, { seed: true });
   await world.signInAs("raka@example.com");
   await page.goto("/en/account/");
@@ -153,9 +153,18 @@ test("editing an approved game sends it back to review; saving the same thing ag
   await page.getByTestId("my-game").filter({ hasText: "Panen Harapan" }).getByRole("button", { name: "Edit" }).click();
   await page.getByTestId("game-form").getByLabel("Seats", { exact: true }).fill("6");
   await page.getByTestId("game-form").getByRole("button", { name: "Save game" }).click();
+  await expect(page.getByTestId("message")).toContainText("It stays approved");
+  await expect(page.getByTestId("my-game").filter({ hasText: "Panen Harapan" }).getByTestId("status")).toHaveText("Approved");
+  expect((await world.sql(COLUMN("Panen Harapan")))[0]).toMatchObject({ seats: 6, status: "approved" });
+
+  await page.getByTestId("my-game").filter({ hasText: "Panen Harapan" }).getByRole("button", { name: "Edit" }).click();
+  await page.getByTestId("game-form").getByLabel("Short description", { exact: false }).first().fill("A changed pitch that needs a reader.");
+  await page.getByTestId("game-form").getByRole("button", { name: "Save game" }).click();
   await expect(page.getByTestId("message")).toContainText("An admin will review it");
-  await expect(page.getByTestId("my-game").filter({ hasText: "Panen Harapan" }).getByTestId("status")).toHaveText("Waiting for review");
-  expect((await world.sql(COLUMN("Panen Harapan")))[0].seats).toBe(6);
+  const row = page.getByTestId("my-game").filter({ hasText: "Panen Harapan" });
+  await expect(row.getByTestId("status")).toHaveText("Waiting for review");
+  await expect(row.getByText("Your earlier approved version stays on the site")).toBeVisible();
+  expect((await world.sql(COLUMN("Panen Harapan")))[0]).toMatchObject({ status: "approved", draft_state: "pending" });
 });
 
 test("a GM marks a game full without a review, reopens it, and removes another with a confirmation", async ({ page }) => {
