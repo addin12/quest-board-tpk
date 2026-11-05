@@ -55,7 +55,7 @@ stateDiagram-v2
   approved --> [*]: the date passes, or the GM removes it
 ```
 
-Only `approved` games of an `approved` GM, not expired, are public (`/api/live`, and `/api/public` for the build). The words are kept from before publish-first:
+Only `approved` games of an `approved` GM, not expired, are public (`/api/live`, and `/api/public` for the build). Every page that lists games (home, games, the four all-of-them pages, Game Master pages and list) starts from the build's data and then follows `/api/live` (ADR-50). The words are kept from before publish-first:
 `approved` is shown as **Live**, `pending` as **Held** and `rejected` as **Hidden** (ADR-48).
 
 ## A listing going live, step by step

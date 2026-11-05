@@ -232,3 +232,12 @@ The agent's wording; `{n}` and `{date}` are filled in by the site; `a|b` is sing
 | `tip.description` | Tulis 2 sampai 4 paragraf pendek, seperti sampul belakang buku: apa yang akan dilakukan karakter, bukan seluruh lore. | |
 | `tip.cover` / `tip.characters` / `tip.needs` | Tambahkan gambar sampul: game dengan gambar lebih menonjol di daftar. / Sebutkan apakah pemain mendapat karakter siap pakai: ini membantu pemula bergabung. / Centang yang dibutuhkan pemain untuk game online (mikrofon, kamera, Discord…). | |
 | `tip.schedule` / `tip.genres` | Untuk kampanye, sebutkan hari apa dan seberapa sering kalian bermain. / Pilih genre agar pemain yang menjelajah berdasarkan genre menemukannya. | |
+
+## Add to calendar and share (added 2026-11-05, ADR-50)
+
+| Key | Indonesian now | Your correction |
+|---|---|---|
+| `game.addCalendar` | Tambahkan ke kalender | |
+| `game.shareWhatsApp` | Bagikan di WhatsApp | |
+| `game.copyLink` | Salin tautan | |
+| `game.shareText` | {title}, {when}. Lihat di Quest Board: {url} | |
