@@ -58,7 +58,7 @@ database, bucket, mailbox and clock).
 
 ## Request budget (ADR-46)
 
-Cloudflare's free plan allows 50 database queries per request ([limits](https://developers.cloudflare.com/d1/platform/limits)). A review call decides at most `REVIEW_MAX_IDS` (8) records: one read, one `db.batch` of every change and its log row, then the emails (the admin page sends longer selections in turns). Erasing an account is three reads and one batch, however many games the person had. `tests/unit/worker.test.ts` counts the statements of those calls (each statement of a batch counted on its own, the worst case) and fails above 50. The daily job erases at most 2 accounts and warns at most 8 per run for the same reason.
+Cloudflare's free plan allows 50 database queries per request ([limits](https://developers.cloudflare.com/d1/platform/limits)). A review call decides at most `REVIEW_MAX_IDS` (5) records: one read, one `db.batch` of every change and its log row, then the emails (the admin page sends longer selections in turns). Erasing an account is three reads and one batch, however many games the person had. `tests/unit/worker.test.ts` counts the statements of those calls (each statement of a batch counted on its own, the worst case) and fails above 50. The daily job erases at most 2 accounts and warns at most 8 per run for the same reason.
 
 ## Not proven
 

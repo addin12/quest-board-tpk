@@ -32,6 +32,7 @@ If a step fails, do the same by hand: create the D1 database and the R2 bucket i
 | `BUILD_KEY` | encrypted | the `buildKey` in `.cloudflare.local.json` |
 | `DEPLOY_HOOK` | encrypted | a deploy hook the script makes (named `backend`) |
 | `MAIL_RELAY_URL`, `MAIL_SECRET` | encrypted | the Apps Script web app address (already on the project) and the secret from step 3 |
+| `MAIL_REPLY_TO` | plain, optional | a mailbox people read: replies to sign-in and decision mails go there instead of to the sending Gmail (`mailReplyTo` in `.cloudflare.local.json`) |
 | `TPK_API_BASE` | plain, used by the build | the site's address |
 | `TPK_BUILD_KEY` | encrypted, used by the build | the same `buildKey` |
 | `TURNSTILE_SECRET`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | encrypted, plain | optional, see step 4 |

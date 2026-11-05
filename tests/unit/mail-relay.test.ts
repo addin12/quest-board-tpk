@@ -31,12 +31,23 @@ const ok = { action: "mail", secret: SECRET, to: "Raka@Example.com", subject: "H
 test("the mail relay: off until it has a secret, and only for the right secret, one plain address and a message", () => {
   const { ctx } = load();
   const send = (req: object, secret = SECRET, sent = 0) => plain<any>(ctx.mailRequest_(req, secret, sent));
-  assert.deepEqual(send(ok), { to: "raka@example.com", subject: "Hi there", body: "Link: https://x.example" });
+  assert.deepEqual(send(ok), { to: "raka@example.com", subject: "Hi there", body: "Link: https://x.example", replyTo: "" });
+  assert.equal(send({ ...ok, replyTo: "Help@Example.com" }).replyTo, "help@example.com", "a well-formed Reply-To is kept");
+  assert.equal(send({ ...ok, replyTo: "not an address, x@y.zz" }).replyTo, "", "anything else is ignored and the mail still goes");
   assert.equal(send(ok, "__MAIL_SECRET__").error, "mail_not_configured", "the placeholder keeps the relay off");
   assert.equal(send({ ...ok, secret: "wrong" }).error, "unauthorized");
   assert.equal(send({ ...ok, to: "a@example.com,b@example.com" }).error, "bad_request", "one recipient only");
   assert.equal(send({ ...ok, body: "" }).error, "bad_request");
   assert.equal(send(ok, SECRET, 90).error, "quota");
+});
+
+test("doPost passes a Reply-To to the mail, and does not invent one", () => {
+  const w = load();
+  w.post({ ...ok, replyTo: "help@example.com" });
+  assert.equal(plain<any>(w.sent[0]).replyTo, "help@example.com");
+  const v = load();
+  v.post(ok);
+  assert.equal("replyTo" in plain<any>(v.sent[0]), false);
 });
 
 test("doPost sends the mail, counts it for the day, and stops at the limit", () => {

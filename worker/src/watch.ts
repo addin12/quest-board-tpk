@@ -1,14 +1,9 @@
 // Tells the owner when the system has gone quiet. Nothing here can fix anything; it only makes a failure visible by email and in
 // /api/health. If the mail relay itself is the thing that broke, the email cannot be sent: the failure is still in /api/health.
 import { listAdmins, type Ctx } from "./auth.ts";
-import { reviewNoticeMail } from "./email.ts";
-import { DAY_MS, allow, iso, metaGet, metaSet } from "./util.ts";
-
-/**
- * Review notice emails a day across everyone. A notice goes to the owner and to every admin, so this counts mails, not notices (ADR-44 counted
- * notices, which with four admins was five times the budget). They share the relay's 90 mails a day with sign-ins (60 at most) and decisions.
- */
-export const NOTICE_MAILS_PER_DAY = 20;
+import { many, one } from "./db.ts";
+import { reviewDigestMail } from "./email.ts";
+import { DAY_MS, iso, metaGet, metaSet } from "./util.ts";
 
 /** The daily job should leave a backup every 24 hours; this much silence means the timer or the backup is broken. */
 export const BACKUP_STALE_MS = 36 * 3_600_000;
@@ -16,27 +11,51 @@ export const BACKUP_STALE_MS = 36 * 3_600_000;
 /** Emails the owner, best effort: a failed alert must never break the job that raised it. */
 export async function tellOwner(ctx: Ctx, subject: string, body: string): Promise<void> {
   try {
-    await ctx.mailer.send({ to: ctx.owner, subject, body });
+    await ctx.mailer.send({ to: ctx.owner, subject, body, kind: "system" });
   } catch {
     // already recorded by the recording mailer
   }
 }
 
+/** At most one review digest in this long: a stream of submissions is a few mails a day, never one each. */
+export const DIGEST_GAP_MS = 3 * 3_600_000;
+/** A digest waits until the newest submission is this old, so a Game Master saving a profile and four games is one message. */
+export const DIGEST_SETTLE_MS = 10 * 60_000;
+/** Something that has waited this long is mentioned again (at most once a day) even when nothing new has arrived. */
+export const NAG_AFTER_MS = 3 * DAY_MS;
+
 /**
- * Emails the owner and the admins that a submission is waiting, so a Game Master is not left waiting for someone to open the admin page.
- * At most one notice an hour per account (a GM saving many times is one notice), and NOTICE_MAILS_PER_DAY mails in all (the owner first). Best
- * effort: a failure here never touches the save that raised it.
+ * Emails the owner and the admins that submissions are waiting, as one digest: how many, the titles of the new ones, and a reminder when something
+ * has waited three days. Called by the one-minute tick; a cheap check unless a digest is due. The note that it was sent is made first, so a relay
+ * that is down is not tried every minute (and does not use up the share of notice mails); the reminder after three days covers a lost digest.
+ * Best effort: nothing here can fail the tick.
  */
-export async function notifyReviewers(ctx: Ctx, accountId: string, kind: "game" | "gm", title: string): Promise<void> {
+export async function digestReviewers(ctx: Ctx): Promise<void> {
   try {
-    if (!(await allow(ctx.db, `notice:acct:${accountId}`, 1, 3_600_000, ctx.now()))) return;
+    const now = ctx.now();
+    const last = await metaGet(ctx.db, "digest_at");
+    if (last && now - Date.parse(last) < DIGEST_GAP_MS) return;
+    const since = last ?? "";
+    const fresh = await many<{ title: string; updated_at: string }>(
+      ctx.db,
+      "SELECT name AS title, updated_at FROM profiles WHERE status = 'pending' AND updated_at > ? UNION ALL SELECT title, updated_at FROM games WHERE status = 'pending' AND removed = 0 AND updated_at > ? ORDER BY updated_at",
+      since, since,
+    );
+    const newest = fresh.length ? Date.parse(fresh[fresh.length - 1]!.updated_at) : 0;
+    const settled = fresh.length > 0 && now - newest >= DIGEST_SETTLE_MS;
+    const old = await one<{ games: number; gms: number; oldest: string | null }>(
+      ctx.db,
+      "SELECT (SELECT COUNT(*) FROM games WHERE status = 'pending' AND removed = 0) AS games, (SELECT COUNT(*) FROM profiles WHERE status = 'pending') AS gms, (SELECT MIN(m) FROM (SELECT MIN(updated_at) AS m FROM games WHERE status = 'pending' AND removed = 0 UNION ALL SELECT MIN(updated_at) FROM profiles WHERE status = 'pending')) AS oldest",
+    );
+    const oldestMs = old?.oldest ? Date.parse(old.oldest) : now;
+    const nag = (old?.games ?? 0) + (old?.gms ?? 0) > 0 && now - oldestMs >= NAG_AFTER_MS && (!last || now - Date.parse(last) >= DAY_MS);
+    if (!settled && !nag) return;
+    await metaSet(ctx.db, "digest_at", iso(now));
     const to = [...new Set([ctx.owner, ...(await listAdmins(ctx)).map((a) => a.email)])];
-    for (const address of to) {
-      if (!(await allow(ctx.db, "notice:mails", NOTICE_MAILS_PER_DAY, DAY_MS, ctx.now()))) return;
-      await ctx.mailer.send(reviewNoticeMail(address, kind, title, ctx.siteUrl)).catch(() => undefined);
-    }
+    const mail = (address: string) => reviewDigestMail(address, { games: old?.games ?? 0, gms: old?.gms ?? 0, oldestDays: Math.floor((now - oldestMs) / DAY_MS) }, fresh.map((f) => f.title), ctx.siteUrl);
+    for (const address of to) await ctx.mailer.send(mail(address)).catch(() => undefined); // the share of notice mails (email.ts) ends the loop's effect when used up
   } catch {
-    // never break a save
+    // never break the tick
   }
 }
 

@@ -113,9 +113,29 @@ rows). Then `npm run cloudflare:setup` again to point the project at it. A backu
 account; do not share it.
 
 ### Mail is over the limit
-Apps Script allows about 100 emails a day on a free Gmail account and the relay stops at 90. Sign-in links and decisions share that
-budget. The next day it works again. If the board outgrows it, move `worker/src/email.ts` to a sending service on a domain of the
-community's own (one file).
+Apps Script allows about 100 emails a day on a free Gmail account and the relay stops at 90. The backend splits those 90 by kind, each over a rolling
+24 hours, so one kind can never use up another's share (`MAIL_BUDGET` in `worker/src/email.ts`, ADR-47):
+
+| Kind | Mails a day | What it is |
+|---|---|---|
+| sign-in | 40 | the one-time links (counted when the link is asked for, so the visitor is told to try later) |
+| decision | 20 | approved, not approved, merge requests; one that does not go is reported to the admin ("N decision email(s) could not be sent") |
+| notice | 20 | the review digest to the owner and each admin |
+| system | 10 | backup, publishing and expiry warnings to the owner or an inactive account |
+
+`GET /api/health` shows `lastMailError`; `mail_budget_<kind>` there means that kind used its share. If the board outgrows 90 a day, move
+`worker/src/email.ts` to a sending service on a domain of the community's own (one file; see "Mail deliverability" below).
+
+### Mail deliverability: check it before the first invitation
+The mails leave through a personal Gmail. Gmail to Gmail is usually fine; other inboxes are not proven. Before inviting Game Masters, request a sign-in
+link to a test inbox at each of Gmail, Outlook and Yahoo (and one on a company domain if you have it), and write down for each: arrived in the inbox, in
+spam, or missing, and how long it took (put the result in `docs/handoff.md`). If any lands in spam: ask the owner of that inbox to mark it "not spam"
+once, and plan the move to a sending service on a domain of your own (about 10 USD a year) with SPF, DKIM and DMARC set up; the swap is `worker/src/email.ts`
+only. Until then:
+- Set a **Reply-To**: add `"mailReplyTo": "<a mailbox people read>"` to `.cloudflare.local.json`, run `npm run cloudflare:setup` (it sets `MAIL_REPLY_TO`) and
+  `npm run script:deploy` (the relay script passes it on). Without it a reply goes to the personal Gmail that sends the mail.
+- A burst of bounces or spam reports against the personal account can get Gmail suspended, taking the owner's own mail with it: keep the daily volume low
+  and the sign-in page's "check your spam folder" hint.
 
 ### The whole site is down
 It is static files on Cloudflare: check https://www.cloudflarestatus.com first. A visitor needs nothing but the static files; only signing
@@ -133,7 +153,7 @@ in, the account pages, the admin page and builds need `/api`.
 | GitHub *Uptime* workflow (every 15 minutes at :07, :22, :37 and :52, `.github/workflows/uptime.yml`) | the home page or the backend and database stopped answering: a failed run emails the repository owner. Best effort, so an outage under about 15 minutes may pass unseen. GitHub switches a schedule off after 60 days without any repository activity: re-enable it under Actions if that ever happens |
 | An email "the site is not getting its changes" (once a day at most) and `deploy.failingSince` in `/api/health` | a change has waited half an hour or more: a build was refused, failed or never started. Read the newest deployment log; the tick keeps sending it again |
 | GitHub *Uptime* workflow, step "The site is not stale" | `/build.json` is more than 36 hours old: the publishing is stuck even though every page answers (the daily build guarantees one at least every 24 hours) |
-| A review notice by email ("To review: …", sent to the owner and each admin) | a Game Master submitted or changed something; at most one per account an hour and 20 a day in all |
+| A review digest by email ("To review: N waiting", to the owner and each admin) | submissions are waiting: sent once a burst has settled (10 minutes), at most every 3 hours, and again (once a day) when something has waited 3 days; no mail for a single save |
 | GitHub CI on every push | the code breaks something |
 | Dependabot (weekly) | outdated dependencies; its eslint major is ignored on purpose |
 

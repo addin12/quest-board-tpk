@@ -6,7 +6,7 @@ import { normalizeEmail } from "../../worker/src/email.ts";
 import { parseGame, parseProfile, normalizePhone, zonedInstant } from "../../worker/src/rules.ts";
 import { deployIfDue, MIN_GAP_MS } from "../../worker/src/deploy.ts";
 import { parsePublicData } from "../../src/lib/public-data.ts";
-import { GAME, OWNER, PROFILE, WEBP, makeWorld } from "../support/worker-env.ts";
+import { GAME, OWNER, PROFILE, WEBP, makeWorld, sqliteDb as sqliteDbForTests } from "../support/worker-env.ts";
 
 test("an email is one account however it is typed: case, Gmail dots and +tags, googlemail", () => {
   assert.equal(normalizeEmail("  Raka.Pratama+games@Gmail.com "), "rakapratama@gmail.com");
@@ -462,65 +462,129 @@ test("an account nobody signs in to is warned after two years and erased a month
   assert.equal(accountsOf(OWNER), 1, "the owner never expires");
 });
 
-test("a new or changed submission emails the owner and the admins once an hour, without the person's details", async () => {
+// ── the review digest and the budget of each kind of mail ───────────────────────────────────────────────
+
+/** Signs in `n` Game Masters, each saving a profile; returns nothing: the digest reads the database. */
+async function submit(w: ReturnType<typeof makeWorld>, from: number, n: number) {
+  for (let i = from; i < from + n; i++) {
+    const cookie = await w.signIn(`gm${i}@example.com`);
+    await w.call("PUT", "/profile", { cookie, body: { ...PROFILE, name: `Person ${i}`, whatsapp: `08123000${String(i).padStart(4, "0")}` } });
+  }
+}
+const tick = (w: ReturnType<typeof makeWorld>) => w.call("POST", "/cron?job=tick", { origin: null, build: true });
+const digestsOf = (w: ReturnType<typeof makeWorld>) => w.mails.filter((m) => /^To review:/.test(m.subject));
+
+test("a burst of submissions is one digest to the owner and the admins, sent once it has settled, without the people's details", async () => {
+  const { DIGEST_SETTLE_MS } = await import("../../worker/src/watch.ts");
   const w = makeWorld();
   const owner = await w.signIn(OWNER);
   await w.call("POST", "/admin", { cookie: owner, body: { action: "admin.add", email: "helper@example.com" } });
-  const gm = await w.signIn("raka@example.com");
-  const notices = () => w.mails.filter((m) => /^To review:/.test(m.subject));
-
-  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
-  assert.deepEqual(notices().map((m) => m.to).sort(), ["helper@example.com", OWNER].sort(), "the owner and each admin, not the GM");
-  assert.match(notices()[0]!.subject, /To review: Raka Pratama \/ Untuk ditinjau: Raka Pratama/);
-  assert.match(notices()[0]!.body, /board\.example\/en\/admin\//);
-  assert.ok(!notices().some((m) => /raka@example\.com|6281234567890|raka_gm/.test(m.subject + m.body)), "no email address, phone or handle in the notice");
-
-  const id = (await w.call("POST", "/games", { cookie: gm, body: GAME })).json.id as string;
-  assert.equal(notices().length, 2, "a second save within the hour is not a second notice");
-  w.clock.ms += 3_600_000 + 1000;
-  await w.call("PUT", `/games/${id}`, { cookie: gm, body: { ...GAME, title: "Mercusuar Dua" } });
-  assert.equal(notices().length, 4, "an hour later it is announced again");
-  await w.call("PUT", `/games/${id}`, { cookie: gm, body: { ...GAME, title: "Mercusuar Dua" } });
-  assert.equal(notices().length, 4, "saving the same thing again changes nothing, so no notice");
+  await submit(w, 0, 3);
+  assert.equal(digestsOf(w).length, 0, "no mail for a save");
+  await tick(w);
+  assert.equal(digestsOf(w).length, 0, "and none the moment a burst arrives");
+  w.clock.ms += DIGEST_SETTLE_MS + 1000;
+  await tick(w);
+  const sent = digestsOf(w);
+  assert.deepEqual(sent.map((m) => m.to).sort(), ["helper@example.com", OWNER].sort(), "the owner and each admin, not the Game Masters");
+  assert.match(sent[0]!.subject, /To review: 3 waiting \/ Untuk ditinjau: 3 menunggu/);
+  for (const name of ["Person 0", "Person 1", "Person 2"]) assert.ok(sent[0]!.body.includes(name), `${name} is listed`);
+  assert.match(sent[0]!.body, /board\.example\/en\/admin\//);
+  assert.ok(!sent.some((m) => /gm\d@example\.com|08123000|raka_gm/.test(m.subject + m.body)), "no address, phone or handle");
+  await tick(w);
+  assert.equal(digestsOf(w).length, 2, "the next tick sends nothing more");
 });
 
-test("review notices have a daily cap, and a failing mail relay never breaks a save", async () => {
-  const { NOTICE_MAILS_PER_DAY: NOTICES_PER_DAY } = await import("../../worker/src/watch.ts");
+test("digests keep their distance: new submissions wait for the gap, and something old is mentioned again after three days", async () => {
+  const { DIGEST_GAP_MS, DIGEST_SETTLE_MS, NAG_AFTER_MS } = await import("../../worker/src/watch.ts");
   const w = makeWorld();
-  const cookies: string[] = [];
-  for (let i = 0; i < NOTICES_PER_DAY + 3; i++) {
-    if (i % 10 === 9) w.clock.ms += 3_600_000; // sign-ins are limited to 20 an hour per address
-    cookies.push(await w.signIn(`gm${i}@example.com`));
-  }
-  const before = w.mails.filter((m) => /^To review:/.test(m.subject)).length;
-  for (const [i, cookie] of cookies.entries()) {
-    assert.equal((await w.call("PUT", "/profile", { cookie, body: { ...PROFILE, name: `Person ${i}`, whatsapp: `08123000${String(i).padStart(4, "0")}` } })).status, 200);
-  }
-  assert.equal(w.mails.filter((m) => /^To review:/.test(m.subject)).length - before, NOTICES_PER_DAY, "one notice each (the owner is the only reviewer), then the daily cap");
+  await submit(w, 0, 1);
+  w.clock.ms += DIGEST_SETTLE_MS + 1000;
+  await tick(w);
+  assert.equal(digestsOf(w).length, 1);
 
-  const fresh = makeWorld();
-  const gm = await fresh.signIn("raka@example.com");
-  fresh.env.ctx.mailer = { send: async () => { throw new Error("relay down"); } };
-  const saved = await fresh.call("PUT", "/profile", { cookie: gm, body: PROFILE });
-  assert.equal(saved.status, 200);
-  assert.equal(saved.json.status, "pending", "the save went through although the notice could not be sent");
+  w.clock.ms += 1000;
+  await submit(w, 1, 1);
+  w.clock.ms += DIGEST_SETTLE_MS + 1000;
+  await tick(w);
+  assert.equal(digestsOf(w).length, 1, "a new submission settles but the gap since the last digest has not passed");
+  w.clock.ms += DIGEST_GAP_MS;
+  await tick(w);
+  assert.equal(digestsOf(w).length, 2, "after the gap it goes out");
+  assert.match(digestsOf(w)[1]!.subject, /To review: 2 waiting/, "it counts everything that waits, not only the new one");
+
+  w.clock.ms += NAG_AFTER_MS;
+  await tick(w);
+  assert.equal(digestsOf(w).length, 3, "nothing new, but two have waited three days: a reminder");
+  assert.match(digestsOf(w)[2]!.body, /waiting 3 days|waiting [4-9] days/);
+  await tick(w);
+  assert.equal(digestsOf(w).length, 3, "and only one a day");
 });
 
-test("review notices count mails, not notices: with several admins they still stay inside the daily budget, the owner first", async () => {
-  const { NOTICE_MAILS_PER_DAY } = await import("../../worker/src/watch.ts");
+test("a digest that cannot be sent never breaks the tick, and is not tried every minute", async () => {
+  const { DIGEST_SETTLE_MS } = await import("../../worker/src/watch.ts");
   const w = makeWorld();
-  const owner = await w.signIn(OWNER);
-  for (const a of ["a1@example.com", "a2@example.com", "a3@example.com"]) await w.call("POST", "/admin", { cookie: owner, body: { action: "admin.add", email: a } });
-  const cookies: string[] = [];
-  for (let i = 0; i < 15; i++) {
+  await submit(w, 0, 1);
+  let tried = 0;
+  w.env.ctx.mailer = { send: async () => { tried++; throw new Error("relay down"); } };
+  w.clock.ms += DIGEST_SETTLE_MS + 1000;
+  assert.equal((await tick(w)).status, 200);
+  const first = tried;
+  assert.ok(first > 0);
+  await tick(w);
+  await tick(w);
+  assert.equal(tried, first, "no retry storm against a dead relay");
+});
+
+test("each kind of mail has its own share of the day: one kind running out never stops another", async () => {
+  const { budgetedMailer, MAIL_BUDGET } = await import("../../worker/src/email.ts");
+  const sent: string[] = [];
+  const db = sqliteDbForTests();
+  const clock = { ms: Date.parse("2026-11-05T03:00:00Z") };
+  const mailer = budgetedMailer({ send: async (m) => { sent.push(m.subject); } }, db, () => clock.ms);
+  const mail = (kind: "login" | "decision" | "notice" | "system" | undefined, n: number) => ({ to: "a@example.com", subject: `${kind ?? "none"} ${n}`, body: "x", kind });
+  for (let i = 0; i < MAIL_BUDGET.notice; i++) await mailer.send(mail("notice", i));
+  await assert.rejects(() => mailer.send(mail("notice", 99)), /mail_budget_notice/, "review notices have used their share");
+  await mailer.send(mail("decision", 0));
+  await mailer.send(mail("system", 0));
+  await mailer.send(mail(undefined, 0)); // no kind counts as a system mail
+  for (let i = 0; i < 200; i++) await mailer.send(mail("login", i)); // sign-ins are counted at the door (auth.ts), not here
+  assert.equal(sent.filter((s) => s.startsWith("login")).length, 200);
+  assert.ok(Object.values(MAIL_BUDGET).reduce((a, b) => a + b, 0) <= 90, "the shares add up to the relay's 90 a day");
+  clock.ms += 86_400_000 + 1000;
+  await mailer.send(mail("notice", 100));
+});
+
+test("a decision mail runs into its own share, the admin is told, and sign-ins are not affected", async () => {
+  const { MAIL_BUDGET } = await import("../../worker/src/email.ts");
+  const w = makeWorld();
+  const ids: string[] = [];
+  for (let i = 0; i < MAIL_BUDGET.decision + 2; i++) {
+    const cookie = await w.signIn(`gm${i}@example.com`);
     if (i % 10 === 9) w.clock.ms += 3_600_000;
-    cookies.push(await w.signIn(`gm${i}@example.com`));
+    await w.call("PUT", "/profile", { cookie, body: { ...PROFILE, name: `Person ${i}`, whatsapp: `08123000${String(i).padStart(4, "0")}` } });
   }
-  const before = w.mails.length;
-  for (const [i, cookie] of cookies.entries()) await w.call("PUT", "/profile", { cookie, body: { ...PROFILE, name: `Person ${i}`, whatsapp: `08123000${String(i).padStart(4, "0")}` } });
-  const notices = w.mails.slice(before).filter((m) => /^To review:/.test(m.subject));
-  assert.equal(notices.length, NOTICE_MAILS_PER_DAY, "20 mails in all, not 20 notices of four mails each");
-  assert.equal(notices[0]!.to, OWNER, "the owner is served first");
+  const owner = await w.signIn(OWNER);
+  const all = ((await w.call("POST", "/admin", { cookie: owner, body: { action: "queue" } })).json.gms as any[]).map((g) => g.id as string);
+  ids.push(...all);
+  let failed = 0;
+  for (let i = 0; i < ids.length; i += 5) {
+    const r = await w.call("POST", "/admin", { cookie: owner, body: { action: "review", kind: "gm", ids: ids.slice(i, i + 5), status: "approved", notify: true } });
+    failed += r.json.mailFailed.length;
+  }
+  assert.equal(failed, 2, "the two beyond the share are reported as not emailed; the decisions themselves stand");
+  assert.equal((w.db.raw.prepare("SELECT COUNT(*) AS n FROM profiles WHERE status = 'approved'").get() as { n: number }).n, MAIL_BUDGET.decision + 2);
+  await w.signIn("late@example.com"); // a sign-in link still arrives
+});
+
+test("a Reply-To is passed to the relay only when one is set, and the relay script keeps only a well-formed one", async () => {
+  const { relayMailer } = await import("../../worker/src/email.ts");
+  const bodies: any[] = [];
+  const fetcher = (async (_url: string, init: { body: string }) => { bodies.push(JSON.parse(init.body)); return new Response(JSON.stringify({ ok: true }), { status: 200 }); }) as unknown as typeof fetch;
+  await relayMailer("https://relay.example/exec", "s", fetcher).send({ to: "a@example.com", subject: "x", body: "y" });
+  await relayMailer("https://relay.example/exec", "s", fetcher, "help@example.com").send({ to: "a@example.com", subject: "x", body: "y" });
+  assert.equal("replyTo" in bodies[0], false);
+  assert.equal(bodies[1].replyTo, "help@example.com");
 });
 
 test("a long review makes a handful of database queries, decides every record or none, and refuses more than it can carry", async () => {

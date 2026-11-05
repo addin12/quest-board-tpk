@@ -1,6 +1,6 @@
 // Email addresses, and the messages the backend sends (English and Indonesian together, as before).
 import type { Db } from "./db.ts";
-import { clip, iso, metaSet } from "./util.ts";
+import { DAY_MS, allow, clip, iso, metaSet } from "./util.ts";
 
 /**
  * The one form of an address the accounts are keyed on: lower case, "googlemail" read as "gmail", and for Gmail the dots
@@ -16,7 +16,30 @@ export function normalizeEmail(raw: unknown): string {
   return local && domain ? `${local}@${domain}` : "";
 }
 
-export type Mail = { to: string; subject: string; body: string };
+/**
+ * What a mail is for. Each kind has its own daily share of the relay's 90 mails (MAIL_BUDGET), so a burst of one kind (a flood of sign-in requests, a
+ * long review with notifications) can never use up the share of another: decisions and alerts keep working when sign-ins are used up.
+ */
+export type MailKind = "login" | "decision" | "notice" | "system";
+
+export type Mail = { to: string; subject: string; body: string; kind?: MailKind };
+
+/**
+ * Mails a day per kind, counted over a rolling 24 hours (Gmail's own limit is a rolling day too). They add up to the relay's 90 a day.
+ * Sign-ins are counted at the door instead (auth.ts, so a visitor gets a clear "try later" and no link is made); the budgeted mailer lets them through.
+ */
+export const MAIL_BUDGET: Record<MailKind, number> = { login: 40, decision: 20, notice: 20, system: 10 };
+
+/** Refuses a mail (it throws `mail_budget_<kind>`) when its kind has used its share of the day. A mail without a kind counts as a system mail. */
+export function budgetedMailer(inner: Mailer, db: Db, now: () => number): Mailer {
+  return {
+    async send(mail) {
+      const kind = mail.kind ?? "system";
+      if (kind !== "login" && !(await allow(db, `mail:${kind}`, MAIL_BUDGET[kind], DAY_MS, now()))) throw new Error(`mail_budget_${kind}`);
+      await inner.send(mail);
+    },
+  };
+}
 
 /** Sends one email. The Worker uses the Apps Script relay below (a sending service would have the same shape); tests record the mails. */
 export interface Mailer {
@@ -47,13 +70,13 @@ export function recordingMailer(inner: Mailer, db: Db, now: () => number): Maile
  * Sends through the Apps Script web app (its "mail" action), which mails from the owner's Gmail: there is no domain of our own to
  * send from. The secret is shared with the script (scripts/push-apps-script.mjs puts it there). The script answers JSON after a redirect.
  */
-export function relayMailer(url: string, secret: string, fetcher: typeof fetch = fetch): Mailer {
+export function relayMailer(url: string, secret: string, fetcher: typeof fetch = fetch, replyTo = ""): Mailer {
   return {
     async send(mail) {
       const res = await fetcher(url, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "mail", secret, to: mail.to, subject: mail.subject, body: mail.body }),
+        body: JSON.stringify({ action: "mail", secret, to: mail.to, subject: mail.subject, body: mail.body, ...(replyTo ? { replyTo } : {}) }),
         redirect: "follow",
       });
       const answer = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
@@ -67,6 +90,7 @@ const SIGN = "Quest Board";
 export function loginMail(to: string, link: string, minutes: number): Mail {
   return {
     to,
+    kind: "login",
     subject: "Your sign-in link / Tautan masuk kamu",
     body:
       `Hi,\n\nOpen this link to sign in to Quest Board. It works once and expires in ${minutes} minutes.\n${link}\n\nIf you did not ask for it, ignore this email.\n\n${SIGN}\n\n* * *\n\n` +
@@ -82,6 +106,7 @@ export function decisionMail(to: string, status: "approved" | "rejected", kind: 
   if (status === "approved") {
     return {
       to,
+      kind: "decision",
       subject: `Approved: ${t} / Disetujui: ${t}`,
       body:
         `Hi,\n\n“${t}” was approved and will appear on the Quest Board within a few minutes.${link("en")}\n\nTo change something later, sign in at ${edit}; a change goes back to review.\n\n${SIGN}\n\n* * *\n\n` +
@@ -91,6 +116,7 @@ export function decisionMail(to: string, status: "approved" | "rejected", kind: 
   const why = reason ? clip(reason, 500) : "(no reason given / tanpa alasan)";
   return {
     to,
+    kind: "decision",
     subject: `Not approved yet: ${t} / Belum disetujui: ${t}`,
     body:
       `Hi,\n\n“${t}” was not approved yet.\n\nReason: ${why}\n\nSign in at ${edit} to fix it; it will be reviewed again.\n\n${SIGN}\n\n* * *\n\n` +
@@ -98,18 +124,26 @@ export function decisionMail(to: string, status: "approved" | "rejected", kind: 
   };
 }
 
-/** Tells a reviewer that something is waiting. Only the kind and the title: nothing about the person (the admin page has that). */
-export function reviewNoticeMail(to: string, kind: "game" | "gm", title: string, siteUrl: string): Mail {
-  const t = clip(title, 120);
+/**
+ * Tells the owner and the admins that submissions are waiting: how many, the titles of the new ones, and how long the oldest has waited. One mail for a
+ * burst of saves (watch.ts decides when), and nothing about the people (the admin page has that).
+ */
+export function reviewDigestMail(to: string, waiting: { games: number; gms: number; oldestDays: number }, newTitles: string[], siteUrl: string): Mail {
+  const total = waiting.games + waiting.gms;
   const page = `${siteUrl.replace(/\/$/, "")}/en/admin/`;
+  const shown = newTitles.slice(0, 5).map((t) => `“${clip(t, 60).replace(/\s+/g, " ")}”`);
+  const more = newTitles.length - shown.length;
+  const list = (and: string, others: (n: number) => string) => (shown.length ? shown.join(", ") + (more > 0 ? ` ${and} ${others(more)}` : "") : "");
+  const old = waiting.oldestDays >= 3;
   return {
     to,
-    subject: `To review: ${t} / Untuk ditinjau: ${t}`,
+    kind: "notice",
+    subject: `To review: ${total} waiting / Untuk ditinjau: ${total} menunggu`,
     body:
       `Hi,
 
-A ${kind === "game" ? "game" : "Game Master profile"} is waiting for review: “${t}”.
-${page}
+${total} item${total === 1 ? " is" : "s are"} waiting for review (${waiting.games} game${waiting.games === 1 ? "" : "s"}, ${waiting.gms} Game Master profile${waiting.gms === 1 ? "" : "s"}).
+${shown.length ? `New since the last message: ${list("and", (n) => `${n} more`)}.\n` : ""}${old ? `The oldest has been waiting ${waiting.oldestDays} days.\n` : ""}${page}
 
 ${SIGN}
 
@@ -118,8 +152,8 @@ ${SIGN}
 ` +
       `Halo,
 
-${kind === "game" ? "Sebuah game" : "Sebuah profil Game Master"} menunggu ditinjau: “${t}”.
-${page}
+${total} item menunggu ditinjau (${waiting.games} game, ${waiting.gms} profil Game Master).
+${shown.length ? `Baru sejak pesan terakhir: ${list("dan", (n) => `${n} lainnya`)}.\n` : ""}${old ? `Yang paling lama sudah menunggu ${waiting.oldestDays} hari.\n` : ""}${page}
 
 ${SIGN}`,
   };
@@ -133,6 +167,7 @@ export function mergeRequestMail(to: string, linked: string, siteUrl: string): M
   const page = `${siteUrl.replace(/\/$/, "")}/en/account/`;
   return {
     to,
+    kind: "decision",
     subject: "Please confirm: link another address to your account / Mohon konfirmasi: tautkan alamat lain ke akunmu",
     body:
       `Hi,
@@ -163,6 +198,7 @@ export function expiryMail(to: string, graceDays: number, siteUrl: string): Mail
   const where = `${siteUrl.replace(/\/$/, "")}/en/account/`;
   return {
     to,
+    kind: "system",
     subject: "Your Quest Board account will be erased / Akun Quest Board kamu akan dihapus",
     body:
       `Hi,\n\nYou have not signed in to Quest Board for a long time. In ${graceDays} days we will erase your account, your Game Master profile, your games and your pictures.\n\nTo keep them, sign in once at ${where}. That is all.\n\n${SIGN}\n\n* * *\n\n` +

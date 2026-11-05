@@ -48,7 +48,10 @@ function mailRequest_(req, secret, sentToday) {
   const body = clip_(req.body, 5000);
   if (!subject || !body) return { error: 'bad_request' };
   if (sentToday >= MAIL_DAILY_LIMIT) return { error: 'quota' };
-  return { to: to, subject: subject, body: body };
+  // Optional Reply-To: only a well-formed address is passed on, anything else is ignored (the mail still goes).
+  const replyTo = str_(req.replyTo).toLowerCase();
+  const okReply = /^[^\s@,;<>"']+@[^\s@,;<>"']+\.[a-z]{2,}$/.test(replyTo) && replyTo.length <= 254;
+  return { to: to, subject: subject, body: body, replyTo: okReply ? replyTo : '' };
 }
 
 /** A browser or a monitor asking "is it there?": says nothing about the data. */
@@ -73,7 +76,9 @@ function doPost(e) {
   if (m.error) return json_({ ok: false, error: m.error });
   props.setProperty('MAIL_DAY', today + ':' + (sent + 1));
   try {
-    MailApp.sendEmail({ to: m.to, subject: m.subject, body: m.body, name: 'Quest Board' });
+    const options = { to: m.to, subject: m.subject, body: m.body, name: 'Quest Board' };
+    if (m.replyTo) options.replyTo = m.replyTo;
+    MailApp.sendEmail(options);
   } catch (err) {
     console.error(err);
     return json_({ ok: false, error: 'mail_failed' });

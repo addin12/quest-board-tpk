@@ -9,14 +9,14 @@ import { isPublicImage, buildPublic } from "./public.ts";
 import { parseGame, parseProfile } from "./rules.ts";
 import { eraseAccount, mine, removeGame, saveGame, saveProfile, setFull } from "./store.ts";
 import { backup } from "./backup.ts";
-import { recordingMailer } from "./email.ts";
+import { budgetedMailer, recordingMailer } from "./email.ts";
 import { expireInactive } from "./retention.ts";
 import { allow, iso, logEvent, metaGet, metaSet, pruneRateEvents, safeEqual } from "./util.ts";
-import { notifyReviewers, tellOwner, watchBackup, watchDeploy } from "./watch.ts";
+import { digestReviewers, tellOwner, watchBackup, watchDeploy } from "./watch.ts";
 import { one } from "./db.ts";
 
 /** The same context with a mailer that records whether mail last worked (shown by /api/health). */
-const logged = (c: Ctx): Ctx => ({ ...c, mailer: recordingMailer(c.mailer, c.db, c.now) });
+const logged = (c: Ctx): Ctx => ({ ...c, mailer: recordingMailer(budgetedMailer(c.mailer, c.db, c.now), c.db, c.now) });
 
 export type Env = {
   ctx: Ctx;
@@ -100,6 +100,7 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
     }
     const result = await deployIfDue(ctx, env.deployHook, env.fetcher);
     await watchDeploy(ctx);
+    await digestReviewers(ctx);
     await watchBackup(ctx);
     return json(200, { ok: true, job: "tick", result });
   }
@@ -183,7 +184,7 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
     if (!parsed.ok) return err(422, "invalid", { fields: parsed.errors });
     if (!(await allow(ctx.db, `submit:${session.accountId}`, 30, 3_600_000, ctx.now()))) return err(429, "rate_limited");
     const r = await saveProfile(ctx, session, parsed.value);
-    if (r.changed) { publish(); after(notifyReviewers(ctx, session.accountId, "gm", parsed.value.name)); }
+    if (r.changed) publish();
     const { dropped, ...answer } = r;
     dropFiles(after, env, dropped);
     return json(200, { ok: true, ...answer });
@@ -234,7 +235,7 @@ async function writeGame(request: Request, env: Env, session: Session, id: strin
   if (!(await allow(ctx.db, `submit:${session.accountId}`, 30, 3_600_000, ctx.now()))) return err(429, "rate_limited");
   const r = await saveGame(ctx, session, id, parsed.value);
   if (!r.ok) return err(r.error === "no_profile" || r.error === "too_many" ? 409 : 404, r.error);
-  if (r.changed) { publish(); after(notifyReviewers(ctx, session.accountId, "game", parsed.value.title)); }
+  if (r.changed) publish();
   dropFiles(after, env, r.dropped);
   return json(id === null ? 201 : 200, { ok: true, id: r.id, status: r.status, changed: r.changed });
 }

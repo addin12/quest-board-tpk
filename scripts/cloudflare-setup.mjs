@@ -141,6 +141,7 @@ const vars = {
 };
 if (relayUrl) vars.MAIL_RELAY_URL = secret(relayUrl);
 else console.log("(MAIL_RELAY_URL not set: no Apps Script web app address found)");
+if (local.mailReplyTo) vars.MAIL_REPLY_TO = plain(local.mailReplyTo); // optional: a mailbox people read, so a reply to a sign-in or decision mail does not go to the personal Gmail
 if (appsScript.mailSecret) vars.MAIL_SECRET = secret(appsScript.mailSecret);
 else console.log("(MAIL_SECRET not set yet: run npm run script:deploy, then this again)");
 // First deploy on a fresh project: the site's own /api does not exist until it is deployed, so a build that reads from it would fail.

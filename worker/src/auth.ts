@@ -1,7 +1,7 @@
 // Accounts and sign-in. An account is a verified email address; it is made the first time someone opens a sign-in link
 // sent to that address. Links and sessions are random tokens of which only the hash is stored.
 import { exec, many, one, type Db } from "./db.ts";
-import { loginMail, normalizeEmail, type Mailer } from "./email.ts";
+import { loginMail, normalizeEmail, type Mailer, MAIL_BUDGET } from "./email.ts";
 import { DAY_MS, allow, iso, logEvent, randomId, randomToken, sha256Hex } from "./util.ts";
 
 export type Ctx = {
@@ -16,7 +16,7 @@ export type Ctx = {
 
 export const LINK_MINUTES = 15;
 /** Sign-in mails per day across everyone. The mail relay sends 90 a day; the rest is kept for decision mails, warnings and alerts. */
-export const LOGIN_MAILS_PER_DAY = 60;
+export const LOGIN_MAILS_PER_DAY = MAIL_BUDGET.login;
 export const SESSION_DAYS = 30;
 
 export type Session = { accountId: string; email: string };

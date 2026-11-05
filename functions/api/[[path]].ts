@@ -13,6 +13,8 @@ type Bindings = {
   DEPLOY_HOOK: string;
   MAIL_RELAY_URL: string;
   MAIL_SECRET: string;
+  /** Optional: where a reply to one of our mails goes (a mailbox people read), instead of the personal Gmail that sends them. */
+  MAIL_REPLY_TO?: string;
   TURNSTILE_SECRET: string;
 };
 
@@ -25,7 +27,7 @@ export const onRequest = async ({ request, env, waitUntil }: { request: Request;
     {
       ctx: {
         db: env.DB,
-        mailer: env.MAIL_RELAY_URL && env.MAIL_SECRET ? relayMailer(env.MAIL_RELAY_URL, env.MAIL_SECRET) : silent,
+        mailer: env.MAIL_RELAY_URL && env.MAIL_SECRET ? relayMailer(env.MAIL_RELAY_URL, env.MAIL_SECRET, fetch, env.MAIL_REPLY_TO ?? "") : silent,
         now: Date.now,
         siteUrl: env.SITE_URL.replace(/\/$/, ""),
         // Session emails are normalized (a Gmail address loses its dots), so the owner's must be too or they would never match.
