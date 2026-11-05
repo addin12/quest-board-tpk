@@ -1,8 +1,12 @@
 // Quest Board lists games played online or in person in Jabodetabek. Pure module (no imports): the script,
 // the checks and the tests share it.
 
-/** The cities a Game Master picks from in the forms. */
-export const AREAS = ["Jakarta", "Bogor", "Depok", "Tangerang", "Tangerang Selatan", "Bekasi"] as const;
+/** The places a Game Master picks from in the forms: Jakarta in its five parts, and the cities around it. A game can be in several (ADR-52). */
+export const AREAS = ["Jakarta Pusat", "Jakarta Utara", "Jakarta Barat", "Jakarta Selatan", "Jakarta Timur", "Bogor", "Depok", "Tangerang", "Tangerang Selatan", "Bekasi"] as const;
+/** Places older saves used: still accepted and shown as they are, no longer offered. */
+export const LEGACY_AREAS = ["Jakarta"] as const;
+/** True for a place the forms offer or an older save used. */
+export const isArea = (v: unknown): v is string => typeof v === "string" && ([...AREAS, ...LEGACY_AREAS] as readonly string[]).includes(v);
 
 /** A card shows the whole short description, so it is kept short: this many characters at most. */
 export const SUMMARY_MAX = 80;

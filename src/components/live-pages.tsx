@@ -30,10 +30,10 @@ export function HomeSections({ initial, covers }: { initial: HomeModel; covers: 
   const model = useMemo(() => (live ? homeModel(gameViewsOf(live)) : initial), [live, initial]);
   const { soon, beginner, systems, genres } = model;
   const gateway = [
-    { href: paths.systems(lang), title: t("systems.title"), hint: t("home.allSystems", { n: SYSTEMS.length }), cover: systems[0] ? (systemCover(systems[0].name) ?? systems[0].cover) : null },
-    { href: paths.genres(lang), title: t("genres.title"), hint: t("home.allGenres", { n: GENRES.length }), cover: genres[0] ? genreCover(genres[0].name as GenreKey) : null },
-    { href: paths.styles(lang), title: t("styles.title"), hint: t("home.allStyles", { n: STYLES.length }), cover: model.styledCover },
-    { href: paths.mechanics(lang), title: t("mechanics.title"), hint: t("home.allMechanics", { n: MECHANICS.length }), cover: model.mechanicalCover },
+    { href: paths.systems(lang), title: t("systems.title"), hint: t("home.allSystems", { n: SYSTEMS.length }), icon: "cat-systems" as const },
+    { href: paths.genres(lang), title: t("genres.title"), hint: t("home.allGenres", { n: GENRES.length }), icon: "cat-genres" as const },
+    { href: paths.styles(lang), title: t("styles.title"), hint: t("home.allStyles", { n: STYLES.length }), icon: "cat-styles" as const },
+    { href: paths.mechanics(lang), title: t("mechanics.title"), hint: t("home.allMechanics", { n: MECHANICS.length }), icon: "cat-mechanics" as const },
   ];
   const filterHref = (key: string) => (name: string) => paths.games(lang, `?${key}=${encodeURIComponent(name)}`);
   return (

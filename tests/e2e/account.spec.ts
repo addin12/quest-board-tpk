@@ -8,6 +8,8 @@ import { BUILD_KEY } from "../support/worker-env.ts";
 // browser, edits that go back to review, marking a game full, removing a game, erasing the account. Each test has its own world.
 
 const COLUMN = (title: string) => `SELECT * FROM games WHERE title = '${title}'`;
+/** Opens a step of the game form from its step bar (the steps already filled can be opened in any order). */
+const toStep = (page: Page, name: string) => page.getByTestId("game-form").getByRole("navigation").getByRole("button", { name, exact: true }).click();
 
 async function fillProfile(page: Page, name = "Sari Dewanti") {
   await page.getByLabel("Display name", { exact: true }).fill(name);
@@ -78,6 +80,9 @@ test("profile, then a game with a picture: both are live at once; the picture is
 
   await page.getByRole("button", { name: "Add a game" }).click();
   const form = page.getByTestId("game-form");
+  const next = () => form.getByTestId("step-next").click();
+  // 1. the game
+  await expect(form.getByTestId("step-count")).toHaveText("Step 1 of 5");
   await form.getByLabel("Game title").fill("Kabut di Kebun Raya");
   const system = form.getByLabel("Game system", { exact: true });
   await system.fill("cthulhu"); // the list narrows as you type; arrow keys and Enter choose
@@ -87,26 +92,38 @@ test("profile, then a game with a picture: both are live at once; the picture is
   await expect(system).toHaveValue("Call of Cthulhu 7e");
   await form.getByLabel("Short description").fill("Penyelidikan horor satu malam di kebun raya.");
   await form.getByLabel("Full description").fill("Lima penyelidik, satu malam, dan sesuatu yang bergerak di antara pepohonan. Karakter siap main disediakan.");
-  await form.getByLabel("One-shot").check();
-  await form.getByLabel("Online", { exact: true }).check();
-  await form.getByLabel("Platform (online games)").fill("Discord");
-  await form.getByLabel("Date of the first session").fill(new Date(Date.now() + 9 * 86_400_000).toISOString().slice(0, 10));
-  await form.getByLabel("Time zone").selectOption("WIB");
-  await form.getByLabel("Seats", { exact: true }).fill("4");
-  await form.getByLabel("Play language").selectOption("id");
-  await form.getByLabel("Experience level").selectOption("beginner");
   await form.getByRole("checkbox", { name: "Horror", exact: true }).check();
   await form.getByText("More about how you run it").click(); // play styles and mechanics are optional and folded away
   await form.getByRole("checkbox", { name: "Percentile (d100)" }).check();
+  await next();
+  // 2. when and where
+  await expect(form.getByTestId("step-title")).toHaveText("When and where");
+  await form.getByLabel("One-shot").check();
+  await form.getByLabel("Date of the first session").fill(new Date(Date.now() + 9 * 86_400_000).toISOString().slice(0, 10));
+  await form.getByLabel("WIB", { exact: true }).check();
+  await form.getByLabel("Online", { exact: true }).check();
+  await form.getByLabel("Platform (online games)").fill("Discord");
+  await next();
+  // 3. players: the session length defaults to 3 hours
+  await expect(form.getByTestId("step-title")).toHaveText("Players");
+  await form.getByLabel("Seats", { exact: true }).fill("4");
+  await form.getByLabel("Bahasa Indonesia", { exact: true }).check();
+  await form.getByLabel("Beginner friendly").check();
+  await form.getByLabel("Ready-made characters are provided").check();
+  await form.getByRole("checkbox", { name: "Microphone" }).check();
+  await next();
+  // 4. safety
+  await form.getByRole("checkbox", { name: "This game has no content warnings" }).check();
+  await form.getByRole("checkbox", { name: "X-Card" }).check();
+  await next();
+  // 5. the picture and a last look
+  await expect(form.getByTestId("step-title")).toHaveText("Picture and review");
   const png = await sharp({ create: { width: 1600, height: 1600, channels: 3, background: { r: 120, g: 60, b: 40 } } }).png().toBuffer();
   await form.getByLabel("Cover picture").setInputFiles({ name: "cover.png", mimeType: "image/png", buffer: png });
   await expect(form.getByText("Picture ready")).toBeVisible();
-  // what a player needs: the session length defaults to 3 hours; characters, what to bring, the warnings and the safety tools are answered here
-  await form.getByLabel("Characters", { exact: true }).selectOption("pregen");
-  await form.getByRole("checkbox", { name: "Microphone" }).check();
-  await form.getByRole("checkbox", { name: "This game has no content warnings" }).check();
-  await form.getByRole("checkbox", { name: "X-Card" }).check();
   await expect(form.getByTestId("listing-tips")).toBeVisible(); // the description is short: the page says how to make it stronger
+  await expect(form.getByTestId("game-review")).toContainText("Kabut di Kebun Raya");
+  await expect(form.getByTestId("game-review")).toContainText("Online, Discord");
   await form.getByRole("checkbox", { name: /I confirm this information is true/ }).check();
   await form.getByRole("button", { name: "Save game" }).click();
 
@@ -139,7 +156,7 @@ test("what the server refuses is shown next to the field", async ({ page }) => {
   await page.getByRole("button", { name: "Add a game" }).click();
   const form = page.getByTestId("game-form");
   await form.getByLabel("Short description").fill("x".repeat(95));
-  await form.getByRole("button", { name: "Save game" }).click();
+  await form.getByTestId("step-next").click(); // the step's own problems are named before going on
   await expect(form.getByText("Too long: up to 80 characters.")).toBeVisible();
   await expect(form.getByText("Fill this in.").first()).toBeVisible();
   expect(await world.sql("SELECT COUNT(*) AS n FROM games")).toEqual([{ n: 0 }]);
@@ -154,31 +171,38 @@ test("editing a live game keeps it live; saving the same thing again changes not
   await expect(panen.getByTestId("status")).toHaveText("Live");
 
   await panen.getByRole("button", { name: "Edit" }).click();
+  await toStep(page, "Picture and review");
   await page.getByTestId("game-form").getByRole("button", { name: "Save game" }).click();
   await expect(page.getByTestId("message")).toContainText("Nothing changed.");
   expect((await world.sql(COLUMN("Panen Harapan")))[0].status).toBe("approved");
 
   await page.getByTestId("my-game").filter({ hasText: "Panen Harapan" }).getByRole("button", { name: "Edit" }).click();
+  await toStep(page, "Players");
   await page.getByTestId("game-form").getByLabel("Seats", { exact: true }).fill("6");
+  await toStep(page, "Picture and review");
   await page.getByTestId("game-form").getByRole("button", { name: "Save game" }).click();
   await expect(page.getByTestId("message")).toContainText("It is live");
   await expect(page.getByTestId("my-game").filter({ hasText: "Panen Harapan" }).getByTestId("status")).toHaveText("Live");
   expect((await world.sql(COLUMN("Panen Harapan")))[0]).toMatchObject({ seats: 6, status: "approved" });
 });
 
-test("a GM makes a game repeat every week, and extends it when its listing is about to run out", async ({ page }) => {
+test("a GM turns a game into one on request (no fixed date), and extends it when its listing is about to run out", async ({ page }) => {
   const world = await newWorld(page, { seed: true });
   await world.signInAs("raka@example.com");
   await page.goto("/en/account/");
   const row = () => page.getByTestId("my-game").filter({ hasText: "Panen Harapan" });
   await row().getByRole("button", { name: "Edit" }).click();
-  await page.getByTestId("game-form").getByLabel("Does it repeat?").selectOption("7");
+  await toStep(page, "When and where");
+  await page.getByTestId("game-form").getByLabel("On request: no fixed date").check();
+  await expect(page.getByTestId("game-form").getByLabel("Date of the first session"), "no date to give").toHaveCount(0);
+  await toStep(page, "Picture and review");
+  await expect(page.getByTestId("game-review")).toContainText("On request");
   await page.getByTestId("game-form").getByRole("button", { name: "Save game" }).click();
   await expect(page.getByTestId("message")).toContainText("It is live");
-  await expect(row()).toContainText("Repeats every week");
+  await expect(row()).toContainText("On request");
   await expect(row().getByTestId("extend"), "90 days of listing: nothing to extend yet").toHaveCount(0);
   const [stored] = await world.sql(COLUMN("Panen Harapan"));
-  expect(stored.repeat_days).toBe(7);
+  expect(stored.on_demand).toBe(1);
   expect(Date.parse(stored.expires_at) - Date.parse(stored.starts_at)).toBe(90 * 86_400_000);
 
   // five days left: the page offers Extend, and one press adds 30 days

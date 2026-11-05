@@ -2,7 +2,7 @@
 // Only these are shipped: `npm run icons` copies their outlines into src/components/icon-data.ts.
 // Add a name here, then re-run `npm run icons`. Pure module (no imports) so the generator script and node --test can load it.
 
-/** Our name for the icon, then the file name in `@phosphor-icons/core/assets/regular`. */
+/** Our name for the icon, then the file name in `@phosphor-icons/core/assets/regular` (or "<weight>/<file>" for another weight, such as the duotone category marks). */
 export const ICON_FILES = {
   // theme
   sun: "sun",
@@ -34,6 +34,11 @@ export const ICON_FILES = {
   "list-game": "plus-circle",
   search: "magnifying-glass",
   more: "dots-three",
+  // the four ways in on the home page: round duotone marks of our own choosing (no copied artwork)
+  "cat-systems": "duotone/books-duotone",
+  "cat-genres": "duotone/castle-turret-duotone",
+  "cat-styles": "duotone/flask-duotone",
+  "cat-mechanics": "duotone/dice-five-duotone",
 } as const;
 
 export type IconName = keyof typeof ICON_FILES;

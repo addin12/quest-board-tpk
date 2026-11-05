@@ -44,7 +44,7 @@ export default async function GamePage({ params }: PageProps<"/[lang]/games/[slu
   return (
     <>
       <JsonLd data={[
-        gameJsonLd(game, gm, lang),
+        ...(game.onDemand ? [] : [gameJsonLd(game, gm, lang)]), // an Event needs a date; a game on request has none
         breadcrumbJsonLd([
           { name: "Quest Board", url: `${SITE_URL}${paths.home(lang)}` },
           { name: t("games.title"), url: `${SITE_URL}${paths.games(lang)}` },

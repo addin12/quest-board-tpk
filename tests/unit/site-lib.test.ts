@@ -54,7 +54,7 @@ test("duplicates keep the first; text is cleaned and cut; categories are limited
   assert.equal(data.games.length, sample.games.length);
   assert.ok(warnings.some((w) => /duplicate/.test(w)));
   assert.ok(data.games[1].title.length <= 100 && !/[\u0000\t]/.test(data.games[1].title));
-  assert.deepEqual(data.games[2].genres, ["horror", "fantasy", "cozy"]);
+  assert.deepEqual(data.games[2].genres, ["horror", "fantasy", "cozy", "comedy"], "known genres only, no repeats, up to five");
   assert.throws(() => parsePublicData({ nope: true }), /no gms and games/);
   assert.equal(text("a\r\nb", 10, true), "a\nb");
 });
@@ -171,7 +171,9 @@ test("sorting: soonest first with full games last; cheapest; newest", () => {
   const soon = applyFilters(all, EMPTY_FILTERS);
   const open = soon.filter((g) => !g.full);
   assert.ok(soon.slice(open.length).every((g) => g.full) && soon.slice(0, open.length).every((g) => !g.full), "full games come last, whatever the order");
-  const starts = open.map((g) => Date.parse(g.startsAt));
+  const dated = open.filter((g) => !g.onDemand);
+  assert.ok(open.slice(dated.length).every((g) => g.onDemand), "games on request come after the dated ones");
+  const starts = dated.map((g) => Date.parse(g.startsAt));
   assert.deepEqual(starts, [...starts].sort((a, b) => a - b));
   const cheapSorted = applyFilters(all, { ...EMPTY_FILTERS, sort: "priceAsc" });
   const cheap = cheapSorted.filter((g) => !g.full).map((g) => g.priceIdr);
@@ -238,7 +240,7 @@ const record = (over: Partial<GameRecord> = {}): GameRecord => ({
   format: "one_shot", locationType: "in_person", platform: "", city: "Depok", venueName: "Kumu", venueMapsUrl: "https://maps.app.goo.gl/k", startsAt: "2026-10-12T12:00:00.000Z",
   zone: "WIB", scheduleNote: "", expiresAt: "2026-10-13T12:00:00.000Z", priceIdr: 75000, seats: 5, language: "both", level: "beginner", minAge: 16, contentWarnings: "", safetyTools: "",
   genres: ["horror"], styles: [], mechanics: [], coverId: "covers/1AbCdEfGhIjKl.webp", venueMapsRaw: "", consent: true,
-  sessionHours: 3, characters: "", needs: [], safetyKeys: ["x-card"], noWarnings: true, repeatDays: 0, ...over,
+  sessionHours: 3, characters: "", needs: [], safetyKeys: ["x-card"], noWarnings: true, cities: ["Depok"], onDemand: false, ...over,
 });
 const gmRecord = (over: Partial<GmRecord> = {}): GmRecord => ({
   kind: "gm", id: "m1abc1234", slug: "raka-abcd", status: "approved", full: false, adminNote: "", reviewedBy: "", reviewedAt: "", rejectReason: "", superseded: false,
@@ -488,12 +490,12 @@ test("the calendar file for a game: UTC times, an end from the session length, e
   const { gameIcs, icsFileName, icsFold, icsText, icsTime } = await import("../../src/lib/ics.ts");
   assert.equal(icsTime(Date.parse("2026-11-14T12:00:00.000Z")), "20261114T120000Z");
   assert.equal(icsText("a, b; c\\d\nnext"), "a\\, b\\; c\\\\d\\nnext");
-  const game = { id: "g0abc1234", title: "Mercusuar, di Pulau Kabut", summary: "A lighthouse; a radio.", startsAt: "2026-11-14T12:00:00.000Z", expiresAt: "2026-11-15T12:00:00.000Z", repeatDays: 0, sessionHours: 4, locationType: "in_person" as const, venueName: "Kumu Ground Coffee", city: "Depok", platform: "" };
+  const game = { id: "g0abc1234", title: "Mercusuar, di Pulau Kabut", summary: "A lighthouse; a radio.", startsAt: "2026-11-14T12:00:00.000Z", sessionHours: 4, locationType: "in_person" as const, venueName: "Kumu Ground Coffee", city: "Depok", cities: ["Depok"], platform: "" };
   const ics = gameIcs(game, "https://quest-board-tpk.pages.dev/en/games/x/", Date.parse("2026-11-05T03:00:00Z"));
   assert.ok(ics.startsWith("BEGIN:VCALENDAR\r\n") && ics.endsWith("END:VCALENDAR\r\n"));
   for (const line of ["DTSTART:20261114T120000Z", "DTEND:20261114T160000Z", "SUMMARY:Mercusuar\\, di Pulau Kabut", "LOCATION:Kumu Ground Coffee\\, Depok", "UID:g0abc1234@quest-board"]) assert.ok(ics.includes(line), line);
   assert.ok(gameIcs({ ...game, sessionHours: 0 }, "u", 0).includes("DTEND:20261114T150000Z"), "three hours when the Game Master did not say");
-  assert.ok(gameIcs({ ...game, locationType: "online", platform: "Discord", venueName: "", city: "" }, "u", 0).includes("LOCATION:Discord"));
+  assert.ok(gameIcs({ ...game, locationType: "online", platform: "Discord", venueName: "", city: "", cities: [] }, "u", 0).includes("LOCATION:Discord"));
   const long = icsFold("X:" + "é".repeat(80)); // two bytes each
   for (const part of long.split("\r\n")) assert.ok(new TextEncoder().encode(part).length <= 75, "no line over 75 octets");
   assert.equal(long.replace(/\r\n /g, ""), "X:" + "é".repeat(80), "folding loses nothing");
@@ -501,24 +503,41 @@ test("the calendar file for a game: UTC times, an end from the session length, e
   assert.equal(icsFileName("???"), "game.ics");
 });
 
-test("the next session of a repeating game: the first one while it is ahead, then every 7, 14 or 28 days, never one in the past", async () => {
-  const { nextSession } = await import("../../src/lib/repeat.ts");
-  const first = Date.parse("2026-11-07T12:00:00.000Z");
-  const D = 86_400_000;
-  assert.equal(nextSession(first, 7, first - D), first, "still ahead: the first session");
-  assert.equal(nextSession(first, 7, first), first, "right now counts as the session");
-  assert.equal(nextSession(first, 7, first + 1), first + 7 * D, "a moment later it is next week");
-  assert.equal(nextSession(first, 7, Date.parse("2026-11-20T00:00:00.000Z")), Date.parse("2026-11-21T12:00:00.000Z"));
-  assert.equal(nextSession(first, 14, Date.parse("2026-11-20T00:00:00.000Z")), Date.parse("2026-11-21T12:00:00.000Z"));
-  assert.equal(nextSession(first, 28, Date.parse("2026-11-20T00:00:00.000Z")), Date.parse("2026-12-05T12:00:00.000Z"));
-  assert.equal(nextSession(first, 0, first + 50 * D), first, "a single session keeps its date");
-  assert.equal(nextSession(first, 5, first + 50 * D), first, "an odd interval is not a repeat");
+// ── on request, several places, five genres, the steps of the game form (ADR-52) ────────────────────────────────────
+test("games on request come after every dated game, never in 'this weekend', and have their own filter", () => {
+  const now = Date.parse("2026-11-05T03:00:00Z"); // a Thursday
+  const base = games()[0]!;
+  const mk = (id: string, startsAt: string, onDemand = false): GameView => ({ ...base, id, slug: id, startsAt, expiresAt: "2027-01-01T00:00:00.000Z", onDemand, full: false });
+  const all = [mk("ask", "2026-11-01T00:00:00.000Z", true), mk("sat", "2026-11-07T12:00:00.000Z"), mk("later", "2026-12-01T12:00:00.000Z")];
+  assert.deepEqual(applyFilters(all, EMPTY_FILTERS, now).map((g) => g.id), ["sat", "later", "ask"], "on request sorts after the dated games even though it was listed first");
+  assert.deepEqual(applyFilters(all, { ...EMPTY_FILTERS, weekend: true }, now).map((g) => g.id), ["sat"]);
+  assert.deepEqual(applyFilters(all, { ...EMPTY_FILTERS, onRequest: true }, now).map((g) => g.id), ["ask"]);
+  assert.equal(filtersToQuery({ ...EMPTY_FILTERS, onRequest: true }), "?request=1");
+  assert.equal(parseFilters("?request=1").onRequest, true);
+  assert.ok(!homeModel(all).soon.some((g) => g.id === "ask"), "'Starting soon' is for dated games");
 });
 
-test("a repeating game's calendar file is one series that runs until its listing does", async () => {
-  const { gameIcs } = await import("../../src/lib/ics.ts");
-  const game = { id: "g0abc1234", title: "Kampanye", summary: "", startsAt: "2026-11-14T12:00:00.000Z", expiresAt: "2027-02-12T16:59:00.000Z", repeatDays: 14, sessionHours: 3, locationType: "online" as const, venueName: "", city: "", platform: "Discord" };
-  assert.ok(gameIcs(game, "u", 0).includes("RRULE:FREQ=WEEKLY;INTERVAL=2;UNTIL=20270212T165900Z"));
-  assert.ok(gameIcs({ ...game, repeatDays: 7 }, "u", 0).includes("INTERVAL=1;"));
-  assert.ok(!gameIcs({ ...game, repeatDays: 0 }, "u", 0).includes("RRULE"), "a single session has no series");
+test("the message to a Game Master of a game on request asks when it could happen", () => {
+  const g = { ...games()[0]!, onDemand: true, language: "en" as const };
+  assert.equal(contactMessage({ name: "Raka" }, g, "en"), `Hi Raka, I found “${g.title}” on Quest Board. When could you run it for us?`);
+  assert.match(contactMessage({ name: "Raka" }, { ...g, language: "id" }, "en"), /^Halo Raka, .* Kapan kamu bisa menjalankannya untuk kami\?$/);
+});
+
+test("the steps of the game form: each step names what it is missing, in the server's words, and an error opens its step", async () => {
+  const { STEPS, firstStepWith, stepErrors } = await import("../../src/lib/game-steps.ts");
+  const ok = {
+    title: "Mercusuar", system: "Call of Cthulhu 7e", otherSystem: "", summary: "A lighthouse.", description: "A long enough description of the game.", format: "one_shot",
+    locationType: "in_person", platform: "", cities: ["Depok"], venueName: "", venueMapsRaw: "", onDemand: false, date: "2026-11-20", time: "19:00", zone: "WIB", scheduleNote: "", keepUntil: "",
+    priceIdr: "0", seats: "5", language: "id", level: "any", minAge: "", contentWarnings: "", safetyTools: "", genres: [], styles: [], mechanics: [], coverKey: "", consent: true,
+    sessionHours: "3", characters: "", needs: [], safetyKeys: ["x-card"], noWarnings: true,
+  };
+  for (let i = 0; i < STEPS.length; i++) assert.deepEqual(stepErrors(ok, i), {}, STEPS[i]);
+  assert.deepEqual(stepErrors({ ...ok, title: "x", summary: "y".repeat(90) }, 0), { title: "required", summary: "too_long" });
+  assert.deepEqual(stepErrors({ ...ok, cities: [], date: "" }, 1), { cities: "choose_one", date: "invalid_date" });
+  assert.deepEqual(stepErrors({ ...ok, onDemand: true, date: "" }, 1), {}, "a game on request needs no date");
+  assert.deepEqual(stepErrors({ ...ok, seats: "0", priceIdr: "-5" }, 2), { seats: "invalid_number", priceIdr: "invalid_number" });
+  assert.deepEqual(stepErrors({ ...ok, noWarnings: false, safetyKeys: [] }, 3), { contentWarnings: "required", safetyTools: "required" });
+  assert.deepEqual(stepErrors({ ...ok, consent: false }, 4), { consent: "required" });
+  assert.equal(firstStepWith({ safetyTools: "required", cities: "invalid" }), 1, "the earliest step with a problem opens");
+  assert.equal(firstStepWith({}), null);
 });

@@ -48,11 +48,17 @@ const MESSAGES = {
   en: { game: "Hi {gm}, I found “{title}” on Quest Board ({when}). Is there still a seat?", gm: "Hi {gm}, I found your profile on Quest Board." },
   id: { game: "Halo {gm}, aku menemukan “{title}” di Quest Board ({when}). Apakah masih ada kursi?", gm: "Halo {gm}, aku menemukan profilmu di Quest Board." },
 } as const;
+/** For a game with no fixed date (ADR-52): the player asks when it could happen. */
+const ASK = {
+  en: "Hi {gm}, I found “{title}” on Quest Board. When could you run it for us?",
+  id: "Halo {gm}, aku menemukan “{title}” di Quest Board. Kapan kamu bisa menjalankannya untuk kami?",
+} as const;
 const fill = (template: string, vars: Record<string, string>) => template.replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? "");
 
 /** "Hi Raka, I found “Mercusuar” on Quest Board (Sun 12 Oct, 19.00 WIB). Is there still a seat?" */
 export function contactMessage(gm: Pick<SiteGm, "name">, game: SiteGame | null, pageLang: Lang): string {
   const lang = messageLang(game, pageLang);
   if (!game) return fill(MESSAGES[lang].gm, { gm: gm.name });
+  if (game.onDemand) return fill(ASK[lang], { gm: gm.name, title: game.title });
   return fill(MESSAGES[lang].game, { gm: gm.name, title: game.title, when: formatWhen(game.startsAt, lang, game.zone) });
 }

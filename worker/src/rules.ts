@@ -1,9 +1,9 @@
 // What a GM may send, checked at the edge: every field is cleaned, bounded and, where it has a fixed set of answers,
 // matched against it. The same limits as the site's lists (src/lib/areas.ts, categories.ts). Pure module.
-import { AREAS, SUMMARY_MAX } from "../../src/lib/areas.ts";
-import { CHARACTER_SOURCES, GENRES, MAX_PER_GAME, MECHANICS, NEEDS, SAFETY_TOOLS, STYLES } from "../../src/lib/categories.ts";
+import { AREAS, LEGACY_AREAS, SUMMARY_MAX, isArea } from "../../src/lib/areas.ts";
+import { CHARACTER_SOURCES, GENRES, MAX_GENRES, MAX_PER_GAME, MECHANICS, NEEDS, SAFETY_TOOLS, STYLES } from "../../src/lib/categories.ts";
 import { cleanDiscord, cleanInstagram, isGoogleMapsUrl, isPhone } from "../../src/lib/public-data.ts";
-import { REPEAT_DAYS, REPEAT_DEFAULT_LISTING_DAYS } from "../../src/lib/repeat.ts";
+import { ON_DEMAND_LISTING_DAYS } from "../../src/lib/on-demand.ts";
 import { clip, iso } from "./util.ts";
 
 export type Errors = Record<string, string>;
@@ -37,7 +37,7 @@ export function parseProfile(raw: unknown): Parsed<ProfileInput> {
   const errors: Errors = {};
   const name = clip(r.name, 60);
   if (name.length < 2) errors.name = "required";
-  const city = oneOf(r.city, [...AREAS, ONLINE_ONLY] as const);
+  const city = oneOf(r.city, [...AREAS, ...LEGACY_AREAS, ONLINE_ONLY] as const);
   if (!city) errors.city = "choose_one";
   const whatsapp = normalizePhone(r.whatsapp);
   if (!whatsapp) errors.whatsapp = "invalid_phone";
@@ -58,7 +58,7 @@ export type GameInput = {
   platform: string; city: string; venueName: string; venueMapsRaw: string; startsAt: string; zone: "WIB" | "WITA" | "WIT"; scheduleNote: string; expiresAt: string;
   priceIdr: number; seats: number; language: "id" | "en" | "both"; level: "beginner" | "any" | "experienced"; minAge: number;
   contentWarnings: string; safetyTools: string; genres: string[]; styles: string[]; mechanics: string[]; coverKey: string;
-  sessionHours: number; characters: "" | "pregen" | "own" | "table"; needs: string[]; safetyKeys: string[]; noWarnings: boolean; repeatDays: number;
+  sessionHours: number; characters: "" | "pregen" | "own" | "table"; needs: string[]; safetyKeys: string[]; noWarnings: boolean; cities: string[]; onDemand: boolean;
 };
 
 const intIn = (v: unknown, min: number, max: number): number | null => {
@@ -96,26 +96,31 @@ export function parseGame(raw: unknown, nowMs: number): Parsed<GameInput> {
   need("format", Boolean(format), "choose_one");
   const locationType = oneOf(r.locationType, ["online", "in_person"] as const);
   need("locationType", Boolean(locationType), "choose_one");
-  const city = locationType === "in_person" ? oneOf(r.city, AREAS) : "";
-  if (locationType === "in_person") need("city", Boolean(city), "choose_one");
+  // An in-person game names one or more places (ADR-52); an older client sends one `city`.
+  const placesRaw: unknown[] = Array.isArray(r.cities) ? r.cities.slice(0, 40) : typeof r.city === "string" && r.city ? [r.city] : [];
+  const cities = locationType === "in_person" ? [...new Set(placesRaw.filter(isArea))] : [];
+  if (locationType === "in_person") {
+    if (placesRaw.some((c) => !isArea(c))) errors.cities = "invalid";
+    else need("cities", cities.length > 0, "choose_one");
+  }
+  const city = cities[0] ?? "";
+  // No fixed date (ADR-52): the game is listed from now, for ON_DEMAND_LISTING_DAYS, and has no session time to check.
+  const onDemand = r.onDemand === true;
   const venueMapsRaw = clip(r.venueMapsRaw, 500);
   if (venueMapsRaw && !isGoogleMapsUrl(venueMapsRaw)) errors.venueMapsRaw = "invalid_link";
   const zone = oneOf(r.zone, ["WIB", "WITA", "WIT"] as const);
   need("zone", Boolean(zone), "choose_one");
-  const startsAt = zone ? zonedInstant(r.date, r.time, zone) : null;
-  need("date", Boolean(startsAt), "invalid_date");
-  // 0 (or nothing) is a single session; otherwise it meets again every 7, 14 or 28 days (ADR-51)
-  const repeatRaw = r.repeatDays === undefined || r.repeatDays === "" ? 0 : intIn(r.repeatDays, 0, 28);
-  const repeatDays = repeatRaw === null || (repeatRaw !== 0 && !(REPEAT_DAYS as readonly number[]).includes(repeatRaw)) ? null : repeatRaw;
-  need("repeatDays", repeatDays !== null, "invalid");
+  const startsAt = onDemand ? iso(Math.floor(nowMs / 60_000) * 60_000) : zone ? zonedInstant(r.date, r.time, zone) : null;
+  if (!onDemand) need("date", Boolean(startsAt), "invalid_date");
   let expiresAt = "";
-  if (startsAt && zone) {
+  if (startsAt && zone && onDemand) expiresAt = iso(Date.parse(startsAt) + ON_DEMAND_LISTING_DAYS * 86_400_000);
+  else if (startsAt && zone) {
     if (r.keepUntil) {
       const end = zonedInstant(r.keepUntil, "23:59", zone);
       if (!end) errors.keepUntil = "invalid_date";
       else if (Date.parse(end) < Date.parse(startsAt)) errors.keepUntil = "before_start";
       else expiresAt = end;
-    } else expiresAt = iso(Date.parse(startsAt) + (repeatDays ? REPEAT_DEFAULT_LISTING_DAYS : 1) * 86_400_000);
+    } else expiresAt = iso(Date.parse(startsAt) + 86_400_000);
     if (expiresAt && Date.parse(expiresAt) <= nowMs) errors.date = "in_the_past";
   }
   const priceIdr = intIn(r.priceIdr, 0, 10_000_000);
@@ -134,7 +139,7 @@ export function parseGame(raw: unknown, nowMs: number): Parsed<GameInput> {
   const genres = list(r.genres, 50, 40);
   const styles = list(r.styles, 50, 40);
   const mechanics = list(r.mechanics, 50, 40);
-  if (genres.length > MAX_PER_GAME || genres.some((g) => !genreKeys.includes(g))) errors.genres = "invalid";
+  if (genres.length > MAX_GENRES || genres.some((g) => !genreKeys.includes(g))) errors.genres = "invalid";
   if (styles.length > MAX_PER_GAME || styles.some((s) => !styleKeys.includes(s))) errors.styles = "invalid";
   if (mechanics.length > MAX_PER_GAME || mechanics.some((m) => !mechanicKeys.includes(m))) errors.mechanics = "invalid";
   const coverKey = typeof r.coverKey === "string" ? r.coverKey : "";
@@ -165,7 +170,7 @@ export function parseGame(raw: unknown, nowMs: number): Parsed<GameInput> {
       platform: clip(r.platform, 80), city, venueName: clip(r.venueName, 80), venueMapsRaw, startsAt: startsAt!, zone: zone as GameInput["zone"],
       scheduleNote: clip(r.scheduleNote, 1000, true), expiresAt, priceIdr: priceIdr!, seats: seats!, language: language as GameInput["language"],
       level: level as GameInput["level"], minAge: minAge!, contentWarnings, safetyTools,
-      genres, styles, mechanics, coverKey, sessionHours: sessionHours!, characters: characters as GameInput["characters"], needs, safetyKeys, noWarnings, repeatDays: repeatDays!,
+      genres, styles, mechanics, coverKey, sessionHours: sessionHours!, characters: characters as GameInput["characters"], needs, safetyKeys, noWarnings, cities, onDemand,
     },
   };
 }

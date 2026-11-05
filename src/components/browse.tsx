@@ -6,8 +6,9 @@ import { SITE_URL } from "@/lib/site";
 import type { T } from "@/lib/i18n/core";
 import { searchText } from "@/lib/search";
 import { TileSearch } from "./tile-search";
-import { smallCover } from "@/lib/hrefs";
-import { BrowseCard, BrowseTile, Cover } from "./ui";
+import { BrowseCard, BrowseTile } from "./ui";
+import { Icon } from "./icon";
+import type { IconName } from "@/lib/icons";
 
 type Tile = { name: string; count: number; cover: string | null };
 type Common = {
@@ -67,27 +68,26 @@ export function BrowseSection({ id, title, allHref, allLabel, ranked, ...rest }:
 }
 
 /**
- * The four ways in to the whole board as large picture tiles: systems, genres, play styles, mechanics. The first and the last are wide on a phone
- * (a grid of unequal tiles, not four of a kind); from 1024 px they are four across. A tile with no picture shows a coloured field.
+ * The four ways in to the whole board: systems, genres, play styles, mechanics. Each is a round mark (a Phosphor duotone icon in the accent, on a soft disc)
+ * with its name and how many there are under it: one calm row, the same style for all four, and no borrowed artwork. Two across on a phone, four from 640 px.
  */
-export function BrowseGateway({ title, items }: { title: string; items: { href: string; title: string; hint: string; cover: string | null }[] }) {
+export function BrowseGateway({ title, items }: { title: string; items: { href: string; title: string; hint: string; icon: IconName }[] }) {
   return (
     <section className="section pt-0" aria-labelledby="gateway-h">
       <div className="wrap">
         <h2 id="gateway-h">{title}</h2>
-        <ul className="mt-[var(--space-xl)] grid grid-cols-2 gap-[var(--space-md)] lg:grid-cols-4">
-          {items.map((it, i) => {
-            const wide = i === 0 || i === items.length - 1;
-            return (
-              <li key={it.href} className={wide ? "col-span-2 lg:col-span-1" : undefined}>
-                <Link href={it.href} className="bill">
-                  <Cover src={it.cover ? smallCover(it.cover) : null} seed={it.title} quiet className={`w-full ${wide ? "aspect-[2/1] lg:aspect-[4/5]" : "aspect-[4/5]"}`} />
-                  <h3 className="bill-title mt-[var(--space-sm)] text-[length:var(--text-lg)]">{it.title}</h3>
-                  <p className="mt-[var(--space-3xs)] text-sm text-muted">{it.hint}</p>
-                </Link>
-              </li>
-            );
-          })}
+        <ul className="mt-[var(--space-xl)] grid grid-cols-2 gap-x-[var(--space-md)] gap-y-[var(--space-xl)] sm:grid-cols-4" data-testid="browse-gateway">
+          {items.map((it) => (
+            <li key={it.href}>
+              <Link href={it.href} className="group flex min-h-11 flex-col items-center rounded-[var(--radius-card)] p-[var(--space-sm)] text-center">
+                <span aria-hidden className="grid aspect-square w-28 place-items-center rounded-full border border-[color-mix(in_oklab,var(--color-accent)_35%,transparent)] bg-[color-mix(in_oklab,var(--color-accent)_18%,var(--color-paper))] text-accent transition-transform duration-200 group-hover:scale-[1.04] sm:w-36">
+                  <Icon name={it.icon} className="text-[4.5rem] sm:text-[5.75rem]" />
+                </span>
+                <h3 className="mt-[var(--space-md)] text-[length:var(--text-lg)] group-hover:text-accent-deep">{it.title}</h3>
+                <p className="mt-[var(--space-3xs)] text-sm text-muted">{it.hint}</p>
+              </Link>
+            </li>
+          ))}
         </ul>
       </div>
     </section>

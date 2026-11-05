@@ -22,7 +22,7 @@ export function checkGame(game: GameRecord, ctx: { gm: GmRecord | undefined; gam
 
   if (!game.consent) add("consent", "error", "check.consent");
   if (!game.startsAt) add("date", "error", "check.dateUnreadable");
-  else if (Date.parse(game.startsAt) < ctx.nowMs) add("datePast", "warn", "check.datePast");
+  else if (!game.onDemand && Date.parse(game.startsAt) < ctx.nowMs) add("datePast", "warn", "check.datePast"); // on request has no session date
   if (!ctx.gm) add("gmMissing", "error", "check.gmMissing", { email: game.email });
   else if (ctx.gm.status !== "approved") add("gmNotApproved", "warn", "check.gmNotApproved", { name: ctx.gm.name });
   if (!game.system) add("system", "error", "check.noSystem");

@@ -30,11 +30,12 @@ test("a game must fit Jabodetabek and online, and its short description 80 chara
   const now = Date.parse("2026-10-28T03:00:00Z");
   assert.equal(parseGame(GAME, now).ok, true);
   const bad = (patch: object) => { const r = parseGame({ ...GAME, ...patch }, now); return r.ok ? {} : r.errors; };
-  assert.equal(bad({ city: "Surabaya" }).city, "choose_one");
-  assert.equal(bad({ locationType: "online", city: "" }).city, undefined, "an online game needs no city");
+  assert.equal(bad({ city: "Surabaya" }).cities, "invalid", "a place outside the list");
+  assert.equal(bad({ locationType: "online", city: "" }).cities, undefined, "an online game needs no place");
   assert.equal(bad({ summary: "x".repeat(81) }).summary, "too_long");
   assert.equal(bad({ seats: 0 }).seats, "invalid_number");
-  assert.equal(bad({ genres: ["horror", "sci-fi", "mystery", "cozy"] }).genres, "invalid");
+  assert.equal(bad({ genres: ["horror", "sci-fi", "mystery", "cozy"] }).genres, undefined, "four genres are fine now (up to five)");
+  assert.equal(bad({ genres: ["horror", "sci-fi", "mystery", "cozy", "urban", "western"] }).genres, "invalid");
   assert.equal(bad({ genres: ["not-a-genre"] }).genres, "invalid");
   assert.equal(bad({ mechanics: ["d20", "pbta"] }).mechanics, undefined, "up to three known mechanics are fine");
   assert.equal(bad({ mechanics: ["year-zero", "2d20", "mork-borg"] }).mechanics, undefined, "and so are the ones taken over from StartPlaying");
@@ -922,96 +923,89 @@ test("the new details are saved, change the game like any other edit, and reach 
   assert.equal(later.sessionHours, 2);
 });
 
-// ── a game that meets again and again (ADR-51) ──────────────────────────────────────────────────────────────────────
+// ── on request, several places, five genres (ADR-52) ──────────────────────────────────────────────────────────────
 
-test("a repeating game: the repeat is checked, and it is listed 90 days unless the Game Master says otherwise", () => {
+test("a game on request needs no date: it is listed from now for 90 days; a dated game still needs its date", () => {
   const NOW = Date.parse("2026-10-28T03:00:00Z");
   const ok = (patch: Record<string, unknown>) => parseGame({ ...GAME, ...patch }, NOW);
-  const weekly = ok({ repeatDays: 7 });
-  assert.ok(weekly.ok && weekly.value.repeatDays === 7);
-  assert.equal(weekly.ok && Date.parse(weekly.value.expiresAt) - Date.parse(weekly.value.startsAt), 90 * 86_400_000, "90 days after the first session");
-  const single = ok({});
-  assert.ok(single.ok && single.value.repeatDays === 0 && Date.parse(single.value.expiresAt) - Date.parse(single.value.startsAt) === 86_400_000, "a single session is listed a day");
-  const until = ok({ repeatDays: "14", keepUntil: "2026-12-31" });
-  assert.ok(until.ok && until.value.repeatDays === 14 && until.value.expiresAt.startsWith("2026-12-31"), "the date the Game Master gives wins");
-  assert.ok(ok({ repeatDays: "" }).ok && ok({ repeatDays: 0 }).ok, "none is a single session");
-  for (const bad of [5, 10, 30, -7, "weekly", 7.5]) { const r = ok({ repeatDays: bad }); assert.ok(!r.ok && r.errors.repeatDays === "invalid", String(bad)); }
+  const ask = ok({ onDemand: true, date: "", time: "", keepUntil: "2027-12-31" });
+  assert.ok(ask.ok);
+  assert.equal(ask.ok && ask.value.onDemand, true);
+  assert.equal(ask.ok && ask.value.startsAt, "2026-10-28T03:00:00.000Z", "listed from now");
+  assert.equal(ask.ok && Date.parse(ask.value.expiresAt) - Date.parse(ask.value.startsAt), 90 * 86_400_000, "for 90 days; a keep-until date does not apply");
+  const dated = ok({ date: "" });
+  assert.ok(!dated.ok && dated.errors.date === "invalid_date");
 });
 
-test("the public data shows the next session of a repeating game, and the game is gone when no session is left before its listing runs out", async () => {
-  const w = makeWorld(); // 28 Oct 2026; the fixture's first session is Sun 8 Nov, 12:00 UTC
-  const gm = await w.signIn("raka@example.com");
-  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
-  const weekly = (await w.call("POST", "/games", { cookie: gm, body: { ...GAME, title: "Setiap Minggu", repeatDays: 7 } })).json.id as string;
-  const short = (await w.call("POST", "/games", { cookie: gm, body: { ...GAME, title: "Sampai Tanggal Itu", repeatDays: 7, keepUntil: "2026-11-20" } })).json.id as string;
-  const live = async () => (await w.call("GET", "/live")).json;
-  const find = (j: any, id: string) => (j.games as any[]).find((g) => g.id === id);
-
-  let j = await live();
-  assert.deepEqual([find(j, weekly).startsAt, find(j, weekly).repeatDays], ["2026-11-08T12:00:00.000Z", 7], "ahead: the first session");
-  w.clock.ms = Date.parse("2026-11-20T03:00:00Z");
-  j = await live();
-  assert.equal(find(j, weekly).startsAt, "2026-11-22T12:00:00.000Z", "after two sessions: the next one");
-  assert.equal(find(j, short), undefined, "the next session (22 Nov) is after this game's listing ends (20 Nov 23:59 Jakarta): nothing left to come to");
-  assert.ok(j.goneGames.length >= 1, "so its address becomes a no-longer-listed page");
-  assert.equal(parsePublicData(j).warnings.length, 0, "and the data still passes the site's own check");
-  w.clock.ms = Date.parse("2027-02-10T03:00:00Z"); // past the 90 days
-  j = await live();
-  assert.equal(find(j, weekly), undefined);
+test("an in-person game names one or more places; Jakarta comes in five parts, an older 'Jakarta' still counts, and anything else is refused", () => {
+  const NOW = Date.parse("2026-10-28T03:00:00Z");
+  const ok = (patch: Record<string, unknown>) => parseGame({ ...GAME, ...patch }, NOW);
+  const two = ok({ cities: ["Jakarta Selatan", "Depok", "Depok"] });
+  assert.ok(two.ok && two.value.cities.join() === "Jakarta Selatan,Depok" && two.value.city === "Jakarta Selatan", "deduplicated, the first is the city");
+  const legacy = ok({ cities: undefined, city: "Jakarta" });
+  assert.ok(legacy.ok && legacy.value.cities.join() === "Jakarta", "an older single city is still accepted");
+  const none = ok({ cities: [], city: undefined });
+  assert.ok(!none.ok && none.errors.cities === "choose_one");
+  const odd = ok({ cities: ["Depok", "Bandung"] });
+  assert.ok(!odd.ok && odd.errors.cities === "invalid", "outside the list");
+  const online = ok({ locationType: "online", platform: "Discord", cities: ["Depok"] });
+  assert.ok(online.ok && online.value.cities.length === 0 && online.value.city === "", "an online game has no place");
 });
 
-test("a Game Master extends a repeating game by 30 days, from today if it ran out; a single session or someone else's game cannot be extended", async () => {
+test("a game may have up to five genres", () => {
+  const NOW = Date.parse("2026-10-28T03:00:00Z");
+  const five = parseGame({ ...GAME, genres: ["horror", "mystery", "fantasy", "sci-fi", "cozy"] }, NOW);
+  assert.ok(five.ok && five.value.genres.length === 5);
+  const six = parseGame({ ...GAME, genres: ["horror", "mystery", "fantasy", "sci-fi", "cozy", "urban"] }, NOW);
+  assert.ok(!six.ok && six.errors.genres === "invalid");
+  const p = parsePublicData({ gms: [{ id: "m0test0001", slug: "test-gm", name: "Test", whatsapp: "6281", photoId: "" }], games: [{ id: "g0test0001", slug: "test-game", gmId: "m0test0001", title: "T", system: "S", format: "one_shot", locationType: "online", startsAt: "2027-01-01T00:00:00.000Z", expiresAt: "2027-01-02T00:00:00.000Z", zone: "WIB", priceIdr: 0, seats: 4, minAge: 0, genres: ["horror", "mystery", "fantasy", "sci-fi", "cozy", "urban"] }] });
+  assert.equal(p.data.games[0]!.genres.length, 5, "the site's own check keeps five");
+});
+
+test("a game on request is public with its places, keeps its dates when saved again, and is the only kind that can be extended", async () => {
   const w = makeWorld();
   const gm = await w.signIn("raka@example.com");
   await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
-  const id = (await w.call("POST", "/games", { cookie: gm, body: { ...GAME, repeatDays: 7 } })).json.id as string;
-  const single = (await w.call("POST", "/games", { cookie: gm, body: { ...GAME, title: "Cuma Sekali" } })).json.id as string;
-  const expires = () => (w.db.raw.prepare("SELECT expires_at FROM games WHERE id = ?").get(id) as { expires_at: string }).expires_at;
-  assert.equal(expires(), "2027-02-06T12:00:00.000Z");
+  const ask = (await w.call("POST", "/games", { cookie: gm, body: { ...GAME, onDemand: true, cities: ["Jakarta Selatan", "Depok"] } })).json.id as string;
+  const dated = (await w.call("POST", "/games", { cookie: gm, body: { ...GAME, title: "Pada Tanggal" } })).json.id as string;
+  const pub = (await w.call("GET", "/live")).json;
+  const g = (pub.games as any[]).find((x) => x.id === ask);
+  assert.deepEqual([g.onDemand, g.cities, g.city], [true, ["Jakarta Selatan", "Depok"], "Jakarta Selatan"]);
+  assert.deepEqual(parsePublicData(pub).warnings, []);
+  assert.equal((pub.games as any[]).find((x) => x.id === dated).onDemand, false);
 
-  const first = await w.call("POST", `/games/${id}/extend`, { cookie: gm });
-  assert.equal(first.status, 200);
-  assert.equal(first.json.expiresAt, "2027-03-08T12:00:00.000Z", "30 days after the end it had");
-  assert.equal(expires(), "2027-03-08T12:00:00.000Z");
-  assert.equal((await w.call("POST", `/games/${single}/extend`, { cookie: gm })).status, 404, "a single session has nothing to extend");
-  const other = await w.signIn("other@example.com");
-  await w.call("PUT", "/profile", { cookie: other, body: { ...PROFILE, whatsapp: "0811-1111-1111" } });
-  assert.equal((await w.call("POST", `/games/${id}/extend`, { cookie: other })).status, 404, "not someone else's game");
-  assert.equal((await w.call("POST", `/games/${id}/extend`, { cookie: gm, origin: "https://evil.example" })).status, 403);
+  w.clock.ms += 3_600_000;
+  const same = await w.call("PUT", `/games/${ask}`, { cookie: gm, body: { ...GAME, onDemand: true, cities: ["Jakarta Selatan", "Depok"] } });
+  assert.equal(same.json.changed, false, "saving it again an hour later changes nothing: its dates stay");
 
-  w.clock.ms = Date.parse("2027-04-01T03:00:00Z"); // it ran out on 8 March
-  const back = await w.signIn("raka@example.com");
-  assert.equal(((await w.call("GET", "/live")).json.games as any[]).some((g) => g.id === id), false);
-  const again = await w.call("POST", `/games/${id}/extend`, { cookie: back });
-  assert.equal(again.json.expiresAt, "2027-05-01T03:00:00.000Z", "from today, not from the old end");
-  assert.equal(((await w.call("GET", "/live")).json.games as any[]).some((g) => g.id === id), true, "and it is listed again");
+  const expires = () => (w.db.raw.prepare("SELECT expires_at FROM games WHERE id = ?").get(ask) as { expires_at: string }).expires_at;
+  const was = expires();
+  const ext = await w.call("POST", `/games/${ask}/extend`, { cookie: gm });
+  assert.equal(ext.status, 200);
+  assert.equal(Date.parse(expires()) - Date.parse(was), 30 * 86_400_000);
+  assert.equal((await w.call("POST", `/games/${dated}/extend`, { cookie: gm })).status, 404, "a dated game is done after its date");
 });
 
-test("the Game Master of a repeating game gets one email a few days before it runs out; extending it earns the next warning", async () => {
+test("the Game Master of a game on request gets one email a few days before it runs out; extending it earns the next warning", async () => {
   const w = makeWorld();
   const gm = await w.signIn("raka@example.com");
   await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
-  const id = (await w.call("POST", "/games", { cookie: gm, body: { ...GAME, repeatDays: 7 } })).json.id as string;
-  await w.call("POST", "/games", { cookie: gm, body: { ...GAME, title: "Cuma Sekali" } });
+  const id = (await w.call("POST", "/games", { cookie: gm, body: { ...GAME, onDemand: true } })).json.id as string;
+  await w.call("POST", "/games", { cookie: gm, body: { ...GAME, title: "Pada Tanggal" } });
   const tick = () => w.call("POST", "/cron?job=tick", { origin: null, build: true });
   const warnings = () => w.mails.filter((m) => /^Still running/.test(m.subject));
-
-  w.clock.ms = Date.parse("2027-01-20T03:00:00Z");
+  const start = w.clock.ms;
+  w.clock.ms = start + 80 * 86_400_000;
   await tick();
   assert.equal(warnings().length, 0, "plenty of time left");
-  w.clock.ms = Date.parse("2027-02-04T03:00:00Z"); // two days before 6 February
+  w.clock.ms = start + 88 * 86_400_000; // two days before the 90 run out
   await tick();
-  assert.equal(warnings().length, 1);
+  await tick();
+  assert.equal(warnings().length, 1, "once, and not for the dated game");
   assert.equal(warnings()[0]!.to, "raka@example.com");
-  assert.match(warnings()[0]!.body, /Extend/);
-  assert.match(warnings()[0]!.subject, /Masih berjalan/);
-  await tick();
-  await tick();
-  assert.equal(warnings().length, 1, "once, not every minute; and not for a game with a single session");
-
   const back = await w.signIn("raka@example.com");
   await w.call("POST", `/games/${id}/extend`, { cookie: back });
-  w.clock.ms = Date.parse("2027-03-06T03:00:00Z");
+  w.clock.ms = start + 118 * 86_400_000;
   await tick();
   assert.equal(warnings().length, 2, "extended, so the next run-out is warned about too");
 });

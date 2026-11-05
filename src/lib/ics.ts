@@ -34,10 +34,10 @@ export function icsFold(line: string): string {
 }
 
 /** The calendar file for a game: `url` is the game's page, `sessionHours` falls back to 3 when the Game Master did not say. */
-export function gameIcs(game: Pick<SiteGame, "id" | "title" | "summary" | "startsAt" | "expiresAt" | "repeatDays" | "sessionHours" | "locationType" | "venueName" | "city" | "platform">, url: string, nowMs: number): string {
+export function gameIcs(game: Pick<SiteGame, "id" | "title" | "summary" | "startsAt" | "sessionHours" | "locationType" | "venueName" | "city" | "cities" | "platform">, url: string, nowMs: number): string {
   const start = Date.parse(game.startsAt);
   const end = start + (game.sessionHours > 0 ? game.sessionHours : 3) * 3_600_000;
-  const where = game.locationType === "online" ? game.platform : [game.venueName, game.city].filter(Boolean).join(", ");
+  const where = game.locationType === "online" ? game.platform : [game.venueName, ...(game.cities.length ? game.cities : [game.city])].filter(Boolean).join(", ");
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
@@ -48,8 +48,6 @@ export function gameIcs(game: Pick<SiteGame, "id" | "title" | "summary" | "start
     `DTSTAMP:${icsTime(nowMs)}`,
     `DTSTART:${icsTime(start)}`,
     `DTEND:${icsTime(end)}`,
-    // a repeating game is one series: every 7, 14 or 28 days until its listing runs out
-    ...(game.repeatDays > 0 ? [`RRULE:FREQ=WEEKLY;INTERVAL=${game.repeatDays / 7};UNTIL=${icsTime(Date.parse(game.expiresAt))}`] : []),
     `SUMMARY:${icsText(game.title)}`,
     ...(where ? [`LOCATION:${icsText(where)}`] : []),
     `DESCRIPTION:${icsText([game.summary, url].filter(Boolean).join("\n"))}`,

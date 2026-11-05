@@ -98,8 +98,10 @@ export const MECHANICS = [
 export type GenreKey = (typeof GENRES)[number]["key"];
 export type StyleKey = (typeof STYLES)[number]["key"];
 
-/** Each game carries at most this many genres and this many styles. */
+/** Each game carries at most this many play styles and this many mechanics. */
 export const MAX_PER_GAME = 3;
+/** And at most this many genres: a game is often several at once (a horror mystery in a gothic city). */
+export const MAX_GENRES = 5;
 
 export const isGenre = (k: string): k is GenreKey => GENRES.some((g) => g.key === k);
 export type MechanicKey = (typeof MECHANICS)[number]["key"];

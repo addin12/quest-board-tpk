@@ -205,7 +205,7 @@ ${SIGN}`,
   };
 }
 
-/** Sent once, a few days before a repeating game stops being listed: one press of Extend on the account page keeps it. */
+/** Sent once, a few days before an on-request game stops being listed: one press of Extend on the account page keeps it. */
 export function expiringMail(to: string, title: string, expiresAt: string, siteUrl: string): Mail {
   const where = `${siteUrl.replace(/\/$/, "")}/en/account/`;
   const t = clip(title, 120);
@@ -214,8 +214,8 @@ export function expiringMail(to: string, title: string, expiresAt: string, siteU
     kind: "notice",
     subject: `Still running “${t}”? / Masih berjalan? “${t}”`,
     body:
-      `Hi,\n\n“${t}” stops being listed on Quest Board on ${formatDay(expiresAt, "en", "WIB")}. If it is still running, sign in at ${where} and press Extend: it stays listed 30 days longer. If it has ended, you do not need to do anything.\n\n${SIGN}\n\n* * *\n\n` +
-      `Halo,\n\n“${t}” berhenti ditampilkan di Quest Board pada ${formatDay(expiresAt, "id", "WIB")}. Kalau masih berjalan, masuk di ${where} lalu tekan Perpanjang: tampil 30 hari lebih lama. Kalau sudah selesai, kamu tidak perlu berbuat apa-apa.\n\n${SIGN}`,
+      `Hi,\n\n“${t}” stops being listed on Quest Board on ${formatDay(expiresAt, "en", "WIB")}. If you still run it, sign in at ${where} and press Extend: it stays listed 30 days longer. If it has ended, you do not need to do anything.\n\n${SIGN}\n\n* * *\n\n` +
+      `Halo,\n\n“${t}” berhenti ditampilkan di Quest Board pada ${formatDay(expiresAt, "id", "WIB")}. Kalau masih kamu jalankan, masuk di ${where} lalu tekan Perpanjang: tampil 30 hari lebih lama. Kalau sudah selesai, kamu tidak perlu berbuat apa-apa.\n\n${SIGN}`,
   };
 }
 

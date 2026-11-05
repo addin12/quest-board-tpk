@@ -4,7 +4,7 @@
       "id": "m1satria0",
       "slug": "satria-wijaya-101",
       "name": "Satria Wijaya",
-      "city": "Jakarta",
+      "city": "Jakarta Selatan",
       "whatsapp": "628110000010",
       "discord": "satria.rolls",
       "instagram": "satria.rolls",
@@ -68,7 +68,7 @@
       "id": "m1reza000",
       "slug": "reza-hakim-105",
       "name": "Reza Hakim",
-      "city": "Jakarta",
+      "city": "Jakarta Selatan",
       "whatsapp": "628110000014",
       "discord": "reza_hakim",
       "instagram": "rezahakim.gm",
@@ -116,7 +116,7 @@
       "id": "m1intan00",
       "slug": "intan-permata-108",
       "name": "Intan Permata",
-      "city": "Jakarta",
+      "city": "Jakarta Selatan",
       "whatsapp": "628110000017",
       "discord": "intan_p",
       "instagram": "intan.permata.rpg",
@@ -141,7 +141,7 @@
       "format": "one_shot",
       "locationType": "in_person",
       "platform": "",
-      "city": "Jakarta",
+      "city": "Jakarta Selatan",
       "venueName": "Dice & Brew, Kemang",
       "venueMapsUrl": "https://maps.app.goo.gl/QA01Devkuilte",
       "startsAt": "2026-10-09T11:00:00.000Z",
@@ -176,7 +176,10 @@
         "lines-veils"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [
+        "Jakarta Selatan"
+      ],
+      "onDemand": false
     },
     {
       "id": "g102pasar",
@@ -225,7 +228,10 @@
         "session-zero"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [
+        "Bogor"
+      ],
+      "onDemand": false
     },
     {
       "id": "g103waris",
@@ -272,7 +278,10 @@
         "x-card"
       ],
       "noWarnings": true,
-      "repeatDays": 7
+      "cities": [
+        "Depok"
+      ],
+      "onDemand": false
     },
     {
       "id": "g104turna",
@@ -324,7 +333,8 @@
         "lines-veils"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g105hutan",
@@ -371,7 +381,10 @@
         "session-zero"
       ],
       "noWarnings": true,
-      "repeatDays": 0
+      "cities": [
+        "Depok"
+      ],
+      "onDemand": false
     },
     {
       "id": "g106kapal",
@@ -423,7 +436,8 @@
         "x-card"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g107kasti",
@@ -471,7 +485,10 @@
         "lines-veils"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [
+        "Bekasi"
+      ],
+      "onDemand": false
     },
     {
       "id": "g108guana",
@@ -522,7 +539,8 @@
         "session-zero"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g109pasuk",
@@ -569,7 +587,10 @@
         "x-card"
       ],
       "noWarnings": true,
-      "repeatDays": 7
+      "cities": [
+        "Bekasi"
+      ],
+      "onDemand": false
     },
     {
       "id": "g110misip",
@@ -619,7 +640,10 @@
         "lines-veils"
       ],
       "noWarnings": true,
-      "repeatDays": 0
+      "cities": [
+        "Bogor"
+      ],
+      "onDemand": false
     },
     {
       "id": "g111lelan",
@@ -669,7 +693,8 @@
         "session-zero"
       ],
       "noWarnings": true,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g112festi",
@@ -716,7 +741,10 @@
         "x-card"
       ],
       "noWarnings": true,
-      "repeatDays": 0
+      "cities": [
+        "Depok"
+      ],
+      "onDemand": false
     },
     {
       "id": "g113bayan",
@@ -765,7 +793,8 @@
         "lines-veils"
       ],
       "noWarnings": true,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g114penge",
@@ -814,7 +843,8 @@
         "session-zero"
       ],
       "noWarnings": true,
-      "repeatDays": 7
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g115duelp",
@@ -827,7 +857,7 @@
       "format": "one_shot",
       "locationType": "in_person",
       "platform": "",
-      "city": "Jakarta",
+      "city": "Jakarta Selatan",
       "venueName": "Teater Kecil, Cikini",
       "venueMapsUrl": "https://maps.app.goo.gl/QA15Devduelpa",
       "startsAt": "2026-10-22T12:00:00.000Z",
@@ -859,7 +889,10 @@
         "x-card"
       ],
       "noWarnings": true,
-      "repeatDays": 0
+      "cities": [
+        "Jakarta Selatan"
+      ],
+      "onDemand": false
     },
     {
       "id": "g116miste",
@@ -909,7 +942,8 @@
         "lines-veils"
       ],
       "noWarnings": true,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g117kotad",
@@ -959,7 +993,8 @@
         "session-zero"
       ],
       "noWarnings": true,
-      "repeatDays": 7
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g118bandi",
@@ -1010,7 +1045,8 @@
         "x-card"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g119rerun",
@@ -1058,7 +1094,10 @@
         "lines-veils"
       ],
       "noWarnings": true,
-      "repeatDays": 0
+      "cities": [
+        "Tangerang Selatan"
+      ],
+      "onDemand": false
     },
     {
       "id": "g120rapat",
@@ -1109,7 +1148,8 @@
         "session-zero"
       ],
       "noWarnings": true,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g121perbu",
@@ -1159,7 +1199,8 @@
         "x-card"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g122surat",
@@ -1210,7 +1251,10 @@
         "lines-veils"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [
+        "Tangerang Selatan"
+      ],
+      "onDemand": false
     },
     {
       "id": "g123pamer",
@@ -1223,7 +1267,7 @@
       "format": "one_shot",
       "locationType": "in_person",
       "platform": "",
-      "city": "Jakarta",
+      "city": "Jakarta Selatan",
       "venueName": "Galeri Kopi Tengah, Menteng",
       "venueMapsUrl": "https://maps.app.goo.gl/QA23Devpamera",
       "startsAt": "2026-10-14T12:00:00.000Z",
@@ -1258,7 +1302,10 @@
         "session-zero"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [
+        "Jakarta Selatan"
+      ],
+      "onDemand": false
     },
     {
       "id": "g124keret",
@@ -1310,7 +1357,8 @@
         "x-card"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g125perpu",
@@ -1362,7 +1410,8 @@
         "lines-veils"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g126hotel",
@@ -1375,7 +1424,7 @@
       "format": "one_shot",
       "locationType": "in_person",
       "platform": "",
-      "city": "Jakarta",
+      "city": "Jakarta Selatan",
       "venueName": "Hotel Lama Menteng",
       "venueMapsUrl": "https://maps.app.goo.gl/QA26Devhotelt",
       "startsAt": "2026-10-29T12:00:00.000Z",
@@ -1412,7 +1461,10 @@
         "session-zero"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [
+        "Jakarta Selatan"
+      ],
+      "onDemand": false
     }
   ]
 }

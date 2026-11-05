@@ -6,7 +6,6 @@ import type { Ctx } from "./auth.ts";
 import type { GameRow, ProfileRow } from "./store.ts";
 import { DAY_MS, iso, parseList } from "./util.ts";
 import { isGoogleMapsUrl } from "../../src/lib/public-data.ts";
-import { nextSession } from "../../src/lib/repeat.ts";
 import type { RawPublicData } from "../../src/lib/types.ts";
 
 /** How long the address of a listing that is no longer live keeps its "no longer listed" page. */
@@ -19,9 +18,7 @@ export async function buildPublic(ctx: Ctx): Promise<RawPublicData> {
 
   const current = profiles.filter((p) => p.status === "approved" && p.name && p.whatsapp && p.consent === 1); // a profile without a number cannot be reached, so it is not listed
   const currentIds = new Set(current.map((p) => p.id));
-  // A repeating game shows its NEXT session (ADR-51); once no session is left before its listing runs out it is no longer live.
-  const next = (g: GameRow) => nextSession(Date.parse(g.starts_at), g.repeat_days, now);
-  const live = games.filter((g) => g.removed === 0 && g.status === "approved" && g.consent === 1 && g.title && g.starts_at && Date.parse(g.expires_at) > now && currentIds.has(g.profile_id) && next(g) < Date.parse(g.expires_at));
+  const live = games.filter((g) => g.removed === 0 && g.status === "approved" && g.consent === 1 && g.title && g.starts_at && Date.parse(g.expires_at) > now && currentIds.has(g.profile_id));
   const liveIds = new Set(live.map((g) => g.id));
   const cutoff = now - TOMBSTONE_DAYS * DAY_MS;
   const gone = <T extends { id: string; slug: string; was_live: number; gone_at: string }>(rows: T[], liveSet: Set<string>, anchor: (r: T) => string) =>
@@ -32,10 +29,11 @@ export async function buildPublic(ctx: Ctx): Promise<RawPublicData> {
     gms: current.map((p) => ({ id: p.id, slug: p.slug, name: p.name, bio: p.bio, city: p.city, systems: parseList(p.systems), photoId: p.photo_key, joinedAt: p.created_at, discord: p.discord, instagram: p.instagram })),
     games: live.map((g) => ({
       id: g.id, slug: g.slug, gmId: g.profile_id, title: g.title, system: g.system, summary: g.summary, description: g.description, format: g.format, locationType: g.location_type,
-      platform: g.platform, city: g.city, venueName: g.venue_name, venueMapsUrl: isGoogleMapsUrl(g.venue_maps_raw) ? g.venue_maps_raw : "", startsAt: iso(next(g)), zone: g.zone,
+      platform: g.platform, city: g.city, venueName: g.venue_name, venueMapsUrl: isGoogleMapsUrl(g.venue_maps_raw) ? g.venue_maps_raw : "", startsAt: g.starts_at, zone: g.zone,
       scheduleNote: g.schedule_note, expiresAt: g.expires_at, priceIdr: g.price_idr, seats: g.seats, language: g.language, level: g.level, minAge: g.min_age,
       contentWarnings: g.content_warnings, safetyTools: g.safety_tools, genres: parseList(g.genres), styles: parseList(g.styles), mechanics: parseList(g.mechanics), coverId: g.cover_key, full: g.full === 1,
-      sessionHours: g.session_hours, characters: g.characters, needs: parseList(g.needs), safetyKeys: parseList(g.safety_keys), noWarnings: g.no_warnings === 1, repeatDays: g.repeat_days,
+      sessionHours: g.session_hours, characters: g.characters, needs: parseList(g.needs), safetyKeys: parseList(g.safety_keys), noWarnings: g.no_warnings === 1, onDemand: g.on_demand === 1,
+      cities: parseList(g.cities).length ? parseList(g.cities) : g.city ? [g.city] : [],
       listedAt: g.reviewed_at || g.created_at, updatedAt: g.updated_at,
     })),
     goneGames: gone(games, liveIds, (g) => g.expires_at),

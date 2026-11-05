@@ -51,13 +51,23 @@ test("a game can be added to a calendar (a .ics file made in the browser) and pa
   expect(href, "no Game Master phone number goes into a share link").not.toContain("62811");
 });
 
-test("a campaign that meets every week says so on its page, and its calendar file is a weekly series", async ({ page }) => {
-  await page.goto("/en/games/panen-harapan-0p01/");
-  await expect(page.getByTestId("repeats")).toHaveText("Repeats every week");
-  const [download] = await Promise.all([page.waitForEvent("download"), page.getByTestId("add-to-calendar").click()]);
-  const chunks: Buffer[] = [];
-  for await (const c of await download.createReadStream()) chunks.push(c as Buffer);
-  expect(Buffer.concat(chunks).toString("utf8")).toMatch(/RRULE:FREQ=WEEKLY;INTERVAL=1;UNTIL=\d{8}T\d{6}Z/);
+test("a game on request says so instead of a date, has no calendar file, and has its own filter", async ({ page }) => {
+  await page.goto("/en/games/abomination-vaults-0a01/");
+  await expect(page.getByTestId("on-request")).toContainText("On request");
+  await expect(page.getByTestId("add-to-calendar")).toHaveCount(0);
+  await expect(page.getByTestId("share-whatsapp")).toBeVisible();
+  await page.goto("/en/games/?request=1");
+  await expect(page.getByTestId("games-list").getByRole("listitem")).toHaveCount(1);
+  await expect(page.getByTestId("games-list")).toContainText("Abomination Vaults");
+});
+
+test("an in-person game in several places lists them all, and the home page's four ways in are round marks with their counts", async ({ page }) => {
+  await page.goto("/en/games/naga-naga-hutan-bara-0n01/");
+  await expect(page.getByRole("main")).toContainText("Jakarta Selatan, Jakarta Barat");
+  await page.goto("/en/");
+  const ways = page.getByTestId("browse-gateway").getByRole("link");
+  await expect(ways).toHaveCount(4);
+  await expect(ways.first()).toContainText("All 143 game systems");
 });
 
 test("the search on the home page leads to the games that match", async ({ page }) => {

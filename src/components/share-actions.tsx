@@ -13,7 +13,7 @@ import { useI18n } from "./i18n-provider";
  * Two small things a player does with a game they like: put the first session in their calendar (a .ics file made right here: no account, nothing sent anywhere)
  * and pass the game on to a friend on WhatsApp. The link is the game's own page, which is what a link preview reads.
  */
-export function ShareActions({ game }: { game: Pick<SiteGame, "id" | "slug" | "title" | "summary" | "startsAt" | "expiresAt" | "repeatDays" | "zone" | "sessionHours" | "locationType" | "venueName" | "city" | "platform"> }) {
+export function ShareActions({ game }: { game: Pick<SiteGame, "id" | "slug" | "title" | "summary" | "startsAt" | "onDemand" | "zone" | "sessionHours" | "locationType" | "venueName" | "city" | "cities" | "platform"> }) {
   const { t, lang } = useI18n();
   const [copied, setCopied] = useState(false);
   const url = `${SITE_URL}${paths.game(lang, game.slug)}`;
@@ -39,10 +39,11 @@ export function ShareActions({ game }: { game: Pick<SiteGame, "id" | "slug" | "t
     }
   }
 
-  const text = t("game.shareText", { title: game.title, when: formatWhen(game.startsAt, lang, game.zone), url });
+  const text = t("game.shareText", { title: game.title, when: game.onDemand ? t("game.onRequest") : formatWhen(game.startsAt, lang, game.zone), url });
   return (
     <div className="mt-[var(--space-md)] flex flex-wrap gap-[var(--space-sm)]" data-testid="share-actions">
-      <button type="button" onClick={addToCalendar} className="btn btn-soft" data-testid="add-to-calendar"><Icon name="calendar" /> {t("game.addCalendar")}</button>
+      {/* a game on request has no session to put in a calendar */}
+      {!game.onDemand && <button type="button" onClick={addToCalendar} className="btn btn-soft" data-testid="add-to-calendar"><Icon name="calendar" /> {t("game.addCalendar")}</button>}
       <a href={`https://wa.me/?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener noreferrer" className="btn btn-soft" data-testid="share-whatsapp"><Icon name="whatsapp" /> {t("game.shareWhatsApp")} <span className="sr-only">{t("a11y.opensNewTab")}</span></a>
       <button type="button" onClick={copy} className="btn btn-soft" data-testid="copy-link"><Icon name={copied ? "check" : "copy"} /> {copied ? t("common.copied") : t("game.copyLink")}</button>
     </div>

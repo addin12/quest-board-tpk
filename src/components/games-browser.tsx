@@ -111,6 +111,7 @@ export function GamesBrowser({ games: built }: { games: GameView[] }) {
     { label: t("level.beginner"), on: filters.level === "beginner", toggle: () => set({ level: filters.level === "beginner" ? "" : "beginner" }) },
     { label: t("games.chipWeekend"), on: filters.weekend, toggle: () => set({ weekend: !filters.weekend }) },
     { label: t("games.chipNew"), on: filters.fresh, toggle: () => set({ fresh: !filters.fresh }) },
+    { label: t("games.chipOnRequest"), on: filters.onRequest, toggle: () => set({ onRequest: !filters.onRequest }) },
     { label: t("games.chipFree"), on: filters.free, toggle: () => set({ free: !filters.free }) },
   ];
   const ready = now !== null;

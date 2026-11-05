@@ -3,7 +3,7 @@
 import { listAdmins, type Ctx } from "./auth.ts";
 import { exec, many, one } from "./db.ts";
 import { expiringMail, reviewDigestMail } from "./email.ts";
-import { NUDGE_BEFORE_DAYS } from "../../src/lib/repeat.ts";
+import { NUDGE_BEFORE_DAYS } from "../../src/lib/on-demand.ts";
 import { DAY_MS, iso, metaGet, metaSet } from "./util.ts";
 
 /** The daily job should leave a backup every 24 hours; this much silence means the timer or the backup is broken. */
@@ -19,7 +19,7 @@ export async function tellOwner(ctx: Ctx, subject: string, body: string): Promis
 }
 
 /**
- * One email to the Game Master of a repeating game that stops being listed within NUDGE_BEFORE_DAYS, so a running campaign does not vanish by surprise. The note
+ * One email to the Game Master of an on-request game that stops being listed within NUDGE_BEFORE_DAYS, so a game they still run does not vanish by surprise. The note
  * that it was sent is made first (a dead relay is not tried every minute); Extend clears it. A few at a time; best effort, nothing here can fail the tick.
  */
 export async function nudgeExpiring(ctx: Ctx): Promise<void> {
@@ -27,7 +27,7 @@ export async function nudgeExpiring(ctx: Ctx): Promise<void> {
     const now = ctx.now();
     const due = await many<{ id: string; title: string; expires_at: string; email: string }>(
       ctx.db,
-      "SELECT g.id, g.title, g.expires_at, a.email FROM games g JOIN profiles p ON p.id = g.profile_id JOIN accounts a ON a.id = p.account_id WHERE g.removed = 0 AND g.status = 'approved' AND g.repeat_days > 0 AND g.nudged_at = '' AND g.expires_at > ? AND g.expires_at < ? LIMIT 5",
+      "SELECT g.id, g.title, g.expires_at, a.email FROM games g JOIN profiles p ON p.id = g.profile_id JOIN accounts a ON a.id = p.account_id WHERE g.removed = 0 AND g.status = 'approved' AND g.on_demand = 1 AND g.nudged_at = '' AND g.expires_at > ? AND g.expires_at < ? LIMIT 5",
       iso(now), iso(now + NUDGE_BEFORE_DAYS * DAY_MS),
     );
     for (const g of due) {

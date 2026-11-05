@@ -28,7 +28,7 @@
       "id": "m0dewi001",
       "slug": "dewi-lestari-0d01",
       "name": "Dewi Lestari",
-      "city": "Jakarta",
+      "city": "Jakarta Selatan",
       "whatsapp": "62811000000002",
       "discord": "",
       "photoId": "local:/images/gms/dewi.svg",
@@ -120,7 +120,10 @@
         "lines-veils"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [
+        "Depok"
+      ],
+      "onDemand": false
     },
     {
       "id": "g0darah001",
@@ -172,7 +175,8 @@
         "session-zero"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g0naga0001",
@@ -185,7 +189,7 @@
       "format": "campaign",
       "locationType": "in_person",
       "platform": "",
-      "city": "Jakarta",
+      "city": "Jakarta Selatan",
       "venueName": "Dadu & Dongeng Board Game Café",
       "venueMapsUrl": "https://maps.app.goo.gl/DaduDongeng",
       "startsAt": "2026-10-10T07:00:00.000Z",
@@ -220,7 +224,11 @@
         "x-card"
       ],
       "noWarnings": false,
-      "repeatDays": 7
+      "cities": [
+        "Jakarta Selatan",
+        "Jakarta Barat"
+      ],
+      "onDemand": false
     },
     {
       "id": "g0mahkota1",
@@ -272,7 +280,8 @@
         "lines-veils"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g0neonrun1",
@@ -321,7 +330,8 @@
         "session-zero"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g0doskvol1",
@@ -374,7 +384,8 @@
         "x-card"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g0panen001",
@@ -421,7 +432,10 @@
         "lines-veils"
       ],
       "noWarnings": false,
-      "repeatDays": 7
+      "cities": [
+        "Bogor"
+      ],
+      "onDemand": false
     },
     {
       "id": "g0signal01",
@@ -473,7 +487,8 @@
         "session-zero"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g0starfal1",
@@ -523,7 +538,8 @@
         "x-card"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g0abomin01",
@@ -575,7 +591,8 @@
         "lines-veils"
       ],
       "noWarnings": false,
-      "repeatDays": 7
+      "cities": [],
+      "onDemand": true
     },
     {
       "id": "g0nimble01",
@@ -626,7 +643,8 @@
         "session-zero"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g0cairn001",
@@ -639,7 +657,7 @@
       "format": "one_shot",
       "locationType": "in_person",
       "platform": "",
-      "city": "Jakarta",
+      "city": "Jakarta Pusat",
       "venueName": "Dadu & Dongeng Board Game Café",
       "venueMapsUrl": "https://maps.app.goo.gl/DaduDongeng",
       "startsAt": "2026-10-19T07:00:00.000Z",
@@ -676,7 +694,10 @@
         "x-card"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [
+        "Jakarta Pusat"
+      ],
+      "onDemand": false
     },
     {
       "id": "g0shadow01",
@@ -728,7 +749,8 @@
         "lines-veils"
       ],
       "noWarnings": false,
-      "repeatDays": 7
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g0wuxia001",
@@ -778,7 +800,11 @@
         "session-zero"
       ],
       "noWarnings": true,
-      "repeatDays": 0
+      "cities": [
+        "Tangerang",
+        "Tangerang Selatan"
+      ],
+      "onDemand": false
     },
     {
       "id": "g0kultus01",
@@ -829,7 +855,8 @@
         "x-card"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g0fate0001",
@@ -882,7 +909,8 @@
         "lines-veils"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     },
     {
       "id": "g0hearts01",
@@ -930,7 +958,10 @@
         "session-zero"
       ],
       "noWarnings": false,
-      "repeatDays": 7
+      "cities": [
+        "Bekasi"
+      ],
+      "onDemand": false
     },
     {
       "id": "g0mork0001",
@@ -982,7 +1013,8 @@
         "x-card"
       ],
       "noWarnings": false,
-      "repeatDays": 0
+      "cities": [],
+      "onDemand": false
     }
   ]
 }

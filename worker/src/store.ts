@@ -6,7 +6,7 @@ import type { GameInput, ProfileInput } from "./rules.ts";
 import type { GameRecord, GmRecord } from "../../src/lib/types.ts";
 import { isGoogleMapsUrl } from "../../src/lib/public-data.ts";
 import { scamSignals } from "../../src/lib/scam-signals.ts";
-import { EXTEND_DAYS } from "../../src/lib/repeat.ts";
+import { EXTEND_DAYS } from "../../src/lib/on-demand.ts";
 import { DAY_MS, eventStmt, iso, logEvent, metaGet, metaSet, parseList, randomId, slugify } from "./util.ts";
 
 export type ProfileRow = {
@@ -17,7 +17,7 @@ export type GameRow = {
   id: string; profile_id: string; slug: string; title: string; system: string; summary: string; description: string; format: GameRecord["format"]; location_type: GameRecord["locationType"];
   platform: string; city: string; venue_name: string; venue_maps_raw: string; starts_at: string; zone: GameRecord["zone"]; schedule_note: string; expires_at: string; price_idr: number; seats: number;
   language: GameRecord["language"]; level: GameRecord["level"]; min_age: number; content_warnings: string; safety_tools: string; genres: string; styles: string; mechanics: string; cover_key: string; consent: number;
-  session_hours: number; characters: GameRecord["characters"]; needs: string; safety_keys: string; no_warnings: number; repeat_days: number; nudged_at: string;
+  session_hours: number; characters: GameRecord["characters"]; needs: string; safety_keys: string; no_warnings: number; repeat_days: number; nudged_at: string; cities: string; on_demand: number;
   status: "pending" | "approved" | "rejected"; full: number; admin_note: string; reviewed_by: string; reviewed_at: string; reject_reason: string; was_live: number; gone_at: string;
   removed: number; created_at: string; updated_at: string; rowid?: number;
 };
@@ -56,7 +56,8 @@ export function gameRecord(g: GameRow, email: string): GameRecord {
     venueName: g.venue_name, venueMapsUrl: isGoogleMapsUrl(g.venue_maps_raw) ? g.venue_maps_raw : "", venueMapsRaw: g.venue_maps_raw, startsAt: g.starts_at, zone: g.zone,
     scheduleNote: g.schedule_note, expiresAt: g.expires_at, priceIdr: g.price_idr, seats: g.seats, language: g.language, level: g.level, minAge: g.min_age,
     contentWarnings: g.content_warnings, safetyTools: g.safety_tools, genres: parseList(g.genres), styles: parseList(g.styles), mechanics: parseList(g.mechanics), coverId: g.cover_key, consent: g.consent === 1,
-    sessionHours: g.session_hours, characters: g.characters, needs: parseList(g.needs), safetyKeys: parseList(g.safety_keys), noWarnings: g.no_warnings === 1, repeatDays: g.repeat_days,
+    sessionHours: g.session_hours, characters: g.characters, needs: parseList(g.needs), safetyKeys: parseList(g.safety_keys), noWarnings: g.no_warnings === 1,
+    cities: parseList(g.cities).length ? parseList(g.cities) : g.city ? [g.city] : [], onDemand: g.on_demand === 1,
   };
 }
 
@@ -147,10 +148,11 @@ export async function saveGame(ctx: Ctx, s: Session, gameId: string | null, inpu
   const p = await profileOf(ctx, s.accountId);
   if (!p) return { ok: false, error: "no_profile" };
   const now = iso(ctx.now());
-  const values = [input.title, input.system, input.summary, input.description, input.format, input.locationType, input.platform, input.city, input.venueName, input.venueMapsRaw, input.startsAt, input.zone,
-    input.scheduleNote, input.expiresAt, input.priceIdr, input.seats, input.language, input.level, input.minAge, input.contentWarnings, input.safetyTools, JSON.stringify(input.genres), JSON.stringify(input.styles), JSON.stringify(input.mechanics), input.coverKey,
-    input.sessionHours, input.characters, JSON.stringify(input.needs), JSON.stringify(input.safetyKeys), input.noWarnings ? 1 : 0, input.repeatDays];
-  const cols = "title, system, summary, description, format, location_type, platform, city, venue_name, venue_maps_raw, starts_at, zone, schedule_note, expires_at, price_idr, seats, language, level, min_age, content_warnings, safety_tools, genres, styles, mechanics, cover_key, session_hours, characters, needs, safety_keys, no_warnings, repeat_days";
+  // the columns in the order of `cols`
+  const valuesOf = (i: GameInput) => [i.title, i.system, i.summary, i.description, i.format, i.locationType, i.platform, i.city, i.venueName, i.venueMapsRaw, i.startsAt, i.zone,
+    i.scheduleNote, i.expiresAt, i.priceIdr, i.seats, i.language, i.level, i.minAge, i.contentWarnings, i.safetyTools, JSON.stringify(i.genres), JSON.stringify(i.styles), JSON.stringify(i.mechanics), i.coverKey,
+    i.sessionHours, i.characters, JSON.stringify(i.needs), JSON.stringify(i.safetyKeys), i.noWarnings ? 1 : 0, JSON.stringify(i.cities), i.onDemand ? 1 : 0];
+  const cols = "title, system, summary, description, format, location_type, platform, city, venue_name, venue_maps_raw, starts_at, zone, schedule_note, expires_at, price_idr, seats, language, level, min_age, content_warnings, safety_tools, genres, styles, mechanics, cover_key, session_hours, characters, needs, safety_keys, no_warnings, cities, on_demand";
   const held = needsLook(input.title, input.summary, input.description, input.venueName, input.scheduleNote, input.platform);
   if (gameId === null) {
     const open = await one<{ n: number }>(ctx.db, "SELECT COUNT(*) AS n FROM games WHERE profile_id = ? AND removed = 0", p.id);
@@ -160,36 +162,38 @@ export async function saveGame(ctx: Ctx, s: Session, gameId: string | null, inpu
     const id = randomId(9);
     const slug = `${slugify(input.title)}-${randomId(4)}`;
     const status = statusAfterSave(null, held, false);
-    await exec(ctx.db, `INSERT INTO games (id, profile_id, slug, ${cols}, consent, status, was_live, created_at, updated_at) VALUES (?, ?, ?, ${values.map(() => "?").join(", ")}, 1, ?, ?, ?, ?)`, id, p.id, slug, ...values, status, status === "approved" ? 1 : 0, now, now);
+    await exec(ctx.db, `INSERT INTO games (id, profile_id, slug, ${cols}, consent, status, was_live, created_at, updated_at) VALUES (?, ?, ?, ${valuesOf(input).map(() => "?").join(", ")}, 1, ?, ?, ?, ?)`, id, p.id, slug, ...valuesOf(input), status, status === "approved" ? 1 : 0, now, now);
     await logEvent(ctx.db, ctx.now(), "submitted", "game", id, input.title, status === "approved" ? "new game, live" : "new game, held for a look", s.email);
     if (status === "approved") await markDirty(ctx, true);
     return { ok: true, id, status, changed: true, dropped: [] };
   }
   const g = await one<GameRow>(ctx.db, "SELECT rowid, * FROM games WHERE id = ? AND profile_id = ? AND removed = 0", gameId, p.id);
   if (!g) return { ok: false, error: "not_found" };
+  // An on-request game keeps the dates it was listed with: saving it again must not move them (Extend does that, on purpose).
+  if (input.onDemand && g.on_demand === 1) input = { ...input, startsAt: g.starts_at, expiresAt: g.expires_at };
   const before = gameRecord(g, s.email);
   const unchanged = before.title === input.title && before.system === input.system && before.summary === input.summary && before.description === input.description && before.format === input.format &&
     before.locationType === input.locationType && before.platform === input.platform && before.city === input.city && before.venueName === input.venueName && before.venueMapsRaw === input.venueMapsRaw &&
     before.startsAt === input.startsAt && before.zone === input.zone && before.scheduleNote === input.scheduleNote && before.expiresAt === input.expiresAt && before.priceIdr === input.priceIdr &&
     before.seats === input.seats && before.language === input.language && before.level === input.level && before.minAge === input.minAge && before.contentWarnings === input.contentWarnings &&
     before.safetyTools === input.safetyTools && same(before.genres, input.genres) && same(before.styles, input.styles) && same(before.mechanics, input.mechanics) && before.coverId === input.coverKey &&
-    before.sessionHours === input.sessionHours && before.characters === input.characters && same(before.needs, input.needs) && same(before.safetyKeys, input.safetyKeys) && before.noWarnings === input.noWarnings && before.repeatDays === input.repeatDays;
+    before.sessionHours === input.sessionHours && before.characters === input.characters && same(before.needs, input.needs) && same(before.safetyKeys, input.safetyKeys) && before.noWarnings === input.noWarnings && same(before.cities, input.cities) && before.onDemand === input.onDemand;
   if (unchanged) return { ok: true, id: g.id, status: g.status, changed: false, dropped: [] };
   const status = statusAfterSave(g.status, held, g.reviewed_by !== "");
-  await exec(ctx.db, `UPDATE games SET ${cols.split(", ").map((c) => `${c} = ?`).join(", ")}, consent = 1, ${MOVE}, reject_reason = '', updated_at = ? WHERE id = ?`, ...values, status, status, status, now, now, g.id);
+  await exec(ctx.db, `UPDATE games SET ${cols.split(", ").map((c) => `${c} = ?`).join(", ")}, consent = 1, ${MOVE}, reject_reason = '', updated_at = ? WHERE id = ?`, ...valuesOf(input), status, status, status, now, now, g.id);
   await logEvent(ctx.db, ctx.now(), "edited", "game", g.id, input.title, `${g.status} → ${status}: the GM changed it`, s.email);
   if (g.status === "approved" || status === "approved") await markDirty(ctx, g.status !== "approved");
   return { ok: true, id: g.id, status, changed: true, dropped: g.cover_key && g.cover_key !== input.coverKey ? [g.cover_key] : [] };
 }
 
 /**
- * Keeps a repeating game listed 30 days longer (from today if its listing has already run out, which brings it back). A game that does not repeat has a date and is
- * done after it, so there is nothing to extend. The note that its Game Master was warned is cleared, so the next run-out is warned about too.
+ * Keeps an on-request game listed 30 days longer (from today if its listing has already run out, which brings it back). A game with a date is done after it, so
+ * there is nothing to extend. The note that its Game Master was warned is cleared, so the next run-out is warned about too.
  */
 export async function extendGame(ctx: Ctx, s: Session, gameId: string): Promise<{ ok: true; expiresAt: string } | { ok: false }> {
   const p = await profileOf(ctx, s.accountId);
   if (!p) return { ok: false };
-  const g = await one<GameRow>(ctx.db, "SELECT * FROM games WHERE id = ? AND profile_id = ? AND removed = 0 AND repeat_days > 0", gameId, p.id);
+  const g = await one<GameRow>(ctx.db, "SELECT * FROM games WHERE id = ? AND profile_id = ? AND removed = 0 AND on_demand = 1", gameId, p.id);
   if (!g) return { ok: false };
   const was = Date.parse(g.expires_at);
   const expiresAt = iso(Math.max(was, ctx.now()) + EXTEND_DAYS * DAY_MS);

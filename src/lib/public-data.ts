@@ -2,8 +2,7 @@
 // promised: a bad record is dropped with a warning (it never breaks the build or the page), and every
 // string is cut to a sane length. Pure module (explicit .ts imports: scripts/build-data.mjs runs it directly).
 import { ZONES, type GameLanguage, type Level, type RawGame, type RawGm, type RawPublicData, type Zone } from "./types.ts";
-import { CHARACTER_SOURCES, GENRES, MECHANICS, NEEDS, SAFETY_TOOLS, STYLES } from "./categories.ts";
-import { isRepeat } from "./repeat.ts";
+import { CHARACTER_SOURCES, GENRES, MAX_GENRES, MECHANICS, NEEDS, SAFETY_TOOLS, STYLES } from "./categories.ts";
 
 const GENRE_KEYS: readonly string[] = GENRES.map((g) => g.key);
 const STYLE_KEYS: readonly string[] = STYLES.map((s) => s.key);
@@ -108,6 +107,12 @@ function parseGm(raw: unknown, warn: (m: string) => void): RawGm | null {
   };
 }
 
+/** The places of a game: the list if there is one (plain names, at most ten), else the one city of an older record. */
+const placesOf = (v: unknown, city: string): string[] => {
+  const list = [...new Set((Array.isArray(v) ? v : []).map((x) => text(x, 60)).filter(Boolean))].slice(0, 10);
+  return list.length ? list : city ? [city] : [];
+};
+
 function parseGame(raw: unknown, gmIds: ReadonlySet<string>, warn: (m: string) => void): RawGame | null {
   const r = asRecord(raw);
   if (!r) return null;
@@ -138,9 +143,10 @@ function parseGame(raw: unknown, gmIds: ReadonlySet<string>, warn: (m: string) =
     format: r.format, locationType: r.locationType, platform: text(r.platform, 80), city: text(r.city, 60), venueName: text(r.venueName, 80), venueMapsUrl,
     startsAt, zone, scheduleNote: text(r.scheduleNote, 400, true), expiresAt, priceIdr, seats, language, level, minAge,
     contentWarnings: text(r.contentWarnings, 400, true), safetyTools: text(r.safetyTools, 200),
-    genres: pickKeys(r.genres, GENRE_KEYS), styles: pickKeys(r.styles, STYLE_KEYS), mechanics: pickKeys(r.mechanics, MECHANIC_KEYS),
+    genres: pickKeys(r.genres, GENRE_KEYS, MAX_GENRES), styles: pickKeys(r.styles, STYLE_KEYS), mechanics: pickKeys(r.mechanics, MECHANIC_KEYS),
     sessionHours: intIn(r.sessionHours, 1, 12) ?? 0, characters: (CHARACTER_SOURCES as readonly unknown[]).includes(r.characters) ? (r.characters as RawGame["characters"]) : "",
-    needs: pickKeys(r.needs, NEED_KEYS, NEED_KEYS.length), safetyKeys: pickKeys(r.safetyKeys, SAFETY_KEYS, SAFETY_KEYS.length), noWarnings: r.noWarnings === true, repeatDays: isRepeat(r.repeatDays) ? r.repeatDays : 0,
+    needs: pickKeys(r.needs, NEED_KEYS, NEED_KEYS.length), safetyKeys: pickKeys(r.safetyKeys, SAFETY_KEYS, SAFETY_KEYS.length), noWarnings: r.noWarnings === true, onDemand: r.onDemand === true,
+    cities: placesOf(r.cities, text(r.city, 60)),
     updatedAt: isoOrNull(r.updatedAt) ?? isoOrNull(r.listedAt) ?? startsAt,
     coverId: typeof r.coverId === "string" && PICTURE.test(r.coverId) ? r.coverId : "", full: r.full === true, listedAt: isoOrNull(r.listedAt) ?? startsAt,
   };

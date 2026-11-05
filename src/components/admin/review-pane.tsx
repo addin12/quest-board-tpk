@@ -314,7 +314,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function GameDetails({ rec, t, lang }: { rec: GameRecord; t: T; lang: Lang }) {
   return (
     <dl className="space-y-2 text-sm" data-testid="game-details">
-      <Field label={t("game.when")}>{rec.startsAt ? formatWhen(rec.startsAt, lang, rec.zone) : "–"}</Field>
+      <Field label={t("game.when")}>{rec.onDemand ? t("game.onRequest") : rec.startsAt ? formatWhen(rec.startsAt, lang, rec.zone) : "–"}</Field>
       <Field label={t("game.where")}>{whereLabel(rec, t) || "–"}{rec.venueMapsUrl && <> · <a className="underline" href={rec.venueMapsUrl} target="_blank" rel="noopener noreferrer">{t("game.openMaps")}</a></>}</Field>
       <Field label={t("game.format")}>{t(rec.format === "campaign" ? "format.campaign" : "format.one_shot")} · {t("common.seats", { n: rec.seats })}</Field>
       <Field label={t("game.price")}>{priceLabel(rec.priceIdr, t)}</Field>

@@ -66,7 +66,7 @@ function loadDemo(w: World) {
   for (const g of built.games) {
     db.prepare("INSERT INTO games (id, profile_id, slug, title, system, summary, description, format, location_type, platform, city, venue_name, venue_maps_raw, starts_at, zone, schedule_note, expires_at, price_idr, seats, language, level, min_age, content_warnings, safety_tools, genres, styles, mechanics, cover_key, session_hours, characters, needs, safety_keys, no_warnings, consent, status, full, was_live, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 'approved', ?, 1, ?, ?)")
       .run(g.id, g.gmId, g.slug, g.title, g.system, g.summary, g.description, g.format, g.locationType, g.platform, g.city, g.venueName, g.venueMapsUrl, g.startsAt, g.zone, g.scheduleNote, g.expiresAt, g.priceIdr, g.seats, g.language, g.level, g.minAge, g.contentWarnings, g.safetyTools, JSON.stringify(g.genres), JSON.stringify(g.styles), JSON.stringify(g.mechanics), g.coverKey ?? "", g.sessionHours, g.characters, JSON.stringify(g.needs), JSON.stringify(g.safetyKeys), g.noWarnings ? 1 : 0, g.full ? 1 : 0, at, at);
-    if (g.repeatDays) db.prepare("UPDATE games SET repeat_days = ? WHERE id = ?").run(g.repeatDays, g.id);
+    db.prepare("UPDATE games SET cities = ?, on_demand = ? WHERE id = ?").run(JSON.stringify(g.cities ?? []), g.onDemand ? 1 : 0, g.id);
   }
 }
 

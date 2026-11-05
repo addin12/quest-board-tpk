@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { call, type Me } from "@/lib/account-api";
 import { formatWhen } from "@/lib/format";
-import { nextSession, repeatLabelKey } from "@/lib/repeat";
 import { paths } from "@/lib/hrefs";
 import type { MsgKey } from "@/lib/i18n/core";
 import type { GameRecord, GmRecord } from "@/lib/types";
@@ -24,12 +23,6 @@ function when(iso: string, lang: Parameters<typeof formatWhen>[1], zone: GameRec
   } catch {
     return "-";
   }
-}
-
-/** The session a player would come to: for a repeating game the next one, not the first. A row whose date cannot be read is given back as it is. */
-function nextIso(g: Pick<GameRecord, "startsAt" | "repeatDays">, nowMs: number): string {
-  const t = Date.parse(g.startsAt);
-  return Number.isNaN(t) ? g.startsAt : new Date(nextSession(t, g.repeatDays, nowMs)).toISOString();
 }
 
 const STATUS_CLASS = { pending: "", approved: "bg-success-soft! text-ink!", rejected: "bg-danger-soft! text-ink!" } as const;
@@ -154,8 +147,8 @@ export function AccountApp() {
         {!profile ? (
           <p className="lead mt-[var(--space-md)]">{t("acct.profileFirst")}</p>
         ) : editing ? (
-          <div className="mt-[var(--space-lg)] max-w-3xl">
-            <h3 className="mb-[var(--space-lg)]">{editing === "new" ? t("acct.gameTitleNew") : editing.title}</h3>
+          <div className="mx-auto mt-[var(--space-lg)] w-full max-w-2xl">
+            <h3 className="mb-[var(--space-lg)] text-center">{editing === "new" ? t("acct.gameTitleNew") : editing.title}</h3>
             <GameForm game={editing === "new" ? null : editing} onSaved={after} onCancel={() => setEditing(null)} />
           </div>
         ) : (
@@ -172,8 +165,8 @@ export function AccountApp() {
                       <Status status={g.status} />
                       {g.full && <span className="chip chip-spot">{t("game.full")}</span>}
                     </p>
-                    <p className="text-ink-2">{`${g.system}, ${when(nextIso(g, now), lang, g.zone)}`}{g.repeatDays > 0 && ` · ${t(repeatLabelKey(g.repeatDays))}`}</p>
-                    {g.repeatDays > 0 && <p className="text-sm text-muted">{t("game.listedUntil", { date: when(g.expiresAt, lang, g.zone).replace(/, \d{2}\.\d{2} \w+$/, "") })}</p>}
+                    <p className="text-ink-2">{`${g.system}, ${g.onDemand ? t("game.onRequest") : when(g.startsAt, lang, g.zone)}`}</p>
+                    {g.onDemand && <p className="text-sm text-muted">{t("game.listedUntil", { date: when(g.expiresAt, lang, g.zone).replace(/, \d{2}\.\d{2} \w+$/, "") })}</p>}
                     {g.status === "rejected" && g.rejectReason && <p className="font-medium text-danger">{t("acct.reason", { reason: g.rejectReason })}</p>}
                     {confirm === g.id ? (
                       <div className="flex flex-wrap items-center gap-[var(--space-lg)]" role="alert">
@@ -184,7 +177,7 @@ export function AccountApp() {
                     ) : (
                       <div className="flex flex-wrap items-center gap-[var(--space-lg)]">
                         <button type="button" className="btn btn-secondary" onClick={() => { setMessage(""); setEditing(g); }}>{t("acct.editGame")}</button>
-                        {g.repeatDays > 0 && Date.parse(g.expiresAt) - now < 14 * 86_400_000 && (
+                        {g.onDemand && Date.parse(g.expiresAt) - now < 14 * 86_400_000 && (
                           <button type="button" className="btn btn-secondary" onClick={() => act(() => call("POST", `/games/${g.id}/extend`), t("acct.extended"))} data-testid="extend">{t("acct.extend")}</button>
                         )}
                         <button type="button" className="btn btn-secondary" onClick={() => act(() => call("POST", `/games/${g.id}/full`, { full: !g.full }), t("acct.savedFull"))}>{g.full ? t("acct.reopen") : t("acct.markFull")}</button>

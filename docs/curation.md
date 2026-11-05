@@ -30,7 +30,7 @@ account is not an admin, ask the owner to add your email under **Admins**.
 ## What Game Masters do themselves
 
 A Game Master signs in at `/en/account/` with an emailed link (one email is one account). They add and change their profile and games (a profile may add
-10 games a day and have 30 open), **mark a game full**, make a game **repeat** (every week, 2 weeks or 4 weeks: players see the next session; it stays listed 90 days and they **extend** it with one press, after one email three days before it runs out), **remove** a game and **erase their account** with all their data and pictures: all of it live at once.
+10 games a day and have 30 open), **mark a game full**, list a game **on request** (no fixed date: players see "On request" and message them; it stays listed 90 days and they **extend** it with one press, after one email three days before it runs out), list an in-person game in **several places**, **remove** a game and **erase their account** with all their data and pictures: all of it live at once.
 Every page that lists games (home, the games list, the systems, genres, styles and mechanics pages, the Game Master pages and list) reads the live data every minute, so a change shows within
 about a minute; the static copy for search engines is rebuilt later (up to 2 hours, 10 minutes after a new listing).
 

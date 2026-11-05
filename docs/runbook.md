@@ -121,7 +121,7 @@ Apps Script allows about 100 emails a day on a free Gmail account and the relay 
 |---|---|---|
 | sign-in | 40 | the one-time links (counted when the link is asked for, so the visitor is told to try later) |
 | decision | 20 | approved, not approved, merge requests; one that does not go is reported to the admin ("N decision email(s) could not be sent") |
-| notice | 20 | the review digest to the owner and each admin, and the "still running?" warning to a Game Master whose repeating game is about to run out (at most 5 a minute) |
+| notice | 20 | the review digest to the owner and each admin, and the "still running?" warning to a Game Master whose game on request is about to run out (at most 5 a minute) |
 | system | 10 | backup, publishing and expiry warnings to the owner or an inactive account |
 
 `GET /api/health` shows `lastMailError`; `mail_budget_<kind>` there means that kind used its share. If the board outgrows 90 a day, move

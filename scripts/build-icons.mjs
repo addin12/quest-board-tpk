@@ -12,7 +12,8 @@ const pkgDir = path.join(import.meta.dirname, "..", "node_modules", "@phosphor-i
 const outFile = path.join(import.meta.dirname, "..", "src", "components", "icon-data.ts");
 
 const entries = Object.entries(ICON_FILES).map(([name, file]) => {
-  const svg = readFileSync(path.join(pkgDir, "assets", "regular", `${file}.svg`), "utf8");
+  const [weight, base] = file.includes("/") ? file.split("/") : ["regular", file];
+  const svg = readFileSync(path.join(pkgDir, "assets", weight, `${base}.svg`), "utf8");
   const inner = /<svg[^>]*>([\s\S]*)<\/svg>/.exec(svg)?.[1]?.trim();
   if (!inner) throw new Error(`No outline found in ${file}.svg`);
   return `  ${JSON.stringify(name)}: ${JSON.stringify(inner)},`;

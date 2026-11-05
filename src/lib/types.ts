@@ -65,8 +65,10 @@ export type GameFields = {
   safetyKeys: string[];
   /** The Game Master says the game has nothing to warn about (the content warnings are then empty on purpose). */
   noWarnings: boolean;
-  /** 0 for a single session, or 7, 14 or 28: it meets again that many days after each session. `startsAt` of the public data is then the NEXT session (src/lib/repeat.ts). */
-  repeatDays: number;
+  /** Every place an in-person game can be played (one or more of AREAS, src/lib/areas.ts); empty online. `city` is the first of them. */
+  cities: string[];
+  /** No fixed date: the Game Master runs it when a group asks (ADR-52). `startsAt` is then only when it was listed and is never shown as a session. */
+  onDemand: boolean;
 };
 
 /** What a GM writes about themself and the public may read. The phone number is NOT here: it never travels with the public data (ADR-48). */

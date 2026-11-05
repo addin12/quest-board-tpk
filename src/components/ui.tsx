@@ -55,10 +55,16 @@ export function languageLabel(language: "id" | "en" | "both", t: T): string {
 }
 
 /** Where a game is played, as one line: the venue and city, "Online (Discord)", or just the city. */
-export function whereLabel(g: Pick<GameView, "locationType" | "platform" | "city" | "venueName">, t: T): string {
+/** The places of an in-person game, in the order the Game Master gave them ("Jakarta Selatan, Depok"). */
+export const placesLabel = (g: Pick<GameView, "city" | "cities">): string => (g.cities?.length ? g.cities : [g.city]).filter(Boolean).join(", ");
+
+export function whereLabel(g: Pick<GameView, "locationType" | "platform" | "city" | "cities" | "venueName">, t: T): string {
   if (g.locationType === "online") return g.platform ? t("game.online", { platform: g.platform }) : t("game.onlineNoPlatform");
-  return g.venueName ? `${g.venueName}, ${g.city}` : g.city;
+  return g.venueName ? `${g.venueName}, ${placesLabel(g)}` : placesLabel(g);
 }
+
+/** When a game is: its day, or "on request" for a game with no fixed date (ADR-52). */
+export const whenShort = (g: Pick<GameView, "startsAt" | "zone" | "onDemand">, lang: Lang, t: T): string => (g.onDemand ? t("game.onRequest") : formatShortDay(g.startsAt, lang, g.zone));
 
 /**
  * A game as a playbill: the cover, then a ruled label panel. `preview` draws it without a link (the admin page shows cards
@@ -69,7 +75,7 @@ export function whereLabel(g: Pick<GameView, "locationType" | "platform" | "city
 export function GameCard({ game, t, lang, preview = false, priority = false, headingLevel = 3, rowOnPhone = false }: { game: GameView; t: T; lang: Lang; preview?: boolean; priority?: boolean; headingLevel?: 2 | 3; rowOnPhone?: boolean }) {
   const Heading = headingLevel === 2 ? "h2" : "h3";
   const genre = game.genres.find(isGenre);
-  const whenText = formatShortDay(game.startsAt, lang, game.zone);
+  const whenText = whenShort(game, lang, t);
   const whereText = game.locationType === "online" ? t("loc.online") : whereLabel(game, t);
   const rows: [string, string][] = [
     [t("game.when"), whenText],
@@ -161,7 +167,7 @@ export function GameRow({ game, t, lang }: { game: GameView; t: T; lang: Lang })
       <div className="min-w-0 flex-1">
         <h3 className="bill-title">{game.title}</h3>
         <p className="mt-[var(--space-2xs)] font-medium">{game.system}</p>
-        <p className="mt-[var(--space-2xs)] text-muted">{`${formatShortDay(game.startsAt, lang, game.zone)}, ${game.locationType === "online" ? t("loc.online") : whereLabel(game, t)}`}</p>
+        <p className="mt-[var(--space-2xs)] text-muted">{`${whenShort(game, lang, t)}, ${game.locationType === "online" ? t("loc.online") : whereLabel(game, t)}`}</p>
       </div>
       <span className="shrink-0 text-right font-medium">{priceLabel(game.priceIdr, t)}</span>
     </Link>
@@ -198,8 +204,8 @@ export function Notice({ tone = "info", children }: { tone?: "info" | "success" 
 
 export function EmptyState({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
-    <div className="ruled flex flex-col items-start gap-[var(--space-md)] py-[var(--space-2xl)]">
-      <p className="font-display text-[length:var(--text-section)] leading-tight">{title}</p>
+    <div className="flex flex-col items-center gap-[var(--space-lg)] py-[var(--space-2xl)] text-center" data-testid="empty-state">
+      <p className="max-w-[36ch] text-balance font-display text-[length:var(--text-xl)] leading-snug text-ink-2">{title}</p>
       {children}
     </div>
   );

@@ -19,6 +19,8 @@ export type Filters = {
   weekend: boolean;
   /** Listed in the last seven days. */
   fresh: boolean;
+  /** Only games with no fixed date (ADR-52). */
+  onRequest: boolean;
   sort: SortKey;
   /** 1-based page of the list; not a filter, so it is not counted and any change to a filter sends the list back to page 1. */
   page: number;
@@ -36,7 +38,7 @@ export function pageList(page: number, pages: number): number[] {
   return keep.flatMap((n, i) => (i > 0 && n - keep[i - 1] > 1 ? [0, n] : [n]));
 }
 
-export const EMPTY_FILTERS: Filters = { q: "", system: "", genre: "", style: "", mechanic: "", format: "", where: "", level: "", language: "", free: false, weekend: false, fresh: false, sort: "soonest", page: 1 };
+export const EMPTY_FILTERS: Filters = { q: "", system: "", genre: "", style: "", mechanic: "", format: "", where: "", level: "", language: "", free: false, weekend: false, fresh: false, onRequest: false, sort: "soonest", page: 1 };
 
 const oneOf = <T extends string>(v: string | null, allowed: readonly T[], fallback: T): T => (allowed.includes(v as T) ? (v as T) : fallback);
 
@@ -56,6 +58,7 @@ export function parseFilters(search: string): Filters {
     free: p.get("free") === "1",
     weekend: p.get("weekend") === "1",
     fresh: p.get("new") === "1",
+    onRequest: p.get("request") === "1",
     sort: oneOf(p.get("sort"), ["soonest", "newest", "priceAsc"] as const, "soonest"),
     page: Math.min(Math.max(Math.trunc(Number(p.get("page"))) || 1, 1), 999),
   };
@@ -68,6 +71,7 @@ export function filtersToQuery(f: Filters): string {
   if (f.free) p.set("free", "1");
   if (f.weekend) p.set("weekend", "1");
   if (f.fresh) p.set("new", "1");
+  if (f.onRequest) p.set("request", "1");
   if (f.sort !== "soonest") p.set("sort", f.sort);
   if (f.page > 1) p.set("page", String(f.page));
   const s = p.toString();
@@ -76,7 +80,7 @@ export function filtersToQuery(f: Filters): string {
 
 /** How many filters are on (the sort doesn't count). */
 export function activeFilterCount(f: Filters): number {
-  return (["q", "system", "genre", "style", "mechanic", "format", "where", "level", "language"] as const).filter((k) => f[k]).length + (f.free ? 1 : 0) + (f.weekend ? 1 : 0) + (f.fresh ? 1 : 0);
+  return (["q", "system", "genre", "style", "mechanic", "format", "where", "level", "language"] as const).filter((k) => f[k]).length + (f.free ? 1 : 0) + (f.weekend ? 1 : 0) + (f.fresh ? 1 : 0) + (f.onRequest ? 1 : 0);
 }
 
 export type GameView = SiteGame & { gmName: string };
@@ -93,16 +97,17 @@ export { norm };
 function matchesText(g: GameView, q: string): boolean {
   const words = queryWords(q);
   if (words.length === 0) return true;
-  return matchesWords(searchText([g.title, g.system, g.summary, g.city, g.venueName, g.gmName, g.platform, g.format, g.locationType, ...g.genres, ...g.styles, ...g.mechanics].join(" ")), words);
+  return matchesWords(searchText([g.title, g.system, g.summary, g.city, ...g.cities, g.venueName, g.gmName, g.platform, g.format, g.locationType, ...g.genres, ...g.styles, ...g.mechanics].join(" ")), words);
 }
 
 export function sortGames<G extends GameView>(games: G[], sort: SortKey): G[] {
   const byStart = (a: G, b: G) => Date.parse(a.startsAt) - Date.parse(b.startsAt);
   const notFullFirst = (a: G, b: G) => Number(a.full) - Number(b.full); // a full game sinks, whatever the order
+  const datedFirst = (a: G, b: G) => Number(a.onDemand) - Number(b.onDemand); // soonest: games on request come after every dated one
   const copy = [...games];
   if (sort === "newest") return copy.sort((a, b) => notFullFirst(a, b) || Date.parse(b.listedAt) - Date.parse(a.listedAt) || byStart(a, b));
   if (sort === "priceAsc") return copy.sort((a, b) => notFullFirst(a, b) || a.priceIdr - b.priceIdr || byStart(a, b));
-  return copy.sort((a, b) => notFullFirst(a, b) || byStart(a, b)); // soonest first, full games last
+  return copy.sort((a, b) => notFullFirst(a, b) || datedFirst(a, b) || byStart(a, b)); // soonest first, on request after, full games last
 }
 
 export type Tile = { name: string; count: number; cover: string | null };
@@ -175,7 +180,8 @@ export function applyFilters<G extends GameView>(games: G[], f: Filters, nowMs: 
       (!f.level || g.level === f.level) &&
       (!f.language || g.language === f.language || g.language === "both") &&
       (!f.free || g.priceIdr === 0) &&
-      (!f.weekend || (Date.parse(g.startsAt) >= from && Date.parse(g.startsAt) < to)) &&
+      (!f.weekend || (!g.onDemand && Date.parse(g.startsAt) >= from && Date.parse(g.startsAt) < to)) &&
+      (!f.onRequest || g.onDemand) &&
       (!f.fresh || Date.parse(g.listedAt) >= nowMs - 7 * DAY),
     ),
     f.sort,

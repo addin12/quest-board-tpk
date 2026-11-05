@@ -242,7 +242,7 @@ The agent's wording; `{n}` and `{date}` are filled in by the site; `a|b` is sing
 | `game.copyLink` | Salin tautan | |
 | `game.shareText` | {title}, {when}. Lihat di Quest Board: {url} | |
 
-## A game that repeats (added 2026-11-05, ADR-51)
+## A game that repeats (added 2026-11-05, ADR-51; replaced by ADR-52: only the Extend rows and the email still apply)
 
 | Key | Indonesian now | Your correction |
 |---|---|---|
@@ -251,3 +251,19 @@ The agent's wording; `{n}` and `{date}` are filled in by the site; `a|b` is sing
 | `acct.f.repeatHint` | Kampanye yang bertemu berulang kali: pemain melihat sesi berikutnya, bukan yang pertama. Tampil 90 hari kecuali kamu mengisi tanggal di bawah; kamu bisa memperpanjangnya dari akunmu. | |
 | `acct.extend` / `acct.extended` | Perpanjang 30 hari / Diperpanjang: iklan tampil 30 hari lebih lama. | |
 | email "still running?" (Indonesian half) | Subjek: Masih berjalan? “…”. Isi: “…” berhenti ditampilkan di Quest Board pada {tanggal}. Kalau masih berjalan, masuk di {tautan} lalu tekan Perpanjang: tampil 30 hari lebih lama. Kalau sudah selesai, kamu tidak perlu berbuat apa-apa. | |
+
+## On request, places, the step-by-step form (added 2026-11-05, ADR-52)
+
+| Key | Indonesian now | Your correction |
+|---|---|---|
+| `game.onRequest` / `games.chipOnRequest` | Sesuai permintaan | |
+| `game.onRequestNote` | Tanpa tanggal tetap: kirim pesan ke Game Master untuk mengatur sesi. | |
+| message to the Game Master (game on request) | Halo {gm}, aku menemukan “{judul}” di Quest Board. Kapan kamu bisa menjalankannya untuk kami? | |
+| `acct.f.when` / `acct.f.onDate` / `acct.f.onRequest` | Kapan dimainkan? / Pada tanggal tertentu / Sesuai permintaan: tanpa tanggal tetap | |
+| `acct.f.onRequestHint` | Pemain mengirim pesan kepadamu untuk mengatur sesi. Iklan tampil 90 hari; kamu bisa memperpanjangnya dari akunmu. | |
+| `acct.f.places` / `acct.f.placesHint` | Tempat (game tatap muka) / Pilih semua tempat kamu bisa bermain. | |
+| `acct.f.genres` / `acct.f.styles` / `acct.f.mechanics` | Genre / Gaya bermain / Mekanik permainan | |
+| `acct.f.pickCount` | Pilih maksimal {max}: {n} dipilih. | |
+| `acct.step.game` / `when` / `players` / `safety` / `review` | Game-nya / Kapan dan di mana / Pemain / Keselamatan / Gambar dan periksa | |
+| `acct.stepOf` / `acct.stepsLabel` | Langkah {n} dari {total} / Langkah | |
+| `acct.next` / `acct.back` / `acct.edit` / `acct.review` | Lanjut / Kembali / Ubah / Periksa sebelum menyimpan | |

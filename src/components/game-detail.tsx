@@ -5,9 +5,8 @@ import { useEffect, ViewTransition } from "react";
 import { characterLabelKey, genreLabelKey, isGenre, isMechanic, isNeed, isSafetyTool, isStyle, mechanicLabelKey, needLabelKey, safetyToolLabelKey, styleLabelKey } from "@/lib/categories";
 import type { MsgKey } from "@/lib/i18n/core";
 import { contactMessage } from "@/lib/contact";
-import { formatDay, formatShortDay, formatWhen } from "@/lib/format";
+import { formatDay, formatWhen } from "@/lib/format";
 import { paths } from "@/lib/hrefs";
-import { repeatLabelKey } from "@/lib/repeat";
 import type { SiteGame, SiteGm } from "@/lib/types";
 import { ContactButtons } from "./contact-buttons";
 import { GoneNotice } from "./gone-notice";
@@ -15,7 +14,7 @@ import { useI18n } from "./i18n-provider";
 import { ReportButton } from "./report-button";
 import { ShareActions } from "./share-actions";
 import { StickyContact } from "./sticky-contact";
-import { Avatar, Cover, languageLabel, priceLabel, whereLabel } from "./ui";
+import { Avatar, Cover, languageLabel, placesLabel, priceLabel, whenShort, whereLabel } from "./ui";
 import { useLive } from "./use-live";
 
 /**
@@ -55,10 +54,10 @@ export function GameDetail({ slug, initial, onFound }: { slug: string; initial: 
   // `wide`: on a phone the facts sit two to a row; these take the whole row.
   const priceText = `${priceLabel(game.priceIdr, t)}${game.priceIdr > 0 ? ` ${t("common.perSeat")}` : ""}`;
   const facts: { label: string; value: React.ReactNode; wide?: boolean }[] = [
-    { label: t("game.when"), wide: true, value: <>{formatWhen(game.startsAt, lang, game.zone)}{game.repeatDays > 0 && <small data-testid="repeats">{t(repeatLabelKey(game.repeatDays))}</small>}</> },
+    { label: t("game.when"), wide: true, value: game.onDemand ? <span data-testid="on-request">{t("game.onRequest")}<small>{t("game.onRequestNote")}</small></span> : formatWhen(game.startsAt, lang, game.zone) },
     { label: t("game.where"), wide: true, value: (
       <>
-        {game.locationType === "online" ? whereLabel(game, t) : <>{game.venueName ? <span className="block">{game.venueName}</span> : null}{game.city}</>}
+        {game.locationType === "online" ? whereLabel(game, t) : <>{game.venueName ? <span className="block">{game.venueName}</span> : null}{placesLabel(game)}</>}
         {game.locationType === "in_person" && game.venueName && game.venueMapsUrl && (
           <small>
             <a href={game.venueMapsUrl} target="_blank" rel="noopener noreferrer nofollow" className="link-spot inline-flex min-h-11 items-center font-medium text-ink" data-testid="venue-maps">
@@ -193,7 +192,7 @@ export function GameDetail({ slug, initial, onFound }: { slug: string; initial: 
         </div>
       </div>
       {!game.full && (
-        <StickyContact gmId={gm.id} discord={gm.discord} instagram={gm.instagram} message={message} targetId="contact" price={priceText} when={formatShortDay(game.startsAt, lang, game.zone)} />
+        <StickyContact gmId={gm.id} discord={gm.discord} instagram={gm.instagram} message={message} targetId="contact" price={priceText} when={whenShort(game, lang, t)} />
       )}
     </article>
   );
