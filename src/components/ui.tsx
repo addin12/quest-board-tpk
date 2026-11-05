@@ -174,10 +174,11 @@ export function GameRow({ game, t, lang }: { game: GameView; t: T; lang: Lang })
   );
 }
 
-/** A GM as one row of an index: their photo, their name set as a title, where they play and what. */
-export function GmCard({ gm, openGames, t, lang, priority = false }: { gm: SiteGm; openGames: number; t: T; lang: Lang; priority?: boolean }) {
-  return (
-    <Link href={paths.gm(lang, gm.slug)} className="bill !h-auto flex-row items-start gap-[var(--space-lg)] py-[var(--space-lg)]">
+/** A GM as one row of an index: their photo, their name set as a title, where they play and what. `preview`: the same row, not a link (the profile form's preview). */
+export function GmCard({ gm, openGames, t, lang, priority = false, preview = false }: { gm: SiteGm; openGames: number; t: T; lang: Lang; priority?: boolean; preview?: boolean }) {
+  const cls = "bill !h-auto flex-row items-start gap-[var(--space-lg)] py-[var(--space-lg)]";
+  const body = (
+    <>
       <Avatar name={gm.name} photo={gm.photo} size={88} priority={priority} />
       <span className="min-w-0 flex-1">
         <span className="bill-title block font-display text-[length:var(--text-title)] leading-tight">{gm.name}</span>
@@ -186,8 +187,9 @@ export function GmCard({ gm, openGames, t, lang, priority = false }: { gm: SiteG
         </span>
         {gm.systems.length > 0 && <span className="mt-[var(--space-sm)] flex flex-wrap gap-[var(--space-xs)]">{gm.systems.slice(0, 3).map((x) => <span key={x} className="chip">{x}</span>)}</span>}
       </span>
-    </Link>
+    </>
   );
+  return preview ? <div className={cls}>{body}</div> : <Link href={paths.gm(lang, gm.slug)} className={cls}>{body}</Link>;
 }
 
 /** A message in the page's own voice: a ruled box with its icon and text; the tone changes the edge, never the meaning. */

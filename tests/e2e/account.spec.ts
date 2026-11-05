@@ -14,7 +14,7 @@ const toStep = (page: Page, name: string) => page.getByTestId("game-form").getBy
 async function fillProfile(page: Page, name = "Sari Dewanti") {
   await page.getByLabel("Display name", { exact: true }).fill(name);
   await page.getByLabel("Short bio").fill("A GM who likes quiet horror.");
-  await page.getByLabel("City", { exact: true }).selectOption("Depok");
+  await page.getByRole("radio", { name: "Depok", exact: true }).check();
   await page.getByLabel("WhatsApp number", { exact: true }).fill("0813-5555-0101");
   await page.getByLabel("Instagram (optional)").fill("@Sari.Plays");
   await page.getByRole("checkbox", { name: /shown publicly on Quest Board/ }).check();
@@ -72,7 +72,7 @@ test("profile, then a game with a picture: both are live at once; the picture is
   const world = await newWorld(page);
   await world.signInAs("sari@example.com");
   await page.goto("/en/account/");
-  await expect(page.getByText("Fill in your profile first, then you can add games.")).toBeVisible();
+  await expect(page.getByText("Fill it in once, then add your games.")).toBeVisible();
   await fillProfile(page);
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.getByTestId("message")).toContainText("It is live");

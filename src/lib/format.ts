@@ -14,6 +14,17 @@ export function formatIdr(amount: number): string {
   return `${amount < 0 ? "-" : ""}Rp ${whole}`;
 }
 
+/**
+ * A stored WhatsApp number (country code and digits, no plus) the way its owner writes it: an Indonesian one as "0813-5555-0009", any other with its plus.
+ * @example formatPhone("6281355550009") // "0813-5555-0009"
+ */
+export function formatPhone(digits: string): string {
+  if (!/^\d+$/.test(digits)) return digits;
+  if (!digits.startsWith("62")) return `+${digits}`;
+  const local = `0${digits.slice(2)}`;
+  return [local.slice(0, 4), local.slice(4, 8), local.slice(8)].filter(Boolean).join("-");
+}
+
 /** Up to two initials for an avatar. @example initialsOf("Raka Pratama") // "RP" */
 export function initialsOf(name: string): string {
   return name.split(/\s+/).map((p) => p[0] ?? "").join("").slice(0, 2).toUpperCase();

@@ -1,7 +1,7 @@
 // What a GM may send, checked at the edge: every field is cleaned, bounded and, where it has a fixed set of answers,
 // matched against it. The same limits as the site's lists (src/lib/areas.ts, categories.ts). Pure module.
 import { AREAS, LEGACY_AREAS, SUMMARY_MAX, isArea } from "../../src/lib/areas.ts";
-import { CHARACTER_SOURCES, GENRES, MAX_GENRES, MAX_PER_GAME, MECHANICS, NEEDS, SAFETY_TOOLS, STYLES } from "../../src/lib/categories.ts";
+import { CHARACTER_SOURCES, GENRES, MAX_GENRES, MAX_GM_SYSTEMS, MAX_PER_GAME, MECHANICS, NEEDS, SAFETY_TOOLS, STYLES } from "../../src/lib/categories.ts";
 import { cleanDiscord, cleanInstagram, isGoogleMapsUrl, isPhone } from "../../src/lib/public-data.ts";
 import { ON_DEMAND_LISTING_DAYS } from "../../src/lib/on-demand.ts";
 import { clip, iso } from "./util.ts";
@@ -50,7 +50,7 @@ export function parseProfile(raw: unknown): Parsed<ProfileInput> {
   const photoKey = typeof r.photoKey === "string" ? r.photoKey : "";
   if (photoKey && !KEY.test(photoKey)) errors.photoKey = "invalid";
   if (r.consent !== true) errors.consent = "required";
-  return Object.keys(errors).length ? { ok: false, errors } : { ok: true, value: { name, bio: clip(r.bio, 800, true), city: city as string, systems: list(r.systems, 10, 60), whatsapp, discord, instagram, photoKey } };
+  return Object.keys(errors).length ? { ok: false, errors } : { ok: true, value: { name, bio: clip(r.bio, 800, true), city: city as string, systems: list(r.systems, MAX_GM_SYSTEMS, 60), whatsapp, discord, instagram, photoKey } };
 }
 
 export type GameInput = {

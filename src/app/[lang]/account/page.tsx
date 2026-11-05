@@ -16,8 +16,11 @@ export default async function AccountPage({ params }: PageProps<"/[lang]/account
   const t = makeT(lang);
   return (
     <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-2xl)]">
-      <h1 className="max-w-none text-[length:var(--text-display-s)]">{t("acct.title")}</h1>
-      <div className="mt-[var(--space-xl)]"><AccountApp /></div>
+      {/* One centred column, the width of the game form, so the page and its forms line up (ADR-54). */}
+      <div className="mx-auto max-w-5xl">
+        <h1 className="max-w-none text-[length:var(--text-display-s)]">{t("acct.title")}</h1>
+        <div className="mt-[var(--space-xl)]"><AccountApp /></div>
+      </div>
     </div>
   );
 }

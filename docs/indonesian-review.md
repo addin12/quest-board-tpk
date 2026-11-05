@@ -280,3 +280,20 @@ The agent's wording; `{n}` and `{date}` are filled in by the site; `a|b` is sing
 | `acct.change` / `acct.summary` | Ubah / Jawabanmu | |
 | `acct.f.pictureChoose` / `pictureChange` | Pilih gambar / Pilih gambar lain | |
 | `acct.step.review` | Gambar dan periksa | |
+
+## The account page and the profile form (added 2026-11-06, ADR-54)
+
+| Key | Indonesian now | Your correction |
+|---|---|---|
+| `acct.profileLead` | Ini yang dilihat pemain tentang kamu, dan cara mereka menghubungimu. Isi sekali, lalu tambahkan game-mu. | |
+| `acct.noGames` | Belum ada game. Tambahkan satu, dan pemain langsung bisa menemukannya di papan. | |
+| `acct.f.systemsHint` | Sampai 10. Cari di daftar; kalau tidak ada, pilih Other lalu ketik namanya. | |
+| `acct.profileEditTitle` | Ubah profilmu | |
+| `acct.profilePart.about` | Tentang kamu | |
+| `acct.profilePart.contact` | Cara pemain menghubungimu | |
+| `acct.preview.gmTitle` | Tampilanmu di daftar Game Master | |
+| `acct.preview.noName` | Namamu | |
+| `acct.f.systemsAdd` | Tambah sistem | |
+| `acct.f.systemsOther` | Nama sistemnya | |
+| `acct.f.systemsAddButton` | Tambah | |
+| `acct.noPicture` | Belum ada gambar | |

@@ -9,6 +9,7 @@ import { STEPS, firstStepWith, stepErrors, type GameFormValues } from "@/lib/gam
 import type { MsgKey, T } from "@/lib/i18n/core";
 import { formatWhen } from "@/lib/format";
 import { listingTips } from "@/lib/listing-tips";
+import { adminPictureUrl } from "@/lib/pictures";
 import { OTHER_SYSTEM, SYSTEMS } from "@/lib/systems";
 import { ZONES, type GameFormat, type GameLanguage, type GameRecord, type Lang, type Level, type LocationType, type Zone } from "@/lib/types";
 import { useI18n } from "../i18n-provider";
@@ -76,7 +77,7 @@ export function GameForm({ game, gmName, heading, onSaved, onCancel }: { game: G
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [problem, setProblem] = useState("");
   const [busy, setBusy] = useState(false);
-  const [picked, setPicked] = useState(""); // the picture just chosen, for the preview (a stored one is private until the game is live)
+  const [picked, setPicked] = useState(""); // the picture just chosen, for the preview
   const stepHeading = useRef<HTMLHeadingElement>(null);
   const set = (patch: Partial<GameFormValues>) => setV((old) => ({ ...old, ...patch }));
   const err = (key: string) => field(errors, key, t);
@@ -127,12 +128,13 @@ export function GameForm({ game, gmName, heading, onSaved, onCancel }: { game: G
   const option = (value: string, key: MsgKey) => ({ value, label: t(key) });
   const tips = listingTips(v);
   const stepName = STEPS[step]!;
-  const cover = picked || null;
+  // A stored cover can be shown once the game is live (before that it is private); a newly chosen one always.
+  const cover = picked || (game && game.status === "approved" && game.coverId && v.coverKey === game.coverId ? adminPictureUrl(game.coverId) : null);
 
   return (
     <div className="grid gap-[var(--space-xl)]" data-testid="game-form">
       <header className="flex flex-wrap items-end justify-between gap-[var(--space-md)] border-b border-rule pb-[var(--space-md)]">
-        <h3 className="text-[length:var(--text-title)]">{heading}</h3>
+        <h2 className="text-[length:var(--text-title)]">{heading}</h2>
         <button type="button" className="btn btn-ghost" onClick={onCancel}>{t("acct.cancel")}</button>
       </header>
 
@@ -153,7 +155,7 @@ export function GameForm({ game, gmName, heading, onSaved, onCancel }: { game: G
 
       <div className="grid gap-x-[var(--space-2xl)] gap-y-[var(--space-xl)] lg:grid-cols-[minmax(0,1fr)_17rem]">
         <form onSubmit={(e) => { e.preventDefault(); if (step === last) void save(); else next(); }} noValidate className="grid min-w-0 content-start gap-[var(--space-lg)]">
-          <h4 ref={stepHeading} tabIndex={-1} className="scroll-mt-24 text-[length:var(--text-xl)] outline-none" data-testid="step-title">{t(STEP_TITLE[stepName])}</h4>
+          <h3 ref={stepHeading} tabIndex={-1} className="scroll-mt-24 text-[length:var(--text-xl)] outline-none" data-testid="step-title">{t(STEP_TITLE[stepName])}</h3>
 
           {stepName === "game" && (
             <>
@@ -288,7 +290,7 @@ export function GameForm({ game, gmName, heading, onSaved, onCancel }: { game: G
 
         {/* The notice itself. Beside the form on a wide screen, all along; on a phone only at the last step, above the answers. */}
         <aside aria-labelledby="g-preview-h" className={`${stepName === "review" ? "max-lg:order-first" : "max-lg:hidden"} lg:sticky lg:top-24 lg:self-start`}>
-          <h4 id="g-preview-h" className="label text-muted">{t("acct.preview.title")}</h4>
+          <h3 id="g-preview-h" className="label text-muted">{t("acct.preview.title")}</h3>
           <div className="mx-auto mt-[var(--space-sm)] max-w-64" data-testid="game-preview">
             <GameCard game={previewOf(v, gmName, cover, t)} t={t} lang={lang} preview whenOverride={v.onDemand || /^\d{4}-\d{2}-\d{2}$/.test(v.date) ? undefined : t("acct.preview.noDate")} />
           </div>

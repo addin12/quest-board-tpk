@@ -102,6 +102,8 @@ export type StyleKey = (typeof STYLES)[number]["key"];
 export const MAX_PER_GAME = 3;
 /** And at most this many genres: a game is often several at once (a horror mystery in a gothic city). */
 export const MAX_GENRES = 5;
+/** A Game Master's profile names at most this many systems they usually run. */
+export const MAX_GM_SYSTEMS = 10;
 
 export const isGenre = (k: string): k is GenreKey => GENRES.some((g) => g.key === k);
 export type MechanicKey = (typeof MECHANICS)[number]["key"];

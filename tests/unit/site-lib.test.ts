@@ -5,7 +5,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { SUMMARY_MAX } from "../../src/lib/areas.ts";
 import { checkGame, checkGm, hasErrors } from "../../src/lib/checks.ts";
 import { askContact, contactMessage, messageLang, waLink } from "../../src/lib/contact.ts";
-import { formatDay, formatIdr, formatShortDay, formatWhen, initialsOf } from "../../src/lib/format.ts";
+import { formatDay, formatIdr, formatPhone, formatShortDay, formatWhen, initialsOf } from "../../src/lib/format.ts";
+import { normalizePhone } from "../../worker/src/rules.ts";
 import { smallCover } from "../../src/lib/hrefs.ts";
 import { SYSTEM_COVER_FILES, systemCover } from "../../src/lib/system-covers.ts";
 import { SYSTEMS } from "../../src/lib/systems.ts";
@@ -97,6 +98,11 @@ test("English and Indonesian have the same strings, with the same placeholders",
 test("money and times", () => {
   assert.equal(formatIdr(75000), "Rp 75.000");
   assert.equal(initialsOf("Raka Pratama Putra"), "RP");
+  // A stored WhatsApp number back the way its owner typed it (the profile form shows it so), and saved again unchanged.
+  assert.equal(formatPhone("6281355550009"), "0813-5555-0009");
+  assert.equal(formatPhone("628123456789"), "0812-3456-789");
+  assert.equal(formatPhone("6591234567"), "+6591234567");
+  assert.equal(normalizePhone(formatPhone("6281355550009")), "6281355550009");
   assert.equal(formatWhen("2026-10-12T12:00:00.000Z", "en", "WIB"), "Mon 12 Oct, 19.00 WIB");
   assert.equal(formatWhen("2026-10-12T12:00:00.000Z", "id", "WITA"), "Sen, 12 Okt, 20.00 WITA");
   assert.equal(formatDay("2026-10-12T12:00:00.000Z", "en", "WIT"), "12 October 2026");
