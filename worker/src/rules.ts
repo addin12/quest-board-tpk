@@ -1,7 +1,7 @@
 // What a GM may send, checked at the edge: every field is cleaned, bounded and, where it has a fixed set of answers,
 // matched against it. The same limits as the site's lists (src/lib/areas.ts, categories.ts). Pure module.
 import { AREAS, SUMMARY_MAX } from "../../src/lib/areas.ts";
-import { GENRES, MAX_PER_GAME, MECHANICS, STYLES } from "../../src/lib/categories.ts";
+import { CHARACTER_SOURCES, GENRES, MAX_PER_GAME, MECHANICS, NEEDS, SAFETY_TOOLS, STYLES } from "../../src/lib/categories.ts";
 import { cleanDiscord, cleanInstagram, isGoogleMapsUrl, isPhone } from "../../src/lib/public-data.ts";
 import { clip, iso } from "./util.ts";
 
@@ -57,6 +57,7 @@ export type GameInput = {
   platform: string; city: string; venueName: string; venueMapsRaw: string; startsAt: string; zone: "WIB" | "WITA" | "WIT"; scheduleNote: string; expiresAt: string;
   priceIdr: number; seats: number; language: "id" | "en" | "both"; level: "beginner" | "any" | "experienced"; minAge: number;
   contentWarnings: string; safetyTools: string; genres: string[]; styles: string[]; mechanics: string[]; coverKey: string;
+  sessionHours: number; characters: "" | "pregen" | "own" | "table"; needs: string[]; safetyKeys: string[]; noWarnings: boolean;
 };
 
 const intIn = (v: unknown, min: number, max: number): number | null => {
@@ -133,6 +134,22 @@ export function parseGame(raw: unknown, nowMs: number): Parsed<GameInput> {
   if (mechanics.length > MAX_PER_GAME || mechanics.some((m) => !mechanicKeys.includes(m))) errors.mechanics = "invalid";
   const coverKey = typeof r.coverKey === "string" ? r.coverKey : "";
   if (coverKey && !KEY.test(coverKey)) errors.coverKey = "invalid";
+  // What a player needs before asking for a seat (ADR-49). The session length and the characters may be left unsaid; the warnings and the safety tools may not.
+  const sessionHours = r.sessionHours === undefined || r.sessionHours === "" ? 0 : intIn(r.sessionHours, 1, 12);
+  need("sessionHours", sessionHours !== null, "invalid_number");
+  const characters = r.characters === undefined || r.characters === "" ? "" : oneOf(r.characters, CHARACTER_SOURCES);
+  if (r.characters !== undefined && r.characters !== "" && !characters) errors.characters = "invalid";
+  const needKeys = NEEDS.map((n) => n.key) as readonly string[];
+  const safetyKeyList = SAFETY_TOOLS.map((s) => s.key) as readonly string[];
+  const needs = list(r.needs, 20, 40);
+  const safetyKeys = list(r.safetyKeys, 20, 40);
+  if (needs.some((n) => !needKeys.includes(n))) errors.needs = "invalid";
+  if (safetyKeys.some((s) => !safetyKeyList.includes(s))) errors.safetyKeys = "invalid";
+  const contentWarnings = clip(r.contentWarnings, 1000, true);
+  const noWarnings = r.noWarnings === true && contentWarnings === ""; // warnings written down win over "none"
+  need("contentWarnings", contentWarnings !== "" || noWarnings);
+  const safetyTools = clip(r.safetyTools, 300);
+  need("safetyTools", safetyKeys.length > 0 || safetyTools !== "");
   if (r.consent !== true) errors.consent = "required";
 
   if (Object.keys(errors).length) return { ok: false, errors };
@@ -142,8 +159,8 @@ export function parseGame(raw: unknown, nowMs: number): Parsed<GameInput> {
       title, system, summary, description, format: format as GameInput["format"], locationType: locationType as GameInput["locationType"],
       platform: clip(r.platform, 80), city, venueName: clip(r.venueName, 80), venueMapsRaw, startsAt: startsAt!, zone: zone as GameInput["zone"],
       scheduleNote: clip(r.scheduleNote, 1000, true), expiresAt, priceIdr: priceIdr!, seats: seats!, language: language as GameInput["language"],
-      level: level as GameInput["level"], minAge: minAge!, contentWarnings: clip(r.contentWarnings, 1000, true), safetyTools: clip(r.safetyTools, 300),
-      genres, styles, mechanics, coverKey,
+      level: level as GameInput["level"], minAge: minAge!, contentWarnings, safetyTools,
+      genres, styles, mechanics, coverKey, sessionHours: sessionHours!, characters: characters as GameInput["characters"], needs, safetyKeys, noWarnings,
     },
   };
 }

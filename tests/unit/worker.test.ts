@@ -867,3 +867,57 @@ test("a listing that has just gone live asks for a quick build; an edit waits fo
   assert.equal(await tick(), "sent", "it goes out with the long gap");
   assert.ok(URGENT_MAX_PER_DAY * URGENT_GAP_MS <= 24 * 3_600_000 * 5, "a sane budget of quick builds");
 });
+
+// ── what a player needs before asking for a seat (ADR-49) ───────────────────────────────────────────────────────────
+
+test("a game must say what it warns about and which safety tools it uses; the session length and characters may be left out", () => {
+  const NOW = Date.parse("2026-10-28T03:00:00Z");
+  const ok = (patch: Record<string, unknown>) => parseGame({ ...GAME, ...patch }, NOW);
+  assert.equal(ok({}).ok, true, "the fixture says no warnings and one tool");
+
+  const noWarn = ok({ noWarnings: false, contentWarnings: "" });
+  assert.ok(!noWarn.ok && noWarn.errors.contentWarnings === "required", "silence about warnings is not an answer");
+  assert.equal(ok({ noWarnings: false, contentWarnings: "Death, gore" }).ok, true, "written warnings are an answer");
+  const both = ok({ noWarnings: true, contentWarnings: "Death" });
+  assert.ok(both.ok && both.value.noWarnings === false && both.value.contentWarnings === "Death", "warnings written down win over \"none\"");
+
+  const noTool = ok({ safetyKeys: [], safetyTools: "" });
+  assert.ok(!noTool.ok && noTool.errors.safetyTools === "required");
+  assert.equal(ok({ safetyKeys: [], safetyTools: "We talk it through first" }).ok, true, "a described tool counts");
+  const unknown = ok({ safetyKeys: ["x-card", "made-up"] });
+  assert.ok(!unknown.ok && unknown.errors.safetyKeys === "invalid");
+  assert.ok(!ok({ needs: ["mic", "jetpack"] }).ok);
+
+  const bare = ok({ sessionHours: undefined, characters: undefined, needs: undefined });
+  assert.ok(bare.ok && bare.value.sessionHours === 0 && bare.value.characters === "" && bare.value.needs.length === 0, "all three may be left out");
+  assert.ok(!ok({ sessionHours: 0.5 }).ok && !ok({ sessionHours: 13 }).ok);
+  assert.ok(!ok({ characters: "robots" }).ok);
+  const full = ok({ sessionHours: "4", characters: "own", needs: ["mic", "camera", "mic"], safetyKeys: ["x-card", "lines-veils"] });
+  assert.ok(full.ok && full.value.sessionHours === 4 && full.value.characters === "own" && full.value.needs.join() === "mic,camera" && full.value.safetyKeys.join() === "x-card,lines-veils");
+});
+
+test("the new details are saved, change the game like any other edit, and reach the public data with when it was last changed and since when the Game Master is a member", async () => {
+  const w = makeWorld();
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  const created = await w.call("POST", "/games", { cookie: gm, body: { ...GAME, sessionHours: 4, characters: "own", needs: ["mic", "camera"], safetyKeys: ["x-card", "session-zero"], noWarnings: false, contentWarnings: "Death" } });
+  assert.equal(created.status, 201);
+  const id = created.json.id as string;
+  const pub = (await w.call("GET", "/live")).json;
+  const g = pub.games.find((x: any) => x.id === id);
+  assert.deepEqual([g.sessionHours, g.characters, g.needs, g.safetyKeys, g.noWarnings], [4, "own", ["mic", "camera"], ["x-card", "session-zero"], false]);
+  assert.ok(g.updatedAt && g.listedAt);
+  assert.ok(pub.gms[0].joinedAt, "the profile's age is public");
+  const parsed = parsePublicData(pub);
+  assert.deepEqual(parsed.warnings, []);
+  assert.deepEqual(parsed.data.games[0]!.safetyKeys, ["x-card", "session-zero"]);
+
+  const same = await w.call("PUT", "/games/" + id, { cookie: gm, body: { ...GAME, sessionHours: 4, characters: "own", needs: ["mic", "camera"], safetyKeys: ["x-card", "session-zero"], noWarnings: false, contentWarnings: "Death" } });
+  assert.equal(same.json.changed, false, "the same details again change nothing");
+  w.clock.ms += 60_000;
+  const edited = await w.call("PUT", "/games/" + id, { cookie: gm, body: { ...GAME, sessionHours: 2, characters: "own", needs: ["mic", "camera"], safetyKeys: ["x-card", "session-zero"], noWarnings: false, contentWarnings: "Death" } });
+  assert.equal(edited.json.changed, true, "only the session length changed, and it counts");
+  const later = (await w.call("GET", "/live")).json.games.find((x: any) => x.id === id);
+  assert.ok(Date.parse(later.updatedAt) > Date.parse(g.updatedAt), "the last-changed time moves");
+  assert.equal(later.sessionHours, 2);
+});

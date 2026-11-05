@@ -108,6 +108,34 @@ export const mechanicLabelKey = (k: MechanicKey) => `mechanic.${k}` as MsgKey;
 export const isStyle = (k: string): k is StyleKey => STYLES.some((s) => s.key === k);
 
 export const genreLabelKey = (k: GenreKey) => `genre.${k}` as MsgKey;
+
+// What a player needs to know before asking for a seat (ADR-49): the safety tools a game uses, what to bring, and where the characters come from.
+export const SAFETY_TOOLS = [
+  { key: "x-card" },
+  { key: "lines-veils" },
+  { key: "session-zero" },
+  { key: "script-change" },
+  { key: "stars-wishes" },
+  { key: "open-door" },
+] as const satisfies readonly { key: string }[];
+export const NEEDS = [
+  { key: "mic" },
+  { key: "camera" },
+  { key: "discord" },
+  { key: "vtt" },
+  { key: "dice" },
+  { key: "book" },
+] as const satisfies readonly { key: string }[];
+/** Where the characters come from: ready-made, the players' own, or made together at the table. */
+export const CHARACTER_SOURCES = ["pregen", "own", "table"] as const;
+export type SafetyToolKey = (typeof SAFETY_TOOLS)[number]["key"];
+export type NeedKey = (typeof NEEDS)[number]["key"];
+export type CharacterSource = (typeof CHARACTER_SOURCES)[number];
+export const isSafetyTool = (k: string): k is SafetyToolKey => SAFETY_TOOLS.some((s) => s.key === k);
+export const isNeed = (k: string): k is NeedKey => NEEDS.some((n) => n.key === k);
+export const safetyToolLabelKey = (k: SafetyToolKey) => `safety.${k}` as MsgKey;
+export const needLabelKey = (k: NeedKey) => `need.${k}` as MsgKey;
+export const characterLabelKey = (k: CharacterSource) => `characters.${k}` as MsgKey;
 /** A genre's picture: the one StartPlaying shows for it, one file per genre in public/images/genres (credits in docs/art-credits.md). */
 export const genreCover = (k: GenreKey) => `/images/genres/${k}.webp`;
 export const styleLabelKey = (k: StyleKey) => `style.${k}` as MsgKey;

@@ -55,6 +55,16 @@ export type GameFields = {
   genres: string[];
   styles: string[];
   mechanics: string[];
+  /** Typical length of one session in hours; 0 when the Game Master did not say. */
+  sessionHours: number;
+  /** Where the characters come from: ready-made ("pregen"), the players' own ("own") or made together at the table ("table"); "" when not said. */
+  characters: "" | "pregen" | "own" | "table";
+  /** What players bring or need: keys of NEEDS (categories.ts). */
+  needs: string[];
+  /** The safety tools the game uses: keys of SAFETY_TOOLS (categories.ts). */
+  safetyKeys: string[];
+  /** The Game Master says the game has nothing to warn about (the content warnings are then empty on purpose). */
+  noWarnings: boolean;
 };
 
 /** What a GM writes about themself and the public may read. The phone number is NOT here: it never travels with the public data (ADR-48). */
@@ -75,13 +85,14 @@ export type GmFields = GmPublicFields & {
   whatsapp: string;
 };
 
-export type RawGm = GmPublicFields & { id: string; slug: string; photoId: string };
-export type RawGame = GameFields & { id: string; slug: string; gmId: string; coverId: string; full: boolean; listedAt: string };
+/** `joinedAt`: when the profile was made (shown as "member since"); `updatedAt`: when the Game Master last changed the game. */
+export type RawGm = GmPublicFields & { id: string; slug: string; photoId: string; joinedAt: string };
+export type RawGame = GameFields & { id: string; slug: string; gmId: string; coverId: string; full: boolean; listedAt: string; updatedAt: string };
 export type RawPublicData = { generatedAt: string; gms: RawGm[]; games: RawGame[]; goneGames: string[]; goneGms: string[] };
 
 /** `photoKey` / `coverKey` are the picture's key in the bucket, kept so live data can tell whether the picture the build cropped is still the current one. */
-export type SiteGm = GmPublicFields & { id: string; slug: string; photo: string | null; photoKey?: string };
-export type SiteGame = GameFields & { id: string; slug: string; gmId: string; cover: string | null; coverKey?: string; full: boolean; listedAt: string };
+export type SiteGm = GmPublicFields & { id: string; slug: string; photo: string | null; photoKey?: string; joinedAt: string };
+export type SiteGame = GameFields & { id: string; slug: string; gmId: string; cover: string | null; coverKey?: string; full: boolean; listedAt: string; updatedAt: string };
 /** `goneGames` / `goneGms`: addresses of listings that were live and are not now; each gets a "no longer listed" page. */
 export type SiteData = { generatedAt: string; gms: SiteGm[]; games: SiteGame[]; goneGames: string[]; goneGms: string[] };
 

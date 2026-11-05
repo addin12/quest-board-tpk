@@ -2,11 +2,13 @@
 // promised: a bad record is dropped with a warning (it never breaks the build or the page), and every
 // string is cut to a sane length. Pure module (explicit .ts imports: scripts/build-data.mjs runs it directly).
 import { ZONES, type GameLanguage, type Level, type RawGame, type RawGm, type RawPublicData, type Zone } from "./types.ts";
-import { GENRES, MECHANICS, STYLES } from "./categories.ts";
+import { CHARACTER_SOURCES, GENRES, MECHANICS, NEEDS, SAFETY_TOOLS, STYLES } from "./categories.ts";
 
 const GENRE_KEYS: readonly string[] = GENRES.map((g) => g.key);
 const STYLE_KEYS: readonly string[] = STYLES.map((s) => s.key);
 const MECHANIC_KEYS: readonly string[] = MECHANICS.map((m) => m.key);
+const SAFETY_KEYS: readonly string[] = SAFETY_TOOLS.map((s) => s.key);
+const NEED_KEYS: readonly string[] = NEEDS.map((n) => n.key);
 const MAX_GAMES = 500;
 const MAX_GMS = 300;
 
@@ -86,8 +88,8 @@ function isoOrNull(v: unknown): string | null {
   return Number.isNaN(t) ? null : new Date(t).toISOString();
 }
 
-const pickKeys = (v: unknown, allowed: readonly string[]) =>
-  (Array.isArray(v) ? v : []).filter((k): k is string => typeof k === "string" && allowed.includes(k)).filter((k, i, a) => a.indexOf(k) === i).slice(0, 3);
+const pickKeys = (v: unknown, allowed: readonly string[], max = 3) =>
+  (Array.isArray(v) ? v : []).filter((k): k is string => typeof k === "string" && allowed.includes(k)).filter((k, i, a) => a.indexOf(k) === i).slice(0, max);
 
 const intIn = (v: unknown, min: number, max: number): number | null =>
   typeof v === "number" && Number.isInteger(v) && v >= min && v <= max ? v : null;
@@ -100,7 +102,7 @@ function parseGm(raw: unknown, warn: (m: string) => void): RawGm | null {
   if (!ID.test(id) || !SLUG.test(String(r.slug)) || !name) { warn(`GM ${id || "?"}: missing id, slug or name`); return null; }
   const photoId = typeof r.photoId === "string" && PICTURE.test(r.photoId) ? r.photoId : "";
   return {
-    id, slug: String(r.slug), name, bio: text(r.bio, 800, true), city: text(r.city, 60), discord: cleanDiscord(r.discord), instagram: cleanInstagram(r.instagram), photoId,
+    id, slug: String(r.slug), name, bio: text(r.bio, 800, true), city: text(r.city, 60), discord: cleanDiscord(r.discord), instagram: cleanInstagram(r.instagram), photoId, joinedAt: isoOrNull(r.joinedAt) ?? "",
     systems: (Array.isArray(r.systems) ? r.systems : []).map((s) => text(s, 40)).filter(Boolean).slice(0, 8),
   };
 }
@@ -136,6 +138,9 @@ function parseGame(raw: unknown, gmIds: ReadonlySet<string>, warn: (m: string) =
     startsAt, zone, scheduleNote: text(r.scheduleNote, 400, true), expiresAt, priceIdr, seats, language, level, minAge,
     contentWarnings: text(r.contentWarnings, 400, true), safetyTools: text(r.safetyTools, 200),
     genres: pickKeys(r.genres, GENRE_KEYS), styles: pickKeys(r.styles, STYLE_KEYS), mechanics: pickKeys(r.mechanics, MECHANIC_KEYS),
+    sessionHours: intIn(r.sessionHours, 1, 12) ?? 0, characters: (CHARACTER_SOURCES as readonly unknown[]).includes(r.characters) ? (r.characters as RawGame["characters"]) : "",
+    needs: pickKeys(r.needs, NEED_KEYS, NEED_KEYS.length), safetyKeys: pickKeys(r.safetyKeys, SAFETY_KEYS, SAFETY_KEYS.length), noWarnings: r.noWarnings === true,
+    updatedAt: isoOrNull(r.updatedAt) ?? isoOrNull(r.listedAt) ?? startsAt,
     coverId: typeof r.coverId === "string" && PICTURE.test(r.coverId) ? r.coverId : "", full: r.full === true, listedAt: isoOrNull(r.listedAt) ?? startsAt,
   };
 }
