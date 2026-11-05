@@ -496,6 +496,8 @@ export const id: Record<MsgKey, string> = {
   "acct.status.approved": "Disetujui",
   "acct.status.rejected": "Belum disetujui",
   "acct.reason": "Alasan: {reason}",
+  "acct.liveVersion": "Versi lamamu yang sudah disetujui tetap tampil di situs sampai perubahan ini disetujui.",
+  "admin.liveVersion": "Versi yang sudah disetujui masih tampil di situs. Menyetujui akan menggantinya dengan versi ini; menolak mempertahankan versi yang disetujui.",
   "acct.reviewNote": "Admin meninjau setiap listing baru dan setiap perubahan sebelum tampil di situs.",
   "acct.profileTitle": "Profil Game Master-mu",
   "acct.profileLead": "Isi sekali saja. Ini yang dilihat pemain tentang kamu, dan cara mereka menghubungimu.",

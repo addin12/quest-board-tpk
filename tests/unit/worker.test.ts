@@ -219,6 +219,118 @@ test("approving a game whose Game Master is still pending is flagged, and the em
   assert.deepEqual(second.json.hidden, [], "nothing hidden when the profile is approved");
 });
 
+// ── drafts: a change to an approved record waits beside it (ADR-48) ───────────────────────────────────────────────────
+
+/** A world with an approved Game Master and one approved game; returns the cookies and ids. */
+async function liveWorld() {
+  const w = makeWorld();
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  const gameId = (await w.call("POST", "/games", { cookie: gm, body: GAME })).json.id as string;
+  const profileId = (await w.call("GET", "/me", { cookie: gm })).json.profile.id as string;
+  const admin = await w.signIn(OWNER);
+  const decide = (kind: "game" | "gm", id: string, status: string, extra: Record<string, unknown> = {}) => w.call("POST", "/admin", { cookie: admin, body: { action: "review", kind, ids: [id], status, ...extra } });
+  await decide("gm", profileId, "approved");
+  await decide("game", gameId, "approved");
+  const site = async () => (await w.call("GET", "/public", { build: true })).json;
+  const queue = async () => (await w.call("POST", "/admin", { cookie: admin, body: { action: "queue" } })).json;
+  return { w, gm, admin, gameId, profileId, decide, site, queue };
+}
+
+test("a changed approved game waits as a draft: the approved version stays on the site until an admin approves", async () => {
+  const { w, gm, gameId, decide, site, queue } = await liveWorld();
+  const oldTitle = GAME.title;
+  const edited = await w.call("PUT", `/games/${gameId}`, { cookie: gm, body: { ...GAME, title: "A brand new title", seats: 5 } });
+  assert.equal(edited.json.status, "pending");
+
+  const live = (await site()).games.find((g: any) => g.id === gameId);
+  assert.equal(live.title, oldTitle, "the site still has the approved words");
+  assert.equal(live.seats, 5, "but the practical detail is live at once");
+
+  const mine = (await w.call("GET", "/me", { cookie: gm })).json.games[0];
+  assert.deepEqual([mine.title, mine.status, mine.liveVersion], ["A brand new title", "pending", true], "the GM sees their own change, flagged as waiting");
+  const waiting = (await queue()).games.find((g: any) => g.id === gameId);
+  assert.deepEqual([waiting.title, waiting.status, waiting.liveVersion], ["A brand new title", "pending", true], "the admin decides on the changed version");
+
+  const approved = await decide("game", gameId, "approved", { notify: true });
+  assert.equal(approved.json.publishing, true);
+  assert.equal((await site()).games.find((g: any) => g.id === gameId).title, "A brand new title");
+  const after = (await w.call("GET", "/me", { cookie: gm })).json.games[0];
+  assert.deepEqual([after.status, after.liveVersion], ["approved", undefined], "nothing waits any more");
+  assert.match(w.mails.filter((m) => /^Approved/.test(m.subject)).pop()!.subject, /A brand new title/, "the email names the new title");
+});
+
+test("a rejected change leaves the approved version on the site, with the reason for the GM, who can fix it", async () => {
+  const { w, gm, gameId, decide, site } = await liveWorld();
+  await w.call("PUT", `/games/${gameId}`, { cookie: gm, body: { ...GAME, summary: "Something the admin dislikes." } });
+  const rejected = await decide("game", gameId, "rejected", { reason: "Please rewrite the pitch", notify: true });
+  assert.equal(rejected.json.publishing, false, "the site does not change");
+  assert.equal((await site()).games.find((g: any) => g.id === gameId).summary, GAME.summary);
+  const mine = (await w.call("GET", "/me", { cookie: gm })).json.games[0];
+  assert.deepEqual([mine.status, mine.rejectReason, mine.liveVersion], ["rejected", "Please rewrite the pitch", true]);
+  assert.match(w.mails.filter((m) => /^Not approved/.test(m.subject)).pop()!.body, /earlier approved version stays/);
+
+  const fixed = await w.call("PUT", `/games/${gameId}`, { cookie: gm, body: { ...GAME, summary: "A better pitch." } });
+  assert.equal(fixed.json.status, "pending", "fixing it sends it back to review");
+  assert.equal((await w.call("GET", "/me", { cookie: gm })).json.games[0].rejectReason, "");
+  await decide("game", gameId, "approved");
+  assert.equal((await site()).games.find((g: any) => g.id === gameId).summary, "A better pitch.");
+});
+
+test("going back to the approved words drops the waiting draft", async () => {
+  const { w, gm, gameId, queue } = await liveWorld();
+  await w.call("PUT", `/games/${gameId}`, { cookie: gm, body: { ...GAME, title: "Another title" } });
+  const back = await w.call("PUT", `/games/${gameId}`, { cookie: gm, body: GAME });
+  assert.deepEqual([back.json.changed, back.json.status], [true, "approved"]);
+  assert.equal((await queue()).games.find((g: any) => g.id === gameId).status, "approved", "nothing is left to review");
+});
+
+test("a changed approved profile waits too: the profile and its games stay on the site meanwhile", async () => {
+  const { w, gm, profileId, decide, site, queue } = await liveWorld();
+  const edited = await w.call("PUT", "/profile", { cookie: gm, body: { ...PROFILE, bio: "A new bio that waits for a reader." } });
+  assert.equal(edited.json.status, "pending");
+  const pub = await site();
+  assert.equal(pub.games.length, 1, "the game is still listed");
+  assert.equal(pub.gms[0].bio, PROFILE.bio, "with the approved profile");
+  assert.equal((await queue()).gms.find((p: any) => p.id === profileId).liveVersion, true);
+  await decide("gm", profileId, "approved");
+  assert.equal((await site()).gms[0].bio, "A new bio that waits for a reader.");
+});
+
+test("the picture of a draft is private, survives the sweep, and a replaced one is deleted", async () => {
+  const { sweepOrphanImages } = await import("../../worker/src/images.ts");
+  const { w, gm, gameId, decide } = await liveWorld();
+  const up = async () => (await w.call("POST", "/images?kind=cover", { cookie: gm, raw: WEBP })).json.key as string;
+  const first = await up();
+  await w.call("PUT", `/games/${gameId}`, { cookie: gm, body: { ...GAME, coverKey: first } });
+  await decide("game", gameId, "approved");
+  const second = await up();
+  await w.call("PUT", `/games/${gameId}`, { cookie: gm, body: { ...GAME, coverKey: second } });
+  assert.equal((await w.call("GET", `/img/${first}`)).status, 200, "the approved picture is public");
+  assert.equal((await w.call("GET", `/img/${second}`)).status, 404, "the waiting one is not");
+
+  w.clock.ms += 3 * 86_400_000;
+  await sweepOrphanImages(w.env.ctx, w.bucket);
+  assert.ok(await w.bucket.get(second), "a picture in a draft is in use");
+  assert.ok(await w.bucket.get(first));
+
+  const third = await up();
+  const replaced = await w.call("PUT", `/games/${gameId}`, { cookie: gm, body: { ...GAME, coverKey: third } });
+  assert.equal(replaced.json.status, "pending");
+  await new Promise((r) => setTimeout(r, 20));
+  assert.equal(await w.bucket.get(second), null, "the replaced draft picture is deleted");
+  assert.ok(await w.bucket.get(first), "the approved one stays while the draft waits");
+});
+
+test("erasing an account also deletes the pictures of waiting drafts", async () => {
+  const { w, gm, gameId } = await liveWorld();
+  const key = (await w.call("POST", "/images?kind=cover", { cookie: gm, raw: WEBP })).json.key as string;
+  await w.call("PUT", `/games/${gameId}`, { cookie: gm, body: { ...GAME, coverKey: key } });
+  assert.equal((await w.call("DELETE", "/account", { cookie: gm })).status, 200);
+  await new Promise((r) => setTimeout(r, 20));
+  assert.equal(await w.bucket.get(key), null);
+});
+
 test("a GM marks their own game full without a review, and removes it; the address keeps a notice", async () => {
   const w = makeWorld();
   const gm = await w.signIn("raka@example.com");

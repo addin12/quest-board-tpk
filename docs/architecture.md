@@ -54,7 +54,9 @@ stateDiagram-v2
 ```
 
 Only `approved` games of an `approved` GM, not expired, appear in `/api/public`, and only for a request carrying the secret build key.
-Marking a game full or removing it needs no review; every other change goes back to `pending`.
+Marking a game full or removing it needs no review, and neither does a change to a live game's date, price, seats or schedule line. Every other change to an approved
+record is kept as a **draft** (columns `draft`, `draft_state`, ADR-48) and the approved columns keep serving the site until an admin approves the draft; a change to
+a record that is not approved just updates it and puts it to `pending`.
 
 ## An approval, step by step
 

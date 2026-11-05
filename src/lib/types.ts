@@ -99,6 +99,8 @@ export type AdminFields = {
   submittedAt: string;
   /** When the submitter last changed it; the admin page sends it back with a decision so an approval applies only to the version that was seen. */
   updatedAt?: string;
+  /** True when the status and fields shown are a changed version waiting for a decision (or sent back) and the previously approved version is still on the site. */
+  liveVersion?: boolean;
   /** The Google account that submitted the form. Admin-only. */
   email: string;
   /** The row in the sheet. */

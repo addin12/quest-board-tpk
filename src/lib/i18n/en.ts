@@ -495,6 +495,8 @@ export const en = {
   "acct.status.approved": "Approved",
   "acct.status.rejected": "Not approved",
   "acct.reason": "Reason: {reason}",
+  "acct.liveVersion": "Your earlier approved version stays on the site until this change is approved.",
+  "admin.liveVersion": "The approved version is still on the site. Approving replaces it with this one; rejecting keeps the approved version.",
   "acct.reviewNote": "An admin reviews every new listing and every change before it shows on the site.",
   "acct.profileTitle": "Your Game Master profile",
   "acct.profileLead": "Fill this in once. It is what players see about you, and how they reach you.",

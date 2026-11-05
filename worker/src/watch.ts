@@ -38,14 +38,14 @@ export async function digestReviewers(ctx: Ctx): Promise<void> {
     const since = last ?? "";
     const fresh = await many<{ title: string; updated_at: string }>(
       ctx.db,
-      "SELECT name AS title, updated_at FROM profiles WHERE status = 'pending' AND updated_at > ? UNION ALL SELECT title, updated_at FROM games WHERE status = 'pending' AND removed = 0 AND updated_at > ? ORDER BY updated_at",
+      "SELECT name AS title, updated_at FROM profiles WHERE (status = 'pending' OR draft_state = 'pending') AND updated_at > ? UNION ALL SELECT title, updated_at FROM games WHERE (status = 'pending' OR draft_state = 'pending') AND removed = 0 AND updated_at > ? ORDER BY updated_at",
       since, since,
     );
     const newest = fresh.length ? Date.parse(fresh[fresh.length - 1]!.updated_at) : 0;
     const settled = fresh.length > 0 && now - newest >= DIGEST_SETTLE_MS;
     const old = await one<{ games: number; gms: number; oldest: string | null }>(
       ctx.db,
-      "SELECT (SELECT COUNT(*) FROM games WHERE status = 'pending' AND removed = 0) AS games, (SELECT COUNT(*) FROM profiles WHERE status = 'pending') AS gms, (SELECT MIN(m) FROM (SELECT MIN(updated_at) AS m FROM games WHERE status = 'pending' AND removed = 0 UNION ALL SELECT MIN(updated_at) FROM profiles WHERE status = 'pending')) AS oldest",
+      "SELECT (SELECT COUNT(*) FROM games WHERE (status = 'pending' OR draft_state = 'pending') AND removed = 0) AS games, (SELECT COUNT(*) FROM profiles WHERE (status = 'pending' OR draft_state = 'pending')) AS gms, (SELECT MIN(m) FROM (SELECT MIN(updated_at) AS m FROM games WHERE (status = 'pending' OR draft_state = 'pending') AND removed = 0 UNION ALL SELECT MIN(updated_at) FROM profiles WHERE (status = 'pending' OR draft_state = 'pending'))) AS oldest",
     );
     const oldestMs = old?.oldest ? Date.parse(old.oldest) : now;
     const nag = (old?.games ?? 0) + (old?.gms ?? 0) > 0 && now - oldestMs >= NAG_AFTER_MS && (!last || now - Date.parse(last) >= DAY_MS);
