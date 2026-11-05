@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { GamesBrowser } from "@/components/games-browser";
 import { JsonLd } from "@/components/json-ld";
 import { gameViews, loadSiteData } from "@/lib/data";
-import { filterOptions } from "@/lib/games";
 import { paths } from "@/lib/hrefs";
 import { makeT } from "@/lib/i18n/dict";
 import { SITE_URL } from "@/lib/site";
@@ -36,7 +35,7 @@ export default async function GamesPage({ params }: PageProps<"/[lang]/games">) 
       <h1 className="max-w-none text-[length:var(--text-display-s)]">{t("games.title")}</h1>
       <p className="lead mb-[var(--space-xl)] mt-[var(--space-sm)] text-ink-2 max-sm:mb-[var(--space-md)]">{t("games.count", { n: games.length })}</p>
       <script dangerouslySetInnerHTML={{ __html: HIDE_UNTIL_READ + ";" + REMEMBER_FILTERS_TAP }} />
-      <GamesBrowser games={games} options={filterOptions(games)} />
+      <GamesBrowser games={games} />
     </div>
   );
 }

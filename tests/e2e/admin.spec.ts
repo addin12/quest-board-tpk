@@ -79,10 +79,10 @@ test("approving: the game leaves the waiting list, the database changes, the GM 
   const world = await open(page);
   await row(page, "Mercusuar di Pulau Kabut").click();
   await page.getByTestId("approve").click();
-  await expect(page.getByTestId("toast")).toContainText("Approved “Mercusuar di Pulau Kabut”.");
+  await expect(page.getByTestId("toast")).toContainText("Released “Mercusuar di Pulau Kabut”.");
   await expect(row(page, "Mercusuar di Pulau Kabut")).toHaveCount(0);
   await expect(page.getByTestId("status-pending")).toContainText("3");
-  await expect(page.getByTestId("publish-bar")).toContainText("waiting to go live");
+  await expect(page.getByTestId("publish-bar")).toContainText("waiting for its next update");
   await expect.poll(() => world.status("games", "Mercusuar di Pulau Kabut")).toBe("approved");
   const after = await world.state();
   expect(after.hooks, "the first change builds the site at once").toBe(1);
@@ -99,7 +99,7 @@ test("the site status follows the build by itself: waiting, then updating, with 
   const world = await open(page);
   await row(page, "Mercusuar di Pulau Kabut").click();
   await page.getByTestId("approve").click();
-  await expect(page.getByTestId("publish-bar")).toContainText("waiting to go live");
+  await expect(page.getByTestId("publish-bar")).toContainText("waiting for its next update");
   await expect.poll(async () => (await world.state()).hooks).toBe(1);
   await expect(page.getByTestId("publish-bar")).toContainText("Updating the site", { timeout: 20_000 });
 });
@@ -113,13 +113,13 @@ test("approving is blocked while something is wrong; rejecting writes the reason
   await page.getByLabel("The date or time is missing or has passed").check();
   await page.getByLabel("Add details for the GM (optional)").fill("Which Saturday?");
   await page.getByTestId("reject-confirm").click();
-  await expect(page.getByTestId("toast")).toContainText("Rejected “Date Unknown”.");
+  await expect(page.getByTestId("toast")).toContainText("Hid “Date Unknown”.");
   await expect.poll(() => world.status("games", "Date Unknown")).toBe("rejected");
   const reason = "The date or time is missing or has passed / Tanggal atau jamnya kosong atau sudah lewat. Which Saturday?";
   expect((await world.sql("SELECT reject_reason FROM games WHERE title = 'Date Unknown'"))[0].reject_reason).toBe(reason);
   const state = await world.state();
   expect(state.mails.at(-1)).toMatchObject({ to: "raka@example.com" });
-  expect(state.mails.at(-1)!.subject).toContain("Not approved yet: Date Unknown");
+  expect(state.mails.at(-1)!.subject).toContain("Hidden: Date Unknown");
   expect(state.mails.at(-1)!.body).toContain(reason);
   expect(state.hooks, "it was never public: no rebuild").toBe(0);
   await page.getByTestId("status-rejected").click();
@@ -132,7 +132,7 @@ test("several clean games can be approved together", async ({ page }) => {
   await page.getByRole("checkbox", { name: "Select Naga-naga Hutan Bara" }).check();
   await expect(page.getByRole("checkbox", { name: "Select Date Unknown" })).toBeDisabled();
   await page.getByTestId("bulk-approve").click();
-  await expect(page.getByTestId("toast")).toContainText("Approved 2 items.");
+  await expect(page.getByTestId("toast")).toContainText("Released 2 items.");
   await expect.poll(async () => [await world.status("games", "Mercusuar di Pulau Kabut"), await world.status("games", "Naga-naga Hutan Bara")]).toEqual(["approved", "approved"]);
 });
 

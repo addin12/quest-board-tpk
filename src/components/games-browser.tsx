@@ -3,21 +3,26 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { GENRES, MECHANICS, STYLES, genreLabelKey, mechanicLabelKey, styleLabelKey } from "@/lib/categories";
-import { EMPTY_FILTERS, PAGE_SIZE, activeFilterCount, applyFilters, filtersToQuery, isLive, pageList, parseFilters, type Filters, type GameView, type filterOptions } from "@/lib/games";
+import { EMPTY_FILTERS, PAGE_SIZE, activeFilterCount, applyFilters, filterOptions, filtersToQuery, gameViewsOf, isLive, pageList, parseFilters, type Filters, type GameView } from "@/lib/games";
 import { clickedBackdrop } from "@/lib/dialog";
 import { paths } from "@/lib/hrefs";
 import { SearchPicker, type PickerOption } from "./search-picker";
 import { useI18n } from "./i18n-provider";
 import { EmptyState, GameCard } from "./ui";
+import { useLive } from "./use-live";
 
 /**
  * The games list with its filters. The page is built with every game in it (so search engines and slow phones
  * get a full list); in the browser the filters read the address (?q=horror&where=online), narrow the list, and
  * keep the address up to date so a filtered list can be shared. Games whose time has passed since the last
- * build are left out.
+ * build are left out. `built` is what the last build knew; once the live data arrives (within a second or so, then every minute) the list is the
+ * live one: a game a Game Master has just added is here without waiting for a build.
  */
-export function GamesBrowser({ games, options }: { games: GameView[]; options: ReturnType<typeof filterOptions> }) {
+export function GamesBrowser({ games: built }: { games: GameView[] }) {
   const { t, lang } = useI18n();
+  const liveData = useLive({ games: built });
+  const games = useMemo(() => (liveData ? gameViewsOf(liveData) : built), [liveData, built]);
+  const options = useMemo(() => filterOptions(games), [games]);
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [now, setNow] = useState<number | null>(null);
   const [open, setOpen] = useState(false); // the inline filter panel (640 px and up)

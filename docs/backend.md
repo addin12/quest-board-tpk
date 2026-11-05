@@ -37,12 +37,15 @@ any number of **games**. Also: `admins`, `activity` (the audit trail), `login_to
 | `POST /games/:id/full {full}`, `DELETE /games/:id`, `DELETE /account` | owner of it | self-service |
 | `POST /merge/respond {id, accept}` | owner of the account the request is for | accept or decline an admin's merge request (`GET /me` lists them as `mergeOffers`); anyone else gets 404 |
 | `POST /images?kind=cover\|photo` | signed in | WebP, JPEG or PNG read from the bytes; cover up to 1.5 MB, photo up to 600 KB |
-| `GET /img/<key>` | anyone | only pictures of approved things; the build key sees all |
+| `GET /live` | anyone | the public data (no phone numbers), cached about 20 s at the edge: what the games list and the game and Game Master pages show between builds |
+| `POST /contact {gm}` | anyone, from the site | one live Game Master's phone number, for a tap on WhatsApp; 30 an hour per address, 600 an hour in all |
+| `POST /report {kind, id, reason}` | anyone, from the site | report a live game or profile; 6 an hour per address; the third different reporter holds it |
+| `GET /img/<key>` | anyone | only pictures of live things (cached for good); the build key and admins see all |
 | `POST /admin {action, …}` | admins | `whoami`, `queue`, `review`, `patch`, `admin.add`, `admin.remove`, `merge`, `deploy` (the old script's names) |
 | `GET /public`, `GET /health` (both with `Authorization: Bearer <build key>`) | the build, the owner | public data; health: counts, `lastBackupAt`, `backupError`, `lastMailOkAt`, `lastMailError` (no personal data) |
 
-Every write needs the site's own `Origin` and JSON. Sign-in and uploads are rate-limited in D1. Deploys are coalesced: at most one
-build per 30 seconds however many changes arrive, plus one forced build a day (`daily`).
+Every write needs the site's own `Origin` and JSON. Sign-in, uploads, phone numbers and reports are rate-limited in D1. Deploys are coalesced: at most one
+build per 2 hours for an ordinary change, one per 10 minutes (12 a day at most) when a listing has just gone live, plus one forced build a day (`daily`).
 
 ## Also in the API
 

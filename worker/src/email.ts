@@ -120,18 +120,18 @@ export function decisionMail(to: string, status: "approved" | "rejected", kind: 
       kind: "decision",
       subject: `Approved: ${t} / Disetujui: ${t}`,
       body:
-        `Hi,\n\n“${t}” was approved and will appear on the Quest Board within a few minutes.${link("en")}\n\nTo change something later, sign in at ${edit}; a change goes back to review.\n\n${SIGN}\n\n* * *\n\n` +
-        `Halo,\n\n“${t}” sudah disetujui dan akan tampil di Quest Board dalam beberapa menit.${link("id")}\n\nUntuk mengubah sesuatu nanti, masuk di ${edit}; perubahan ditinjau lagi.\n\n${SIGN}`,
+        `Hi,\n\n“${t}” was looked at and is live on the Quest Board.${link("en")}\n\nTo change something later, sign in at ${edit}; a change is live at once.\n\n${SIGN}\n\n* * *\n\n` +
+        `Halo,\n\n“${t}” sudah diperiksa dan tampil di Quest Board.${link("id")}\n\nUntuk mengubah sesuatu nanti, masuk di ${edit}; perubahan langsung tampil.\n\n${SIGN}`,
     };
   }
   const why = reason ? clip(reason, 500) : "(no reason given / tanpa alasan)";
   return {
     to,
     kind: "decision",
-    subject: `Not approved yet: ${t} / Belum disetujui: ${t}`,
+    subject: `Hidden: ${t} / Disembunyikan: ${t}`,
     body:
-      `Hi,\n\n“${t}” was not approved yet.\n\nReason: ${why}\n\nSign in at ${edit} to fix it; it will be reviewed again.\n\n${SIGN}\n\n* * *\n\n` +
-      `Halo,\n\n“${t}” belum disetujui.\n\nAlasan: ${why}\n\nMasuk di ${edit} untuk memperbaikinya; nanti ditinjau lagi.\n\n${SIGN}`,
+      `Hi,\n\n“${t}” was hidden by an admin.\n\nReason: ${why}\n\nSign in at ${edit} to fix it; an admin will look at it again.\n\n${SIGN}\n\n* * *\n\n` +
+      `Halo,\n\n“${t}” disembunyikan oleh admin.\n\nAlasan: ${why}\n\nMasuk di ${edit} untuk memperbaikinya; admin akan memeriksanya lagi.\n\n${SIGN}`,
   };
 }
 

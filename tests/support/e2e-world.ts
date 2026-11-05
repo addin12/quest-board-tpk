@@ -7,11 +7,12 @@ const BASE = "http://localhost:4174";
 
 export type Mail = { to: string; subject: string; body: string };
 
-export async function newWorld(page: Page, options: { seed?: boolean; hook?: boolean } = {}) {
+export async function newWorld(page: Page, options: { seed?: boolean; demo?: boolean; hook?: boolean } = {}) {
   const { id } = await (await page.request.post("/__test/new")).json();
   await page.context().addCookies([{ name: "tpk_world", value: id, url: BASE }]);
   const post = async (path: string, body: object = {}) => (await page.request.post(`/__test/${path}`, { data: body })).json();
   if (options.seed) await post("seed");
+  if (options.demo) await post("demo");
   await post("hook", { on: Boolean(options.hook) });
 
   return {

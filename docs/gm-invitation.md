@@ -12,7 +12,7 @@ Links: <https://quest-board-tpk.pages.dev/en/list-your-game/> (English), <https:
 
 > Hi! The Pandemonium Kollektive now has a free board where players in Jabodetabek and online can find tabletop RPG games. If you run games, you can list yours:
 > https://quest-board-tpk.pages.dev/en/list-your-game/
-> It takes about ten minutes. You sign in with your email (no password), fill in a short profile and your game, and an admin approves it. Players then message you
+> It takes about ten minutes. You sign in with your email (no password), fill in a short profile and your game, and it is on the site straight away. Players then message you
 > directly on WhatsApp. No bookings, no payments, no fees. Questions? Just reply here.
 
 **Indonesian**
@@ -35,9 +35,9 @@ Links: <https://quest-board-tpk.pages.dev/en/list-your-game/> (English), <https:
 > 1. Open https://quest-board-tpk.pages.dev/en/list-your-game/ and sign in with your email. We send you a link; there is no password.
 > 2. Fill in your profile once: display name, a short bio, your city, your WhatsApp number. Discord, Instagram and a photo are optional.
 > 3. Add your game: system, schedule, where (online or a public place such as a cafe), price per seat, content warnings and safety tools, and a cover picture if you have one.
-> 4. An admin checks it. When it is approved, it appears on the site and you get an email.
+> 4. It is live as soon as you save it. An admin only looks if it is reported or the wording looks like spam, and then emails you.
 >
-> Your email address is never shown. Your WhatsApp number is shown only so players can reach you. You can change, mark full or remove a listing any time, and a
+> Your email address is never shown. Your WhatsApp number is not printed on the page: it is shown only to someone who taps the WhatsApp button, so players can reach you. You can change, mark full or remove a listing any time, and a
 > listing leaves the site on its own after the session date.
 
 **Indonesian**
@@ -58,5 +58,5 @@ Links: <https://quest-board-tpk.pages.dev/en/list-your-game/> (English), <https:
 
 ## Before you send it
 
-- Test the whole flow once yourself first (sign in, add a profile, add a game, approve it on `/en/admin/`): nobody has done it on the live site yet.
+- Test the whole flow once yourself first (sign in, add a profile, add a game, see it on the site, tap WhatsApp, then hide it on `/en/admin/`): nobody has done it on the live site yet.
 - The Indonesian text is the agent's wording; read it as a native speaker before it goes out (see [indonesian-review.md](indonesian-review.md) for the site's own strings).

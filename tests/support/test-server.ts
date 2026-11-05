@@ -7,9 +7,12 @@
 // `tpk_world` cookie, so tests running side by side never see each other's data. The other /__test/* calls read and change the world:
 //   GET  /__test/state            { mails, hooks, dirty, lastDeploy }
 //   POST /__test/seed             demo accounts, profiles and games (see seed())
+//   POST /__test/demo             the demo data the static pages were built from (data/sample.json), as live rows: the pages ask the API for what is true now
 //   POST /__test/sql {sql, args}  runs SQL on the world's database (to plant a state the API itself would refuse)
 //   POST /__test/clock {ms}       moves the world's clock
 //   POST /__test/session {email}  a session cookie for that email without the mail round trip
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { createServer, type IncomingMessage } from "node:http";
 import { serveStatic } from "../../scripts/preview.mjs";
 import sharp from "sharp";
@@ -44,6 +47,28 @@ const DESCRIPTION = "A longer description of the game that is comfortably more t
  * Accounts, profiles and games made through the real API, as GMs would: Raka (approved profile, one approved game, Mercusuar and
  * Neon Run waiting, Panen Harapan approved), Dewi (a profile waiting, one game waiting), and admin@example.com as an admin.
  */
+/**
+ * The demo data (data/sample.json) as live rows of the world's database, with the ids, slugs and dates the static pages were built from
+ * (src/generated/data.json, dates already moved to the present) and the phone numbers from the sample (they are not in the built data), so a page that
+ * asks /api/live and /api/contact gets the same Game Masters and games it was built with.
+ */
+function loadDemo(w: World) {
+  const built = JSON.parse(readFileSync(path.join(process.cwd(), "src", "generated", "data.json"), "utf8"));
+  const sample = JSON.parse(readFileSync(path.join(process.cwd(), "data", "sample.json"), "utf8"));
+  const phones = new Map<string, string>(sample.gms.map((g: any) => [g.id, g.whatsapp]));
+  const at = new Date(w.clock.ms).toISOString();
+  const db = w.db.raw;
+  for (const gm of built.gms) {
+    db.prepare("INSERT INTO accounts (id, email, created_at) VALUES (?, ?, ?)").run(`acc-${gm.id}`, `${gm.id}@demo.example`, at);
+    db.prepare("INSERT INTO profiles (id, account_id, slug, name, bio, city, systems, whatsapp, discord, instagram, photo_key, consent, status, was_live, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 'approved', 1, ?, ?)")
+      .run(gm.id, `acc-${gm.id}`, gm.slug, gm.name, gm.bio, gm.city, JSON.stringify(gm.systems), phones.get(gm.id) ?? "", gm.discord, gm.instagram, gm.photoKey ?? "", at, at);
+  }
+  for (const g of built.games) {
+    db.prepare("INSERT INTO games (id, profile_id, slug, title, system, summary, description, format, location_type, platform, city, venue_name, venue_maps_raw, starts_at, zone, schedule_note, expires_at, price_idr, seats, language, level, min_age, content_warnings, safety_tools, genres, styles, mechanics, cover_key, consent, status, full, was_live, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 'approved', ?, 1, ?, ?)")
+      .run(g.id, g.gmId, g.slug, g.title, g.system, g.summary, g.description, g.format, g.locationType, g.platform, g.city, g.venueName, g.venueMapsUrl, g.startsAt, g.zone, g.scheduleNote, g.expiresAt, g.priceIdr, g.seats, g.language, g.level, g.minAge, g.contentWarnings, g.safetyTools, JSON.stringify(g.genres), JSON.stringify(g.styles), JSON.stringify(g.mechanics), g.coverKey ?? "", g.full ? 1 : 0, at, at);
+  }
+}
+
 async function seed(w: World) {
   const { call, signIn } = w;
   const raka = await signIn("raka@example.com");
@@ -67,6 +92,10 @@ async function seed(w: World) {
   const rakaId = queue.gms.find((g: any) => g.name === "Raka Pratama").id as string;
   await call("POST", "/admin", { cookie: owner, body: { action: "review", kind: "gm", ids: [rakaId], status: "approved" } });
   await call("POST", "/admin", { cookie: owner, body: { action: "review", kind: "game", ids: [id("Panen Harapan")], status: "approved" } });
+  // What a Game Master saves is live at once now (ADR-48); the browser tests of the admin page and the account page want things waiting for a look, so these
+  // rows are put into the held state the way the scam check would leave them: Mercusuar, Date Unknown, Neon Run, and Dewi's profile and game.
+  w.db.raw.prepare("UPDATE games SET status = 'pending', was_live = 0 WHERE title IN ('Mercusuar di Pulau Kabut', 'Neon Run', 'Date Unknown', 'Naga-naga Hutan Bara')").run();
+  w.db.raw.prepare("UPDATE profiles SET status = 'pending', was_live = 0 WHERE name = 'Dewi Lestari'").run();
   // The API refuses a game with no date; a row that arrived broken (an old edit, a hand edit) must still be shown and blocked.
   w.db.raw.prepare("UPDATE games SET starts_at = '' WHERE title = 'Date Unknown'").run();
   // The seeding itself is not part of what a test measures.
@@ -91,6 +120,7 @@ createServer(async (req, res) => {
         case "/__test/state":
           return send(200, { mails: world.mails, hooks: world.hook.length, dirty: Boolean((sql("SELECT value FROM meta WHERE key = 'dirty'").get() as any)?.value), lastDeploy: (sql("SELECT value FROM meta WHERE key = 'lastDeploy'").get() as any)?.value ?? "" });
         case "/__test/seed": await seed(world); return send(200, { ok: true });
+        case "/__test/demo": loadDemo(world); return send(200, { ok: true });
         case "/__test/sql": return send(200, { rows: sql(String(body.sql)).all(...(body.args ?? [])) });
         case "/__test/exec": sql(String(body.sql)).run(...(body.args ?? [])); return send(200, { ok: true });
         case "/__test/clock": world.clock.ms = Number(body.ms); return send(200, { ok: true });

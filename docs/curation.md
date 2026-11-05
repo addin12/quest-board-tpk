@@ -1,38 +1,43 @@
-# Reviewing submissions (for admins)
+# Looking after the board (for admins)
 
-Open **`/en/admin/`** (or `/id/admin/`) on the site and sign in with your email: you are sent a link that works once. If it says your
+Game Masters publish their own profile and games: **nothing waits for you**. What you do is look at what is *held*, what is *reported*, and take down what
+should not be there. Open **`/en/admin/`** (or `/id/admin/`) and sign in with your email: you are sent a link that works once. If it says your
 account is not an admin, ask the owner to add your email under **Admins**.
 
-## The review loop
+## What gets held, and what gets reported
 
-1. **Games** or **Game Masters** tab, **Waiting** list: the oldest submission is first. A new Game Master profile has to be
-   approved before their games can show.
-2. Pick one. The page shows, from top to bottom:
-   - **Checks**: what is missing or looks wrong. *Problem* means it could not show properly (for example the date can't be
-     read): **Approve** stays off until the GM fixes it. *Look closer* is for you to judge: wording that often
-     means a scam (OTP, PIN, "pay to my new account", admin fees…), a map link that isn't Google Maps, a profile that is
-     still waiting, or a WhatsApp number that another profile also uses (see *Two profiles, one person* below). *Note* is just good to know.
-   - **Approve / Reject**, and a box *Email the GM about this decision* (on by default; the email is in English and Indonesian).
-   - **How it will look**: the card as players will see it, and every detail the GM wrote.
-   - **Contact**: the WhatsApp number as it will appear, with a button to test the chat, and the GM's sign-in email (admins only).
-   - A **private note** only admins see.
-3. **Approve** → the game leaves the Waiting list; the site rebuilds in a minute or two (the bar at the top says *Changes are
-   waiting to go live*; *Publish now* does it immediately). You have 9 seconds to **Undo**.
-4. **Reject…** → tick why (several reasons are fine) and add a few words. The GM gets the reasons by email, with the link
-   to sign in and fix it. When they save a change, it comes back to Waiting by itself.
+- **Held** (the *Held* tab, was *Waiting*): a profile or game whose wording looks like a scam (OTP, PIN, "pay to my new account", admin fees, gambling spam,
+  shortened links), or that three different visitors reported. It is off the site until you decide. A weekly-ish email says how many are held; there is
+  no email for each one.
+- **Live** (the *Live* tab): everything else, newest first. Skim it now and then: that is the whole moderation of clean listings.
+- **Hidden** (the *Hidden* tab): what an admin took down, with the reason the Game Master was sent.
+
+## The loop
+
+1. Open the **Held** list. Pick one. The page shows **Checks** (a *Problem* keeps **Release** off until the Game Master fixes it; *Look closer* is yours to
+   judge), how many visitors **reported** it, how it will look, the contact test button and a private note.
+2. **Release** (was *Approve*) puts it on the site again; the Game Master can be emailed. A report count is cleared by your decision.
+3. **Hide…** takes it down: tick why, add a few words; the Game Master gets the reasons by email with the link to sign in and fix it. When they save a
+   change the listing comes back to *Held* (it never goes live by itself again), so you see it.
+4. To take a **live** listing down, open it under *Live* and press **Hide…**. A Game Master's profile that is hidden takes all their games off the site with it.
 
 ## Quicker
 
-- **Keyboard**: `J` / `K` next and previous, `A` approve, `R` reject, `Esc` closes the reject form.
-- **Several at once**: in the Waiting list, tick the games that have no problems and press *Approve … selected*.
+- **Keyboard**: `J` / `K` next and previous, `A` release, `R` hide, `Esc` closes the form.
+- **Several at once**: in the Held list, tick the ones with no problems and press *Release … selected*.
 - **Search** finds a title, a GM's name or email.
 
 ## What Game Masters do themselves
 
-A Game Master signs in at `/en/account/` with an emailed link (one email is one account). They can, without waiting for you:
-**mark a game full** (a "Full" badge, it sinks to the end of the lists; visitors can still message them), **reopen** it, **remove** a game,
-and **erase their account** with all their data and pictures. Any other change (a new game, an edit) goes back to your Waiting list, and
-the old version stays off the site until you approve it again.
+A Game Master signs in at `/en/account/` with an emailed link (one email is one account). They add and change their profile and games (a profile may add
+10 games a day and have 30 open), **mark a game full**, **remove** a game and **erase their account** with all their data and pictures: all of it live at once.
+The site pages read the live data every minute, so a change shows within about a minute; the static copy for search engines is rebuilt later (up to 2 hours,
+10 minutes after a new listing).
+
+## Phone numbers
+
+A visitor sees a Game Master's WhatsApp number only after tapping the button (the site asks the backend for that one number; an address gets 30 an hour). It is
+not in the page, so it cannot be copied from the source or the search results. Discord and Instagram names are shown.
 
 ## Two profiles, one person
 
@@ -45,13 +50,13 @@ the same person: a copied WhatsApp number proves nothing. Owner and admin accoun
 ## Things worth knowing
 
 - A game whose date is more than a day past leaves the site on its own (a campaign stays until its *Keep this listing until* date).
-- A rejected game's cover is made private again. *Back to waiting* makes it viewable again.
-- To take a listing down, open it under *Approved* and press **Reject…** (or *Back to waiting*).
-- Every decision and who made it is recorded in the database's activity log (the owner can read it: [runbook](runbook.md)). Decide on the admin page, so the GM is emailed and the site is rebuilt.
+- A hidden or held game's cover is private; it is public only while the game is live.
+- Three strangers can hold a listing by reporting it. If that happens to a good listing, **Release** it: the reports are cleared and it takes three new ones to hold it again. The activity log says "held for a look after 3 reports".
+- Every decision and who made it is recorded in the database's activity log (the owner can read it: [runbook](runbook.md)). Decide on the admin page, so the Game Master is emailed.
 - An account nobody has signed in to for two years gets a warning email, and is erased 30 days later if still unused. Admins never expire.
 
 ## Spotting a scam
 
-Players pay GMs directly, so the risk is a listing that exists to collect money. Reject, and consider telling the other admins, when:
+Players pay GMs directly, so the risk is a listing that exists to collect money. Hide, and consider telling the other admins, when:
 the GM asks for money *before* anything else and from a different account than the profile's; asks for an OTP, PIN or password;
 promises returns; uses a shortened link; or the WhatsApp number and the sign-in email clearly belong to different people.

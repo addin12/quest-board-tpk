@@ -10,12 +10,20 @@ const jakarta = Plus_Jakarta_Sans({ variable: "--font-jakarta", subsets: ["latin
 // layout, so it speaks both languages and links to both home pages.
 export const metadata = { title: "404 · Quest Board" };
 
+/**
+ * A listing that went live after the last build has no page yet (the site is static). Its address lands here; if it looks like a game or Game Master address,
+ * the visitor is sent to /view/, which loads that listing from the live data and puts the address back (components/listing-view.tsx). The page is hidden while
+ * it decides, so nobody sees "404" flash by. Any other address stays a 404.
+ */
+const TO_VIEW = 'var m=/^\\/(en|id)\\/(games|gm)\\/([a-z0-9][a-z0-9-]{2,80})\\/?$/.exec(location.pathname);if(m){document.documentElement.style.visibility="hidden";location.replace("/"+m[1]+"/view/?"+(m[2]==="gm"?"m":"g")+"="+m[3])}';
+
 export default function GlobalNotFound() {
   const en = makeT("en");
   const id = makeT("id");
   return (
     <html lang="en" className={`${ultra.variable} ${jakarta.variable}`}>
       <body className="items-start justify-center">
+        <script dangerouslySetInnerHTML={{ __html: TO_VIEW }} />
         <main className="wrap flex flex-col items-start gap-[var(--space-lg)] py-[var(--space-3xl)]">
           <p className="poster" aria-hidden>{"404"}</p>
           <h1 className="max-w-none text-[length:var(--text-display-s)]">{en("notFound.title")}</h1>

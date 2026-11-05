@@ -21,15 +21,15 @@ message the GM directly on WhatsApp, Discord or Instagram.
 ## How it works
 
 ```
-GM signs in with an emailed link and fills in a game  →  an admin approves it on /en/admin/
-        →  the site rebuilds (1–3 minutes)  →  players browse, filter and tap “Message on WhatsApp”
+GM signs in with an emailed link and fills in a game  →  it is live at once (scam wording is held for an admin)
+        →  players browse, filter and tap “Message on WhatsApp” (the number is fetched on the tap)
 ```
 
 - **For players:** browse and filter games (system, genre, online or in person, city, language, level, free), open a game,
   and tap the WhatsApp button: the chat opens with a message ready to send. Some GMs also share a Discord or an Instagram.
-- **For Game Masters:** one profile, then as many games as they run; an email when an admin decides; they can edit, mark a game full, remove it, or erase their account themselves.
-- **For admins:** a review page with a queue, a preview of the card, automatic checks (scam wording, missing date or
-  number…), one-click approve or reject with reasons, undo, bulk approve and keyboard shortcuts. Adding another admin is one email address.
+- **For Game Masters:** one profile, then as many games as they run, live as soon as they save; they can edit, mark a game full, remove it, or erase their account themselves.
+- **For admins:** a page for what is held or reported: a preview of the card, automatic checks (scam wording, missing date or
+  number…), one-click release or hide with reasons, undo, bulk release and keyboard shortcuts. Adding another admin is one email address.
 - **Cost:** nothing. Cloudflare (Pages, D1, R2, a timer Worker, Turnstile) and GitHub on free plans; email is sent through a small Google Apps Script from the owner's Gmail.
 
 More: [architecture](docs/architecture.md) · [the backend](docs/backend.md) · [going live](docs/cutover.md) · [runbook](docs/runbook.md) · [for admins](docs/curation.md) · [decisions](DECISIONS.md)

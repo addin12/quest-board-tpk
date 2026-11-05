@@ -1,10 +1,14 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { SYSTEMS } from "../../src/lib/systems.ts";
+import { newWorld } from "../support/e2e-world.ts";
 
 // The public site against the demo data (data/sample.json), as a player uses it.
 const GAME = "/en/games/mercusuar-di-pulau-kabut-0m01/";
 const PAGES = ["/en/", "/en/games/", GAME, "/en/gm/raka-pratama-0r01/", "/en/gms/", "/en/how-it-works/", "/en/list-your-game/", "/id/", "/id/games/", "/id/list-your-game/", "/en/games/a-game-that-ended-9z01/", "/id/gm/a-gm-who-left-9z02/", "/en/games/doskvol-setelah-gelap-0d02/"];
+
+// The pages ask the API what is true now (/api/live) and for a phone number on a tap (/api/contact): each test gets a backend holding the same demo data.
+test.beforeEach(async ({ page }) => { await newWorld(page, { demo: true }); });
 
 test("find a game, follow the links, message the GM on WhatsApp", async ({ page, context }) => {
   await page.goto("/");

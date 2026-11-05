@@ -53,11 +53,11 @@ export function GameForm({ game, onSaved, onCancel }: { game: GameRecord | null;
     setBusy(true);
     setProblem("");
     const body = { ...v, system: v.system === OTHER_SYSTEM ? OTHER_SYSTEM : v.system, priceIdr: v.priceIdr.trim(), seats: v.seats.trim(), minAge: v.minAge.trim(), keepUntil: v.keepUntil };
-    const r = game ? await call<{ changed: boolean }>("PUT", `/games/${game.id}`, body) : await call<{ changed: boolean }>("POST", "/games", body);
+    const r = game ? await call<{ changed: boolean; status?: string }>("PUT", `/games/${game.id}`, body) : await call<{ changed: boolean; status?: string }>("POST", "/games", body);
     setBusy(false);
     if (r.ok) {
       setErrors({});
-      onSaved(t(r.data.changed ? "acct.saved" : "acct.savedSame"));
+      onSaved(t(!r.data.changed ? "acct.savedSame" : r.data.status === "pending" ? "acct.savedHeld" : "acct.saved")); // pending: the wording was held for an admin's look
     } else if (r.status === 422 && r.fields) {
       setErrors(r.fields);
       setProblem(t("acct.err.fix"));

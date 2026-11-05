@@ -74,7 +74,7 @@ test("profile, then a game with a picture: both wait for review; the picture is 
   await fillProfile(page);
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.getByTestId("message")).toContainText("An admin will review it");
-  await expect(page.getByTestId("status").first()).toHaveText("Waiting for review");
+  await expect(page.getByTestId("status").first()).toHaveText("Held for a look");
 
   await page.getByRole("button", { name: "Add a game" }).click();
   const form = page.getByTestId("game-form");
@@ -106,7 +106,7 @@ test("profile, then a game with a picture: both wait for review; the picture is 
 
   await expect(page.getByTestId("my-game")).toHaveCount(1);
   await expect(page.getByTestId("my-game")).toContainText("Kabut di Kebun Raya");
-  await expect(page.getByTestId("my-game").getByTestId("status")).toHaveText("Waiting for review");
+  await expect(page.getByTestId("my-game").getByTestId("status")).toHaveText("Held for a look");
   const [game] = await world.sql(COLUMN("Kabut di Kebun Raya"));
   expect(game.status).toBe("pending");
   expect(JSON.parse(game.mechanics)).toEqual(["d100"]);
@@ -143,7 +143,7 @@ test("editing an approved game sends it back to review; saving the same thing ag
   await page.goto("/en/account/");
   await expect(page.getByTestId("my-game")).toHaveCount(4);
   const panen = page.getByTestId("my-game").filter({ hasText: "Panen Harapan" });
-  await expect(panen.getByTestId("status")).toHaveText("Approved");
+  await expect(panen.getByTestId("status")).toHaveText("Live");
 
   await panen.getByRole("button", { name: "Edit" }).click();
   await page.getByTestId("game-form").getByRole("button", { name: "Save game" }).click();
@@ -154,7 +154,7 @@ test("editing an approved game sends it back to review; saving the same thing ag
   await page.getByTestId("game-form").getByLabel("Seats", { exact: true }).fill("6");
   await page.getByTestId("game-form").getByRole("button", { name: "Save game" }).click();
   await expect(page.getByTestId("message")).toContainText("An admin will review it");
-  await expect(page.getByTestId("my-game").filter({ hasText: "Panen Harapan" }).getByTestId("status")).toHaveText("Waiting for review");
+  await expect(page.getByTestId("my-game").filter({ hasText: "Panen Harapan" }).getByTestId("status")).toHaveText("Held for a look");
   expect((await world.sql(COLUMN("Panen Harapan")))[0].seats).toBe(6);
 });
 

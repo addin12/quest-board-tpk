@@ -65,9 +65,9 @@ npm run script:deploy      # the mail relay in Apps Script
 
 ## Hard rules
 
-- **Public data is a fixed list of fields** (`buildPublic` in `worker/src/public.ts`). Never add an email, an admin note, a status or a rejected/pending row to it.
+- **Public data is a fixed list of fields** (`buildPublic` in `worker/src/public.ts`, served as `/api/live` and `/api/public`). Never add an email, an admin note, a status, a phone number or a hidden/held row to it. A phone number leaves the backend only through `POST /api/contact` (rate-limited, one Game Master at a time).
 - **Everything the site shows is untrusted text**: render it as text (React escapes), never as HTML; links only if validated
-  (`isGoogleMapsUrl`, `cleanDiscord`, `cleanInstagram`, `isPhone`); re-validate at the build (`parsePublicData`), whatever the backend promised.
+  (`isGoogleMapsUrl`, `cleanDiscord`, `cleanInstagram`, `isPhone`); re-validate at the build and in the browser (`parsePublicData`), whatever the backend promised.
 - **Admin power comes only from a valid session whose email is the owner or on the `admins` table** (`isAdmin`). Nothing the page sends grants it.
 - **One rules module**: what makes a game or profile valid lives in `src/lib/` and is imported by `worker/src/rules.ts`. Change it once; never copy a rule.
 - **The backend never has a service hard-wired**: D1, R2, mail, the clock and `fetch` are injected into `handle()`, so the node:test world and the Playwright test server run the real code. Keep it that way.

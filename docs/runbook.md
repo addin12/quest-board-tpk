@@ -9,16 +9,17 @@ together is [architecture.md](architecture.md); the API and data are [backend.md
 | Part | Where | You open it to |
 |---|---|---|
 | The website and `/api` | https://quest-board-tpk.pages.dev, built by Cloudflare Pages from the `main` branch of the GitHub repo | see what players see; read a build log, retry, roll back |
-| The admin page | `/en/admin/` on the site | approve, reject, feature, add admins, merge, publish now |
+| The admin page | `/en/admin/` on the site | release or hide held, reported or live listings, add admins, merge, publish now |
 | The database | Cloudflare → Storage & databases → D1 → `quest-board` | read or fix rows (decide on the admin page, not here) |
 | Pictures and backups | Cloudflare → R2 → `quest-board-images` (`covers/`, `photos/`, `backups/`) | download a backup |
 | The timers | Cloudflare → Workers & Pages → `quest-board-cron` | read its logs and error count |
 | The mail relay | the Apps Script project (`apps-script/Code.gs`), script.google.com | read **Executions** if mail stops |
 | A look inside | `GET /api/health` with `Authorization: Bearer <build key>` | counts, last backup, last mail success and failure |
 
-Everything runs on free plans. A change goes live in 1 to 4 minutes, with nobody pressing a button: the backend asks Pages to rebuild at most once every 30 seconds
-(the one-minute tick sends a waiting one), and the Worker forces one build a day so ended listings leave. Cloudflare's free plan allows
-500 builds a month.
+Everything runs on free plans. A change is on the site within about a minute (the pages read `/api/live`, cached 20 seconds), with nobody pressing a button. The
+static copy (what search engines and link previews read) is rebuilt later: the backend asks Pages to rebuild at most once every 2 hours for an ordinary change, and within
+10 minutes (12 times a day at most) when a listing has just gone live so its page exists; the one-minute tick sends a waiting one, and the Worker forces one build a day so
+ended listings leave. Cloudflare's free plan allows 500 builds a month (about 390 at the most with these gaps).
 
 A change stays marked "waiting" until the site itself shows it has been built: every build writes `/build.json` (the time its data was read) and the one-minute tick
 compares it with the change. A build that never lands (refused, failed, over the monthly limit) is sent again after 10, 20, 40, then 60 minutes; after
@@ -32,7 +33,7 @@ encrypted variables. Losing the file is recoverable: `npm run cloudflare:setup` 
 
 | Job | How |
 |---|---|
-| Approve or reject a listing | `/en/admin/` → open it → Approve, or Reject with the reasons. The GM is emailed in both languages. **Approve the Game Master before their game.** |
+| Release or hide a listing | `/en/admin/` → Held (scam wording or 3 reports) or Live → open it → Release, or Hide with the reasons. The GM is emailed in both languages. A game of a held Game Master stays off the site until the Game Master is released. |
 | Put a change live now | Admin page → **Publish now** |
 | Add an admin | Admin page → Admins → Add admin (their email address; they sign in with an emailed link) |
 | Remove an admin | Admin page → Admins → Remove (only the owner can) |
