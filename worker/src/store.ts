@@ -1,11 +1,11 @@
 // What a signed-in GM can do: keep one profile, list games, mark one full, remove one, erase everything.
 // Every write is tied to the session's account, never to an id the client sends alone.
-import { exec, many, one } from "./db.ts";
+import { exec, many, one, type Stmt } from "./db.ts";
 import type { Ctx, Session } from "./auth.ts";
 import type { GameInput, ProfileInput } from "./rules.ts";
 import type { GameRecord, GmRecord } from "../../src/lib/types.ts";
 import { isGoogleMapsUrl } from "../../src/lib/public-data.ts";
-import { DAY_MS, iso, logEvent, metaSet, parseList, randomId, slugify } from "./util.ts";
+import { DAY_MS, eventStmt, iso, logEvent, metaGet, metaSet, parseList, randomId, slugify } from "./util.ts";
 
 export type ProfileRow = {
   id: string; account_id: string; slug: string; name: string; bio: string; city: string; systems: string; whatsapp: string; discord: string; instagram: string; photo_key: string; consent: number;
@@ -19,7 +19,16 @@ export type GameRow = {
   removed: number; created_at: string; updated_at: string; rowid?: number;
 };
 
-export const markDirty = (ctx: Ctx): Promise<number> => metaSet(ctx.db, "dirty", iso(ctx.now()));
+/**
+ * Marks that the site is behind. The mark is always later than the previous mark and than the last build sent, even for two changes in one
+ * millisecond, so the build sent for one change is never taken for the one after it (worker/src/deploy.ts compares the two).
+ */
+export async function markDirty(ctx: Ctx): Promise<void> {
+  const dirty = await metaGet(ctx.db, "dirty");
+  const last = await metaGet(ctx.db, "lastDeploy");
+  const after = Math.max(dirty ? Date.parse(dirty) : 0, last ? Date.parse(last) : 0) + 1;
+  await metaSet(ctx.db, "dirty", iso(Math.max(ctx.now(), after)));
+}
 
 export const profileOf = (ctx: Ctx, accountId: string) => one<ProfileRow>(ctx.db, "SELECT rowid, * FROM profiles WHERE account_id = ?", accountId);
 
@@ -172,27 +181,33 @@ export async function eraseAccount(ctx: Ctx, s: Session): Promise<string[]> {
   const wasPublic = p?.status === "approved";
   const merged = await many<{ id: string; email: string }>(ctx.db, "SELECT id, email FROM accounts WHERE merged_into = ?", s.accountId);
   const emails = [s.email, ...merged.map((m) => m.email)];
+  const subjects = [s.accountId, p?.id, ...games.map((g) => g.id), ...merged.map((m) => m.id)].filter((id): id is string => Boolean(id));
+  const marks = (n: number) => Array.from({ length: n }, () => "?").join(", ");
+  // Everything goes in one batch (all or none, and a handful of queries however many games the person had; Cloudflare's free plan allows 50
+  // a request): a failure half-way must not leave a half-erased account, or personal data in the log with no way to retry.
+  const writes: Stmt[] = [];
+  const add = (sql: string, ...values: unknown[]) => writes.push(ctx.db.prepare(sql).bind(...values));
   if (p) {
-    await exec(ctx.db, "DELETE FROM games WHERE profile_id = ?", p.id);
-    await exec(ctx.db, "DELETE FROM merge_requests WHERE from_profile_id = ? OR into_profile_id = ?", p.id, p.id);
-    await exec(ctx.db, "DELETE FROM profiles WHERE id = ?", p.id);
+    add("DELETE FROM merge_requests WHERE from_profile_id = ? OR into_profile_id = ?", p.id, p.id);
+    add("DELETE FROM games WHERE profile_id = ?", p.id);
+    add("DELETE FROM profiles WHERE id = ?", p.id);
   }
   // The merged-in accounts point at this one, so they go first (a foreign key would stop the delete otherwise).
-  for (const m of merged) {
-    await exec(ctx.db, "DELETE FROM sessions WHERE account_id = ?", m.id);
-    await exec(ctx.db, "DELETE FROM accounts WHERE id = ?", m.id);
+  if (merged.length) {
+    add(`DELETE FROM sessions WHERE account_id IN (${marks(merged.length)})`, ...merged.map((m) => m.id));
+    add(`DELETE FROM accounts WHERE id IN (${marks(merged.length)})`, ...merged.map((m) => m.id));
   }
-  await exec(ctx.db, "DELETE FROM sessions WHERE account_id = ?", s.accountId);
-  for (const email of emails) await exec(ctx.db, "DELETE FROM login_tokens WHERE email = ?", email);
-  await exec(ctx.db, "DELETE FROM accounts WHERE id = ?", s.accountId);
-  for (const id of [s.accountId, p?.id, ...games.map((g) => g.id), ...merged.map((m) => m.id)]) {
-    if (id) await exec(ctx.db, "UPDATE activity SET title = '', detail = '' WHERE subject_id = ?", id);
+  add("DELETE FROM sessions WHERE account_id = ?", s.accountId);
+  add(`DELETE FROM login_tokens WHERE email IN (${marks(emails.length)})`, ...emails);
+  add("DELETE FROM accounts WHERE id = ?", s.accountId);
+  for (let i = 0; i < subjects.length; i += 80) { // D1 allows 100 values in a statement
+    const part = subjects.slice(i, i + 80);
+    add(`UPDATE activity SET title = '', detail = '' WHERE subject_id IN (${marks(part.length)})`, ...part);
   }
-  for (const email of emails) {
-    await exec(ctx.db, "UPDATE activity SET title = '', detail = '', actor = 'erased' WHERE actor = ?", email); // what the person did themselves
-    await exec(ctx.db, "UPDATE activity SET detail = '' WHERE detail = ?", email);
-  }
-  await logEvent(ctx.db, ctx.now(), "erased", "account", s.accountId, "", "account and data erased at the person's request", "the account holder");
+  add(`UPDATE activity SET title = '', detail = '', actor = 'erased' WHERE actor IN (${marks(emails.length)})`, ...emails); // what the person did themselves
+  add(`UPDATE activity SET detail = '' WHERE detail IN (${marks(emails.length)})`, ...emails);
+  writes.push(eventStmt(ctx.db, ctx.now(), "erased", "account", s.accountId, "", "account and data erased at the person's request", "the account holder"));
+  await ctx.db.batch(writes);
   if (wasPublic) await markDirty(ctx);
   return keys;
 }

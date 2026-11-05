@@ -38,3 +38,6 @@ Thumbs.db
 .token-savior-cache.json
 CLAUDE.local.md
 .claude/settings.local.json
+
+# written by every build (scripts/build-data.mjs)
+/public/build.json

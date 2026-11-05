@@ -6,6 +6,12 @@
 // scripts/build-data.mjs turns RawPublicData into SiteData (pictures downloaded, resized and referenced by path).
 
 export type Lang = "en" | "id";
+/**
+ * Records one review call may decide. Cloudflare's free plan allows 50 database queries per request (and the mail relay answers one at a time),
+ * so a call reads once, writes once in a batch and sends at most this many emails; the admin page sends longer selections in turns.
+ */
+export const REVIEW_MAX_IDS = 8;
+
 export const LANGS: readonly Lang[] = ["en", "id"];
 export const DEFAULT_LANG: Lang = "en";
 export const isLang = (v: unknown): v is Lang => v === "en" || v === "id";

@@ -1,18 +1,24 @@
 // The admin side: the review queue, decisions, featuring, admins and merging duplicate accounts.
 // Speaks the same action names and answers as the old Apps Script API, so the admin page keeps its logic.
-import { exec, many, one } from "./db.ts";
+import { exec, many, one, type Stmt } from "./db.ts";
 import { isAdmin, listAdmins, type Ctx, type Session } from "./auth.ts";
 import { decisionMail, mergeRequestMail, normalizeEmail } from "./email.ts";
 import { MERGE_REQUEST_DAYS, gameRecord, gmRecord, markDirty, type GameRow, type ProfileRow } from "./store.ts";
-import { DAY_MS, allow, clip, iso, logEvent, metaGet, randomId } from "./util.ts";
-import type { AdminEntry, DeployInfo } from "../../src/lib/types.ts";
+import { DAY_MS, allow, clip, eventStmt, iso, logEvent, metaGet, randomId } from "./util.ts";
+import { REVIEW_MAX_IDS, type AdminEntry, type DeployInfo } from "../../src/lib/types.ts";
 
 export type AdminFail = { ok: false; error: string; message?: string };
 const fail = (error: string, message?: string): AdminFail => ({ ok: false, error, ...(message ? { message } : {}) });
 
+/**
+ * What the admin page shows of the publishing. `pending` means a change has not been SENT to a build yet (the mark is newer than the last send);
+ * once it is sent the page shows "updating" until the site has it, and the page compares the site's own build with `lastAt`. A build that never
+ * lands is the backend's business (worker/src/deploy.ts sends it again and the owner is told), not the page's.
+ */
 export async function deployInfo(ctx: Ctx, configured: boolean): Promise<DeployInfo> {
   const last = await metaGet(ctx.db, "lastDeploy");
-  return { lastAt: last ? Date.parse(last) : null, pending: Boolean(await metaGet(ctx.db, "dirty")), configured };
+  const dirty = await metaGet(ctx.db, "dirty");
+  return { lastAt: last ? Date.parse(last) : null, pending: Boolean(dirty) && (!last || Date.parse(dirty as string) > Date.parse(last)), configured };
 }
 
 export async function queue(ctx: Ctx, deployConfigured: boolean) {
@@ -50,40 +56,62 @@ async function load(ctx: Ctx, kind: Kind, id: string): Promise<{ row: (GameRow |
   return row ? { row, title: kind === "game" ? (row as GameRow).title : (row as ProfileRow).name, slug: row.slug } : null;
 }
 
+/** The records of one kind with these ids, and the address of whoever owns them: one query for all of them. */
+async function loadMany(ctx: Ctx, kind: Kind, ids: string[]): Promise<Map<string, { row: (GameRow | ProfileRow) & { email: string }; title: string; slug: string }>> {
+  const marks = ids.map(() => "?").join(", ");
+  const rows = kind === "game"
+    ? await many<GameRow & { email: string }>(ctx.db, `SELECT g.*, a.email FROM games g JOIN profiles p ON p.id = g.profile_id JOIN accounts a ON a.id = p.account_id WHERE g.id IN (${marks}) AND g.removed = 0`, ...ids)
+    : await many<ProfileRow & { email: string }>(ctx.db, `SELECT p.*, a.email FROM profiles p JOIN accounts a ON a.id = p.account_id WHERE p.id IN (${marks})`, ...ids);
+  return new Map(rows.map((row) => [row.id, { row, title: kind === "game" ? (row as GameRow).title : (row as ProfileRow).name, slug: row.slug }]));
+}
+
+/**
+ * Decides on up to REVIEW_MAX_IDS records. One read for all of them, one batch for every change and its log row (all or none), then the
+ * emails: this stays far under the 50 database queries a request may make, however the admin page chunks a long selection.
+ * `mailFailed` lists the records whose decision email could not be sent, so the admin is told instead of assuming.
+ */
 export async function review(ctx: Ctx, admin: string, req: Record<string, unknown>) {
   const kind = kindOf(req.kind);
   const status = req.status;
-  const ids = Array.isArray(req.ids) ? req.ids.filter((x): x is string => typeof x === "string") : [];
-  if (!kind || (status !== "pending" && status !== "approved" && status !== "rejected") || ids.length === 0 || ids.length > 50) return fail("bad_request");
+  const ids = Array.isArray(req.ids) ? [...new Set(req.ids.filter((x): x is string => typeof x === "string"))] : [];
+  if (!kind || (status !== "pending" && status !== "approved" && status !== "rejected") || ids.length === 0 || ids.length > REVIEW_MAX_IDS) return fail("bad_request");
   const table = kind === "game" ? "games" : "profiles";
   const reason = status === "rejected" ? clip(req.reason, 500) : "";
   // The page sends the `updatedAt` of each record it showed; a decision on a record the GM changed since is refused, not applied blind.
   const seen = req.seen && typeof req.seen === "object" && !Array.isArray(req.seen) ? (req.seen as Record<string, unknown>) : null;
+  const records = await loadMany(ctx, kind, ids);
+  const writes: Stmt[] = [];
+  const mails: { id: string; to: string; title: string; slug: string }[] = [];
   const done: string[] = [];
   const stale: string[] = [];
   let dirty = false;
+  const at = iso(ctx.now());
   for (const id of ids) {
-    const rec = await load(ctx, kind, id);
+    const rec = records.get(id);
     if (!rec) continue;
     if (seen && seen[id] !== (rec.row as { updated_at: string }).updated_at) { stale.push(id); continue; }
     const before = rec.row.status;
     const wasApproved = before === "approved";
     // Leaving the approved state starts the "no longer listed" clock; a decision always stamps who and when.
-    await exec(ctx.db, `UPDATE ${table} SET status = ?, reviewed_by = ?, reviewed_at = ?, reject_reason = ?, was_live = CASE WHEN ? = 'approved' THEN 1 ELSE was_live END, gone_at = CASE WHEN ? = 'approved' THEN '' WHEN ? = 1 THEN ? ELSE gone_at END WHERE id = ?`,
-      status, admin, iso(ctx.now()), reason, status, status, wasApproved ? 1 : 0, iso(ctx.now()), id);
-    await logEvent(ctx.db, ctx.now(), "decision", kind, id, rec.title, `${before} → ${status}${reason ? `: ${reason}` : ""}`, admin);
+    writes.push(ctx.db.prepare(`UPDATE ${table} SET status = ?, reviewed_by = ?, reviewed_at = ?, reject_reason = ?, was_live = CASE WHEN ? = 'approved' THEN 1 ELSE was_live END, gone_at = CASE WHEN ? = 'approved' THEN '' WHEN ? = 1 THEN ? ELSE gone_at END WHERE id = ?`)
+      .bind(status, admin, at, reason, status, status, wasApproved ? 1 : 0, at, id));
+    writes.push(eventStmt(ctx.db, ctx.now(), "decision", kind, id, rec.title, `${before} → ${status}${reason ? `: ${reason}` : ""}`, admin));
     if (before !== status && (wasApproved || status === "approved")) dirty = true;
-    if (req.notify === true && before !== status && (status === "approved" || status === "rejected")) {
-      try {
-        await ctx.mailer.send(decisionMail(rec.row.email, status, kind, rec.title, rec.slug, reason, ctx.siteUrl));
-      } catch {
-        await logEvent(ctx.db, ctx.now(), "mail failed", kind, id, rec.title, "the decision email could not be sent", admin);
-      }
-    }
+    if (req.notify === true && before !== status && (status === "approved" || status === "rejected")) mails.push({ id, to: rec.row.email, title: rec.title, slug: rec.slug });
     done.push(id);
   }
+  if (writes.length) await ctx.db.batch(writes);
+  const mailFailed: string[] = [];
+  for (const m of mails) {
+    try {
+      await ctx.mailer.send(decisionMail(m.to, status as "approved" | "rejected", kind, m.title, m.slug, reason, ctx.siteUrl));
+    } catch {
+      mailFailed.push(m.id);
+      await logEvent(ctx.db, ctx.now(), "mail failed", kind, m.id, m.title, "the decision email could not be sent", admin).catch(() => undefined);
+    }
+  }
   if (dirty) await markDirty(ctx);
-  return { ok: true as const, updated: done, stale, publishing: dirty };
+  return { ok: true as const, updated: done, stale, publishing: dirty, mailFailed };
 }
 
 export async function patch(ctx: Ctx, admin: string, req: Record<string, unknown>) {
@@ -180,13 +208,16 @@ export async function respondMerge(ctx: Ctx, s: Session, requestId: unknown, acc
     return sides;
   }
   const { from } = sides;
-  await exec(ctx.db, "UPDATE games SET profile_id = ?, updated_at = ? WHERE profile_id = ?", into.id, iso(ctx.now()), from.id);
-  await exec(ctx.db, "DELETE FROM profiles WHERE id = ?", from.id);
-  await exec(ctx.db, "UPDATE accounts SET merged_into = ? WHERE merged_into = ?", into.account_id, from.account_id); // accounts merged into the duplicate earlier follow it
-  await exec(ctx.db, "UPDATE accounts SET merged_into = ? WHERE id = ?", into.account_id, from.account_id);
-  await exec(ctx.db, "UPDATE sessions SET account_id = ? WHERE account_id = ?", into.account_id, from.account_id);
-  await exec(ctx.db, "DELETE FROM merge_requests WHERE from_profile_id = ? OR into_profile_id = ?", from.id, from.id);
-  await logEvent(ctx.db, ctx.now(), "merged", "gm", into.id, into.name, `profile ${from.name} (${from.id}) merged into this one, accepted by its owner`, s.email);
+  // One batch, all or none: a failure half-way must not leave a duplicate account with no profile and nothing to retry.
+  await ctx.db.batch([
+    ctx.db.prepare("UPDATE games SET profile_id = ?, updated_at = ? WHERE profile_id = ?").bind(into.id, iso(ctx.now()), from.id),
+    ctx.db.prepare("DELETE FROM profiles WHERE id = ?").bind(from.id),
+    ctx.db.prepare("UPDATE accounts SET merged_into = ? WHERE merged_into = ?").bind(into.account_id, from.account_id), // accounts merged into the duplicate earlier follow it
+    ctx.db.prepare("UPDATE accounts SET merged_into = ? WHERE id = ?").bind(into.account_id, from.account_id),
+    ctx.db.prepare("UPDATE sessions SET account_id = ? WHERE account_id = ?").bind(into.account_id, from.account_id),
+    ctx.db.prepare("DELETE FROM merge_requests WHERE from_profile_id = ? OR into_profile_id = ?").bind(from.id, from.id),
+    eventStmt(ctx.db, ctx.now(), "merged", "gm", into.id, into.name, `profile ${from.name} (${from.id}) merged into this one, accepted by its owner`, s.email),
+  ]);
   await markDirty(ctx);
   return { ok: true as const, merged: true as const };
 }

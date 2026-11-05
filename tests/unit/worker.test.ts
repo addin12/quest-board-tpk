@@ -282,7 +282,10 @@ test("builds are coalesced: many changes, at most one build per two minutes, and
   w.clock.ms += MIN_GAP_MS + 1000;
   assert.equal(await deployIfDue(w.env.ctx, w.env.deployHook, w.env.fetcher), "sent", "the timer sends the waiting build");
   assert.equal(w.hook.length, 2);
-  assert.equal(await deployIfDue(w.env.ctx, w.env.deployHook, w.env.fetcher), "idle", "nothing is waiting now");
+  assert.equal(await deployIfDue(w.env.ctx, w.env.deployHook, w.env.fetcher), "wait", "the change stays marked until the site says it has the build");
+  w.site.generatedAt = new Date(w.clock.ms).toISOString();
+  w.clock.ms += MIN_GAP_MS + 1000;
+  assert.equal(await deployIfDue(w.env.ctx, w.env.deployHook, w.env.fetcher), "idle", "the site has caught up: nothing is waiting now");
 });
 
 test("a person can erase their account: profile, games, pictures and email go; the log keeps no personal data", async () => {
@@ -305,7 +308,7 @@ test("the health check needs the build key and reports counts only", async () =>
   const w = makeWorld();
   assert.equal((await w.call("GET", "/health")).status, 403);
   const h = await w.call("GET", "/health", { build: true });
-  assert.deepEqual(h.json, { ok: true, accounts: 0, profiles: 0, games: 0, admins: 0, deployConfigured: true, turnstileConfigured: false, lastBackupAt: null, backupError: null, lastMailOkAt: null, lastMailError: null });
+  assert.deepEqual(h.json, { ok: true, accounts: 0, profiles: 0, games: 0, admins: 0, deployConfigured: true, deploy: { pending: false, lastSentAt: null, attempts: 0, failingSince: null }, turnstileConfigured: false, lastBackupAt: null, backupError: null, lastMailOkAt: null, lastMailError: null });
 });
 
 test("the mail relay is called with the secret; an error from it is an error here", async () => {
@@ -482,7 +485,7 @@ test("a new or changed submission emails the owner and the admins once an hour, 
 });
 
 test("review notices have a daily cap, and a failing mail relay never breaks a save", async () => {
-  const { NOTICES_PER_DAY } = await import("../../worker/src/watch.ts");
+  const { NOTICE_MAILS_PER_DAY: NOTICES_PER_DAY } = await import("../../worker/src/watch.ts");
   const w = makeWorld();
   const cookies: string[] = [];
   for (let i = 0; i < NOTICES_PER_DAY + 3; i++) {
@@ -501,4 +504,134 @@ test("review notices have a daily cap, and a failing mail relay never breaks a s
   const saved = await fresh.call("PUT", "/profile", { cookie: gm, body: PROFILE });
   assert.equal(saved.status, 200);
   assert.equal(saved.json.status, "pending", "the save went through although the notice could not be sent");
+});
+
+test("review notices count mails, not notices: with several admins they still stay inside the daily budget, the owner first", async () => {
+  const { NOTICE_MAILS_PER_DAY } = await import("../../worker/src/watch.ts");
+  const w = makeWorld();
+  const owner = await w.signIn(OWNER);
+  for (const a of ["a1@example.com", "a2@example.com", "a3@example.com"]) await w.call("POST", "/admin", { cookie: owner, body: { action: "admin.add", email: a } });
+  const cookies: string[] = [];
+  for (let i = 0; i < 15; i++) {
+    if (i % 10 === 9) w.clock.ms += 3_600_000;
+    cookies.push(await w.signIn(`gm${i}@example.com`));
+  }
+  const before = w.mails.length;
+  for (const [i, cookie] of cookies.entries()) await w.call("PUT", "/profile", { cookie, body: { ...PROFILE, name: `Person ${i}`, whatsapp: `08123000${String(i).padStart(4, "0")}` } });
+  const notices = w.mails.slice(before).filter((m) => /^To review:/.test(m.subject));
+  assert.equal(notices.length, NOTICE_MAILS_PER_DAY, "20 mails in all, not 20 notices of four mails each");
+  assert.equal(notices[0]!.to, OWNER, "the owner is served first");
+});
+
+test("a long review makes a handful of database queries, decides every record or none, and refuses more than it can carry", async () => {
+  const { REVIEW_MAX_IDS } = await import("../../src/lib/types.ts");
+  const w = makeWorld();
+  for (let i = 0; i < REVIEW_MAX_IDS + 1; i++) {
+    const cookie = await w.signIn(`gm${i}@example.com`);
+    await w.call("PUT", "/profile", { cookie, body: { ...PROFILE, name: `Person ${i}`, whatsapp: `08123000${String(i).padStart(4, "0")}` } });
+  }
+  const owner = await w.signIn(OWNER);
+  const ids = ((await w.call("POST", "/admin", { cookie: owner, body: { action: "queue" } })).json.gms as any[]).map((g) => g.id as string);
+  assert.equal((await w.call("POST", "/admin", { cookie: owner, body: { action: "review", kind: "gm", ids, status: "approved" } })).status, 400, "one more than the limit is refused whole");
+
+  const mailsBefore = w.mails.length;
+  w.db.count.n = 0;
+  const r = await w.call("POST", "/admin", { cookie: owner, body: { action: "review", kind: "gm", ids: ids.slice(0, REVIEW_MAX_IDS), status: "approved", notify: true } });
+  assert.equal(r.status, 200);
+  assert.equal(r.json.updated.length, REVIEW_MAX_IDS);
+  assert.deepEqual(r.json.mailFailed, []);
+  const queries = w.db.count.n;
+  const mails = w.mails.length - mailsBefore;
+  assert.equal(mails, REVIEW_MAX_IDS, "everyone is emailed");
+  assert.ok(queries + mails <= 50, `${queries} queries and ${mails} mails in one call: Cloudflare's free plan allows 50 database queries a request`);
+  assert.equal((w.db.raw.prepare("SELECT COUNT(*) AS n FROM profiles WHERE status = 'approved'").get() as { n: number }).n, REVIEW_MAX_IDS);
+});
+
+test("a decision email that cannot be sent is reported to the admin, and the decision stands", async () => {
+  const w = makeWorld();
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  const owner = await w.signIn(OWNER);
+  const id = ((await w.call("POST", "/admin", { cookie: owner, body: { action: "queue" } })).json.gms as any[])[0].id as string;
+  w.env.ctx.mailer = { send: async () => { throw new Error("relay down"); } };
+  const r = await w.call("POST", "/admin", { cookie: owner, body: { action: "review", kind: "gm", ids: [id], status: "approved", notify: true } });
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.json.mailFailed, [id], "the admin hears that this one was not emailed");
+  assert.equal((w.db.raw.prepare("SELECT status FROM profiles WHERE id = ?").get(id) as { status: string }).status, "approved");
+});
+
+test("erasing a Game Master with many games stays inside the query budget, in one all-or-none batch", async () => {
+  const w = makeWorld();
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  for (let i = 0; i < 25; i++) await w.call("POST", "/games", { cookie: gm, body: { ...GAME, title: `Game ${i}` } });
+  assert.equal((w.db.raw.prepare("SELECT COUNT(*) AS n FROM games").get() as { n: number }).n, 25);
+  w.db.count.n = 0;
+  assert.equal((await w.call("DELETE", "/account", { cookie: gm })).status, 200);
+  assert.ok(w.db.count.n <= 50, `${w.db.count.n} queries to erase an account with 25 games`);
+  for (const table of ["accounts", "profiles", "games"]) assert.equal((w.db.raw.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }).n, 0, `${table} is empty`);
+});
+
+test("a change stays marked until the site says it has caught up; a build that never lands is sent again, then the owner is told", async () => {
+  const { deployState, RETRY_BASE_MS } = await import("../../worker/src/deploy.ts");
+  const w = makeWorld();
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  const owner = await w.signIn(OWNER);
+  const id = ((await w.call("POST", "/admin", { cookie: owner, body: { action: "queue" } })).json.gms as any[])[0].id as string;
+  await w.call("POST", "/admin", { cookie: owner, body: { action: "review", kind: "gm", ids: [id], status: "approved" } });
+  assert.equal(w.hook.length, 1, "the build is sent at once");
+  w.site.generatedAt = new Date(w.clock.ms - 3_600_000).toISOString(); // the site still has an older build
+  const tick = async () => (await w.call("POST", "/cron?job=tick", { origin: null, build: true })).json.result as string;
+  assert.equal((await deployState(w.env.ctx)).pending, true, "accepted by Cloudflare is not the same as published");
+
+  w.clock.ms += RETRY_BASE_MS / 2;
+  assert.equal(await tick(), "wait", "a build gets its time");
+  assert.equal(w.hook.length, 1);
+  w.clock.ms += RETRY_BASE_MS / 2 + 60_000;
+  assert.equal(await tick(), "sent", "ten minutes and the site has not got it: the build is sent again");
+  w.clock.ms += RETRY_BASE_MS * 2 + 60_000;
+  assert.equal(await tick(), "sent", "and again after twice as long");
+  assert.equal(w.hook.length, 3);
+  const stuck = await deployState(w.env.ctx);
+  assert.equal(stuck.attempts, 3);
+  assert.ok(stuck.failingSince, "three sends: the publishing counts as stuck");
+  assert.equal((await w.call("GET", "/health", { build: true })).json.deploy.failingSince, stuck.failingSince, "health shows it");
+
+  const alerts = () => w.mails.filter((m) => /not getting its changes/.test(m.subject)).length;
+  assert.equal(alerts(), 0, "not yet: half an hour of grace");
+  w.clock.ms += 31 * 60_000;
+  await tick();
+  assert.equal(alerts(), 1, "the owner is told");
+  w.clock.ms += 5 * 60_000;
+  await tick();
+  assert.equal(alerts(), 1, "once a day, not every minute");
+
+  w.site.generatedAt = new Date(w.clock.ms).toISOString(); // the build landed
+  w.clock.ms += 60_000;
+  assert.equal(await tick(), "idle", "the site has caught up");
+  assert.deepEqual(await deployState(w.env.ctx), { pending: false, lastSentAt: (await deployState(w.env.ctx)).lastSentAt, attempts: 0, failingSince: null });
+});
+
+test("a rejected build hook leaves the change marked and is retried; a change made while a build was on its way is not lost", async () => {
+  const w = makeWorld();
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  const owner = await w.signIn(OWNER);
+  const id = ((await w.call("POST", "/admin", { cookie: owner, body: { action: "queue" } })).json.gms as any[])[0].id as string;
+  const okFetch = w.env.fetcher;
+  w.env.fetcher = (async () => new Response("no", { status: 500 })) as unknown as typeof fetch;
+  await w.call("POST", "/admin", { cookie: owner, body: { action: "review", kind: "gm", ids: [id], status: "approved" } });
+  const { deployState, MIN_GAP_MS } = await import("../../worker/src/deploy.ts");
+  assert.equal((await deployState(w.env.ctx)).pending, true, "the hook said no: still waiting");
+  assert.ok((await deployState(w.env.ctx)).failingSince);
+  w.env.fetcher = okFetch;
+  w.clock.ms += MIN_GAP_MS + 1000;
+  assert.equal((await w.call("POST", "/cron?job=tick", { origin: null, build: true })).json.result, "sent", "the next tick sends it");
+
+  // a change made after the build was sent has its own mark: reaching the site with the first build does not clear it
+  w.site.generatedAt = new Date(w.clock.ms).toISOString();
+  w.clock.ms += 60_000;
+  await w.call("POST", "/admin", { cookie: owner, body: { action: "review", kind: "gm", ids: [id], status: "rejected", reason: "x" } });
+  assert.equal((await deployState(w.env.ctx)).pending, true, "the newer change is still waiting");
 });

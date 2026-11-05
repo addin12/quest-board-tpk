@@ -3,7 +3,7 @@
 import { endSession, getSession, isAdmin, peekLogin, pruneAuth, requestLogin, verifyLogin, SESSION_DAYS, type Ctx, type Session } from "./auth.ts";
 import { handleAdmin, respondMerge } from "./admin.ts";
 import type { Bucket } from "./db.ts";
-import { deployIfDue } from "./deploy.ts";
+import { deployIfDue, deployState } from "./deploy.ts";
 import { contentTypeOf, storeImage, sweepOrphanImages, type ImageKind } from "./images.ts";
 import { isPublicImage, buildPublic } from "./public.ts";
 import { parseGame, parseProfile } from "./rules.ts";
@@ -12,7 +12,7 @@ import { backup } from "./backup.ts";
 import { recordingMailer } from "./email.ts";
 import { expireInactive } from "./retention.ts";
 import { allow, iso, logEvent, metaGet, metaSet, pruneRateEvents, safeEqual } from "./util.ts";
-import { notifyReviewers, tellOwner, watchBackup } from "./watch.ts";
+import { notifyReviewers, tellOwner, watchBackup, watchDeploy } from "./watch.ts";
 import { one } from "./db.ts";
 
 /** The same context with a mailer that records whether mail last worked (shown by /api/health). */
@@ -99,13 +99,14 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
       return json(200, { ok: true, job: "daily" });
     }
     const result = await deployIfDue(ctx, env.deployHook, env.fetcher);
+    await watchDeploy(ctx);
     await watchBackup(ctx);
     return json(200, { ok: true, job: "tick", result });
   }
   if (method === "GET" && path === "/health") {
     if (!hasBuildKey(request, env.buildKey)) return err(403, "forbidden");
     const n = async (table: string) => (await one<{ n: number }>(ctx.db, `SELECT COUNT(*) AS n FROM ${table}`))?.n ?? 0;
-    return json(200, { ok: true, accounts: await n("accounts"), profiles: await n("profiles"), games: await n("games"), admins: await n("admins"), deployConfigured: Boolean(env.deployHook), turnstileConfigured: Boolean(env.turnstileSecret), lastBackupAt: (await metaGet(ctx.db, "backup_ok_at")) || null, backupError: (await metaGet(ctx.db, "backup_error")) || null, lastMailOkAt: (await metaGet(ctx.db, "mail_ok_at")) || null, lastMailError: (await metaGet(ctx.db, "mail_error_at")) ? { at: await metaGet(ctx.db, "mail_error_at"), error: await metaGet(ctx.db, "mail_error") } : null });
+    return json(200, { ok: true, accounts: await n("accounts"), profiles: await n("profiles"), games: await n("games"), admins: await n("admins"), deployConfigured: Boolean(env.deployHook), deploy: await deployState(ctx), turnstileConfigured: Boolean(env.turnstileSecret), lastBackupAt: (await metaGet(ctx.db, "backup_ok_at")) || null, backupError: (await metaGet(ctx.db, "backup_error")) || null, lastMailOkAt: (await metaGet(ctx.db, "mail_ok_at")) || null, lastMailError: (await metaGet(ctx.db, "mail_error_at")) ? { at: await metaGet(ctx.db, "mail_error_at"), error: await metaGet(ctx.db, "mail_error") } : null });
   }
   if (method === "GET" && path.startsWith("/img/")) {
     let key = "";
@@ -252,8 +253,12 @@ async function upload(request: Request, env: Env, session: Session, kind: ImageK
  */
 export async function daily(env: Env): Promise<void> {
   const ctx = logged(env.ctx);
-  await pruneAuth(ctx);
-  await pruneRateEvents(ctx.db, ctx.now());
+  // A failing step is noted and the rest goes on (a note that cannot be written must not stop the job either).
+  const note = (kind: string, e: unknown) => logEvent(ctx.db, ctx.now(), kind, "job", "", "", String(e instanceof Error ? e.message : e).slice(0, 120), "the daily job").catch(() => undefined);
+  // The forced build goes first: nothing below may stop the site from being rebuilt, which is how listings whose time is up leave it.
+  await deployIfDue(ctx, env.deployHook, env.fetcher, true).catch((e) => note("deploy_failed", e));
+  await pruneAuth(ctx).catch((e) => note("prune_failed", e));
+  await pruneRateEvents(ctx.db, ctx.now()).catch((e) => note("prune_failed", e));
   let failure: unknown = null;
   try {
     await backup(ctx, env.images);
@@ -265,8 +270,7 @@ export async function daily(env: Env): Promise<void> {
     await metaSet(ctx.db, "backup_error", `${iso(ctx.now())}: ${why}`);
     await tellOwner(ctx, "Quest Board: the daily backup failed", `The daily backup did not complete: ${why}\n\nThe site keeps working. Check GET /api/health (build key in an Authorization header) and the Worker "quest-board-cron" in the Cloudflare dashboard.`);
   }
-  await sweepOrphanImages(ctx, env.images).catch((e) => logEvent(ctx.db, ctx.now(), "sweep_failed", "job", "", "", String(e instanceof Error ? e.message : e).slice(0, 120), "the daily job"));
-  await expireInactive(ctx, async (keys) => { for (const key of keys) await env.images.delete(key); }).catch((e) => logEvent(ctx.db, ctx.now(), "expire_failed", "job", "", "", String(e instanceof Error ? e.message : e).slice(0, 120), "the daily job"));
-  await deployIfDue(ctx, env.deployHook, env.fetcher, true);
+  await sweepOrphanImages(ctx, env.images).catch((e) => note("sweep_failed", e));
+  await expireInactive(ctx, async (keys) => { for (const key of keys) await env.images.delete(key); }).catch((e) => note("expire_failed", e));
   if (failure) throw failure;
 }

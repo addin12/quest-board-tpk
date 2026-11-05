@@ -126,6 +126,9 @@ async function main() {
     goneGames: data.goneGames,
     goneGms: data.goneGms,
   };
+  // The site says when the data of this build was read: the timer in the backend compares it with the last change (worker/src/deploy.ts), and the
+  // uptime check fails when it is more than 36 hours old.
+  writeFileSync(path.join(ROOT, "public", "build.json"), `${JSON.stringify({ generatedAt: site.generatedAt, games: site.games.length })}\n`);
   mkdirSync(path.join(ROOT, "src", "generated"), { recursive: true });
   writeFileSync(path.join(ROOT, "src", "generated", "data.json"), `${JSON.stringify(site, null, 2)}\n`);
   console.log(`[data] ${site.games.length} games, ${site.gms.length} Game Masters, ${covers.size} covers, ${photos.size} photos${BASE || process.env.TPK_DATA_FILE ? "" : " (demo data)"}`);

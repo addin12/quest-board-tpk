@@ -9,8 +9,12 @@ import { DAY_MS, iso, logEvent } from "./util.ts";
 
 export const INACTIVE_DAYS = 730;
 export const GRACE_DAYS = 30;
-/** Per run, so a first run over many old accounts cannot use up the mail relay's daily limit. */
-export const PER_RUN = 20;
+/**
+ * Per run, so a first run over many old accounts cannot use up the mail relay's daily limit, and so one run stays inside the 50 database
+ * queries a request may make (an erase is about 16 of them, a warning 3 and the rest of the daily job about 15).
+ */
+export const ERASE_PER_RUN = 2;
+export const WARN_PER_RUN = 8;
 
 type Row = { id: string; email: string };
 
@@ -20,9 +24,9 @@ export async function expireInactive(ctx: Ctx, deleteFiles: (keys: string[]) => 
   let warned = 0;
 
   // Erase first: warned long enough ago and not back since. (A sign-in clears the warning, so "still warned" means "still away".)
-  const overdue = await many<Row>(ctx.db, "SELECT id, email FROM accounts WHERE merged_into IS NULL AND expiry_warned_at IS NOT NULL AND expiry_warned_at < ? ORDER BY expiry_warned_at LIMIT ?", iso(now - GRACE_DAYS * DAY_MS), PER_RUN * 3);
+  const overdue = await many<Row>(ctx.db, "SELECT id, email FROM accounts WHERE merged_into IS NULL AND expiry_warned_at IS NOT NULL AND expiry_warned_at < ? ORDER BY expiry_warned_at LIMIT ?", iso(now - GRACE_DAYS * DAY_MS), ERASE_PER_RUN * 3);
   for (const a of overdue) {
-    if (erased >= PER_RUN) break;
+    if (erased >= ERASE_PER_RUN) break;
     if (await isAdmin(ctx, a.email)) continue;
     try {
       await deleteFiles(await eraseAccount(ctx, { accountId: a.id, email: a.email }));
@@ -33,9 +37,9 @@ export async function expireInactive(ctx: Ctx, deleteFiles: (keys: string[]) => 
     }
   }
 
-  const idle = await many<Row>(ctx.db, "SELECT id, email FROM accounts WHERE merged_into IS NULL AND expiry_warned_at IS NULL AND COALESCE(last_seen_at, created_at) < ? ORDER BY COALESCE(last_seen_at, created_at) LIMIT ?", iso(now - INACTIVE_DAYS * DAY_MS), PER_RUN * 3);
+  const idle = await many<Row>(ctx.db, "SELECT id, email FROM accounts WHERE merged_into IS NULL AND expiry_warned_at IS NULL AND COALESCE(last_seen_at, created_at) < ? ORDER BY COALESCE(last_seen_at, created_at) LIMIT ?", iso(now - INACTIVE_DAYS * DAY_MS), WARN_PER_RUN * 3);
   for (const a of idle) {
-    if (warned >= PER_RUN) break;
+    if (warned >= WARN_PER_RUN) break;
     if (await isAdmin(ctx, a.email)) continue;
     try {
       await ctx.mailer.send(expiryMail(a.email, GRACE_DAYS, ctx.siteUrl));

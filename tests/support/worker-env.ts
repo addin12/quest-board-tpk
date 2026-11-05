@@ -11,17 +11,23 @@ const MIGRATIONS = new URL("../../worker/migrations/", import.meta.url);
 /** Every migration, in order: the tests run the schema exactly as the live database has it. */
 const MIGRATION = readdirSync(MIGRATIONS).filter((f) => f.endsWith(".sql")).sort().map((f) => readFileSync(new URL(f, MIGRATIONS), "utf8")).join("\n");
 
-export function sqliteDb(): Db & { raw: DatabaseSync } {
+/**
+ * The schema on Node's SQLite. `count.n` is the number of statements run so far, each statement of a batch counted on its own: Cloudflare's free plan
+ * allows 50 database queries per request, so a test can reset it, make one call and check the call stayed under that.
+ */
+export function sqliteDb(): Db & { raw: DatabaseSync; count: { n: number } } {
   const raw = new DatabaseSync(":memory:");
   raw.exec(MIGRATION);
+  const count = { n: 0 };
   const stmt = (sql: string, values: unknown[] = []): Stmt => ({
     bind: (...v) => stmt(sql, v),
-    first: async <T>() => ((raw.prepare(sql).get(...(values as never[])) as T | undefined) ?? null),
-    all: async <T>() => ({ results: raw.prepare(sql).all(...(values as never[])) as T[] }),
-    run: async () => ({ meta: { changes: Number(raw.prepare(sql).run(...(values as never[])).changes) } }),
+    first: async <T>() => { count.n++; return (raw.prepare(sql).get(...(values as never[])) as T | undefined) ?? null; },
+    all: async <T>() => { count.n++; return { results: raw.prepare(sql).all(...(values as never[])) as T[] }; },
+    run: async () => { count.n++; return { meta: { changes: Number(raw.prepare(sql).run(...(values as never[])).changes) } }; },
   });
   return {
     raw,
+    count,
     prepare: (sql) => stmt(sql),
     batch: async (statements) => {
       raw.exec("BEGIN");
@@ -60,13 +66,19 @@ export function makeWorld(startMs = Date.parse("2026-10-28T03:00:00Z")) {
   const clock = { ms: startMs };
   const bucket = memoryBucket(() => clock.ms);
   const hook: string[] = [];
+  /** What the site's /build.json says: when its data was read (null: the file is not there). The backend reads it to know a build has landed. */
+  const site = { generatedAt: null as string | null };
   const env: Env = {
     ctx: { db, mailer, now: () => clock.ms, siteUrl: SITE, owner: OWNER },
     images: bucket,
     buildKey: BUILD_KEY,
     deployHook: "https://hook.example/deploy",
     turnstileSecret: "",
-    fetcher: (async (url: string) => { hook.push(String(url)); return new Response("{}", { status: 200 }); }) as unknown as typeof fetch,
+    fetcher: (async (url: string) => {
+      if (String(url).includes("/build.json")) return site.generatedAt ? new Response(JSON.stringify({ generatedAt: site.generatedAt }), { status: 200 }) : new Response("", { status: 404 });
+      hook.push(String(url));
+      return new Response("{}", { status: 200 });
+    }) as unknown as typeof fetch,
   };
 
   const pending: Promise<unknown>[] = [];
@@ -97,7 +109,7 @@ export function makeWorld(startMs = Date.parse("2026-10-28T03:00:00Z")) {
     return /tpk_session=([A-Za-z0-9_-]+)/.exec(verified.res.headers.get("Set-Cookie") ?? "")![1]!;
   }
 
-  return { db, mails, bucket, hook, clock, env, call, signIn };
+  return { db, mails, bucket, hook, site, clock, env, call, signIn };
 }
 
 export const PROFILE = { name: "Raka Pratama", bio: "Horror GM.", city: "Depok", systems: "Call of Cthulhu, Mothership", whatsapp: "0812-3456-7890", discord: "raka_gm", instagram: "https://www.instagram.com/Raka.Plays/", consent: true };

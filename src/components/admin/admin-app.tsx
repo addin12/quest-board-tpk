@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ApiError, api, signOutSession, whoami } from "@/lib/admin-api";
 import { buildItems, pollDelay, publishState, siteBehind, titleOf, whenLabel, type Item, type PublishState } from "@/lib/admin-view";
 import type { MsgKey } from "@/lib/i18n/core";
-import type { AdminEntry, AdminFields, DeployInfo, QueueResponse, Status } from "@/lib/types";
+import { REVIEW_MAX_IDS, type AdminEntry, type AdminFields, type DeployInfo, type QueueResponse, type Status } from "@/lib/types";
 import { Icon } from "../icon";
 import { useI18n } from "../i18n-provider";
 import { Notice } from "../ui";
@@ -105,6 +105,24 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
     setQueue((q) => (q ? (kind === "game" ? { ...q, games: apply(q.games) } : { ...q, gms: apply(q.gms) }) : q));
   }
 
+  /**
+   * Decides on records, in turns of REVIEW_MAX_IDS: the backend refuses more in one call (Cloudflare's free plan limits the database queries of a
+   * request). `seen` holds the version of each record the admin looked at. Returns what the turns together reported.
+   */
+  async function decide(kind: "game" | "gm", ids: string[], body: Record<string, unknown>, seen?: Record<string, unknown>) {
+    let publishing = false;
+    let mailFailed = 0;
+    const stale: string[] = [];
+    for (let i = 0; i < ids.length; i += REVIEW_MAX_IDS) {
+      const part = ids.slice(i, i + REVIEW_MAX_IDS);
+      const r = await call<{ publishing: boolean; stale?: string[]; mailFailed?: string[] }>("review", { ...body, kind, ids: part, ...(seen ? { seen: Object.fromEntries(part.map((id) => [id, seen[id]])) } : {}) });
+      publishing = publishing || r.publishing;
+      stale.push(...(r.stale ?? []));
+      mailFailed += (r.mailFailed ?? []).length;
+    }
+    return { publishing, stale, mailFailed };
+  }
+
   async function review(list: Item[], status: Status, opts: { reason?: string; notify: boolean }) {
     if (list.length === 0) return;
     const kind = list[0].kind;
@@ -114,7 +132,7 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
     try {
       // `seen` tells the backend which version of each record this decision is about: one the GM changed meanwhile is refused.
       const seen = Object.fromEntries(list.map((i) => [i.id, i.rec.updatedAt ?? ""]));
-      const r = await call<{ publishing: boolean; stale?: string[] }>("review", { kind, ids, status, reason: opts.reason ?? "", notify: opts.notify, seen });
+      const r = await decide(kind, ids, { status, reason: opts.reason ?? "", notify: opts.notify }, seen);
       if (r.publishing) setQueue((q) => (q ? { ...q, deploy: { ...q.deploy, pending: true } } : q));
       const stale = new Set(r.stale ?? []);
       if (stale.size) {
@@ -124,11 +142,12 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
         if (stale.size === list.length) return;
       }
       const title = titleOf(list[0]) || t("admin.unnamed");
-      const text = list.length > 1 ? t("admin.toast.bulk", { n: list.length }) : t(`admin.toast.${status}` as MsgKey, { title });
+      const done = list.length > 1 ? t("admin.toast.bulk", { n: list.length }) : t(`admin.toast.${status}` as MsgKey, { title });
+      const text = r.mailFailed > 0 ? `${done} ${t("admin.toast.mailFailed", { n: r.mailFailed })}` : done;
       say(text, async () => {
         for (const b of before) patchLocal(kind, [b.id], { status: b.status, reviewedBy: b.reviewedBy, reviewedAt: b.reviewedAt, rejectReason: b.rejectReason });
         try {
-          for (const status of new Set(before.map((x) => x.status))) await call("review", { kind, ids: before.filter((x) => x.status === status).map((x) => x.id), status, notify: false });
+          for (const status of new Set(before.map((x) => x.status))) await decide(kind, before.filter((x) => x.status === status).map((x) => x.id), { status, notify: false });
         } catch (e) {
           say(t("admin.toast.error", { error: e instanceof ApiError ? e.code : "error" }));
         }

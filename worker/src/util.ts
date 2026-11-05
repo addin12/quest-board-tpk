@@ -1,5 +1,5 @@
 // Small helpers: random ids and tokens, hashing, text cleaning, rate limits. Web Crypto only (runs on Workers and Node).
-import { exec, one, type Db } from "./db.ts";
+import { exec, one, type Db, type Stmt } from "./db.ts";
 import { text } from "../../src/lib/public-data.ts";
 
 export const DAY_MS = 86_400_000;
@@ -70,8 +70,13 @@ export async function allow(db: Db, key: string, max: number, windowMs: number, 
 /** Drops counters older than a day; called from the daily job. */
 export const pruneRateEvents = (db: Db, nowMs: number): Promise<number> => exec(db, "DELETE FROM rate_events WHERE at < ?", nowMs - DAY_MS);
 
+/** One row of the activity log, as a statement: it can be sent on its own (`logEvent`) or inside a `db.batch` with the change it records. */
+export function eventStmt(db: Db, nowMs: number, kind: string, subjectKind: string, subjectId: string, title: string, detail: string, actor: string): Stmt {
+  return db.prepare("INSERT INTO activity (at, kind, subject_kind, subject_id, title, detail, actor) VALUES (?, ?, ?, ?, ?, ?, ?)").bind(iso(nowMs), kind, subjectKind, subjectId, clip(title, 200), clip(detail, 500), clip(actor, 200));
+}
+
 export async function logEvent(db: Db, nowMs: number, kind: string, subjectKind: string, subjectId: string, title: string, detail: string, actor: string): Promise<void> {
-  await exec(db, "INSERT INTO activity (at, kind, subject_kind, subject_id, title, detail, actor) VALUES (?, ?, ?, ?, ?, ?, ?)", iso(nowMs), kind, subjectKind, subjectId, clip(title, 200), clip(detail, 500), clip(actor, 200));
+  await eventStmt(db, nowMs, kind, subjectKind, subjectId, title, detail, actor).run();
 }
 
 export const metaGet = async (db: Db, key: string): Promise<string> => (await one<{ value: string }>(db, "SELECT value FROM meta WHERE key = ?", key))?.value ?? "";

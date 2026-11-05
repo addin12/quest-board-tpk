@@ -6,6 +6,10 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; frame-src https://challenges.cloudflare.com; form-action 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'
 
+# The build's own receipt is read by the backend and the uptime check: never from a cache.
+/build.json
+  Cache-Control: no-store
+
 # Built files have content hashes in their names: cache for a year. Pictures and the pages themselves revalidate.
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable

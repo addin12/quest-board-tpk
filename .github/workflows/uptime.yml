@@ -21,6 +21,15 @@ jobs:
           code=$(curl -s -o /dev/null -w '%{http_code}' --retry 3 --retry-delay 10 --retry-all-errors --max-time 20 https://quest-board-tpk.pages.dev/en/)
           echo "home page: $code"
           test "$code" = "200"
+      - name: The site is not stale
+        # Every build writes build.json with the time its data was read; the daily build guarantees one at least every 24 hours, so more than 36 hours
+        # means the publishing is stuck (a refused build, the monthly build limit, too many files) even though every page still answers.
+        run: |
+          built=$(curl -s --retry 3 --retry-delay 10 --retry-all-errors --max-time 20 https://quest-board-tpk.pages.dev/build.json | jq -r '.generatedAt')
+          echo "last build read its data at: $built"
+          age=$(( $(date +%s) - $(date -d "$built" +%s) ))
+          echo "age: $age seconds"
+          test "$age" -lt 129600
       - name: Backend and database answer
         # A picture key that cannot exist must come back as a clean JSON 404: that takes the backend and a D1 lookup. A 5xx or a timeout means one is down.
         run: |

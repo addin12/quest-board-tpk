@@ -20,6 +20,10 @@ Everything runs on free plans. A change goes live in 1 to 4 minutes, with nobody
 (the one-minute tick sends a waiting one), and the Worker forces one build a day so ended listings leave. Cloudflare's free plan allows
 500 builds a month.
 
+A change stays marked "waiting" until the site itself shows it has been built: every build writes `/build.json` (the time its data was read) and the one-minute tick
+compares it with the change. A build that never lands (refused, failed, over the monthly limit) is sent again after 10, 20, 40, then 60 minutes; after
+three sends the owner gets an email and `/api/health` shows `deploy.failingSince` (ADR-46).
+
 The build key and the other secrets are in `.cloudflare.local.json` (git-ignored, on the owner's computer) and in the Pages project's
 encrypted variables. Losing the file is recoverable: `npm run cloudflare:setup` makes a new key and sets it on the project, then
 `npm run cron:deploy` sets it on the Worker.
@@ -127,6 +131,8 @@ in, the account pages, the admin page and builds need `/api`.
 | The Worker `quest-board-cron` error count in the dashboard | a tick or daily call failed |
 | `GET /api/health` with `Authorization: Bearer <build key>` | counts, `lastBackupAt`, `backupError`, `lastMailOkAt`, `lastMailError` (no personal data) |
 | GitHub *Uptime* workflow (every 15 minutes at :07, :22, :37 and :52, `.github/workflows/uptime.yml`) | the home page or the backend and database stopped answering: a failed run emails the repository owner. Best effort, so an outage under about 15 minutes may pass unseen. GitHub switches a schedule off after 60 days without any repository activity: re-enable it under Actions if that ever happens |
+| An email "the site is not getting its changes" (once a day at most) and `deploy.failingSince` in `/api/health` | a change has waited half an hour or more: a build was refused, failed or never started. Read the newest deployment log; the tick keeps sending it again |
+| GitHub *Uptime* workflow, step "The site is not stale" | `/build.json` is more than 36 hours old: the publishing is stuck even though every page answers (the daily build guarantees one at least every 24 hours) |
 | A review notice by email ("To review: …", sent to the owner and each admin) | a Game Master submitted or changed something; at most one per account an hour and 20 a day in all |
 | GitHub CI on every push | the code breaks something |
 | Dependabot (weekly) | outdated dependencies; its eslint major is ignored on purpose |
@@ -137,5 +143,5 @@ If mail itself is what broke, the alert email cannot be sent: look at `/api/heal
 
 - The public data and pictures are given only to a request with the build key; the API address itself is public.
 - Free-plan limits: Pages 500 builds a month; D1 and R2 are far above this site's size (10 GB of pictures is thousands of listings); the
-  Worker makes about 145 requests a day against 100,000.
+  Worker's one-minute tick makes 1,440 calls a day, plus a few for each change, against 100,000.
 - Accounts unused for two years are warned, then erased 30 days later (admins and the owner never). The daily job does at most 20 a run.
