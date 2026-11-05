@@ -103,7 +103,9 @@ test("the list-your-game page sends GMs to the account page, and a visitor can r
 test("a game that went live after the last build opens through the 404 page, keeps its address, and its Game Master can be messaged", async ({ page, context }) => {
   const origin = "http://localhost:4174";
   const { cookie } = await (await page.request.post("/__test/session", { data: { email: "baru@example.com" } })).json();
-  const headers = { Cookie: `tpk_session=${cookie}`, Origin: origin };
+  // An explicit Cookie header replaces the context's cookies, so the world's own cookie goes in it too (without it the test server answers from whichever world was made last).
+  const world = (await context.cookies()).find((c) => c.name === "tpk_world")!.value;
+  const headers = { Cookie: `tpk_world=${world}; tpk_session=${cookie}`, Origin: origin };
   const profile = await page.request.put("/api/profile", { headers, data: { ...PROFILE, name: "Gilang Baru", whatsapp: "0813-5555-0001", discord: "", instagram: "" } });
   expect(profile.status()).toBe(200);
   const date = new Date(Date.now() + 9 * 86_400_000).toISOString().slice(0, 10);

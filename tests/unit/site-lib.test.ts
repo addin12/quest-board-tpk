@@ -5,7 +5,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { SUMMARY_MAX } from "../../src/lib/areas.ts";
 import { checkGame, checkGm, hasErrors } from "../../src/lib/checks.ts";
 import { askContact, contactMessage, messageLang, waLink } from "../../src/lib/contact.ts";
-import { formatDay, formatIdr, formatWhen, initialsOf } from "../../src/lib/format.ts";
+import { formatDay, formatIdr, formatShortDay, formatWhen, initialsOf } from "../../src/lib/format.ts";
 import { smallCover } from "../../src/lib/hrefs.ts";
 import { SYSTEM_COVER_FILES, systemCover } from "../../src/lib/system-covers.ts";
 import { SYSTEMS } from "../../src/lib/systems.ts";
@@ -459,4 +459,15 @@ test("the hints for a Game Master name only what is missing, and a complete list
   assert.deepEqual(listingTips({ ...complete, locationType: "in_person", needs: [] }), [], "and not for a table in a cafe");
   assert.deepEqual(listingTips({ ...complete, format: "campaign" }).map((x) => x.id), ["schedule"], "a campaign says when it meets");
   assert.deepEqual(listingTips({ ...complete, genres: [] }).map((x) => x.id), ["genres"]);
+});
+
+test("dates and prices are written the same in the build and in every browser: no Intl, fixed zone offsets, fixed names", () => {
+  assert.equal(formatWhen("2026-09-05T23:30:00.000Z", "en", "WIB"), "Sun 6 Sep, 06.30 WIB", "September is Sep (some ICU versions say Sept), and midnight rolls the day over in the zone");
+  assert.equal(formatWhen("2026-08-17T15:00:00.000Z", "id", "WIT"), "Min, 18 Agu, 00.00 WIT", "Indonesian names, midnight as 00");
+  assert.equal(formatDay("2026-05-01T00:00:00.000Z", "id", "WIB"), "1 Mei 2026");
+  assert.equal(formatDay("2026-12-31T20:00:00.000Z", "en", "WITA"), "1 January 2027", "the zone decides the day");
+  assert.equal(formatShortDay("2026-03-09T10:00:00.000Z", "en", "WIB"), "9 Mar");
+  assert.equal(formatIdr(0), "Rp 0");
+  assert.equal(formatIdr(1250000), "Rp 1.250.000");
+  assert.throws(() => formatWhen("not a date", "en", "WIB"), RangeError, "a bad date is an error for the caller to handle, as it was");
 });
