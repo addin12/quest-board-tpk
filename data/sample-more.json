@@ -13,7 +13,8 @@
         "Dungeons & Dragons 5.5e 2024",
         "Daggerheart"
       ],
-      "bio": "Dungeon Master dari Jakarta Selatan. Aku suka sesi yang cepat, lucu, dan penuh kejutan.\n\nA Jakarta DM who likes fast, funny sessions with plenty of surprises."
+      "bio": "Dungeon Master dari Jakarta Selatan. Aku suka sesi yang cepat, lucu, dan penuh kejutan.\n\nA Jakarta DM who likes fast, funny sessions with plenty of surprises.",
+      "joinedAt": "2026-08-12T03:00:00.000Z"
     },
     {
       "id": "m1ayu0000",
@@ -28,7 +29,8 @@
         "Call of Cthulhu 7e",
         "Pathfinder 2e"
       ],
-      "bio": "Keeper berpengalaman di BSD. Horor pelan-pelan yang bikin merinding, tanpa jump scare murahan.\n\nA BSD keeper who prefers slow-building dread over cheap scares."
+      "bio": "Keeper berpengalaman di BSD. Horor pelan-pelan yang bikin merinding, tanpa jump scare murahan.\n\nA BSD keeper who prefers slow-building dread over cheap scares.",
+      "joinedAt": "2026-09-03T03:00:00.000Z"
     },
     {
       "id": "m1fajar00",
@@ -43,7 +45,8 @@
         "Dungeons & Dragons 5e 2014",
         "Pathfinder 2e"
       ],
-      "bio": "GM veteran dari Bekasi. Aku masih setia dengan aturan 5e 2014 dan suka dungeon klasik.\n\nA veteran GM from Bekasi, still happy with the 2014 rules and classic dungeons."
+      "bio": "GM veteran dari Bekasi. Aku masih setia dengan aturan 5e 2014 dan suka dungeon klasik.\n\nA veteran GM from Bekasi, still happy with the 2014 rules and classic dungeons.",
+      "joinedAt": "2026-09-21T03:00:00.000Z"
     },
     {
       "id": "m1citra00",
@@ -58,7 +61,8 @@
         "Daggerheart",
         "Dungeons & Dragons 5.5e 2024"
       ],
-      "bio": "Ilustrator yang memandu game santai di Depok. Banyak adegan roleplay dan karakter yang hangat.\n\nAn illustrator running relaxed games in Depok, heavy on warm characters and roleplay."
+      "bio": "Ilustrator yang memandu game santai di Depok. Banyak adegan roleplay dan karakter yang hangat.\n\nAn illustrator running relaxed games in Depok, heavy on warm characters and roleplay.",
+      "joinedAt": "2026-10-02T03:00:00.000Z"
     },
     {
       "id": "m1reza000",
@@ -73,7 +77,8 @@
         "Call of Cthulhu 7e",
         "Dungeons & Dragons 5e 2014"
       ],
-      "bio": "Penggemar investigasi dan misteri. Aku menulis skenario sendiri dan menjaga ritmenya tetap ketat.\n\nI love investigation and mystery, write my own scenarios and keep the pacing tight."
+      "bio": "Penggemar investigasi dan misteri. Aku menulis skenario sendiri dan menjaga ritmenya tetap ketat.\n\nI love investigation and mystery, write my own scenarios and keep the pacing tight.",
+      "joinedAt": "2026-10-09T03:00:00.000Z"
     },
     {
       "id": "m1maya000",
@@ -88,7 +93,8 @@
         "Pathfinder 2e",
         "Daggerheart"
       ],
-      "bio": "GM online untuk pemain dari berbagai kota. Sesi rapi, Foundry VTT, dan jadwal yang konsisten.\n\nAn online GM for players across cities: tidy sessions, Foundry VTT and a steady schedule."
+      "bio": "GM online untuk pemain dari berbagai kota. Sesi rapi, Foundry VTT, dan jadwal yang konsisten.\n\nAn online GM for players across cities: tidy sessions, Foundry VTT and a steady schedule.",
+      "joinedAt": "2026-08-12T03:00:00.000Z"
     },
     {
       "id": "m1dimas00",
@@ -103,7 +109,8 @@
         "Dungeons & Dragons 5.5e 2024",
         "Dungeons & Dragons 5e 2014"
       ],
-      "bio": "Memandu D&D di Bogor sejak 2018. Ramah untuk pemula, dan selalu ada camilan.\n\nRunning D&D in Bogor since 2018. Beginner friendly, and there are always snacks."
+      "bio": "Memandu D&D di Bogor sejak 2018. Ramah untuk pemula, dan selalu ada camilan.\n\nRunning D&D in Bogor since 2018. Beginner friendly, and there are always snacks.",
+      "joinedAt": "2026-09-03T03:00:00.000Z"
     },
     {
       "id": "m1intan00",
@@ -118,7 +125,8 @@
         "Call of Cthulhu 7e",
         "Daggerheart"
       ],
-      "bio": "Suka horor dan fantasi yang manis. Aku memakai X-Card di setiap meja.\n\nI like horror and sweet fantasy, and I use an X-Card at every table."
+      "bio": "Suka horor dan fantasi yang manis. Aku memakai X-Card di setiap meja.\n\nI like horror and sweet fantasy, and I use an X-Card at every table.",
+      "joinedAt": "2026-09-21T03:00:00.000Z"
     }
   ],
   "games": [
@@ -159,7 +167,15 @@
         "d20"
       ],
       "coverId": "local:/images/covers/gerbang-goblin.svg",
-      "listedAt": "2026-10-04T03:00:00.000Z"
+      "listedAt": "2026-10-04T03:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "pregen",
+      "needs": [],
+      "safetyKeys": [
+        "x-card",
+        "lines-veils"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g102pasar",
@@ -198,7 +214,16 @@
         "d20"
       ],
       "coverId": "local:/images/covers/kapal-hantu-kapten-jenaka.svg",
-      "listedAt": "2026-10-05T03:00:00.000Z"
+      "listedAt": "2026-10-05T03:00:00.000Z",
+      "sessionHours": 4,
+      "characters": "own",
+      "needs": [
+        "dice"
+      ],
+      "safetyKeys": [
+        "session-zero"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g103waris",
@@ -237,7 +262,14 @@
         "d20"
       ],
       "coverId": "local:/images/covers/pedang-dan-teh-di-lembah-awan.svg",
-      "listedAt": "2026-10-06T03:00:00.000Z"
+      "listedAt": "2026-10-06T03:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "table",
+      "needs": [],
+      "safetyKeys": [
+        "x-card"
+      ],
+      "noWarnings": true
     },
     {
       "id": "g104turna",
@@ -276,7 +308,19 @@
         "d20"
       ],
       "coverId": "local:/images/covers/mahkota-yang-terbelah.svg",
-      "listedAt": "2026-10-07T03:00:00.000Z"
+      "listedAt": "2026-10-07T03:00:00.000Z",
+      "sessionHours": 2,
+      "characters": "pregen",
+      "needs": [
+        "mic",
+        "discord",
+        "camera"
+      ],
+      "safetyKeys": [
+        "x-card",
+        "lines-veils"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g105hutan",
@@ -315,7 +359,14 @@
         "d20"
       ],
       "coverId": "local:/images/covers/naga-naga-hutan-bara-petualangan-pemula.svg",
-      "listedAt": "2026-10-03T03:00:00.000Z"
+      "listedAt": "2026-10-03T03:00:00.000Z",
+      "sessionHours": 4,
+      "characters": "table",
+      "needs": [],
+      "safetyKeys": [
+        "session-zero"
+      ],
+      "noWarnings": true
     },
     {
       "id": "g106kapal",
@@ -355,7 +406,18 @@
         "d20"
       ],
       "coverId": "local:/images/covers/kapal-hantu-kapten-jenaka.svg",
-      "listedAt": "2026-10-04T03:00:00.000Z"
+      "listedAt": "2026-10-04T03:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "own",
+      "needs": [
+        "mic",
+        "discord",
+        "camera"
+      ],
+      "safetyKeys": [
+        "x-card"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g107kasti",
@@ -394,7 +456,15 @@
         "d20"
       ],
       "coverId": "local:/images/covers/darah-di-balik-tirai-beludru.svg",
-      "listedAt": "2026-10-05T03:00:00.000Z"
+      "listedAt": "2026-10-05T03:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "pregen",
+      "needs": [],
+      "safetyKeys": [
+        "x-card",
+        "lines-veils"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g108guana",
@@ -433,7 +503,18 @@
         "d20"
       ],
       "coverId": "local:/images/covers/gerbang-goblin.svg",
-      "listedAt": "2026-10-06T03:00:00.000Z"
+      "listedAt": "2026-10-06T03:00:00.000Z",
+      "sessionHours": 4,
+      "characters": "own",
+      "needs": [
+        "mic",
+        "discord",
+        "camera"
+      ],
+      "safetyKeys": [
+        "session-zero"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g109pasuk",
@@ -472,7 +553,14 @@
         "d20"
       ],
       "coverId": "local:/images/covers/mahkota-yang-terbelah.svg",
-      "listedAt": "2026-10-07T03:00:00.000Z"
+      "listedAt": "2026-10-07T03:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "table",
+      "needs": [],
+      "safetyKeys": [
+        "x-card"
+      ],
+      "noWarnings": true
     },
     {
       "id": "g110misip",
@@ -511,7 +599,17 @@
         "d20"
       ],
       "coverId": "local:/images/covers/naga-naga-hutan-bara-petualangan-pemula.svg",
-      "listedAt": "2026-10-03T03:00:00.000Z"
+      "listedAt": "2026-10-03T03:00:00.000Z",
+      "sessionHours": 2,
+      "characters": "pregen",
+      "needs": [
+        "dice"
+      ],
+      "safetyKeys": [
+        "x-card",
+        "lines-veils"
+      ],
+      "noWarnings": true
     },
     {
       "id": "g111lelan",
@@ -550,7 +648,17 @@
         "d20"
       ],
       "coverId": "local:/images/covers/lonceng-di-rawa-hitam.svg",
-      "listedAt": "2026-10-04T03:00:00.000Z"
+      "listedAt": "2026-10-04T03:00:00.000Z",
+      "sessionHours": 4,
+      "characters": "table",
+      "needs": [
+        "mic",
+        "discord"
+      ],
+      "safetyKeys": [
+        "session-zero"
+      ],
+      "noWarnings": true
     },
     {
       "id": "g112festi",
@@ -587,7 +695,16 @@
       ],
       "mechanics": [],
       "coverId": "local:/images/covers/panen-harapan.svg",
-      "listedAt": "2026-10-05T03:00:00.000Z"
+      "listedAt": "2026-10-05T03:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "own",
+      "needs": [
+        "dice"
+      ],
+      "safetyKeys": [
+        "x-card"
+      ],
+      "noWarnings": true
     },
     {
       "id": "g113bayan",
@@ -624,7 +741,18 @@
       ],
       "mechanics": [],
       "coverId": "local:/images/covers/mahkota-yang-terbelah.svg",
-      "listedAt": "2026-10-06T03:00:00.000Z"
+      "listedAt": "2026-10-06T03:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "pregen",
+      "needs": [
+        "mic",
+        "discord"
+      ],
+      "safetyKeys": [
+        "x-card",
+        "lines-veils"
+      ],
+      "noWarnings": true
     },
     {
       "id": "g114penge",
@@ -661,7 +789,18 @@
       ],
       "mechanics": [],
       "coverId": "local:/images/covers/panen-harapan.svg",
-      "listedAt": "2026-10-07T03:00:00.000Z"
+      "listedAt": "2026-10-07T03:00:00.000Z",
+      "sessionHours": 4,
+      "characters": "own",
+      "needs": [
+        "mic",
+        "discord",
+        "camera"
+      ],
+      "safetyKeys": [
+        "session-zero"
+      ],
+      "noWarnings": true
     },
     {
       "id": "g115duelp",
@@ -698,7 +837,14 @@
       ],
       "mechanics": [],
       "coverId": "local:/images/covers/pedang-dan-teh-di-lembah-awan.svg",
-      "listedAt": "2026-10-03T03:00:00.000Z"
+      "listedAt": "2026-10-03T03:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "table",
+      "needs": [],
+      "safetyKeys": [
+        "x-card"
+      ],
+      "noWarnings": true
     },
     {
       "id": "g116miste",
@@ -735,7 +881,19 @@
       ],
       "mechanics": [],
       "coverId": "local:/images/covers/mercusuar-di-pulau-kabut.svg",
-      "listedAt": "2026-10-04T03:00:00.000Z"
+      "listedAt": "2026-10-04T03:00:00.000Z",
+      "sessionHours": 2,
+      "characters": "pregen",
+      "needs": [
+        "mic",
+        "discord",
+        "camera"
+      ],
+      "safetyKeys": [
+        "x-card",
+        "lines-veils"
+      ],
+      "noWarnings": true
     },
     {
       "id": "g117kotad",
@@ -774,7 +932,17 @@
         "d20"
       ],
       "coverId": "local:/images/covers/abomination-vaults.svg",
-      "listedAt": "2026-10-05T03:00:00.000Z"
+      "listedAt": "2026-10-05T03:00:00.000Z",
+      "sessionHours": 4,
+      "characters": "table",
+      "needs": [
+        "mic",
+        "discord"
+      ],
+      "safetyKeys": [
+        "session-zero"
+      ],
+      "noWarnings": true
     },
     {
       "id": "g118bandi",
@@ -813,7 +981,18 @@
         "d20"
       ],
       "coverId": "local:/images/covers/gerbang-goblin.svg",
-      "listedAt": "2026-10-06T03:00:00.000Z"
+      "listedAt": "2026-10-06T03:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "own",
+      "needs": [
+        "mic",
+        "discord",
+        "camera"
+      ],
+      "safetyKeys": [
+        "x-card"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g119rerun",
@@ -852,7 +1031,15 @@
         "d20"
       ],
       "coverId": "local:/images/covers/lonceng-di-rawa-hitam.svg",
-      "listedAt": "2026-10-07T03:00:00.000Z"
+      "listedAt": "2026-10-07T03:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "pregen",
+      "needs": [],
+      "safetyKeys": [
+        "x-card",
+        "lines-veils"
+      ],
+      "noWarnings": true
     },
     {
       "id": "g120rapat",
@@ -891,7 +1078,18 @@
         "d20"
       ],
       "coverId": "local:/images/covers/gerbang-goblin.svg",
-      "listedAt": "2026-10-03T03:00:00.000Z"
+      "listedAt": "2026-10-03T03:00:00.000Z",
+      "sessionHours": 4,
+      "characters": "own",
+      "needs": [
+        "mic",
+        "discord",
+        "camera"
+      ],
+      "safetyKeys": [
+        "session-zero"
+      ],
+      "noWarnings": true
     },
     {
       "id": "g121perbu",
@@ -930,7 +1128,17 @@
         "d20"
       ],
       "coverId": "local:/images/covers/mahkota-yang-terbelah.svg",
-      "listedAt": "2026-10-04T03:00:00.000Z"
+      "listedAt": "2026-10-04T03:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "table",
+      "needs": [
+        "mic",
+        "discord"
+      ],
+      "safetyKeys": [
+        "x-card"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g122surat",
@@ -970,7 +1178,17 @@
         "brp"
       ],
       "coverId": "local:/images/covers/mercusuar-di-pulau-kabut.svg",
-      "listedAt": "2026-10-05T03:00:00.000Z"
+      "listedAt": "2026-10-05T03:00:00.000Z",
+      "sessionHours": 2,
+      "characters": "pregen",
+      "needs": [
+        "dice"
+      ],
+      "safetyKeys": [
+        "x-card",
+        "lines-veils"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g123pamer",
@@ -1010,7 +1228,14 @@
         "brp"
       ],
       "coverId": "local:/images/covers/kultus-di-bawah-menara-air.svg",
-      "listedAt": "2026-10-06T03:00:00.000Z"
+      "listedAt": "2026-10-06T03:00:00.000Z",
+      "sessionHours": 4,
+      "characters": "table",
+      "needs": [],
+      "safetyKeys": [
+        "session-zero"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g124keret",
@@ -1050,7 +1275,18 @@
         "brp"
       ],
       "coverId": "local:/images/covers/mercusuar-di-pulau-kabut.svg",
-      "listedAt": "2026-10-07T03:00:00.000Z"
+      "listedAt": "2026-10-07T03:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "own",
+      "needs": [
+        "mic",
+        "discord",
+        "camera"
+      ],
+      "safetyKeys": [
+        "x-card"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g125perpu",
@@ -1090,7 +1326,18 @@
         "brp"
       ],
       "coverId": "local:/images/covers/lonceng-di-rawa-hitam.svg",
-      "listedAt": "2026-10-03T03:00:00.000Z"
+      "listedAt": "2026-10-03T03:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "pregen",
+      "needs": [
+        "mic",
+        "discord"
+      ],
+      "safetyKeys": [
+        "x-card",
+        "lines-veils"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g126hotel",
@@ -1130,7 +1377,16 @@
         "brp"
       ],
       "coverId": "local:/images/covers/kultus-di-bawah-menara-air.svg",
-      "listedAt": "2026-10-04T03:00:00.000Z"
+      "listedAt": "2026-10-04T03:00:00.000Z",
+      "sessionHours": 4,
+      "characters": "own",
+      "needs": [
+        "dice"
+      ],
+      "safetyKeys": [
+        "session-zero"
+      ],
+      "noWarnings": false
     }
   ]
 }

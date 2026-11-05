@@ -62,7 +62,7 @@ export function GamesBrowser({ games: built }: { games: GameView[] }) {
   }
 
   const live = useMemo(() => (now === null ? games : games.filter((g) => isLive(g, now))), [games, now]);
-  const shown = useMemo(() => applyFilters(live, filters), [live, filters]);
+  const shown = useMemo(() => applyFilters(live, filters, now ?? 0), [live, filters, now]);
   const pages = Math.max(1, Math.ceil(shown.length / PAGE_SIZE));
   const page = Math.min(filters.page, pages); // a shared address can point past the end
   const visible = useMemo(() => shown.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), [shown, page]);
@@ -109,6 +109,8 @@ export function GamesBrowser({ games: built }: { games: GameView[] }) {
     { label: t("format.one_shot"), on: filters.format === "one_shot", toggle: () => set({ format: filters.format === "one_shot" ? "" : "one_shot" }) },
     { label: t("format.campaign"), on: filters.format === "campaign", toggle: () => set({ format: filters.format === "campaign" ? "" : "campaign" }) },
     { label: t("level.beginner"), on: filters.level === "beginner", toggle: () => set({ level: filters.level === "beginner" ? "" : "beginner" }) },
+    { label: t("games.chipWeekend"), on: filters.weekend, toggle: () => set({ weekend: !filters.weekend }) },
+    { label: t("games.chipNew"), on: filters.fresh, toggle: () => set({ fresh: !filters.fresh }) },
     { label: t("games.chipFree"), on: filters.free, toggle: () => set({ free: !filters.free }) },
   ];
   const ready = now !== null;

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { call, zonedParts } from "@/lib/account-api";
 import { AREAS, SUMMARY_MAX } from "@/lib/areas";
-import { GENRES, MAX_PER_GAME, MECHANICS, STYLES, genreLabelKey, mechanicLabelKey, styleLabelKey } from "@/lib/categories";
+import { CHARACTER_SOURCES, GENRES, MAX_PER_GAME, MECHANICS, NEEDS, SAFETY_TOOLS, STYLES, characterLabelKey, genreLabelKey, mechanicLabelKey, needLabelKey, safetyToolLabelKey, styleLabelKey } from "@/lib/categories";
+import { listingTips } from "@/lib/listing-tips";
 import { OTHER_SYSTEM, SYSTEMS } from "@/lib/systems";
 import { ZONES, type GameRecord } from "@/lib/types";
 import { useI18n } from "../i18n-provider";
@@ -14,11 +15,13 @@ type Values = {
   title: string; system: string; otherSystem: string; summary: string; description: string; format: string; locationType: string; platform: string; city: string;
   venueName: string; venueMapsRaw: string; date: string; time: string; zone: string; scheduleNote: string; keepUntil: string; priceIdr: string; seats: string;
   language: string; level: string; minAge: string; contentWarnings: string; safetyTools: string; genres: string[]; styles: string[]; mechanics: string[]; coverKey: string; consent: boolean;
+  sessionHours: string; characters: string; needs: string[]; safetyKeys: string[]; noWarnings: boolean;
 };
 
 const EMPTY: Values = {
   title: "", system: "", otherSystem: "", summary: "", description: "", format: "", locationType: "", platform: "", city: "", venueName: "", venueMapsRaw: "", date: "", time: "19:00",
   zone: "WIB", scheduleNote: "", keepUntil: "", priceIdr: "0", seats: "5", language: "", level: "", minAge: "", contentWarnings: "", safetyTools: "", genres: [], styles: [], mechanics: [], coverKey: "", consent: false,
+  sessionHours: "3", characters: "", needs: [], safetyKeys: [], noWarnings: false,
 };
 
 /** The form's values for a game that exists. A "keep until" date shows only if the GM set one (the default is a day after the start). */
@@ -31,10 +34,26 @@ function valuesOf(g: GameRecord): Values {
     platform: g.platform, city: g.city, venueName: g.venueName, venueMapsRaw: g.venueMapsRaw, date: start.date, time: start.time, zone: g.zone, scheduleNote: g.scheduleNote,
     keepUntil: Date.parse(g.expiresAt) - Date.parse(g.startsAt) === 86_400_000 ? "" : end.date, priceIdr: String(g.priceIdr), seats: String(g.seats), language: g.language, level: g.level,
     minAge: g.minAge ? String(g.minAge) : "", contentWarnings: g.contentWarnings, safetyTools: g.safetyTools, genres: g.genres, styles: g.styles, mechanics: g.mechanics, coverKey: g.coverId, consent: g.consent,
+    sessionHours: g.sessionHours ? String(g.sessionHours) : "3", characters: g.characters, needs: g.needs, safetyKeys: g.safetyKeys, noWarnings: g.noWarnings,
   };
 }
 
-/** A game: new, or one of the GM's own (a change goes back to review). */
+/** Hints that stay out of the way: what would make this listing say more to a player. Shown only while something is missing. */
+function Tips({ v }: { v: Values }) {
+  const { t } = useI18n();
+  const tips = listingTips(v);
+  if (!tips.length) return null;
+  return (
+    <aside className="well" aria-labelledby="g-tips-h" data-testid="listing-tips">
+      <h3 id="g-tips-h" className="text-[length:var(--text-lg)]">{t("acct.tipsTitle")}</h3>
+      <ul className="mt-[var(--space-sm)] grid list-disc gap-[var(--space-xs)] ps-5 text-ink-2">
+        {tips.map((tip) => <li key={tip.id}>{t(tip.key)}</li>)}
+      </ul>
+    </aside>
+  );
+}
+
+/** A game: new, or one of the GM's own (it goes live when saved). */
 export function GameForm({ game, onSaved, onCancel }: { game: GameRecord | null; onSaved: (message: string) => void; onCancel: () => void }) {
   const { t } = useI18n();
   const [v, setV] = useState<Values>(game ? valuesOf(game) : EMPTY);
@@ -52,7 +71,7 @@ export function GameForm({ game, onSaved, onCancel }: { game: GameRecord | null;
     e.preventDefault();
     setBusy(true);
     setProblem("");
-    const body = { ...v, system: v.system === OTHER_SYSTEM ? OTHER_SYSTEM : v.system, priceIdr: v.priceIdr.trim(), seats: v.seats.trim(), minAge: v.minAge.trim(), keepUntil: v.keepUntil };
+    const body = { ...v, system: v.system === OTHER_SYSTEM ? OTHER_SYSTEM : v.system, priceIdr: v.priceIdr.trim(), seats: v.seats.trim(), minAge: v.minAge.trim(), keepUntil: v.keepUntil, sessionHours: v.sessionHours.trim() };
     const r = game ? await call<{ changed: boolean; status?: string }>("PUT", `/games/${game.id}`, body) : await call<{ changed: boolean; status?: string }>("POST", "/games", body);
     setBusy(false);
     if (r.ok) {
@@ -198,13 +217,45 @@ export function GameForm({ game, onSaved, onCancel }: { game: GameRecord | null;
           </select>
         </Field>
       </div>
-      <Field id="g-warnings" label={t("acct.f.warnings")} hint={t("acct.f.warningsHint")} error={err("contentWarnings")}>
-        <textarea id="g-warnings" className="input min-h-24" value={v.contentWarnings} maxLength={1000} onChange={(e) => set({ contentWarnings: e.target.value })} />
-      </Field>
+      <div className="grid gap-[var(--space-lg)] sm:grid-cols-2">
+        <Field id="g-hours" label={t("acct.f.sessionHours")} hint={t("acct.f.sessionHoursHint")} error={err("sessionHours")}>
+          <select id="g-hours" className="input" value={v.sessionHours} onChange={(e) => set({ sessionHours: e.target.value })}>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => <option key={n} value={String(n)}>{t("common.hours", { n })}</option>)}
+          </select>
+        </Field>
+        <Field id="g-characters" label={t("acct.f.characters")} error={err("characters")}>
+          <select id="g-characters" className="input" value={v.characters} onChange={(e) => set({ characters: e.target.value })}>
+            <option value="">{t("acct.f.charactersNone")}</option>
+            {CHARACTER_SOURCES.map((c) => <option key={c} value={c}>{t(characterLabelKey(c))}</option>)}
+          </select>
+        </Field>
+      </div>
+      <fieldset className="grid gap-[var(--space-xs)]">
+        <legend className="label">{t("acct.f.needs")}</legend>
+        <p className="text-sm text-muted">{t("acct.f.needsHint")}</p>
+        <div className="grid gap-x-[var(--space-lg)] sm:grid-cols-2 lg:grid-cols-3">
+          {NEEDS.map((n) => <Check key={n.key} id={`g-need-${n.key}`} checked={v.needs.includes(n.key)} onChange={(on) => set({ needs: pick(v.needs, n.key, on, NEEDS.length) })}>{t(needLabelKey(n.key))}</Check>)}
+        </div>
+      </fieldset>
+      <div className="grid gap-[var(--space-xs)]">
+        <Field id="g-warnings" label={t("acct.f.warnings")} hint={t("acct.f.warningsHint")} error={err("contentWarnings")}>
+          <textarea id="g-warnings" className="input min-h-24" value={v.contentWarnings} maxLength={1000} disabled={v.noWarnings} onChange={(e) => set({ contentWarnings: e.target.value })} />
+        </Field>
+        <Check id="g-nowarnings" checked={v.noWarnings} onChange={(on) => set({ noWarnings: on, contentWarnings: on ? "" : v.contentWarnings })}>{t("acct.f.noWarnings")}</Check>
+      </div>
+      <fieldset className="grid gap-[var(--space-xs)]">
+        <legend className="label">{t("acct.f.safetyTools")}</legend>
+        <p className="text-sm text-muted">{t("acct.f.safetyToolsHint")}</p>
+        <div className="grid gap-x-[var(--space-lg)] sm:grid-cols-2 lg:grid-cols-3">
+          {SAFETY_TOOLS.map((s) => <Check key={s.key} id={`g-tool-${s.key}`} checked={v.safetyKeys.includes(s.key)} onChange={(on) => set({ safetyKeys: pick(v.safetyKeys, s.key, on, SAFETY_TOOLS.length) })}>{t(safetyToolLabelKey(s.key))}</Check>)}
+        </div>
+        {err("safetyKeys") && <p role="alert" className="text-sm font-medium text-danger">{err("safetyKeys")}</p>}
+      </fieldset>
       <Field id="g-safety" label={t("acct.f.safety")} hint={t("acct.f.safetyHint")} error={err("safetyTools")}>
         <input id="g-safety" className="input" value={v.safetyTools} maxLength={300} onChange={(e) => set({ safetyTools: e.target.value })} />
       </Field>
       <PictureField id="g-cover" kind="cover" value={v.coverKey} onChange={(coverKey) => set({ coverKey })} label={t("acct.f.cover")} hint={t("acct.f.coverHint")} error={err("coverKey")} />
+      <Tips v={v} />
       <div>
         <Check id="g-consent" checked={v.consent} onChange={(consent) => set({ consent })}>{t("acct.f.consentGame")}</Check>
         {errors.consent && <p role="alert" className="text-sm font-medium text-danger">{errorText(t, errors.consent)}</p>}

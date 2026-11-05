@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { contactMessage } from "@/lib/contact";
+import { formatDay } from "@/lib/format";
 import { gameViewsOf, type GameView } from "@/lib/games";
 import { paths } from "@/lib/hrefs";
 import type { SiteGm } from "@/lib/types";
@@ -36,6 +37,9 @@ export function GmDetail({ slug, initial, onFound }: { slug: string; initial: { 
         <div className="min-w-0 lg:col-span-9">
           <h1 className="max-w-none text-[length:var(--text-display-s)]">{gm.name}</h1>
           {gm.city && <p className="lead mt-[var(--space-sm)] text-ink-2">{gm.city}</p>}
+          <p className="mt-[var(--space-xs)] text-sm text-muted" data-testid="gm-trust">
+            {[gm.joinedAt ? t("gm.memberSince", { date: formatDay(gm.joinedAt, lang, "WIB") }) : "", t("gm.gamesListed", { n: games.length })].filter(Boolean).join(" · ")}
+          </p>
           {gm.systems.length > 0 && (
             <p className="mt-[var(--space-lg)] flex flex-wrap items-center gap-[var(--space-xs)]"><span className="font-medium">{t("gm.systems")}:</span>{gm.systems.map((x) => <span key={x} className="chip">{x}</span>)}</p>
           )}

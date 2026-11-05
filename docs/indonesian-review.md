@@ -203,3 +203,32 @@ The agent's wording; the "Indonesian now" column is what the site shows. The ear
 | `admin.publish.pending` | Salinan statis situs (yang dibaca mesin pencari) menunggu pembaruan berikutnya. Pengunjung sudah melihat perubahannya. | |
 | email: listing live (Indonesian half) | "sudah diperiksa dan tampil di Quest Board." / "perubahan langsung tampil." | |
 | email: hidden (Indonesian half, subject "Disembunyikan: …") | "disembunyikan oleh admin." / "admin akan memeriksanya lagi." | |
+
+## What a player needs to know before asking for a seat (added 2026-11-05, ADR-49)
+
+The agent's wording; `{n}` and `{date}` are filled in by the site; `a|b` is singular|plural.
+
+| Key | Indonesian now | Your correction |
+|---|---|---|
+| `safety.session-zero` / `safety.open-door` | Sesi 0 / Open Door: boleh keluar kapan saja (the other tool names stay in English: X-Card, Lines & Veils, Script Change, Stars & Wishes) | |
+| `need.mic` / `camera` / `vtt` / `dice` / `book` | Mikrofon / Kamera / Akun virtual tabletop / Dadu sendiri / Buku aturan | |
+| `characters.pregen` / `own` / `table` | Karakter siap pakai disediakan / Bawa karakter sendiri / Buat karakter bersama di meja | |
+| `common.hours`, `game.sessionLength`, `game.expect`, `game.characters`, `game.bring` | {n} jam / Lama sesi / Yang akan terjadi / Karakter / Yang perlu disiapkan | |
+| `game.updated`, `gm.memberSince`, `gm.gamesListed` | Terakhir diperbarui {date} / Bergabung sejak {date} / {n} game terdaftar | |
+| `game.faqTitle` | Sebelum minta kursi | |
+| `game.faq.payQ` / `payA` | Apakah Quest Board menerima pembayaran? / Tidak. Quest Board hanya mendaftarkan game. Harga dan detailnya kamu sepakati langsung dengan Game Master, dan kamu membayar sendiri kepada mereka kalau game-nya berbayar. | |
+| `game.faq.joinQ` / `joinA` | Bagaimana cara ikut? / Ketuk WhatsApp dan kirim pesan ke Game Master: tanyakan apakah masih ada kursi dan hal lain yang ingin kamu tahu. Di situs ini tidak ada pemesanan. | |
+| `game.faq.trustQ` / `trustA` | Bagaimana saya tahu Game Master-nya dapat dipercaya? / Lihat profil dan game mereka yang lain, ajukan pertanyaan sebelum memutuskan, dan jangan membayar sebelum kamu berbicara dengan mereka. Siapa pun bisa melaporkan sebuah iklan: tiga laporan menyembunyikannya sampai admin memeriksanya. | |
+| `game.faq.meetQ` / `meetA` | Bagaimana bertemu langsung dengan aman? / Pilih tempat umum seperti kafe atau toko game, beri tahu temanmu ke mana kamu pergi, dan pulang kalau ada yang terasa tidak benar. | |
+| `games.chipWeekend` / `games.chipNew` | Akhir pekan ini / Baru minggu ini | |
+| `acct.f.sessionHours` / `sessionHoursHint` | Lama sesi / Kira-kira berapa lama satu sesi berjalan. | |
+| `acct.f.characters` / `charactersNone` | Karakter / Tidak disebutkan | |
+| `acct.f.needs` / `needsHint` | Yang perlu dimiliki pemain / Centang yang perlu disiapkan pemain, terutama untuk game online. | |
+| `acct.f.noWarnings` | Game ini tidak punya peringatan konten | |
+| `acct.f.warningsHint` | Bantu pemain memilih dengan informasi cukup. Tuliskan, atau centang bahwa tidak ada. | |
+| `acct.f.safetyTools` / `safetyToolsHint` | Alat keselamatan yang dipakai di meja / Pilih setidaknya satu, atau jelaskan milikmu di bawah. Setiap game menyebutkan cara menjaga meja tetap nyaman. | |
+| `acct.f.safety` / `safetyHint` | Catatan keselamatan lain / Hal lain yang kamu lakukan agar meja tetap nyaman. | |
+| `acct.tipsTitle` | Buat lebih menarik | |
+| `tip.description` | Tulis 2 sampai 4 paragraf pendek, seperti sampul belakang buku: apa yang akan dilakukan karakter, bukan seluruh lore. | |
+| `tip.cover` / `tip.characters` / `tip.needs` | Tambahkan gambar sampul: game dengan gambar lebih menonjol di daftar. / Sebutkan apakah pemain mendapat karakter siap pakai: ini membantu pemula bergabung. / Centang yang dibutuhkan pemain untuk game online (mikrofon, kamera, Discord…). | |
+| `tip.schedule` / `tip.genres` | Untuk kampanye, sebutkan hari apa dan seberapa sering kalian bermain. / Pilih genre agar pemain yang menjelajah berdasarkan genre menemukannya. | |

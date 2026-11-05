@@ -34,7 +34,7 @@ Links: <https://quest-board-tpk.pages.dev/en/list-your-game/> (English), <https:
 > What you do:
 > 1. Open https://quest-board-tpk.pages.dev/en/list-your-game/ and sign in with your email. We send you a link; there is no password.
 > 2. Fill in your profile once: display name, a short bio, your city, your WhatsApp number. Discord, Instagram and a photo are optional.
-> 3. Add your game: system, schedule, where (online or a public place such as a cafe), price per seat, content warnings and safety tools, and a cover picture if you have one.
+> 3. Add your game: system, schedule, where (online or a public place such as a cafe), price per seat, how long a session runs, whether characters are provided, what players should bring, content warnings (or that there are none) and the safety tools you use, and a cover picture if you have one. The form shows hints while your listing could say more.
 > 4. It is live as soon as you save it. An admin only looks if it is reported or the wording looks like spam, and then emails you.
 >
 > Your email address is never shown. Your WhatsApp number is not printed on the page: it is shown only to someone who taps the WhatsApp button, so players can reach you. You can change, mark full or remove a listing any time, and a

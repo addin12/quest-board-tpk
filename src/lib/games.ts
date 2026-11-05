@@ -15,6 +15,10 @@ export type Filters = {
   level: "" | Level;
   language: "" | "id" | "en";
   free: boolean;
+  /** Starts on the coming Saturday or Sunday (Jakarta time). */
+  weekend: boolean;
+  /** Listed in the last seven days. */
+  fresh: boolean;
   sort: SortKey;
   /** 1-based page of the list; not a filter, so it is not counted and any change to a filter sends the list back to page 1. */
   page: number;
@@ -32,7 +36,7 @@ export function pageList(page: number, pages: number): number[] {
   return keep.flatMap((n, i) => (i > 0 && n - keep[i - 1] > 1 ? [0, n] : [n]));
 }
 
-export const EMPTY_FILTERS: Filters = { q: "", system: "", genre: "", style: "", mechanic: "", format: "", where: "", level: "", language: "", free: false, sort: "soonest", page: 1 };
+export const EMPTY_FILTERS: Filters = { q: "", system: "", genre: "", style: "", mechanic: "", format: "", where: "", level: "", language: "", free: false, weekend: false, fresh: false, sort: "soonest", page: 1 };
 
 const oneOf = <T extends string>(v: string | null, allowed: readonly T[], fallback: T): T => (allowed.includes(v as T) ? (v as T) : fallback);
 
@@ -50,6 +54,8 @@ export function parseFilters(search: string): Filters {
     level: oneOf(p.get("level"), ["", "beginner", "experienced"] as const, ""), // "all experience levels" is no filter, so an old ?level=any is read as that
     language: oneOf(p.get("language"), ["", "id", "en"] as const, ""),
     free: p.get("free") === "1",
+    weekend: p.get("weekend") === "1",
+    fresh: p.get("new") === "1",
     sort: oneOf(p.get("sort"), ["soonest", "newest", "priceAsc"] as const, "soonest"),
     page: Math.min(Math.max(Math.trunc(Number(p.get("page"))) || 1, 1), 999),
   };
@@ -60,6 +66,8 @@ export function filtersToQuery(f: Filters): string {
   const p = new URLSearchParams();
   (["q", "system", "genre", "style", "mechanic", "format", "where", "level", "language"] as const).forEach((k) => { if (f[k]) p.set(k, f[k]); });
   if (f.free) p.set("free", "1");
+  if (f.weekend) p.set("weekend", "1");
+  if (f.fresh) p.set("new", "1");
   if (f.sort !== "soonest") p.set("sort", f.sort);
   if (f.page > 1) p.set("page", String(f.page));
   const s = p.toString();
@@ -68,7 +76,7 @@ export function filtersToQuery(f: Filters): string {
 
 /** How many filters are on (the sort doesn't count). */
 export function activeFilterCount(f: Filters): number {
-  return (["q", "system", "genre", "style", "mechanic", "format", "where", "level", "language"] as const).filter((k) => f[k]).length + (f.free ? 1 : 0);
+  return (["q", "system", "genre", "style", "mechanic", "format", "where", "level", "language"] as const).filter((k) => f[k]).length + (f.free ? 1 : 0) + (f.weekend ? 1 : 0) + (f.fresh ? 1 : 0);
 }
 
 export type GameView = SiteGame & { gmName: string };
@@ -137,7 +145,24 @@ export const allMechanicTiles = (games: readonly GameView[], known: readonly str
 /** Every genre in `known`: those with games first, then the rest in the order of `known`. */
 export const allGenreTiles = (games: readonly GameView[], known: readonly string[]): Tile[] => withUnlisted(genreTiles(games, known), known);
 
-export function applyFilters<G extends GameView>(games: G[], f: Filters): G[] {
+const WIB_MS = 7 * 3_600_000;
+const DAY = 86_400_000;
+
+/**
+ * The coming weekend as [start, end) in ms: Saturday 00:00 to Monday 00:00 Jakarta time. On a Saturday or Sunday it is this weekend, on a weekday the next one.
+ * @example weekendRange(Date.parse("2026-11-05T03:00:00Z")) // Thursday: [Sat 7 Nov 00:00 WIB, Mon 9 Nov 00:00 WIB)
+ */
+export function weekendRange(nowMs: number): [number, number] {
+  const local = new Date(nowMs + WIB_MS); // read with getUTC*: it is the Jakarta wall clock
+  const midnight = Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate());
+  const dow = local.getUTCDay(); // 0 Sunday … 6 Saturday
+  const start = midnight + (dow === 0 ? -1 : 6 - dow) * DAY - WIB_MS;
+  return [start, start + 2 * DAY];
+}
+
+/** `nowMs` is what "this weekend" and "new this week" count from. */
+export function applyFilters<G extends GameView>(games: G[], f: Filters, nowMs: number = 0): G[] {
+  const [from, to] = weekendRange(nowMs);
   return sortGames(
     games.filter((g) =>
       matchesText(g, f.q) &&
@@ -149,7 +174,9 @@ export function applyFilters<G extends GameView>(games: G[], f: Filters): G[] {
       (!f.where || g.locationType === f.where) &&
       (!f.level || g.level === f.level) &&
       (!f.language || g.language === f.language || g.language === "both") &&
-      (!f.free || g.priceIdr === 0),
+      (!f.free || g.priceIdr === 0) &&
+      (!f.weekend || (Date.parse(g.startsAt) >= from && Date.parse(g.startsAt) < to)) &&
+      (!f.fresh || Date.parse(g.listedAt) >= nowMs - 7 * DAY),
     ),
     f.sort,
   );

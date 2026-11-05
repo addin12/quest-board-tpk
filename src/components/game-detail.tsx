@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, ViewTransition } from "react";
-import { genreLabelKey, isGenre, isMechanic, isStyle, mechanicLabelKey, styleLabelKey } from "@/lib/categories";
+import { characterLabelKey, genreLabelKey, isGenre, isMechanic, isNeed, isSafetyTool, isStyle, mechanicLabelKey, needLabelKey, safetyToolLabelKey, styleLabelKey } from "@/lib/categories";
+import type { MsgKey } from "@/lib/i18n/core";
 import { contactMessage } from "@/lib/contact";
 import { formatDay, formatShortDay, formatWhen } from "@/lib/format";
 import { paths } from "@/lib/hrefs";
@@ -40,6 +41,14 @@ export function GameDetail({ slug, initial, onFound }: { slug: string; initial: 
   const genres = game.genres.filter(isGenre);
   const styles = game.styles.filter(isStyle);
   const mechanics = game.mechanics.filter(isMechanic);
+  const needs = game.needs.filter(isNeed);
+  const safety = game.safetyKeys.filter(isSafetyTool);
+  const faq: [MsgKey, MsgKey][] = [
+    ["game.faq.payQ", "game.faq.payA"],
+    ["game.faq.joinQ", "game.faq.joinA"],
+    ["game.faq.trustQ", "game.faq.trustA"],
+    ...(game.locationType === "in_person" ? ([["game.faq.meetQ", "game.faq.meetA"]] as [MsgKey, MsgKey][]) : []),
+  ];
 
   // `wide`: on a phone the facts sit two to a row; these take the whole row.
   const priceText = `${priceLabel(game.priceIdr, t)}${game.priceIdr > 0 ? ` ${t("common.perSeat")}` : ""}`;
@@ -59,6 +68,7 @@ export function GameDetail({ slug, initial, onFound }: { slug: string; initial: 
     ) },
     { label: t("game.format"), value: t(game.format === "campaign" ? "format.campaign" : "format.one_shot") },
     { label: t("game.seats"), value: t("common.seats", { n: game.seats }) },
+    ...(game.sessionHours > 0 ? [{ label: t("game.sessionLength"), value: t("common.hours", { n: game.sessionHours }) }] : []),
     { label: t("game.price"), wide: true, value: <>{priceLabel(game.priceIdr, t)}{game.priceIdr > 0 && <> {t("common.perSeat")}</>}<small>{t("game.priceNote")}</small></> },
     { label: t("game.language"), value: languageLabel(game.language, t) },
     { label: t("game.level"), value: <>{t(game.level === "beginner" ? "level.beginner" : game.level === "experienced" ? "level.experienced" : "level.any")}{game.minAge > 0 && <small>{t("game.ages", { n: game.minAge })}</small>}</> },
@@ -121,6 +131,21 @@ export function GameDetail({ slug, initial, onFound }: { slug: string; initial: 
               </div>
             </section>
 
+            {(game.characters || needs.length > 0) && (
+              <section aria-labelledby="expect-h" className="mt-[var(--space-xl)] border-t border-rule pt-[var(--space-lg)]" data-testid="expect">
+                <h2 id="expect-h" className="max-w-none text-[length:var(--text-xl)]">{t("game.expect")}</h2>
+                <dl className="mt-[var(--space-sm)] grid gap-[var(--space-md)]">
+                  {game.characters && <div><dt className="text-sm text-muted">{t("game.characters")}</dt><dd>{t(characterLabelKey(game.characters))}</dd></div>}
+                  {needs.length > 0 && (
+                    <div>
+                      <dt className="text-sm text-muted">{t("game.bring")}</dt>
+                      <dd><ul className="mt-[var(--space-3xs)] flex flex-wrap gap-[var(--space-xs)]">{needs.map((n) => <li key={n} className="chip">{t(needLabelKey(n))}</li>)}</ul></dd>
+                    </div>
+                  )}
+                </dl>
+              </section>
+            )}
+
             {game.scheduleNote && (
               <section aria-labelledby="schedule-h" className="mt-[var(--space-xl)] border-t border-rule pt-[var(--space-lg)]">
                 <h2 id="schedule-h" className="max-w-none text-[length:var(--text-xl)]">{t("game.schedule")}</h2>
@@ -135,7 +160,8 @@ export function GameDetail({ slug, initial, onFound }: { slug: string; initial: 
               </section>
               <section aria-labelledby="safety-h">
                 <h2 id="safety-h" className="max-w-none text-[length:var(--text-xl)]">{t("game.safety")}</h2>
-                <p className="mt-[var(--space-sm)]">{game.safetyTools || t("game.safetyNone")}</p>
+                {safety.length > 0 && <ul className="mt-[var(--space-sm)] flex flex-wrap gap-[var(--space-xs)]" data-testid="safety-tools">{safety.map((k) => <li key={k} className="chip">{t(safetyToolLabelKey(k))}</li>)}</ul>}
+                {(game.safetyTools || safety.length === 0) && <p className="mt-[var(--space-sm)]">{game.safetyTools || t("game.safetyNone")}</p>}
               </section>
             </div>
 
@@ -146,7 +172,19 @@ export function GameDetail({ slug, initial, onFound }: { slug: string; initial: 
                 {mechanics.map((m) => <li key={m} className="chip">{t(mechanicLabelKey(m))}</li>)}
               </ul>
             )}
-            <p className="mt-[var(--space-xl)] text-sm text-muted">{t("game.listedUntil", { date: formatDay(game.expiresAt, lang, game.zone) })}</p>
+            <p className="mt-[var(--space-xl)] text-sm text-muted">{t("game.listedUntil", { date: formatDay(game.expiresAt, lang, game.zone) })} · {t("game.updated", { date: formatDay(game.updatedAt, lang, game.zone) })}</p>
+
+            <section aria-labelledby="faq-h" className="mt-[var(--space-xl)] border-t border-rule pt-[var(--space-lg)]" data-testid="game-faq">
+              <h2 id="faq-h" className="max-w-none text-[length:var(--text-xl)]">{t("game.faqTitle")}</h2>
+              <div className="mt-[var(--space-sm)] grid max-w-[65ch]">
+                {faq.map(([q, a]) => (
+                  <details key={q} className="border-b border-rule py-[var(--space-xs)]">
+                    <summary className="flex min-h-11 cursor-pointer items-center font-medium">{t(q)}</summary>
+                    <p className="pb-[var(--space-sm)] text-ink-2">{t(a)}</p>
+                  </details>
+                ))}
+              </div>
+            </section>
           </div>
           </div>
         </div>

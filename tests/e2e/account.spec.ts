@@ -66,15 +66,15 @@ test("an Instagram name that is not one is refused next to its field", async ({ 
   expect(await world.sql("SELECT COUNT(*) AS n FROM profiles")).toEqual([{ n: 0 }]);
 });
 
-test("profile, then a game with a picture: both wait for review; the picture is shrunk and stored; nothing is public yet", async ({ page }) => {
+test("profile, then a game with a picture: both are live at once; the picture is shrunk and stored; the public data has no phone number", async ({ page }) => {
   const world = await newWorld(page);
   await world.signInAs("sari@example.com");
   await page.goto("/en/account/");
   await expect(page.getByText("Fill in your profile first, then you can add games.")).toBeVisible();
   await fillProfile(page);
   await page.getByRole("button", { name: "Save profile" }).click();
-  await expect(page.getByTestId("message")).toContainText("An admin will review it");
-  await expect(page.getByTestId("status").first()).toHaveText("Held for a look");
+  await expect(page.getByTestId("message")).toContainText("It is live");
+  await expect(page.getByTestId("status").first()).toHaveText("Live");
 
   await page.getByRole("button", { name: "Add a game" }).click();
   const form = page.getByTestId("game-form");
@@ -101,20 +101,28 @@ test("profile, then a game with a picture: both wait for review; the picture is 
   const png = await sharp({ create: { width: 1600, height: 1600, channels: 3, background: { r: 120, g: 60, b: 40 } } }).png().toBuffer();
   await form.getByLabel("Cover picture").setInputFiles({ name: "cover.png", mimeType: "image/png", buffer: png });
   await expect(form.getByText("Picture ready")).toBeVisible();
+  // what a player needs: the session length defaults to 3 hours; characters, what to bring, the warnings and the safety tools are answered here
+  await form.getByLabel("Characters", { exact: true }).selectOption("pregen");
+  await form.getByRole("checkbox", { name: "Microphone" }).check();
+  await form.getByRole("checkbox", { name: "This game has no content warnings" }).check();
+  await form.getByRole("checkbox", { name: "X-Card" }).check();
+  await expect(form.getByTestId("listing-tips")).toBeVisible(); // the description is short: the page says how to make it stronger
   await form.getByRole("checkbox", { name: /I confirm this information is true/ }).check();
   await form.getByRole("button", { name: "Save game" }).click();
 
   await expect(page.getByTestId("my-game")).toHaveCount(1);
   await expect(page.getByTestId("my-game")).toContainText("Kabut di Kebun Raya");
-  await expect(page.getByTestId("my-game").getByTestId("status")).toHaveText("Held for a look");
+  await expect(page.getByTestId("my-game").getByTestId("status")).toHaveText("Live");
   const [game] = await world.sql(COLUMN("Kabut di Kebun Raya"));
-  expect(game.status).toBe("pending");
+  expect(game.status).toBe("approved");
+  expect([game.session_hours, game.characters, JSON.parse(game.needs), JSON.parse(game.safety_keys), game.no_warnings]).toEqual([3, "pregen", ["mic"], ["x-card"], 1]);
   expect(JSON.parse(game.mechanics)).toEqual(["d100"]);
   expect(game.cover_key).toMatch(/^covers\/[a-z0-9]{16}\.(webp|jpg)$/);
   const stored = await page.evaluate(async (key) => (await fetch(`/api/img/${key}`)).status, game.cover_key);
-  expect(stored, "a picture that is not approved is private").toBe(404);
-  const pub = await (await page.request.get("/api/public", { headers: { Authorization: `Bearer ${BUILD_KEY}` } })).json();
-  expect(pub.games, "nothing is public before an admin approves").toEqual([]);
+  expect(stored, "the picture of a live game is public").toBe(200);
+  const live = await (await page.request.get("/api/live")).json();
+  expect(live.games.map((g: { title: string }) => g.title)).toEqual(["Kabut di Kebun Raya"]);
+  expect(live.gms.every((m: Record<string, unknown>) => !("whatsapp" in m)), "no phone number in the public data").toBe(true);
 });
 
 test("what the server refuses is shown next to the field", async ({ page }) => {
@@ -137,7 +145,7 @@ test("what the server refuses is shown next to the field", async ({ page }) => {
   expect(await world.sql("SELECT COUNT(*) AS n FROM games")).toEqual([{ n: 0 }]);
 });
 
-test("editing an approved game sends it back to review; saving the same thing again changes nothing", async ({ page }) => {
+test("editing a live game keeps it live; saving the same thing again changes nothing", async ({ page }) => {
   const world = await newWorld(page, { seed: true });
   await world.signInAs("raka@example.com");
   await page.goto("/en/account/");
@@ -153,9 +161,9 @@ test("editing an approved game sends it back to review; saving the same thing ag
   await page.getByTestId("my-game").filter({ hasText: "Panen Harapan" }).getByRole("button", { name: "Edit" }).click();
   await page.getByTestId("game-form").getByLabel("Seats", { exact: true }).fill("6");
   await page.getByTestId("game-form").getByRole("button", { name: "Save game" }).click();
-  await expect(page.getByTestId("message")).toContainText("An admin will review it");
-  await expect(page.getByTestId("my-game").filter({ hasText: "Panen Harapan" }).getByTestId("status")).toHaveText("Held for a look");
-  expect((await world.sql(COLUMN("Panen Harapan")))[0].seats).toBe(6);
+  await expect(page.getByTestId("message")).toContainText("It is live");
+  await expect(page.getByTestId("my-game").filter({ hasText: "Panen Harapan" }).getByTestId("status")).toHaveText("Live");
+  expect((await world.sql(COLUMN("Panen Harapan")))[0]).toMatchObject({ seats: 6, status: "approved" });
 });
 
 test("a GM marks a game full without a review, reopens it, and removes another with a confirmation", async ({ page }) => {

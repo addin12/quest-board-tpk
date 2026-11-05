@@ -1,7 +1,11 @@
 {
   "generatedAt": "2026-10-05T00:00:00.000Z",
-  "goneGames": ["a-game-that-ended-9z01"],
-  "goneGms": ["a-gm-who-left-9z02"],
+  "goneGames": [
+    "a-game-that-ended-9z01"
+  ],
+  "goneGms": [
+    "a-gm-who-left-9z02"
+  ],
   "gms": [
     {
       "id": "m0raka001",
@@ -17,7 +21,8 @@
         "Mothership",
         "Blades in the Dark"
       ],
-      "bio": "Horror and mystery GM from Depok. I run Call of Cthulhu one-shots in cafés, with the lights low and a good playlist. Beginners are very welcome.\n\nGM horor dan misteri dari Depok. Aku biasa memimpin one-shot Call of Cthulhu di kafe."
+      "bio": "Horror and mystery GM from Depok. I run Call of Cthulhu one-shots in cafés, with the lights low and a good playlist. Beginners are very welcome.\n\nGM horor dan misteri dari Depok. Aku biasa memimpin one-shot Call of Cthulhu di kafe.",
+      "joinedAt": "2026-08-12T03:00:00.000Z"
     },
     {
       "id": "m0dewi001",
@@ -32,7 +37,8 @@
         "Dungeons & Dragons 5e 2014",
         "Pathfinder 2e"
       ],
-      "bio": "I teach D&D to people who have never rolled a d20. Friendly tables, clear rules, lots of snacks. I run in Bahasa Indonesia and English."
+      "bio": "I teach D&D to people who have never rolled a d20. Friendly tables, clear rules, lots of snacks. I run in Bahasa Indonesia and English.",
+      "joinedAt": "2026-09-03T03:00:00.000Z"
     },
     {
       "id": "m0nadia01",
@@ -47,7 +53,8 @@
         "Cyberpunk Red",
         "Starfinder 1e"
       ],
-      "bio": "Sci-fi and cyberpunk, mostly online. I like heists, factions and bad decisions."
+      "bio": "Sci-fi and cyberpunk, mostly online. I like heists, factions and bad decisions.",
+      "joinedAt": "2026-09-21T03:00:00.000Z"
     },
     {
       "id": "m0bima001",
@@ -61,7 +68,8 @@
         "Daggerheart",
         "Pathfinder 2e"
       ],
-      "bio": "Long campaigns, slow-burn stories, and a lot of voices. Currently recruiting for a Daggerheart campaign."
+      "bio": "Long campaigns, slow-burn stories, and a lot of voices. Currently recruiting for a Daggerheart campaign.",
+      "joinedAt": "2026-10-02T03:00:00.000Z"
     }
   ],
   "games": [
@@ -99,9 +107,19 @@
         "roleplay-heavy",
         "puzzle-mystery"
       ],
-      "mechanics": ["d100"],
+      "mechanics": [
+        "d100"
+      ],
       "coverId": "local:/images/covers/mercusuar-di-pulau-kabut.svg",
-      "listedAt": "2026-10-03T00:00:00.000Z"
+      "listedAt": "2026-10-03T00:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "pregen",
+      "needs": [],
+      "safetyKeys": [
+        "x-card",
+        "lines-veils"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g0darah001",
@@ -137,9 +155,22 @@
         "roleplay-heavy",
         "narrative"
       ],
-      "mechanics": ["dice-pool"],
+      "mechanics": [
+        "dice-pool"
+      ],
       "coverId": "local:/images/covers/darah-di-balik-tirai-beludru.svg",
-      "listedAt": "2026-10-03T00:00:00.000Z"
+      "listedAt": "2026-10-03T00:00:00.000Z",
+      "sessionHours": 4,
+      "characters": "own",
+      "needs": [
+        "mic",
+        "discord",
+        "camera"
+      ],
+      "safetyKeys": [
+        "session-zero"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g0naga0001",
@@ -175,9 +206,18 @@
         "roleplay-light",
         "combat-light"
       ],
-      "mechanics": ["d20"],
+      "mechanics": [
+        "d20"
+      ],
       "coverId": "local:/images/covers/naga-naga-hutan-bara-petualangan-pemula.svg",
-      "listedAt": "2026-10-03T00:00:00.000Z"
+      "listedAt": "2026-10-03T00:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "table",
+      "needs": [],
+      "safetyKeys": [
+        "x-card"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g0mahkota1",
@@ -212,9 +252,23 @@
         "roleplay-heavy",
         "narrative"
       ],
-      "mechanics": ["d20"],
+      "mechanics": [
+        "d20"
+      ],
       "coverId": "local:/images/covers/mahkota-yang-terbelah.svg",
-      "listedAt": "2026-10-03T00:00:00.000Z"
+      "listedAt": "2026-10-03T00:00:00.000Z",
+      "sessionHours": 2,
+      "characters": "pregen",
+      "needs": [
+        "mic",
+        "discord",
+        "camera"
+      ],
+      "safetyKeys": [
+        "x-card",
+        "lines-veils"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g0neonrun1",
@@ -252,7 +306,17 @@
       ],
       "mechanics": [],
       "coverId": "local:/images/covers/neon-run-satu-malam-di-neo-surabaya.svg",
-      "listedAt": "2026-10-03T00:00:00.000Z"
+      "listedAt": "2026-10-03T00:00:00.000Z",
+      "sessionHours": 4,
+      "characters": "table",
+      "needs": [
+        "mic",
+        "discord"
+      ],
+      "safetyKeys": [
+        "session-zero"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g0doskvol1",
@@ -289,9 +353,22 @@
         "narrative",
         "rule-of-cool"
       ],
-      "mechanics": ["fitd"],
+      "mechanics": [
+        "fitd"
+      ],
       "coverId": "local:/images/covers/doskvol-setelah-gelap.svg",
-      "listedAt": "2026-10-03T00:00:00.000Z"
+      "listedAt": "2026-10-03T00:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "own",
+      "needs": [
+        "mic",
+        "discord",
+        "camera"
+      ],
+      "safetyKeys": [
+        "x-card"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g0panen001",
@@ -329,7 +406,15 @@
       ],
       "mechanics": [],
       "coverId": "local:/images/covers/panen-harapan.svg",
-      "listedAt": "2026-10-03T00:00:00.000Z"
+      "listedAt": "2026-10-03T00:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "pregen",
+      "needs": [],
+      "safetyKeys": [
+        "x-card",
+        "lines-veils"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g0signal01",
@@ -365,9 +450,22 @@
         "rule-of-cool",
         "tactical"
       ],
-      "mechanics": ["d100"],
+      "mechanics": [
+        "d100"
+      ],
       "coverId": "local:/images/covers/signal-from-tartarus-station.svg",
-      "listedAt": "2026-10-03T00:00:00.000Z"
+      "listedAt": "2026-10-03T00:00:00.000Z",
+      "sessionHours": 4,
+      "characters": "own",
+      "needs": [
+        "mic",
+        "discord",
+        "camera"
+      ],
+      "safetyKeys": [
+        "session-zero"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g0starfal1",
@@ -402,9 +500,21 @@
         "combat-light",
         "rule-of-cool"
       ],
-      "mechanics": ["d20"],
+      "mechanics": [
+        "d20"
+      ],
       "coverId": "local:/images/covers/starfall-salvage.svg",
-      "listedAt": "2026-10-03T00:00:00.000Z"
+      "listedAt": "2026-10-03T00:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "table",
+      "needs": [
+        "mic",
+        "discord"
+      ],
+      "safetyKeys": [
+        "x-card"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g0abomin01",
@@ -439,9 +549,23 @@
         "dungeon-crawl",
         "tactical"
       ],
-      "mechanics": ["d20"],
+      "mechanics": [
+        "d20"
+      ],
       "coverId": "local:/images/covers/abomination-vaults.svg",
-      "listedAt": "2026-10-03T00:00:00.000Z"
+      "listedAt": "2026-10-03T00:00:00.000Z",
+      "sessionHours": 2,
+      "characters": "pregen",
+      "needs": [
+        "mic",
+        "discord",
+        "camera"
+      ],
+      "safetyKeys": [
+        "x-card",
+        "lines-veils"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g0nimble01",
@@ -481,7 +605,17 @@
         "d20"
       ],
       "coverId": "local:/images/covers/gerbang-goblin.svg",
-      "listedAt": "2026-10-12T12:00:00.000Z"
+      "listedAt": "2026-10-12T12:00:00.000Z",
+      "sessionHours": 4,
+      "characters": "table",
+      "needs": [
+        "mic",
+        "discord"
+      ],
+      "safetyKeys": [
+        "session-zero"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g0cairn001",
@@ -521,7 +655,16 @@
         "osr"
       ],
       "coverId": "local:/images/covers/garam-di-lorong-tambang.svg",
-      "listedAt": "2026-10-13T07:00:00.000Z"
+      "listedAt": "2026-10-13T07:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "own",
+      "needs": [
+        "dice"
+      ],
+      "safetyKeys": [
+        "x-card"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g0shadow01",
@@ -561,7 +704,18 @@
         "dice-pool"
       ],
       "coverId": "local:/images/covers/hujan-asam-di-sektor-tujuh.svg",
-      "listedAt": "2026-10-14T13:00:00.000Z"
+      "listedAt": "2026-10-14T13:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "pregen",
+      "needs": [
+        "mic",
+        "discord"
+      ],
+      "safetyKeys": [
+        "x-card",
+        "lines-veils"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g0wuxia001",
@@ -601,7 +755,16 @@
         "d20"
       ],
       "coverId": "local:/images/covers/pedang-dan-teh-di-lembah-awan.svg",
-      "listedAt": "2026-10-15T08:00:00.000Z"
+      "listedAt": "2026-10-15T08:00:00.000Z",
+      "sessionHours": 4,
+      "characters": "own",
+      "needs": [
+        "dice"
+      ],
+      "safetyKeys": [
+        "session-zero"
+      ],
+      "noWarnings": true
     },
     {
       "id": "g0kultus01",
@@ -641,7 +804,17 @@
         "d100"
       ],
       "coverId": "local:/images/covers/kultus-di-bawah-menara-air.svg",
-      "listedAt": "2026-10-17T13:00:00.000Z"
+      "listedAt": "2026-10-17T13:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "table",
+      "needs": [
+        "mic",
+        "discord"
+      ],
+      "safetyKeys": [
+        "x-card"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g0fate0001",
@@ -681,7 +854,19 @@
         "fate-dice"
       ],
       "coverId": "local:/images/covers/kapal-hantu-kapten-jenaka.svg",
-      "listedAt": "2026-10-18T12:00:00.000Z"
+      "listedAt": "2026-10-18T12:00:00.000Z",
+      "sessionHours": 2,
+      "characters": "pregen",
+      "needs": [
+        "mic",
+        "discord",
+        "camera"
+      ],
+      "safetyKeys": [
+        "x-card",
+        "lines-veils"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g0hearts01",
@@ -721,7 +906,14 @@
         "pbta"
       ],
       "coverId": "local:/images/covers/asrama-bulan-purnama.svg",
-      "listedAt": "2026-10-19T07:00:00.000Z"
+      "listedAt": "2026-10-19T07:00:00.000Z",
+      "sessionHours": 4,
+      "characters": "table",
+      "needs": [],
+      "safetyKeys": [
+        "session-zero"
+      ],
+      "noWarnings": false
     },
     {
       "id": "g0mork0001",
@@ -761,7 +953,18 @@
         "osr"
       ],
       "coverId": "local:/images/covers/lonceng-di-rawa-hitam.svg",
-      "listedAt": "2026-10-21T13:00:00.000Z"
+      "listedAt": "2026-10-21T13:00:00.000Z",
+      "sessionHours": 3,
+      "characters": "own",
+      "needs": [
+        "mic",
+        "discord",
+        "camera"
+      ],
+      "safetyKeys": [
+        "x-card"
+      ],
+      "noWarnings": false
     }
   ]
 }

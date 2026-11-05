@@ -9,7 +9,8 @@ import { formatDay, formatIdr, formatWhen, initialsOf } from "../../src/lib/form
 import { smallCover } from "../../src/lib/hrefs.ts";
 import { SYSTEM_COVER_FILES, systemCover } from "../../src/lib/system-covers.ts";
 import { SYSTEMS } from "../../src/lib/systems.ts";
-import { EMPTY_FILTERS, activeFilterCount, applyFilters, filterOptions, filtersToQuery, isLive, pageList, parseFilters, systemTiles, allSystemTiles, genreTiles, allGenreTiles, type GameView } from "../../src/lib/games.ts";
+import { listingTips } from "../../src/lib/listing-tips.ts";
+import { EMPTY_FILTERS, activeFilterCount, applyFilters, weekendRange, filterOptions, filtersToQuery, isLive, pageList, parseFilters, systemTiles, allSystemTiles, genreTiles, allGenreTiles, type GameView } from "../../src/lib/games.ts";
 import { DICTIONARIES, makeT } from "../../src/lib/i18n/dict.ts";
 import { cleanDiscord, cleanInstagram, isGoogleMapsUrl, isPhone, parsePublicData, text } from "../../src/lib/public-data.ts";
 import { buildItems, BUILD_MS, canApprove, countByStatus, filterItems, pollDelay, previewGame, publishState, reasonText, siteBehind, whenLabel } from "../../src/lib/admin-view.ts";
@@ -17,7 +18,7 @@ import { flatName } from "../../scripts/fix-export.mjs";
 import { parseConfig } from "../../scripts/push-apps-script.mjs";
 import { PLACEHOLDER_SLUG, slugParams } from "../../src/lib/static-params.ts";
 import type { GameRecord, GmRecord, SiteGame } from "../../src/lib/types.ts";
-import { MECHANICS, STYLES, mechanicAboutKey, mechanicLabelKey, styleAboutKey, styleLabelKey } from "../../src/lib/categories.ts";
+import { CHARACTER_SOURCES, MECHANICS, NEEDS, SAFETY_TOOLS, STYLES, characterLabelKey, mechanicAboutKey, mechanicLabelKey, needLabelKey, safetyToolLabelKey, styleAboutKey, styleLabelKey } from "../../src/lib/categories.ts";
 
 const sample = JSON.parse(readFileSync(new URL("../../data/sample.json", import.meta.url), "utf8"));
 
@@ -412,4 +413,50 @@ test("the extra dummy data of the dev site (data/sample-more.json) is valid and 
     assert.ok(bySystem(name) >= 5, `${name} has at least five extra games`);
   }
   assert.ok(more.games.every((g: { summary: string }) => g.summary.length <= SUMMARY_MAX), "every summary fits a card");
+});
+
+// ── what a player needs before asking for a seat (ADR-49) ───────────────────────────────────────────────────────────
+test("this weekend is the coming Saturday and Sunday in Jakarta time, and a weekday looks at the next one", () => {
+  const wib = (s: string) => Date.parse(`${s}+07:00`);
+  const sat = [wib("2026-11-07T00:00:00"), wib("2026-11-09T00:00:00")];
+  for (const now of ["2026-11-05T10:00:00Z", "2026-11-06T16:59:00Z", "2026-11-06T17:00:00Z", "2026-11-07T03:00:00Z", "2026-11-08T16:59:00Z"]) assert.deepEqual(weekendRange(Date.parse(now)), sat, now);
+  assert.deepEqual(weekendRange(Date.parse("2026-11-08T17:00:00Z")), [wib("2026-11-14T00:00:00"), wib("2026-11-16T00:00:00")], "Monday 00:00 in Jakarta is already the next weekend's week");
+});
+
+test("the weekend and new-this-week filters count from the time given, read from and write to the address", () => {
+  const now = Date.parse("2026-11-05T03:00:00Z"); // a Thursday
+  const base = games()[0]!;
+  const mk = (id: string, startsAt: string, listedAt: string): GameView => ({ ...base, id, slug: id, startsAt, expiresAt: "2027-01-01T00:00:00.000Z", listedAt });
+  const all = [
+    mk("sat", "2026-11-07T12:00:00.000Z", "2026-10-01T00:00:00.000Z"),
+    mk("sun", "2026-11-08T12:00:00.000Z", "2026-11-04T00:00:00.000Z"),
+    mk("wed", "2026-11-11T12:00:00.000Z", "2026-11-04T00:00:00.000Z"),
+    mk("fri", "2026-11-06T12:00:00.000Z", "2026-10-20T00:00:00.000Z"),
+  ];
+  const ids = (f: Partial<typeof EMPTY_FILTERS>) => applyFilters(all, { ...EMPTY_FILTERS, ...f }, now).map((g) => g.id).sort();
+  assert.deepEqual(ids({ weekend: true }), ["sat", "sun"]);
+  assert.deepEqual(ids({ fresh: true }), ["sun", "wed"]);
+  assert.deepEqual(ids({ weekend: true, fresh: true }), ["sun"]);
+  assert.equal(ids({}).length, 4);
+  const f = parseFilters("?weekend=1&new=1");
+  assert.deepEqual([f.weekend, f.fresh, activeFilterCount(f), filtersToQuery(f)], [true, true, 2, "?weekend=1&new=1"]);
+});
+
+test("every safety tool, thing to bring and character source has a name in both languages", () => {
+  for (const lang of ["en", "id"] as const) {
+    const tr = makeT(lang);
+    for (const s of SAFETY_TOOLS) assert.notEqual(tr(safetyToolLabelKey(s.key)), safetyToolLabelKey(s.key), `${lang} ${s.key}`);
+    for (const n of NEEDS) assert.notEqual(tr(needLabelKey(n.key)), needLabelKey(n.key), `${lang} ${n.key}`);
+    for (const c of CHARACTER_SOURCES) assert.notEqual(tr(characterLabelKey(c)), characterLabelKey(c), `${lang} ${c}`);
+  }
+});
+
+test("the hints for a Game Master name only what is missing, and a complete listing gets none", () => {
+  const complete = { description: "x".repeat(300), coverKey: "covers/abcdefgh1234.webp", genres: ["horror"], characters: "pregen", needs: ["mic"], locationType: "online", format: "one_shot", scheduleNote: "" };
+  assert.deepEqual(listingTips(complete), []);
+  assert.deepEqual(listingTips({ ...complete, description: "short", coverKey: "" }).map((x) => x.id), ["description", "cover"]);
+  assert.deepEqual(listingTips({ ...complete, characters: "", needs: [] }).map((x) => x.id), ["characters", "needs"], "what to bring matters online");
+  assert.deepEqual(listingTips({ ...complete, locationType: "in_person", needs: [] }), [], "and not for a table in a cafe");
+  assert.deepEqual(listingTips({ ...complete, format: "campaign" }).map((x) => x.id), ["schedule"], "a campaign says when it meets");
+  assert.deepEqual(listingTips({ ...complete, genres: [] }).map((x) => x.id), ["genres"]);
 });
