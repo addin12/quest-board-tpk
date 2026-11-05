@@ -463,7 +463,7 @@ test("the hints for a Game Master name only what is missing, and a complete list
 
 test("dates and prices are written the same in the build and in every browser: no Intl, fixed zone offsets, fixed names", () => {
   assert.equal(formatWhen("2026-09-05T23:30:00.000Z", "en", "WIB"), "Sun 6 Sep, 06.30 WIB", "September is Sep (some ICU versions say Sept), and midnight rolls the day over in the zone");
-  assert.equal(formatWhen("2026-08-17T15:00:00.000Z", "id", "WIT"), "Min, 18 Agu, 00.00 WIT", "Indonesian names, midnight as 00");
+  assert.equal(formatWhen("2026-08-17T15:00:00.000Z", "id", "WIT"), "Sel, 18 Agu, 00.00 WIT", "Indonesian names, midnight as 00");
   assert.equal(formatDay("2026-05-01T00:00:00.000Z", "id", "WIB"), "1 Mei 2026");
   assert.equal(formatDay("2026-12-31T20:00:00.000Z", "en", "WITA"), "1 January 2027", "the zone decides the day");
   assert.equal(formatShortDay("2026-03-09T10:00:00.000Z", "en", "WIB"), "9 Mar");
