@@ -23,9 +23,7 @@ any number of **games**. Also: `admins`, `activity` (the audit trail), `login_to
 | An admin asks to merge a duplicate into the real account; its owner accepts while signed in, then the games move and the email still signs in (ADR-45) | `merge` action → `merge_requests`, `POST /merge/respond`, `accounts.merged_into` |
 | Jabodetabek and online only; short description at most 80 characters | `worker/src/rules.ts`, `src/lib/areas.ts` (enforced, not just warned) |
 | A GM marks a game full or removes it without a review | `POST /games/:id/full`, `DELETE /games/:id` |
-| A live game's date, price, seats and schedule line change without a review (ADR-48) | `PRACTICAL_COLUMNS`, `saveGame` |
-| Any other change to an approved record waits as a draft; the approved version stays on the site until the draft is approved (ADR-48) | `saveProfile`, `saveGame`, `withDraft`, `review` |
-| Approving a game whose Game Master is not approved is flagged to the admin (`hidden`) and the email says the game waits for the profile | `review`, `decisionMail` |
+| Any other change goes back to review (same as before) | `saveProfile`, `saveGame` |
 | A person can erase their account and pictures | `DELETE /api/account` |
 
 ## API (`/api/*`, same origin as the site)

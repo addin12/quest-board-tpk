@@ -175,17 +175,3 @@ Written for this site (not copied from StartPlaying); each sits under its name o
 | `mechanic.illuminated-worlds.about` | From Candela Obscura, built on Forged in the Dark and the Year Zero Engine. Roll d6s and read the highest to play teams of investigators. | Dari Candela Obscura, dibangun di atas Forged in the Dark dan Year Zero Engine. Lempar d6 dan baca yang tertinggi untuk memainkan tim penyelidik. | |
 | `mechanic.fudge.about` | A generic system with four dice marked plus, minus or blank, designed as a base for other games. Add your skill and compare with a difficulty. | Sistem generik dengan empat dadu bertanda plus, minus, atau kosong, dirancang sebagai dasar untuk game lain. Tambahkan skill dan bandingkan dengan tingkat kesulitan. | |
 | `mechanic.essence20.about` | Renegade Game Studios' system for Power Rangers, Transformers and G.I. Joe. Roll a d20 and a second die set by your skill, and beat a target number. | Sistem Renegade Game Studios untuk Power Rangers, Transformers, dan G.I. Joe. Lempar d20 dan satu dadu kedua sesuai skill-mu, lalu lampaui angka target. | |
-
-## Review changes and mail (added 2026-11-05)
-
-`{n}` is filled in by the site. The two emails are English first, Indonesian second (the Indonesian is the second half of the body and of the subject).
-
-| Key | English | Indonesian now | Your correction |
-|---|---|---|---|
-| `acct.liveVersion` | Your earlier approved version stays on the site until this change is approved. | Versi lamamu yang sudah disetujui tetap tampil di situs sampai perubahan ini disetujui. | |
-| `admin.liveVersion` | The approved version is still on the site. Approving replaces it with this one; rejecting keeps the approved version. | Versi yang sudah disetujui masih tampil di situs. Menyetujui akan menggantinya dengan versi ini; menolak mempertahankan versi yang disetujui. | |
-| `admin.toast.hiddenUntilGm` | {n} approved game(s) stay off the site until their Game Master profile is approved too. | {n} game yang disetujui belum tampil di situs sampai profil Game Master-nya juga disetujui. | |
-| `admin.toast.mailFailed` | Saved, but {n} decision email(s) could not be sent: tell them yourself. | Tersimpan, tetapi {n} email keputusan gagal terkirim: kabari mereka langsung. | |
-| email: approved, profile still waiting | "was approved, but it will appear on the Quest Board only once your Game Master profile is approved too." | "sudah disetujui, tetapi baru tampil di Quest Board setelah profil Game Master-mu juga disetujui." | |
-| email: change not approved, earlier version stays | "Your earlier approved version stays on the Quest Board meanwhile." | "Versi lamamu yang sudah disetujui tetap tampil di Quest Board untuk sementara." | |
-| email: review digest | "N item(s) waiting for review (X games, Y Game Master profiles)." / subject "To review: N waiting" | "N item menunggu ditinjau (X game, Y profil Game Master)." / subjek "Untuk ditinjau: N menunggu" | |

@@ -189,7 +189,6 @@ function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting
           <p className="mt-1 text-sm text-muted">{t("admin.submitted", { date: formatWhen(rec.submittedAt || nowIso, lang, "WIB") })} · {t("admin.by", { email: rec.email })}</p>
           {rec.reviewedAt && rec.status !== "pending" && <p className="text-sm text-muted">{t("admin.reviewed", { status: t(`admin.status.${rec.status}` as MsgKey), email: rec.reviewedBy, date: formatWhen(rec.reviewedAt, lang, "WIB") })}</p>}
           {rec.status === "rejected" && rec.rejectReason && <p className="mt-1 text-sm">{rec.rejectReason}</p>}
-          {rec.liveVersion && <p className="mt-1 text-sm font-medium" data-testid="live-version-note">{t("admin.liveVersion")}</p>}
         </div>
         <span className={`chip ${rec.status === "approved" ? "border-success/40! bg-success-soft! text-ink!" : rec.status === "rejected" ? "border-danger/40! bg-danger-soft! text-ink!" : ""}`} data-testid="detail-status">{t(`admin.status.${rec.status}` as MsgKey)}</span>
       </div>

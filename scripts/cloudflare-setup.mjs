@@ -33,7 +33,6 @@ const MIGRATIONS = [
   { file: "0004_instagram.sql", applied: "SELECT 1 FROM pragma_table_info('profiles') WHERE name = 'instagram'" },
   { file: "0005_indexes.sql", applied: "SELECT 1 FROM sqlite_master WHERE type = 'index' AND name = 'games_cover_key'" },
   { file: "0006_merge_requests.sql", applied: "SELECT 1 FROM sqlite_master WHERE name = 'merge_requests'" },
-  { file: "0007_drafts.sql", applied: "SELECT 1 FROM pragma_table_info('games') WHERE name = 'draft'" },
 ];
 
 const sh = (command) => {

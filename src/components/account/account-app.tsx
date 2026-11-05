@@ -136,7 +136,6 @@ export function AccountApp() {
             <p className="flex flex-wrap items-center gap-[var(--space-md)]"><span className="font-display text-[length:var(--text-title)]">{profile.name}</span><Status status={profile.status} /></p>
             <p className="text-ink-2">{profile.city}</p>
             {profile.status === "rejected" && profile.rejectReason && <p className="font-medium text-danger">{t("acct.reason", { reason: profile.rejectReason })}</p>}
-            {profile.liveVersion && <p className="text-ink-2">{t("acct.liveVersion")}</p>}
             <p><button type="button" className="btn btn-secondary" onClick={() => setEditingProfile(true)}>{t("acct.editProfile")}</button></p>
           </div>
         )}
@@ -167,7 +166,6 @@ export function AccountApp() {
                     </p>
                     <p className="text-ink-2">{`${g.system}, ${when(g.startsAt, lang, g.zone)}`}</p>
                     {g.status === "rejected" && g.rejectReason && <p className="font-medium text-danger">{t("acct.reason", { reason: g.rejectReason })}</p>}
-                    {g.liveVersion && <p className="text-ink-2">{t("acct.liveVersion")}</p>}
                     {confirm === g.id ? (
                       <div className="flex flex-wrap items-center gap-[var(--space-lg)]" role="alert">
                         <span className="font-medium">{t("acct.removeConfirm", { title: g.title })}</span>

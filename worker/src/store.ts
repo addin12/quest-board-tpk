@@ -10,7 +10,6 @@ import { DAY_MS, eventStmt, iso, logEvent, metaGet, metaSet, parseList, randomId
 export type ProfileRow = {
   id: string; account_id: string; slug: string; name: string; bio: string; city: string; systems: string; whatsapp: string; discord: string; instagram: string; photo_key: string; consent: number;
   status: "pending" | "approved" | "rejected"; admin_note: string; reviewed_by: string; reviewed_at: string; reject_reason: string; was_live: number; gone_at: string; created_at: string; updated_at: string; rowid?: number;
-  draft: string; draft_state: "" | "pending" | "rejected";
 };
 export type GameRow = {
   id: string; profile_id: string; slug: string; title: string; system: string; summary: string; description: string; format: GameRecord["format"]; location_type: GameRecord["locationType"];
@@ -18,55 +17,6 @@ export type GameRow = {
   language: GameRecord["language"]; level: GameRecord["level"]; min_age: number; content_warnings: string; safety_tools: string; genres: string; styles: string; mechanics: string; cover_key: string; consent: number;
   status: "pending" | "approved" | "rejected"; full: number; admin_note: string; reviewed_by: string; reviewed_at: string; reject_reason: string; was_live: number; gone_at: string;
   removed: number; created_at: string; updated_at: string; rowid?: number;
-  draft: string; draft_state: "" | "pending" | "rejected";
-};
-
-// ── Drafts (ADR-48) ───────────────────────────────────────────────────────────────────────────────────────────────────
-// A change to an approved record does not touch the columns the site is built from. The new version waits in `draft` (JSON: column → value, for
-// every editable column) with `draft_state` "pending" (an admin has not decided) or "rejected" (the reason is in `reject_reason`). Approving applies
-// it; rejecting keeps the approved version live and the draft for the GM to fix. A row has a draft only while its status is "approved".
-
-export const PROFILE_COLUMNS = ["name", "bio", "city", "systems", "whatsapp", "discord", "instagram", "photo_key"] as const;
-export const GAME_COLUMNS = ["title", "system", "summary", "description", "format", "location_type", "platform", "city", "venue_name", "venue_maps_raw", "starts_at", "zone", "schedule_note", "expires_at", "price_idr", "seats", "language", "level", "min_age", "content_warnings", "safety_tools", "genres", "styles", "mechanics", "cover_key"] as const;
-/**
- * The columns of a game a GM may change without a new review: when it is, what it costs, how many seats, and the line about the schedule. They
- * are details of the same game, not something to moderate; every other field (words, picture, place, rating) goes to review.
- */
-export const PRACTICAL_COLUMNS = ["starts_at", "schedule_note", "expires_at", "price_idr", "seats"] as const;
-const CONTENT_COLUMNS = GAME_COLUMNS.filter((c) => !(PRACTICAL_COLUMNS as readonly string[]).includes(c));
-
-type Values = Record<string, string | number>;
-type Draftable = { status: string; draft: string; draft_state: "" | "pending" | "rejected" };
-
-/** The waiting version of a record, or null when there is none (or it cannot be read: then the approved version simply stands). */
-export function draftValues(row: Draftable): Values | null {
-  if (!row.draft || row.status !== "approved" || !row.draft_state) return null;
-  try {
-    const v = JSON.parse(row.draft);
-    return v && typeof v === "object" && !Array.isArray(v) ? (v as Values) : null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * What the GM and the admin page see: the waiting version laid over the approved one, with the draft's state as the status and `liveVersion` set
- * (the approved version is still on the site). The build never uses this: it reads the row as it is.
- */
-export function withDraft<R extends Draftable>(row: R): R & { liveVersion?: boolean } {
-  const d = draftValues(row);
-  return d ? { ...row, ...d, status: row.draft_state, liveVersion: true } : row;
-}
-
-const LISTS = new Set(["systems", "genres", "styles", "mechanics"]);
-const norm = (col: string, v: unknown) => (LISTS.has(col) ? JSON.stringify(parseList(String(v ?? ""))) : v);
-/** The columns in which `row` (a record or a draft, by column name) differs from `next`. Lists are compared by content, not by how they were written. */
-const differs = (cols: readonly string[], row: Record<string, unknown>, next: Values) => cols.filter((c) => norm(c, row[c]) !== norm(c, next[c]));
-
-/** A picture the replaced draft held that nothing else uses any more (not the approved version's, not the new one's): the caller deletes the file. */
-const droppedDraftKey = (row: Draftable, col: "photo_key" | "cover_key", live: string, next: string): string[] => {
-  const prior = draftValues(row)?.[col];
-  return typeof prior === "string" && prior && prior !== live && prior !== next ? [prior] : [];
 };
 
 /**
@@ -84,17 +34,17 @@ export const profileOf = (ctx: Ctx, accountId: string) => one<ProfileRow>(ctx.db
 
 // ── Rows to the shapes the site and the admin page already use ────────────────────────────────────────────────────────
 
-export function gmRecord(p: ProfileRow & { liveVersion?: boolean }, email: string, shares: { id: string; name: string }[] = []): GmRecord {
+export function gmRecord(p: ProfileRow, email: string, shares: { id: string; name: string }[] = []): GmRecord {
   return {
-    kind: "gm", id: p.id, slug: p.slug, status: p.status, full: false, ...(p.liveVersion ? { liveVersion: true } : {}), adminNote: p.admin_note, reviewedBy: p.reviewed_by, reviewedAt: p.reviewed_at,
+    kind: "gm", id: p.id, slug: p.slug, status: p.status, full: false, adminNote: p.admin_note, reviewedBy: p.reviewed_by, reviewedAt: p.reviewed_at,
     rejectReason: p.reject_reason, superseded: false, submittedAt: p.created_at, updatedAt: p.updated_at, email, row: p.rowid ?? 0,
     name: p.name, bio: p.bio, city: p.city, systems: parseList(p.systems), whatsapp: p.whatsapp, discord: p.discord, instagram: p.instagram, photoId: p.photo_key, consent: p.consent === 1, sharesPhoneWith: shares.map((s) => s.name), sharesPhoneIds: shares.map((s) => s.id),
   };
 }
 
-export function gameRecord(g: GameRow & { liveVersion?: boolean }, email: string): GameRecord {
+export function gameRecord(g: GameRow, email: string): GameRecord {
   return {
-    kind: "game", id: g.id, slug: g.slug, status: g.status, full: g.full === 1, ...(g.liveVersion ? { liveVersion: true } : {}), adminNote: g.admin_note, reviewedBy: g.reviewed_by, reviewedAt: g.reviewed_at,
+    kind: "game", id: g.id, slug: g.slug, status: g.status, full: g.full === 1, adminNote: g.admin_note, reviewedBy: g.reviewed_by, reviewedAt: g.reviewed_at,
     rejectReason: g.reject_reason, superseded: false, submittedAt: g.created_at, updatedAt: g.updated_at, email, row: g.rowid ?? 0,
     title: g.title, system: g.system, summary: g.summary, description: g.description, format: g.format, locationType: g.location_type, platform: g.platform, city: g.city,
     venueName: g.venue_name, venueMapsUrl: isGoogleMapsUrl(g.venue_maps_raw) ? g.venue_maps_raw : "", venueMapsRaw: g.venue_maps_raw, startsAt: g.starts_at, zone: g.zone,
@@ -122,13 +72,15 @@ export async function mine(ctx: Ctx, s: Session) {
     : [];
   return {
     email: s.email,
-    profile: p ? forGm(gmRecord(withDraft(p), s.email)) : null,
-    games: games.map((g) => forGm(gameRecord(withDraft(g), s.email))),
+    profile: p ? forGm(gmRecord(p, s.email)) : null,
+    games: games.map((g) => forGm(gameRecord(g, s.email))),
     mergeOffers: offers.map((o) => ({ id: o.id, name: o.name, email: o.email, askedAt: o.created_at })),
   };
 }
 
 // ── Writes ────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
 /**
  * Creates the profile or changes it. A change to a profile that was decided puts it back to "pending" (it leaves the site until
@@ -145,24 +97,12 @@ export async function saveProfile(ctx: Ctx, s: Session, input: ProfileInput): Pr
     await logEvent(ctx.db, ctx.now(), "submitted", "gm", id, input.name, "new profile", s.email);
     return { id, status: "pending", changed: true, dropped: [] };
   }
-  const next: Values = { name: input.name, bio: input.bio, city: input.city, systems: JSON.stringify(input.systems), whatsapp: input.whatsapp, discord: input.discord, instagram: input.instagram, photo_key: input.photoKey };
-  const shown = withDraft(p); // what the GM was looking at when they pressed save
-  if (differs(PROFILE_COLUMNS, shown, next).length === 0) return { id: p.id, status: shown.status, changed: false, dropped: [] };
-  if (p.status === "approved") {
-    // The approved version stays on the site (and so do the games listed with it); the change waits for an admin as a draft.
-    const dropped = droppedDraftKey(p, "photo_key", p.photo_key, input.photoKey);
-    if (differs(PROFILE_COLUMNS, p, next).length === 0) {
-      await exec(ctx.db, "UPDATE profiles SET draft = '', draft_state = '', reject_reason = '', updated_at = ? WHERE id = ?", now, p.id); // back to the approved version
-      await logEvent(ctx.db, ctx.now(), "edited", "gm", p.id, input.name, "the GM went back to the approved version; the waiting change is dropped", s.email);
-      return { id: p.id, status: "approved", changed: true, dropped };
-    }
-    await exec(ctx.db, "UPDATE profiles SET draft = ?, draft_state = 'pending', reject_reason = '', updated_at = ? WHERE id = ?", JSON.stringify(next), now, p.id);
-    await logEvent(ctx.db, ctx.now(), "edited", "gm", p.id, input.name, "approved, changed: the new version waits for review; the approved one stays on the site", s.email);
-    return { id: p.id, status: "pending", changed: true, dropped };
-  }
-  await exec(ctx.db, "UPDATE profiles SET name = ?, bio = ?, city = ?, systems = ?, whatsapp = ?, discord = ?, instagram = ?, photo_key = ?, consent = 1, status = 'pending', reject_reason = '', draft = '', draft_state = '', updated_at = ? WHERE id = ?",
+  const unchanged = p.name === input.name && p.bio === input.bio && p.city === input.city && same(parseList(p.systems), input.systems) && p.whatsapp === input.whatsapp && p.discord === input.discord && p.instagram === input.instagram && p.photo_key === input.photoKey;
+  if (unchanged) return { id: p.id, status: p.status, changed: false, dropped: [] };
+  await exec(ctx.db, "UPDATE profiles SET name = ?, bio = ?, city = ?, systems = ?, whatsapp = ?, discord = ?, instagram = ?, photo_key = ?, consent = 1, status = 'pending', reject_reason = '', updated_at = ? WHERE id = ?",
     input.name, input.bio, input.city, JSON.stringify(input.systems), input.whatsapp, input.discord, input.instagram, input.photoKey, now, p.id);
   await logEvent(ctx.db, ctx.now(), "edited", "gm", p.id, input.name, `${p.status} → pending: the GM changed it`, s.email);
+  if (p.status === "approved") await markDirty(ctx);
   return { id: p.id, status: "pending", changed: true, dropped: p.photo_key && p.photo_key !== input.photoKey ? [p.photo_key] : [] };
 }
 
@@ -170,6 +110,12 @@ export async function saveProfile(ctx: Ctx, s: Session, input: ProfileInput): Pr
 export const MAX_GAMES_PER_PROFILE = 30;
 
 export type SaveGameResult = { ok: true; id: string; status: GameRow["status"]; changed: boolean; dropped: string[] } | { ok: false; error: "no_profile" | "not_found" | "too_many" };
+
+/**
+ * The columns of a game a GM may change without a new review: when it is, what it costs, how many seats, and the line about the schedule. They
+ * are details of the same game, not something to moderate; every other field (words, picture, place, rating) goes back to review.
+ */
+const PRACTICAL_COLUMNS = ["starts_at", "schedule_note", "expires_at", "price_idr", "seats"];
 
 /** Creates a game for the signed-in GM (`gameId` null) or changes one of theirs. Same "back to pending" rule as the profile. */
 export async function saveGame(ctx: Ctx, s: Session, gameId: string | null, input: GameInput): Promise<SaveGameResult> {
@@ -190,30 +136,25 @@ export async function saveGame(ctx: Ctx, s: Session, gameId: string | null, inpu
   }
   const g = await one<GameRow>(ctx.db, "SELECT rowid, * FROM games WHERE id = ? AND profile_id = ? AND removed = 0", gameId, p.id);
   if (!g) return { ok: false, error: "not_found" };
-  const next: Values = Object.fromEntries(GAME_COLUMNS.map((c, i) => [c, values[i] as string | number]));
-  const shown = withDraft(g); // what the GM was looking at when they pressed save
-  if (differs(GAME_COLUMNS, shown, next).length === 0) return { ok: true, id: g.id, status: shown.status, changed: false, dropped: [] };
-  if (g.status === "approved") {
-    // The approved version stays on the site. Practical details (see PRACTICAL_COLUMNS) go live at once; anything an admin judges waits as a draft.
-    const practicalChanged = differs(PRACTICAL_COLUMNS, g, next).length > 0;
-    const contentChanged = differs(CONTENT_COLUMNS, g, next).length > 0;
-    const dropped = droppedDraftKey(g, "cover_key", g.cover_key, input.coverKey);
-    const practical = PRACTICAL_COLUMNS.map((c) => `${c} = ?`).join(", ");
-    const practicalValues = PRACTICAL_COLUMNS.map((c) => next[c]);
-    if (!contentChanged) {
-      // Only practical details differ from the approved version (a waiting draft, if there was one, is dropped: the GM went back to what is approved).
-      await exec(ctx.db, `UPDATE games SET ${practical}, draft = '', draft_state = '', reject_reason = '', updated_at = ? WHERE id = ?`, ...practicalValues, now, g.id);
-      await logEvent(ctx.db, ctx.now(), "changed", "game", g.id, g.title, g.draft_state ? "the GM went back to the approved words; the waiting change is dropped" : "the GM updated date, price or seats; still approved", s.email);
-      if (practicalChanged) await markDirty(ctx);
-      return { ok: true, id: g.id, status: "approved", changed: true, dropped };
-    }
-    await exec(ctx.db, `UPDATE games SET ${practical}, draft = ?, draft_state = 'pending', reject_reason = '', updated_at = ? WHERE id = ?`, ...practicalValues, JSON.stringify(next), now, g.id);
-    await logEvent(ctx.db, ctx.now(), "edited", "game", g.id, input.title, "approved, changed: the new version waits for review; the approved one stays on the site", s.email);
-    if (practicalChanged) await markDirty(ctx);
-    return { ok: true, id: g.id, status: "pending", changed: true, dropped };
+  const before = gameRecord(g, s.email);
+  // What an admin reads and judges (words, pictures, place, rating) versus the practical details a GM keeps current (see PRACTICAL_COLUMNS).
+  const sameContent = before.title === input.title && before.system === input.system && before.summary === input.summary && before.description === input.description && before.format === input.format &&
+    before.locationType === input.locationType && before.platform === input.platform && before.city === input.city && before.venueName === input.venueName && before.venueMapsRaw === input.venueMapsRaw &&
+    before.zone === input.zone && before.language === input.language && before.level === input.level && before.minAge === input.minAge && before.contentWarnings === input.contentWarnings &&
+    before.safetyTools === input.safetyTools && same(before.genres, input.genres) && same(before.styles, input.styles) && same(before.mechanics, input.mechanics) && before.coverId === input.coverKey;
+  const samePractical = before.startsAt === input.startsAt && before.scheduleNote === input.scheduleNote && before.expiresAt === input.expiresAt && before.priceIdr === input.priceIdr && before.seats === input.seats;
+  if (sameContent && samePractical) return { ok: true, id: g.id, status: g.status, changed: false, dropped: [] };
+  if (sameContent && g.status === "approved") {
+    // Only the practical details changed on a listing that is live: nothing for an admin to judge, so it stays approved and goes out with the next build.
+    const set = PRACTICAL_COLUMNS.map((c) => `${c} = ?`).join(", ");
+    await exec(ctx.db, `UPDATE games SET ${set}, updated_at = ? WHERE id = ?`, input.startsAt, input.scheduleNote, input.expiresAt, input.priceIdr, input.seats, now, g.id);
+    await logEvent(ctx.db, ctx.now(), "changed", "game", g.id, g.title, "the GM updated date, price or seats; still approved", s.email);
+    await markDirty(ctx);
+    return { ok: true, id: g.id, status: "approved", changed: true, dropped: [] };
   }
-  await exec(ctx.db, `UPDATE games SET ${cols.split(", ").map((c) => `${c} = ?`).join(", ")}, consent = 1, status = 'pending', reject_reason = '', draft = '', draft_state = '', updated_at = ? WHERE id = ?`, ...values, now, g.id);
+  await exec(ctx.db, `UPDATE games SET ${cols.split(", ").map((c) => `${c} = ?`).join(", ")}, consent = 1, status = 'pending', reject_reason = '', updated_at = ? WHERE id = ?`, ...values, now, g.id);
   await logEvent(ctx.db, ctx.now(), "edited", "game", g.id, input.title, `${g.status} → pending: the GM changed it`, s.email);
+  if (g.status === "approved") await markDirty(ctx);
   return { ok: true, id: g.id, status: "pending", changed: true, dropped: g.cover_key && g.cover_key !== input.coverKey ? [g.cover_key] : [] };
 }
 
@@ -250,10 +191,8 @@ export async function removeGame(ctx: Ctx, s: Session, gameId: string): Promise<
  */
 export async function eraseAccount(ctx: Ctx, s: Session): Promise<string[]> {
   const p = await profileOf(ctx, s.accountId);
-  const games = p ? await many<Draftable & { id: string; cover_key: string }>(ctx.db, "SELECT id, cover_key, status, draft, draft_state FROM games WHERE profile_id = ?", p.id) : [];
-  // The pictures of waiting drafts are files too.
-  const draftKey = (row: Draftable, col: "photo_key" | "cover_key") => { const k = draftValues(row)?.[col]; return typeof k === "string" ? k : ""; };
-  const keys = [...new Set([p?.photo_key ?? "", p ? draftKey(p, "photo_key") : "", ...games.flatMap((g) => [g.cover_key, draftKey(g, "cover_key")])])].filter(Boolean);
+  const games = p ? await many<{ id: string; cover_key: string; status: string }>(ctx.db, "SELECT id, cover_key, status FROM games WHERE profile_id = ?", p.id) : [];
+  const keys = [p?.photo_key ?? "", ...games.map((g) => g.cover_key)].filter(Boolean);
   const wasPublic = p?.status === "approved";
   const merged = await many<{ id: string; email: string }>(ctx.db, "SELECT id, email FROM accounts WHERE merged_into = ?", s.accountId);
   const emails = [s.email, ...merged.map((m) => m.email)];

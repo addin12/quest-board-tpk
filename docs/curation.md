@@ -31,12 +31,8 @@ account is not an admin, ask the owner to add your email under **Admins**.
 
 A Game Master signs in at `/en/account/` with an emailed link (one email is one account). They can, without waiting for you:
 **mark a game full** (a "Full" badge, it sinks to the end of the lists; visitors can still message them), **reopen** it, **remove** a game,
-and **erase their account** with all their data and pictures. They can also change a live game's **date, price, seats and schedule line** at once: those go
-out with the next build without a review. Any other change (a new game, an edit of the words, the picture, the place, the rating, or of the profile) goes to your
-Waiting list **as a changed version** and the approved version **stays on the site** until you decide: approving replaces it, rejecting keeps it and sends the
-reason to the Game Master, who fixes the changed version (it never disappears). The detail view says "The approved version is still on the site" for such an item.
-A game whose Game Master profile is still waiting is not listed whatever its own status is: approving it tells you so (and the email to the Game Master says it
-waits for the profile).
+and **erase their account** with all their data and pictures. Any other change (a new game, an edit) goes back to your Waiting list, and
+the old version stays off the site until you approve it again.
 
 ## Two profiles, one person
 

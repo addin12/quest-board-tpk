@@ -3,7 +3,7 @@
 import { exec, many, one, type Stmt } from "./db.ts";
 import { isAdmin, listAdmins, type Ctx, type Session } from "./auth.ts";
 import { decisionMail, mergeRequestMail, normalizeEmail } from "./email.ts";
-import { GAME_COLUMNS, MERGE_REQUEST_DAYS, PROFILE_COLUMNS, draftValues, gameRecord, gmRecord, markDirty, withDraft, type GameRow, type ProfileRow } from "./store.ts";
+import { MERGE_REQUEST_DAYS, gameRecord, gmRecord, markDirty, type GameRow, type ProfileRow } from "./store.ts";
 import { DAY_MS, allow, clip, eventStmt, iso, logEvent, metaGet, randomId } from "./util.ts";
 import { REVIEW_MAX_IDS, type AdminEntry, type DeployInfo } from "../../src/lib/types.ts";
 
@@ -23,13 +23,12 @@ export async function deployInfo(ctx: Ctx, configured: boolean): Promise<DeployI
 
 export async function queue(ctx: Ctx, deployConfigured: boolean) {
   const cutoff = iso(ctx.now() - 30 * DAY_MS);
-  // A changed version waiting beside an approved one is shown in place of it (flagged `liveVersion`): that is what the admin decides on.
-  const gms = (await many<ProfileRow & { email: string }>(ctx.db, "SELECT p.rowid, p.*, a.email FROM profiles p JOIN accounts a ON a.id = p.account_id ORDER BY p.created_at")).map(withDraft);
-  const games = (await many<GameRow & { email: string }>(
+  const gms = await many<ProfileRow & { email: string }>(ctx.db, "SELECT p.rowid, p.*, a.email FROM profiles p JOIN accounts a ON a.id = p.account_id ORDER BY p.created_at");
+  const games = await many<GameRow & { email: string }>(
     ctx.db,
     "SELECT g.rowid, g.*, a.email FROM games g JOIN profiles p ON p.id = g.profile_id JOIN accounts a ON a.id = p.account_id WHERE g.removed = 0 AND g.expires_at > ? ORDER BY g.created_at",
     cutoff,
-  )).map(withDraft);
+  );
   const byPhone = new Map<string, ProfileRow[]>();
   for (const p of gms) byPhone.set(p.whatsapp, [...(byPhone.get(p.whatsapp) ?? []), p]);
   const admins: AdminEntry[] = (await listAdmins(ctx)).map((a) => ({ email: a.email, addedBy: a.added_by, addedAt: a.added_at }));
@@ -82,7 +81,7 @@ export async function review(ctx: Ctx, admin: string, req: Record<string, unknow
   const seen = req.seen && typeof req.seen === "object" && !Array.isArray(req.seen) ? (req.seen as Record<string, unknown>) : null;
   const records = await loadMany(ctx, kind, ids);
   const writes: Stmt[] = [];
-  const mails: { id: string; to: string; title: string; slug: string; waitingForGm: boolean; liveStays: boolean }[] = [];
+  const mails: { id: string; to: string; title: string; slug: string; waitingForGm: boolean }[] = [];
   const done: string[] = [];
   const stale: string[] = [];
   const hidden: string[] = []; // approved games whose Game Master profile is not approved: the site shows none of them yet
@@ -92,38 +91,24 @@ export async function review(ctx: Ctx, admin: string, req: Record<string, unknow
     const rec = records.get(id);
     if (!rec) continue;
     if (seen && seen[id] !== (rec.row as { updated_at: string }).updated_at) { stale.push(id); continue; }
-    // A changed version waiting beside the approved one (ADR-48) is what the admin saw and decides on; the approved version stays live unless the draft is approved.
-    const draft = draftValues(rec.row as ProfileRow);
-    const title = draft ? String(draft[kind === "game" ? "title" : "name"] ?? rec.title) : rec.title; // the version being decided
-    const before = draft ? (rec.row as ProfileRow).draft_state : rec.row.status;
+    const before = rec.row.status;
     const wasApproved = before === "approved";
-    if (draft) {
-      const cols: readonly string[] = kind === "game" ? GAME_COLUMNS : PROFILE_COLUMNS;
-      if (status === "approved") {
-        writes.push(ctx.db.prepare(`UPDATE ${table} SET ${cols.map((c) => `${c} = ?`).join(", ")}, draft = '', draft_state = '', reviewed_by = ?, reviewed_at = ?, reject_reason = '', was_live = 1, gone_at = '' WHERE id = ?`)
-          .bind(...cols.map((c) => draft[c] ?? (rec.row as unknown as Record<string, string | number>)[c]), admin, at, id));
-      } else {
-        // Rejected or put back to waiting: the draft stays for the GM to fix or for the admin to decide again; the site does not change.
-        writes.push(ctx.db.prepare(`UPDATE ${table} SET draft_state = ?, reviewed_by = ?, reviewed_at = ?, reject_reason = ? WHERE id = ?`).bind(status, admin, at, reason, id));
-      }
-    } else {
-      // Leaving the approved state starts the "no longer listed" clock; a decision always stamps who and when.
-      writes.push(ctx.db.prepare(`UPDATE ${table} SET status = ?, reviewed_by = ?, reviewed_at = ?, reject_reason = ?, was_live = CASE WHEN ? = 'approved' THEN 1 ELSE was_live END, gone_at = CASE WHEN ? = 'approved' THEN '' WHEN ? = 1 THEN ? ELSE gone_at END WHERE id = ?`)
-        .bind(status, admin, at, reason, status, status, wasApproved ? 1 : 0, at, id));
-    }
-    writes.push(eventStmt(ctx.db, ctx.now(), "decision", kind, id, title, `${before} → ${status}${draft && status !== "approved" ? " (the approved version stays on the site)" : ""}${reason ? `: ${reason}` : ""}`, admin));
+    // Leaving the approved state starts the "no longer listed" clock; a decision always stamps who and when.
+    writes.push(ctx.db.prepare(`UPDATE ${table} SET status = ?, reviewed_by = ?, reviewed_at = ?, reject_reason = ?, was_live = CASE WHEN ? = 'approved' THEN 1 ELSE was_live END, gone_at = CASE WHEN ? = 'approved' THEN '' WHEN ? = 1 THEN ? ELSE gone_at END WHERE id = ?`)
+      .bind(status, admin, at, reason, status, status, wasApproved ? 1 : 0, at, id));
+    writes.push(eventStmt(ctx.db, ctx.now(), "decision", kind, id, rec.title, `${before} → ${status}${reason ? `: ${reason}` : ""}`, admin));
     // The site lists a game only while its Game Master's profile is approved too, so approving a game of a pending profile changes nothing public yet.
     const waitingForGm = kind === "game" && status === "approved" && (rec.row as { gm_status?: string }).gm_status !== "approved";
     if (waitingForGm) hidden.push(id);
     if (before !== status && (wasApproved || (status === "approved" && !waitingForGm))) dirty = true;
-    if (req.notify === true && before !== status && (status === "approved" || status === "rejected")) mails.push({ id, to: rec.row.email, title, slug: rec.slug, waitingForGm, liveStays: Boolean(draft) });
+    if (req.notify === true && before !== status && (status === "approved" || status === "rejected")) mails.push({ id, to: rec.row.email, title: rec.title, slug: rec.slug, waitingForGm });
     done.push(id);
   }
   if (writes.length) await ctx.db.batch(writes);
   const mailFailed: string[] = [];
   for (const m of mails) {
     try {
-      await ctx.mailer.send(decisionMail(m.to, status as "approved" | "rejected", kind, m.title, m.slug, reason, ctx.siteUrl, { waitingForGm: m.waitingForGm, liveStays: m.liveStays }));
+      await ctx.mailer.send(decisionMail(m.to, status as "approved" | "rejected", kind, m.title, m.slug, reason, ctx.siteUrl, m.waitingForGm));
     } catch {
       mailFailed.push(m.id);
       await logEvent(ctx.db, ctx.now(), "mail failed", kind, m.id, m.title, "the decision email could not be sent", admin).catch(() => undefined);

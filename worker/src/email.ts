@@ -99,8 +99,7 @@ export function loginMail(to: string, link: string, minutes: number): Mail {
 }
 
 /** What a GM gets when an admin approves or rejects a profile or a game. */
-export function decisionMail(to: string, status: "approved" | "rejected", kind: "game" | "gm", title: string, slug: string, reason: string, siteUrl: string, opts: { waitingForGm?: boolean; liveStays?: boolean } = {}): Mail {
-  const { waitingForGm = false, liveStays = false } = opts;
+export function decisionMail(to: string, status: "approved" | "rejected", kind: "game" | "gm", title: string, slug: string, reason: string, siteUrl: string, waitingForGm = false): Mail {
   const link = (lang: string) => (siteUrl ? `\n${siteUrl.replace(/\/$/, "")}/${lang}/${kind === "game" ? "games" : "gm"}/${slug}/` : "");
   const edit = siteUrl ? `${siteUrl.replace(/\/$/, "")}/en/account/` : "";
   const t = clip(title, 120);
@@ -131,8 +130,8 @@ export function decisionMail(to: string, status: "approved" | "rejected", kind: 
     kind: "decision",
     subject: `Not approved yet: ${t} / Belum disetujui: ${t}`,
     body:
-      `Hi,\n\n“${t}” was not approved yet.\n\nReason: ${why}\n\n${liveStays ? "Your earlier approved version stays on the Quest Board meanwhile. " : ""}Sign in at ${edit} to fix it; it will be reviewed again.\n\n${SIGN}\n\n* * *\n\n` +
-      `Halo,\n\n“${t}” belum disetujui.\n\nAlasan: ${why}\n\n${liveStays ? "Versi lamamu yang sudah disetujui tetap tampil di Quest Board untuk sementara. " : ""}Masuk di ${edit} untuk memperbaikinya; nanti ditinjau lagi.\n\n${SIGN}`,
+      `Hi,\n\n“${t}” was not approved yet.\n\nReason: ${why}\n\nSign in at ${edit} to fix it; it will be reviewed again.\n\n${SIGN}\n\n* * *\n\n` +
+      `Halo,\n\n“${t}” belum disetujui.\n\nAlasan: ${why}\n\nMasuk di ${edit} untuk memperbaikinya; nanti ditinjau lagi.\n\n${SIGN}`,
   };
 }
 

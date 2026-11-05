@@ -41,21 +41,9 @@ const SWEEP_MAX = 200;
  * a board of this size; the rest is picked up as earlier files go.
  */
 export async function sweepOrphanImages(ctx: Ctx, bucket: Bucket): Promise<number> {
-  // A picture is in use as the approved one or as the one of a waiting draft (the draft is JSON: its key is read out of it, not guessed with LIKE).
-  const draftKeys = async (table: "profiles" | "games", col: "photo_key" | "cover_key") =>
-    (await many<{ draft: string }>(ctx.db, `SELECT draft FROM ${table} WHERE draft != ''`)).map((r) => {
-      try {
-        const k = (JSON.parse(r.draft) as Record<string, unknown>)[col];
-        return typeof k === "string" ? k : "";
-      } catch {
-        return "";
-      }
-    });
   const used = new Set([
     ...(await many<{ k: string }>(ctx.db, "SELECT photo_key AS k FROM profiles WHERE photo_key != ''")).map((r) => r.k),
     ...(await many<{ k: string }>(ctx.db, "SELECT cover_key AS k FROM games WHERE cover_key != ''")).map((r) => r.k),
-    ...(await draftKeys("profiles", "photo_key")),
-    ...(await draftKeys("games", "cover_key")),
   ]);
   let removed = 0;
   for (const prefix of ["covers/", "photos/"]) {
