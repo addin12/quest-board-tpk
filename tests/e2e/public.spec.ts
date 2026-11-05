@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { SYSTEMS } from "../../src/lib/systems.ts";
 import { newWorld } from "../support/e2e-world.ts";
+import { GAME as GAME_FIXTURE, PROFILE } from "../support/worker-env.ts";
 
 // The public site against the demo data (data/sample.json), as a player uses it.
 const GAME = "/en/games/mercusuar-di-pulau-kabut-0m01/";
@@ -87,13 +88,42 @@ test("a GM's profile lists their games and both ways to reach them", async ({ pa
   await expect(page.getByTestId("contact-instagram")).toHaveCount(0); // optional: a GM without one shows no button
 });
 
-test("the list-your-game page sends GMs to the account page, and the report link is shown", async ({ page }) => {
+test("the list-your-game page sends GMs to the account page, and a visitor can report a listing", async ({ page }) => {
   await page.goto("/en/list-your-game/");
   await expect(page.getByRole("link", { name: "Sign in and start" })).toHaveAttribute("href", "/en/account/");
   await expect(page.getByRole("link", { name: "Add your game" })).toHaveAttribute("href", "/en/account/");
   await expect(page.getByText("Your email address is never shown.")).toBeVisible();
   await page.goto("/en/games/mercusuar-di-pulau-kabut-0m01/");
-  await expect(page.getByRole("link", { name: /Report this listing/ })).toHaveAttribute("href", "https://forms.example/report");
+  await page.getByTestId("report-open").click();
+  await page.getByLabel("What is wrong?").fill("Looks like a scam");
+  await page.getByRole("button", { name: "Send report" }).click();
+  await expect(page.getByTestId("report-done")).toBeVisible();
+});
+
+test("a game that went live after the last build opens through the 404 page, keeps its address, and its Game Master can be messaged", async ({ page, context }) => {
+  const origin = "http://localhost:4174";
+  const { cookie } = await (await page.request.post("/__test/session", { data: { email: "baru@example.com" } })).json();
+  const headers = { Cookie: `tpk_session=${cookie}`, Origin: origin };
+  const profile = await page.request.put("/api/profile", { headers, data: { ...PROFILE, name: "Gilang Baru", whatsapp: "0813-5555-0001", discord: "", instagram: "" } });
+  expect(profile.status()).toBe(200);
+  const date = new Date(Date.now() + 9 * 86_400_000).toISOString().slice(0, 10);
+  const created = await page.request.post("/api/games", { headers, data: { ...GAME_FIXTURE, title: "Kabut Setelah Build", date } });
+  expect(created.status()).toBe(201);
+  const live = await (await page.request.get("/api/live")).json();
+  const slug = live.games.find((g: { title: string }) => g.title === "Kabut Setelah Build").slug as string;
+
+  const res = await page.goto(`/en/games/${slug}/`); // the static site has no page for it: the 404 page hands it to /view/
+  expect(res?.status(), "the address itself is a 404 for a crawler").toBe(404);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Kabut Setelah Build");
+  await expect(page, "the real address is put back in the address bar").toHaveURL(new RegExp(`/en/games/${slug}/$`));
+  expect(await page.content(), "no phone number in the page").not.toContain("81355550001");
+
+  await context.route("https://wa.me/**", (route) => route.fulfill({ contentType: "text/html", body: "chat" }));
+  const popup = context.waitForEvent("page");
+  await page.getByTestId("contact-whatsapp").click();
+  const chat = await popup;
+  await chat.waitForURL(/wa\.me/);
+  expect(new URL(chat.url()).pathname).toBe("/6281355550001");
 });
 
 test("an address that is not a page gets the 404 page, in both languages", async ({ page }) => {
@@ -463,7 +493,9 @@ test("on a phone a game in the list is one short row, and the game page keeps Wh
   await context.route("https://wa.me/**", (route) => route.fulfill({ contentType: "text/html", body: "chat" }));
   const popup = context.waitForEvent("page");
   await page.getByTestId("sticky-whatsapp").click();
-  expect(new URL((await popup).url()).pathname).toBe("/62811000000001");
+  const chat = await popup;
+  await chat.waitForURL(/wa\.me/); // the tab is opened inside the tap and pointed at the chat when the number arrives
+  expect(new URL(chat.url()).pathname).toBe("/62811000000001");
 
   await page.locator("#contact").evaluate((el) => el.scrollIntoView({ block: "center" })); // the panel in the middle of the screen, as a reader would have it
   const tabs = page.locator("nav.fixed");
