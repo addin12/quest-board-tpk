@@ -51,6 +51,15 @@ test("a game can be added to a calendar (a .ics file made in the browser) and pa
   expect(href, "no Game Master phone number goes into a share link").not.toContain("62811");
 });
 
+test("a campaign that meets every week says so on its page, and its calendar file is a weekly series", async ({ page }) => {
+  await page.goto("/en/games/panen-harapan-0p01/");
+  await expect(page.getByTestId("repeats")).toHaveText("Repeats every week");
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByTestId("add-to-calendar").click()]);
+  const chunks: Buffer[] = [];
+  for await (const c of await download.createReadStream()) chunks.push(c as Buffer);
+  expect(Buffer.concat(chunks).toString("utf8")).toMatch(/RRULE:FREQ=WEEKLY;INTERVAL=1;UNTIL=\d{8}T\d{6}Z/);
+});
+
 test("the search on the home page leads to the games that match", async ({ page }) => {
   await page.goto("/en/");
   await page.getByLabel("Search games").fill("kumu");

@@ -33,8 +33,9 @@ any number of **games**. Also: `admins`, `activity` (the audit trail), `login_to
 | `POST /login/request {email, turnstile}` | anyone | emails a one-time link (15 min); always answers ok for a well-formed address; 5 per address and 20 per IP per hour |
 | `POST /login/verify {token}` | anyone | opens the link once, sets the `tpk_session` cookie (HttpOnly, Secure, SameSite=Lax, 30 days) |
 | `POST /logout`, `GET /me` | signed in | end the session; the account, its profile and its games |
-| `PUT /profile`, `POST /games`, `PUT /games/:id` | signed in | create or change; invalid input answers 422 with `fields`. A game must answer the content warnings (written, or `noWarnings`) and the safety tools (`safetyKeys` or `safetyTools` text); `sessionHours`, `characters` and `needs` are optional (ADR-49) |
+| `PUT /profile`, `POST /games`, `PUT /games/:id` | signed in | create or change; invalid input answers 422 with `fields`. A game must answer the content warnings (written, or `noWarnings`) and the safety tools (`safetyKeys` or `safetyTools` text); `sessionHours`, `characters` and `needs` are optional (ADR-49); `repeatDays` is 0, 7, 14 or 28 (ADR-51) |
 | `POST /games/:id/full {full}`, `DELETE /games/:id`, `DELETE /account` | owner of it | self-service |
+| `POST /games/:id/extend` | owner of it, repeating games only | keeps the listing 30 days longer (from today if it ran out); answers `{expiresAt}`; 404 for a single-session game (ADR-51) |
 | `POST /merge/respond {id, accept}` | owner of the account the request is for | accept or decline an admin's merge request (`GET /me` lists them as `mergeOffers`); anyone else gets 404 |
 | `POST /images?kind=cover\|photo` | signed in | WebP, JPEG or PNG read from the bytes; cover up to 1.5 MB, photo up to 600 KB |
 | `GET /live` | anyone | the public data (no phone numbers), cached about 20 s at the edge: what the games list and the game and Game Master pages show between builds |

@@ -13,7 +13,7 @@ import { useI18n } from "./i18n-provider";
  * Two small things a player does with a game they like: put the first session in their calendar (a .ics file made right here: no account, nothing sent anywhere)
  * and pass the game on to a friend on WhatsApp. The link is the game's own page, which is what a link preview reads.
  */
-export function ShareActions({ game }: { game: Pick<SiteGame, "id" | "slug" | "title" | "summary" | "startsAt" | "zone" | "sessionHours" | "locationType" | "venueName" | "city" | "platform"> }) {
+export function ShareActions({ game }: { game: Pick<SiteGame, "id" | "slug" | "title" | "summary" | "startsAt" | "expiresAt" | "repeatDays" | "zone" | "sessionHours" | "locationType" | "venueName" | "city" | "platform"> }) {
   const { t, lang } = useI18n();
   const [copied, setCopied] = useState(false);
   const url = `${SITE_URL}${paths.game(lang, game.slug)}`;

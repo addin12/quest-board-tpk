@@ -119,7 +119,8 @@
         "x-card",
         "lines-veils"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g0darah001",
@@ -170,7 +171,8 @@
       "safetyKeys": [
         "session-zero"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g0naga0001",
@@ -217,7 +219,8 @@
       "safetyKeys": [
         "x-card"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 7
     },
     {
       "id": "g0mahkota1",
@@ -268,7 +271,8 @@
         "x-card",
         "lines-veils"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g0neonrun1",
@@ -316,7 +320,8 @@
       "safetyKeys": [
         "session-zero"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g0doskvol1",
@@ -368,7 +373,8 @@
       "safetyKeys": [
         "x-card"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g0panen001",
@@ -414,7 +420,8 @@
         "x-card",
         "lines-veils"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 7
     },
     {
       "id": "g0signal01",
@@ -465,7 +472,8 @@
       "safetyKeys": [
         "session-zero"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g0starfal1",
@@ -514,7 +522,8 @@
       "safetyKeys": [
         "x-card"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g0abomin01",
@@ -565,7 +574,8 @@
         "x-card",
         "lines-veils"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 7
     },
     {
       "id": "g0nimble01",
@@ -615,7 +625,8 @@
       "safetyKeys": [
         "session-zero"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g0cairn001",
@@ -664,7 +675,8 @@
       "safetyKeys": [
         "x-card"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g0shadow01",
@@ -715,7 +727,8 @@
         "x-card",
         "lines-veils"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 7
     },
     {
       "id": "g0wuxia001",
@@ -764,7 +777,8 @@
       "safetyKeys": [
         "session-zero"
       ],
-      "noWarnings": true
+      "noWarnings": true,
+      "repeatDays": 0
     },
     {
       "id": "g0kultus01",
@@ -814,7 +828,8 @@
       "safetyKeys": [
         "x-card"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g0fate0001",
@@ -866,7 +881,8 @@
         "x-card",
         "lines-veils"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g0hearts01",
@@ -913,7 +929,8 @@
       "safetyKeys": [
         "session-zero"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 7
     },
     {
       "id": "g0mork0001",
@@ -964,7 +981,8 @@
       "safetyKeys": [
         "x-card"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     }
   ]
 }

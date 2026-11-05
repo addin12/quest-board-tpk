@@ -921,3 +921,97 @@ test("the new details are saved, change the game like any other edit, and reach 
   assert.ok(Date.parse(later.updatedAt) > Date.parse(g.updatedAt), "the last-changed time moves");
   assert.equal(later.sessionHours, 2);
 });
+
+// ── a game that meets again and again (ADR-51) ──────────────────────────────────────────────────────────────────────
+
+test("a repeating game: the repeat is checked, and it is listed 90 days unless the Game Master says otherwise", () => {
+  const NOW = Date.parse("2026-10-28T03:00:00Z");
+  const ok = (patch: Record<string, unknown>) => parseGame({ ...GAME, ...patch }, NOW);
+  const weekly = ok({ repeatDays: 7 });
+  assert.ok(weekly.ok && weekly.value.repeatDays === 7);
+  assert.equal(weekly.ok && Date.parse(weekly.value.expiresAt) - Date.parse(weekly.value.startsAt), 90 * 86_400_000, "90 days after the first session");
+  const single = ok({});
+  assert.ok(single.ok && single.value.repeatDays === 0 && Date.parse(single.value.expiresAt) - Date.parse(single.value.startsAt) === 86_400_000, "a single session is listed a day");
+  const until = ok({ repeatDays: "14", keepUntil: "2026-12-31" });
+  assert.ok(until.ok && until.value.repeatDays === 14 && until.value.expiresAt.startsWith("2026-12-31"), "the date the Game Master gives wins");
+  assert.ok(ok({ repeatDays: "" }).ok && ok({ repeatDays: 0 }).ok, "none is a single session");
+  for (const bad of [5, 10, 30, -7, "weekly", 7.5]) { const r = ok({ repeatDays: bad }); assert.ok(!r.ok && r.errors.repeatDays === "invalid", String(bad)); }
+});
+
+test("the public data shows the next session of a repeating game, and the game is gone when no session is left before its listing runs out", async () => {
+  const w = makeWorld(); // 28 Oct 2026; the fixture's first session is Sun 8 Nov, 12:00 UTC
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  const weekly = (await w.call("POST", "/games", { cookie: gm, body: { ...GAME, title: "Setiap Minggu", repeatDays: 7 } })).json.id as string;
+  const short = (await w.call("POST", "/games", { cookie: gm, body: { ...GAME, title: "Sampai Tanggal Itu", repeatDays: 7, keepUntil: "2026-11-20" } })).json.id as string;
+  const live = async () => (await w.call("GET", "/live")).json;
+  const find = (j: any, id: string) => (j.games as any[]).find((g) => g.id === id);
+
+  let j = await live();
+  assert.deepEqual([find(j, weekly).startsAt, find(j, weekly).repeatDays], ["2026-11-08T12:00:00.000Z", 7], "ahead: the first session");
+  w.clock.ms = Date.parse("2026-11-20T03:00:00Z");
+  j = await live();
+  assert.equal(find(j, weekly).startsAt, "2026-11-22T12:00:00.000Z", "after two sessions: the next one");
+  assert.equal(find(j, short), undefined, "the next session (22 Nov) is after this game's listing ends (20 Nov 23:59 Jakarta): nothing left to come to");
+  assert.ok(j.goneGames.length >= 1, "so its address becomes a no-longer-listed page");
+  assert.equal(parsePublicData(j).warnings.length, 0, "and the data still passes the site's own check");
+  w.clock.ms = Date.parse("2027-02-10T03:00:00Z"); // past the 90 days
+  j = await live();
+  assert.equal(find(j, weekly), undefined);
+});
+
+test("a Game Master extends a repeating game by 30 days, from today if it ran out; a single session or someone else's game cannot be extended", async () => {
+  const w = makeWorld();
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  const id = (await w.call("POST", "/games", { cookie: gm, body: { ...GAME, repeatDays: 7 } })).json.id as string;
+  const single = (await w.call("POST", "/games", { cookie: gm, body: { ...GAME, title: "Cuma Sekali" } })).json.id as string;
+  const expires = () => (w.db.raw.prepare("SELECT expires_at FROM games WHERE id = ?").get(id) as { expires_at: string }).expires_at;
+  assert.equal(expires(), "2027-02-06T12:00:00.000Z");
+
+  const first = await w.call("POST", `/games/${id}/extend`, { cookie: gm });
+  assert.equal(first.status, 200);
+  assert.equal(first.json.expiresAt, "2027-03-08T12:00:00.000Z", "30 days after the end it had");
+  assert.equal(expires(), "2027-03-08T12:00:00.000Z");
+  assert.equal((await w.call("POST", `/games/${single}/extend`, { cookie: gm })).status, 404, "a single session has nothing to extend");
+  const other = await w.signIn("other@example.com");
+  await w.call("PUT", "/profile", { cookie: other, body: { ...PROFILE, whatsapp: "0811-1111-1111" } });
+  assert.equal((await w.call("POST", `/games/${id}/extend`, { cookie: other })).status, 404, "not someone else's game");
+  assert.equal((await w.call("POST", `/games/${id}/extend`, { cookie: gm, origin: "https://evil.example" })).status, 403);
+
+  w.clock.ms = Date.parse("2027-04-01T03:00:00Z"); // it ran out on 8 March
+  const back = await w.signIn("raka@example.com");
+  assert.equal(((await w.call("GET", "/live")).json.games as any[]).some((g) => g.id === id), false);
+  const again = await w.call("POST", `/games/${id}/extend`, { cookie: back });
+  assert.equal(again.json.expiresAt, "2027-05-01T03:00:00.000Z", "from today, not from the old end");
+  assert.equal(((await w.call("GET", "/live")).json.games as any[]).some((g) => g.id === id), true, "and it is listed again");
+});
+
+test("the Game Master of a repeating game gets one email a few days before it runs out; extending it earns the next warning", async () => {
+  const w = makeWorld();
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  const id = (await w.call("POST", "/games", { cookie: gm, body: { ...GAME, repeatDays: 7 } })).json.id as string;
+  await w.call("POST", "/games", { cookie: gm, body: { ...GAME, title: "Cuma Sekali" } });
+  const tick = () => w.call("POST", "/cron?job=tick", { origin: null, build: true });
+  const warnings = () => w.mails.filter((m) => /^Still running/.test(m.subject));
+
+  w.clock.ms = Date.parse("2027-01-20T03:00:00Z");
+  await tick();
+  assert.equal(warnings().length, 0, "plenty of time left");
+  w.clock.ms = Date.parse("2027-02-04T03:00:00Z"); // two days before 6 February
+  await tick();
+  assert.equal(warnings().length, 1);
+  assert.equal(warnings()[0]!.to, "raka@example.com");
+  assert.match(warnings()[0]!.body, /Extend/);
+  assert.match(warnings()[0]!.subject, /Masih berjalan/);
+  await tick();
+  await tick();
+  assert.equal(warnings().length, 1, "once, not every minute; and not for a game with a single session");
+
+  const back = await w.signIn("raka@example.com");
+  await w.call("POST", `/games/${id}/extend`, { cookie: back });
+  w.clock.ms = Date.parse("2027-03-06T03:00:00Z");
+  await tick();
+  assert.equal(warnings().length, 2, "extended, so the next run-out is warned about too");
+});

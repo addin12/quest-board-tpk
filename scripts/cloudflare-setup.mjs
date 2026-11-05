@@ -35,6 +35,7 @@ const MIGRATIONS = [
   { file: "0006_merge_requests.sql", applied: "SELECT 1 FROM sqlite_master WHERE name = 'merge_requests'" },
   { file: "0007_reports.sql", applied: "SELECT 1 FROM sqlite_master WHERE name = 'reports'" },
   { file: "0008_session_details.sql", applied: "SELECT 1 FROM pragma_table_info('games') WHERE name = 'session_hours'" },
+  { file: "0009_repeat.sql", applied: "SELECT 1 FROM pragma_table_info('games') WHERE name = 'repeat_days'" },
 ];
 
 const sh = (command) => {

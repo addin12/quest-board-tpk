@@ -175,7 +175,8 @@
         "x-card",
         "lines-veils"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g102pasar",
@@ -223,7 +224,8 @@
       "safetyKeys": [
         "session-zero"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g103waris",
@@ -269,7 +271,8 @@
       "safetyKeys": [
         "x-card"
       ],
-      "noWarnings": true
+      "noWarnings": true,
+      "repeatDays": 7
     },
     {
       "id": "g104turna",
@@ -320,7 +323,8 @@
         "x-card",
         "lines-veils"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g105hutan",
@@ -366,7 +370,8 @@
       "safetyKeys": [
         "session-zero"
       ],
-      "noWarnings": true
+      "noWarnings": true,
+      "repeatDays": 0
     },
     {
       "id": "g106kapal",
@@ -417,7 +422,8 @@
       "safetyKeys": [
         "x-card"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g107kasti",
@@ -464,7 +470,8 @@
         "x-card",
         "lines-veils"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g108guana",
@@ -514,7 +521,8 @@
       "safetyKeys": [
         "session-zero"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g109pasuk",
@@ -560,7 +568,8 @@
       "safetyKeys": [
         "x-card"
       ],
-      "noWarnings": true
+      "noWarnings": true,
+      "repeatDays": 7
     },
     {
       "id": "g110misip",
@@ -609,7 +618,8 @@
         "x-card",
         "lines-veils"
       ],
-      "noWarnings": true
+      "noWarnings": true,
+      "repeatDays": 0
     },
     {
       "id": "g111lelan",
@@ -658,7 +668,8 @@
       "safetyKeys": [
         "session-zero"
       ],
-      "noWarnings": true
+      "noWarnings": true,
+      "repeatDays": 0
     },
     {
       "id": "g112festi",
@@ -704,7 +715,8 @@
       "safetyKeys": [
         "x-card"
       ],
-      "noWarnings": true
+      "noWarnings": true,
+      "repeatDays": 0
     },
     {
       "id": "g113bayan",
@@ -752,7 +764,8 @@
         "x-card",
         "lines-veils"
       ],
-      "noWarnings": true
+      "noWarnings": true,
+      "repeatDays": 0
     },
     {
       "id": "g114penge",
@@ -800,7 +813,8 @@
       "safetyKeys": [
         "session-zero"
       ],
-      "noWarnings": true
+      "noWarnings": true,
+      "repeatDays": 7
     },
     {
       "id": "g115duelp",
@@ -844,7 +858,8 @@
       "safetyKeys": [
         "x-card"
       ],
-      "noWarnings": true
+      "noWarnings": true,
+      "repeatDays": 0
     },
     {
       "id": "g116miste",
@@ -893,7 +908,8 @@
         "x-card",
         "lines-veils"
       ],
-      "noWarnings": true
+      "noWarnings": true,
+      "repeatDays": 0
     },
     {
       "id": "g117kotad",
@@ -942,7 +958,8 @@
       "safetyKeys": [
         "session-zero"
       ],
-      "noWarnings": true
+      "noWarnings": true,
+      "repeatDays": 7
     },
     {
       "id": "g118bandi",
@@ -992,7 +1009,8 @@
       "safetyKeys": [
         "x-card"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g119rerun",
@@ -1039,7 +1057,8 @@
         "x-card",
         "lines-veils"
       ],
-      "noWarnings": true
+      "noWarnings": true,
+      "repeatDays": 0
     },
     {
       "id": "g120rapat",
@@ -1089,7 +1108,8 @@
       "safetyKeys": [
         "session-zero"
       ],
-      "noWarnings": true
+      "noWarnings": true,
+      "repeatDays": 0
     },
     {
       "id": "g121perbu",
@@ -1138,7 +1158,8 @@
       "safetyKeys": [
         "x-card"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g122surat",
@@ -1188,7 +1209,8 @@
         "x-card",
         "lines-veils"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g123pamer",
@@ -1235,7 +1257,8 @@
       "safetyKeys": [
         "session-zero"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g124keret",
@@ -1286,7 +1309,8 @@
       "safetyKeys": [
         "x-card"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g125perpu",
@@ -1337,7 +1361,8 @@
         "x-card",
         "lines-veils"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     },
     {
       "id": "g126hotel",
@@ -1386,7 +1411,8 @@
       "safetyKeys": [
         "session-zero"
       ],
-      "noWarnings": false
+      "noWarnings": false,
+      "repeatDays": 0
     }
   ]
 }

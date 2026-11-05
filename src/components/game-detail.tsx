@@ -7,6 +7,7 @@ import type { MsgKey } from "@/lib/i18n/core";
 import { contactMessage } from "@/lib/contact";
 import { formatDay, formatShortDay, formatWhen } from "@/lib/format";
 import { paths } from "@/lib/hrefs";
+import { repeatLabelKey } from "@/lib/repeat";
 import type { SiteGame, SiteGm } from "@/lib/types";
 import { ContactButtons } from "./contact-buttons";
 import { GoneNotice } from "./gone-notice";
@@ -54,7 +55,7 @@ export function GameDetail({ slug, initial, onFound }: { slug: string; initial: 
   // `wide`: on a phone the facts sit two to a row; these take the whole row.
   const priceText = `${priceLabel(game.priceIdr, t)}${game.priceIdr > 0 ? ` ${t("common.perSeat")}` : ""}`;
   const facts: { label: string; value: React.ReactNode; wide?: boolean }[] = [
-    { label: t("game.when"), wide: true, value: formatWhen(game.startsAt, lang, game.zone) },
+    { label: t("game.when"), wide: true, value: <>{formatWhen(game.startsAt, lang, game.zone)}{game.repeatDays > 0 && <small data-testid="repeats">{t(repeatLabelKey(game.repeatDays))}</small>}</> },
     { label: t("game.where"), wide: true, value: (
       <>
         {game.locationType === "online" ? whereLabel(game, t) : <>{game.venueName ? <span className="block">{game.venueName}</span> : null}{game.city}</>}

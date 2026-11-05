@@ -1,5 +1,6 @@
 // Email addresses, and the messages the backend sends (English and Indonesian together, as before).
 import type { Db } from "./db.ts";
+import { formatDay } from "../../src/lib/format.ts";
 import { DAY_MS, allow, clip, iso, metaSet } from "./util.ts";
 
 /**
@@ -201,6 +202,20 @@ Tidak ada yang berubah sebelum kamu masuk dan menyetujui. Jika kamu tidak mengen
 ${page}
 
 ${SIGN}`,
+  };
+}
+
+/** Sent once, a few days before a repeating game stops being listed: one press of Extend on the account page keeps it. */
+export function expiringMail(to: string, title: string, expiresAt: string, siteUrl: string): Mail {
+  const where = `${siteUrl.replace(/\/$/, "")}/en/account/`;
+  const t = clip(title, 120);
+  return {
+    to,
+    kind: "notice",
+    subject: `Still running “${t}”? / Masih berjalan? “${t}”`,
+    body:
+      `Hi,\n\n“${t}” stops being listed on Quest Board on ${formatDay(expiresAt, "en", "WIB")}. If it is still running, sign in at ${where} and press Extend: it stays listed 30 days longer. If it has ended, you do not need to do anything.\n\n${SIGN}\n\n* * *\n\n` +
+      `Halo,\n\n“${t}” berhenti ditampilkan di Quest Board pada ${formatDay(expiresAt, "id", "WIB")}. Kalau masih berjalan, masuk di ${where} lalu tekan Perpanjang: tampil 30 hari lebih lama. Kalau sudah selesai, kamu tidak perlu berbuat apa-apa.\n\n${SIGN}`,
   };
 }
 

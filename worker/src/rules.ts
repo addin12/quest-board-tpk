@@ -3,6 +3,7 @@
 import { AREAS, SUMMARY_MAX } from "../../src/lib/areas.ts";
 import { CHARACTER_SOURCES, GENRES, MAX_PER_GAME, MECHANICS, NEEDS, SAFETY_TOOLS, STYLES } from "../../src/lib/categories.ts";
 import { cleanDiscord, cleanInstagram, isGoogleMapsUrl, isPhone } from "../../src/lib/public-data.ts";
+import { REPEAT_DAYS, REPEAT_DEFAULT_LISTING_DAYS } from "../../src/lib/repeat.ts";
 import { clip, iso } from "./util.ts";
 
 export type Errors = Record<string, string>;
@@ -57,7 +58,7 @@ export type GameInput = {
   platform: string; city: string; venueName: string; venueMapsRaw: string; startsAt: string; zone: "WIB" | "WITA" | "WIT"; scheduleNote: string; expiresAt: string;
   priceIdr: number; seats: number; language: "id" | "en" | "both"; level: "beginner" | "any" | "experienced"; minAge: number;
   contentWarnings: string; safetyTools: string; genres: string[]; styles: string[]; mechanics: string[]; coverKey: string;
-  sessionHours: number; characters: "" | "pregen" | "own" | "table"; needs: string[]; safetyKeys: string[]; noWarnings: boolean;
+  sessionHours: number; characters: "" | "pregen" | "own" | "table"; needs: string[]; safetyKeys: string[]; noWarnings: boolean; repeatDays: number;
 };
 
 const intIn = (v: unknown, min: number, max: number): number | null => {
@@ -103,6 +104,10 @@ export function parseGame(raw: unknown, nowMs: number): Parsed<GameInput> {
   need("zone", Boolean(zone), "choose_one");
   const startsAt = zone ? zonedInstant(r.date, r.time, zone) : null;
   need("date", Boolean(startsAt), "invalid_date");
+  // 0 (or nothing) is a single session; otherwise it meets again every 7, 14 or 28 days (ADR-51)
+  const repeatRaw = r.repeatDays === undefined || r.repeatDays === "" ? 0 : intIn(r.repeatDays, 0, 28);
+  const repeatDays = repeatRaw === null || (repeatRaw !== 0 && !(REPEAT_DAYS as readonly number[]).includes(repeatRaw)) ? null : repeatRaw;
+  need("repeatDays", repeatDays !== null, "invalid");
   let expiresAt = "";
   if (startsAt && zone) {
     if (r.keepUntil) {
@@ -110,7 +115,7 @@ export function parseGame(raw: unknown, nowMs: number): Parsed<GameInput> {
       if (!end) errors.keepUntil = "invalid_date";
       else if (Date.parse(end) < Date.parse(startsAt)) errors.keepUntil = "before_start";
       else expiresAt = end;
-    } else expiresAt = iso(Date.parse(startsAt) + 86_400_000);
+    } else expiresAt = iso(Date.parse(startsAt) + (repeatDays ? REPEAT_DEFAULT_LISTING_DAYS : 1) * 86_400_000);
     if (expiresAt && Date.parse(expiresAt) <= nowMs) errors.date = "in_the_past";
   }
   const priceIdr = intIn(r.priceIdr, 0, 10_000_000);
@@ -160,7 +165,7 @@ export function parseGame(raw: unknown, nowMs: number): Parsed<GameInput> {
       platform: clip(r.platform, 80), city, venueName: clip(r.venueName, 80), venueMapsRaw, startsAt: startsAt!, zone: zone as GameInput["zone"],
       scheduleNote: clip(r.scheduleNote, 1000, true), expiresAt, priceIdr: priceIdr!, seats: seats!, language: language as GameInput["language"],
       level: level as GameInput["level"], minAge: minAge!, contentWarnings, safetyTools,
-      genres, styles, mechanics, coverKey, sessionHours: sessionHours!, characters: characters as GameInput["characters"], needs, safetyKeys, noWarnings,
+      genres, styles, mechanics, coverKey, sessionHours: sessionHours!, characters: characters as GameInput["characters"], needs, safetyKeys, noWarnings, repeatDays: repeatDays!,
     },
   };
 }

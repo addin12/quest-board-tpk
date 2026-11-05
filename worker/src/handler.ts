@@ -7,12 +7,12 @@ import { deployIfDue, deployState } from "./deploy.ts";
 import { contentTypeOf, storeImage, sweepOrphanImages, type ImageKind } from "./images.ts";
 import { isPublicImage, buildPublic } from "./public.ts";
 import { parseGame, parseProfile } from "./rules.ts";
-import { eraseAccount, mine, removeGame, saveGame, saveProfile, setFull } from "./store.ts";
+import { eraseAccount, extendGame, mine, removeGame, saveGame, saveProfile, setFull } from "./store.ts";
 import { backup } from "./backup.ts";
 import { budgetedMailer, recordingMailer } from "./email.ts";
 import { expireInactive } from "./retention.ts";
 import { allow, iso, logEvent, metaGet, metaSet, pruneRateEvents, safeEqual } from "./util.ts";
-import { digestReviewers, tellOwner, watchBackup, watchDeploy } from "./watch.ts";
+import { digestReviewers, nudgeExpiring, tellOwner, watchBackup, watchDeploy } from "./watch.ts";
 import { one } from "./db.ts";
 import { allowReveal, contactOf, report } from "./reports.ts";
 
@@ -115,6 +115,7 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
     const result = await deployIfDue(ctx, env.deployHook, env.fetcher);
     await watchDeploy(ctx);
     await digestReviewers(ctx);
+    await nudgeExpiring(ctx);
     await watchBackup(ctx);
     return json(200, { ok: true, job: "tick", result });
   }
@@ -222,7 +223,7 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
   }
 
   if (method === "POST" && path === "/games") return writeGame(request, env, session, null, publish, after);
-  const m = /^\/games\/([a-z0-9]{6,20})(?:\/(full))?$/.exec(path);
+  const m = /^\/games\/([a-z0-9]{6,20})(?:\/(full|extend))?$/.exec(path);
   if (m) {
     const id = m[1]!;
     if (method === "PUT" && !m[2]) return writeGame(request, env, session, id, publish, after);
@@ -234,6 +235,12 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
       const ok = await setFull(ctx, session, id, b.full);
       if (ok) publish();
       return ok ? json(200, { ok: true }) : err(404, "not_found");
+    }
+    if (method === "POST" && m[2] === "extend") {
+      if (!(await allow(ctx.db, `submit:${session.accountId}`, 30, 3_600_000, ctx.now()))) return err(429, "rate_limited");
+      const r = await extendGame(ctx, session, id);
+      if (r.ok) publish();
+      return r.ok ? json(200, { ok: true, expiresAt: r.expiresAt }) : err(404, "not_found");
     }
     if (method === "DELETE" && !m[2]) {
       const ok = await removeGame(ctx, session, id);

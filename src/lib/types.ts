@@ -65,6 +65,8 @@ export type GameFields = {
   safetyKeys: string[];
   /** The Game Master says the game has nothing to warn about (the content warnings are then empty on purpose). */
   noWarnings: boolean;
+  /** 0 for a single session, or 7, 14 or 28: it meets again that many days after each session. `startsAt` of the public data is then the NEXT session (src/lib/repeat.ts). */
+  repeatDays: number;
 };
 
 /** What a GM writes about themself and the public may read. The phone number is NOT here: it never travels with the public data (ADR-48). */

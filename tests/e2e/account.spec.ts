@@ -166,6 +166,31 @@ test("editing a live game keeps it live; saving the same thing again changes not
   expect((await world.sql(COLUMN("Panen Harapan")))[0]).toMatchObject({ seats: 6, status: "approved" });
 });
 
+test("a GM makes a game repeat every week, and extends it when its listing is about to run out", async ({ page }) => {
+  const world = await newWorld(page, { seed: true });
+  await world.signInAs("raka@example.com");
+  await page.goto("/en/account/");
+  const row = () => page.getByTestId("my-game").filter({ hasText: "Panen Harapan" });
+  await row().getByRole("button", { name: "Edit" }).click();
+  await page.getByTestId("game-form").getByLabel("Does it repeat?").selectOption("7");
+  await page.getByTestId("game-form").getByRole("button", { name: "Save game" }).click();
+  await expect(page.getByTestId("message")).toContainText("It is live");
+  await expect(row()).toContainText("Repeats every week");
+  await expect(row().getByTestId("extend"), "90 days of listing: nothing to extend yet").toHaveCount(0);
+  const [stored] = await world.sql(COLUMN("Panen Harapan"));
+  expect(stored.repeat_days).toBe(7);
+  expect(Date.parse(stored.expires_at) - Date.parse(stored.starts_at)).toBe(90 * 86_400_000);
+
+  // five days left: the page offers Extend, and one press adds 30 days
+  const soon = new Date(Date.now() + 5 * 86_400_000).toISOString();
+  await world.exec("UPDATE games SET expires_at = ? WHERE title = 'Panen Harapan'", soon);
+  await page.reload();
+  await row().getByTestId("extend").click();
+  await expect(page.getByTestId("message")).toContainText("30 days longer");
+  await expect.poll(async () => Date.parse((await world.sql(COLUMN("Panen Harapan")))[0].expires_at) - Date.parse(soon)).toBe(30 * 86_400_000);
+  await expect(row().getByTestId("extend")).toHaveCount(0);
+});
+
 test("a GM marks a game full without a review, reopens it, and removes another with a confirmation", async ({ page }) => {
   const world = await newWorld(page, { seed: true });
   await world.signInAs("raka@example.com");

@@ -238,7 +238,7 @@ const record = (over: Partial<GameRecord> = {}): GameRecord => ({
   format: "one_shot", locationType: "in_person", platform: "", city: "Depok", venueName: "Kumu", venueMapsUrl: "https://maps.app.goo.gl/k", startsAt: "2026-10-12T12:00:00.000Z",
   zone: "WIB", scheduleNote: "", expiresAt: "2026-10-13T12:00:00.000Z", priceIdr: 75000, seats: 5, language: "both", level: "beginner", minAge: 16, contentWarnings: "", safetyTools: "",
   genres: ["horror"], styles: [], mechanics: [], coverId: "covers/1AbCdEfGhIjKl.webp", venueMapsRaw: "", consent: true,
-  sessionHours: 3, characters: "", needs: [], safetyKeys: ["x-card"], noWarnings: true, ...over,
+  sessionHours: 3, characters: "", needs: [], safetyKeys: ["x-card"], noWarnings: true, repeatDays: 0, ...over,
 });
 const gmRecord = (over: Partial<GmRecord> = {}): GmRecord => ({
   kind: "gm", id: "m1abc1234", slug: "raka-abcd", status: "approved", full: false, adminNote: "", reviewedBy: "", reviewedAt: "", rejectReason: "", superseded: false,
@@ -488,7 +488,7 @@ test("the calendar file for a game: UTC times, an end from the session length, e
   const { gameIcs, icsFileName, icsFold, icsText, icsTime } = await import("../../src/lib/ics.ts");
   assert.equal(icsTime(Date.parse("2026-11-14T12:00:00.000Z")), "20261114T120000Z");
   assert.equal(icsText("a, b; c\\d\nnext"), "a\\, b\\; c\\\\d\\nnext");
-  const game = { id: "g0abc1234", title: "Mercusuar, di Pulau Kabut", summary: "A lighthouse; a radio.", startsAt: "2026-11-14T12:00:00.000Z", sessionHours: 4, locationType: "in_person" as const, venueName: "Kumu Ground Coffee", city: "Depok", platform: "" };
+  const game = { id: "g0abc1234", title: "Mercusuar, di Pulau Kabut", summary: "A lighthouse; a radio.", startsAt: "2026-11-14T12:00:00.000Z", expiresAt: "2026-11-15T12:00:00.000Z", repeatDays: 0, sessionHours: 4, locationType: "in_person" as const, venueName: "Kumu Ground Coffee", city: "Depok", platform: "" };
   const ics = gameIcs(game, "https://quest-board-tpk.pages.dev/en/games/x/", Date.parse("2026-11-05T03:00:00Z"));
   assert.ok(ics.startsWith("BEGIN:VCALENDAR\r\n") && ics.endsWith("END:VCALENDAR\r\n"));
   for (const line of ["DTSTART:20261114T120000Z", "DTEND:20261114T160000Z", "SUMMARY:Mercusuar\\, di Pulau Kabut", "LOCATION:Kumu Ground Coffee\\, Depok", "UID:g0abc1234@quest-board"]) assert.ok(ics.includes(line), line);
@@ -499,4 +499,26 @@ test("the calendar file for a game: UTC times, an end from the session length, e
   assert.equal(long.replace(/\r\n /g, ""), "X:" + "é".repeat(80), "folding loses nothing");
   assert.equal(icsFileName("Mercusuar di Pulau Kabut!"), "mercusuar-di-pulau-kabut.ics");
   assert.equal(icsFileName("???"), "game.ics");
+});
+
+test("the next session of a repeating game: the first one while it is ahead, then every 7, 14 or 28 days, never one in the past", async () => {
+  const { nextSession } = await import("../../src/lib/repeat.ts");
+  const first = Date.parse("2026-11-07T12:00:00.000Z");
+  const D = 86_400_000;
+  assert.equal(nextSession(first, 7, first - D), first, "still ahead: the first session");
+  assert.equal(nextSession(first, 7, first), first, "right now counts as the session");
+  assert.equal(nextSession(first, 7, first + 1), first + 7 * D, "a moment later it is next week");
+  assert.equal(nextSession(first, 7, Date.parse("2026-11-20T00:00:00.000Z")), Date.parse("2026-11-21T12:00:00.000Z"));
+  assert.equal(nextSession(first, 14, Date.parse("2026-11-20T00:00:00.000Z")), Date.parse("2026-11-21T12:00:00.000Z"));
+  assert.equal(nextSession(first, 28, Date.parse("2026-11-20T00:00:00.000Z")), Date.parse("2026-12-05T12:00:00.000Z"));
+  assert.equal(nextSession(first, 0, first + 50 * D), first, "a single session keeps its date");
+  assert.equal(nextSession(first, 5, first + 50 * D), first, "an odd interval is not a repeat");
+});
+
+test("a repeating game's calendar file is one series that runs until its listing does", async () => {
+  const { gameIcs } = await import("../../src/lib/ics.ts");
+  const game = { id: "g0abc1234", title: "Kampanye", summary: "", startsAt: "2026-11-14T12:00:00.000Z", expiresAt: "2027-02-12T16:59:00.000Z", repeatDays: 14, sessionHours: 3, locationType: "online" as const, venueName: "", city: "", platform: "Discord" };
+  assert.ok(gameIcs(game, "u", 0).includes("RRULE:FREQ=WEEKLY;INTERVAL=2;UNTIL=20270212T165900Z"));
+  assert.ok(gameIcs({ ...game, repeatDays: 7 }, "u", 0).includes("INTERVAL=1;"));
+  assert.ok(!gameIcs({ ...game, repeatDays: 0 }, "u", 0).includes("RRULE"), "a single session has no series");
 });
