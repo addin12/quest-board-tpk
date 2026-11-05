@@ -147,9 +147,8 @@ export function AccountApp() {
         {!profile ? (
           <p className="lead mt-[var(--space-md)]">{t("acct.profileFirst")}</p>
         ) : editing ? (
-          <div className="mx-auto mt-[var(--space-lg)] w-full max-w-2xl">
-            <h3 className="mb-[var(--space-lg)] text-center">{editing === "new" ? t("acct.gameTitleNew") : editing.title}</h3>
-            <GameForm game={editing === "new" ? null : editing} onSaved={after} onCancel={() => setEditing(null)} />
+          <div className="mx-auto mt-[var(--space-lg)] w-full max-w-5xl">
+            <GameForm game={editing === "new" ? null : editing} gmName={profile?.name ?? ""} heading={editing === "new" ? t("acct.gameTitleNew") : editing.title} onSaved={after} onCancel={() => setEditing(null)} />
           </div>
         ) : (
           <>

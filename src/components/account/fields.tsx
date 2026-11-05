@@ -39,7 +39,7 @@ export function Check({ id, checked, onChange, children, disabled = false }: { i
  * A picture field: the person picks a file, it is shrunk in the browser and uploaded at once, and the form keeps only the key
  * the server gives back. `value` is the key already stored (or "").
  */
-export function PictureField({ id, kind, value, onChange, label, hint, error }: { id: string; kind: "cover" | "photo"; value: string; onChange: (key: string) => void; label: string; hint: string; error?: string }) {
+export function PictureField({ id, kind, value, onChange, label, hint, error, onPreview }: { id: string; kind: "cover" | "photo"; value: string; onChange: (key: string) => void; label: string; hint: string; error?: string; onPreview?: (url: string) => void }) {
   const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState("");
@@ -53,7 +53,9 @@ export function PictureField({ id, kind, value, onChange, label, hint, error }: 
       const blob = await shrinkImage(file, kind);
       const up = await uploadImage(blob, kind);
       if (up.ok) {
-        setPreview(URL.createObjectURL(blob));
+        const url = URL.createObjectURL(blob);
+        setPreview(url);
+        onPreview?.(url);
         onChange(up.data.key);
       } else setProblem(errorText(t, up.error));
     } catch {
@@ -66,7 +68,11 @@ export function PictureField({ id, kind, value, onChange, label, hint, error }: 
   return (
     <div>
       <label htmlFor={id} className="label">{label}</label>
-      <input id={id} type="file" accept="image/png,image/jpeg,image/webp" className="input" onChange={(e) => pick(e.target.files?.[0])} disabled={busy} />
+      {/* The file field itself is kept (it is what a screen reader and the tests use) but drawn as a plain button, not the browser's "Choose File / No file chosen". */}
+      <div className="flex flex-wrap items-center gap-[var(--space-md)]">
+        <input id={id} type="file" accept="image/png,image/jpeg,image/webp" className="peer sr-only" onChange={(e) => pick(e.target.files?.[0])} disabled={busy} />
+        <label htmlFor={id} className="btn btn-secondary cursor-pointer peer-focus-visible:outline peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--color-focus)]">{value ? t("acct.f.pictureChange") : t("acct.f.pictureChoose")}</label>
+      </div>
       <p className="hint">{hint}</p>
       {busy && <p role="status" className="mt-[var(--space-xs)] text-sm">{t("acct.f.uploading")}</p>}
       {value && !busy && (
@@ -75,7 +81,7 @@ export function PictureField({ id, kind, value, onChange, label, hint, error }: 
           {/* eslint-disable-next-line @next/next/no-img-element -- a blob: preview of a file just picked */}
           {preview && <img src={preview} alt="" className={`plate ${kind === "cover" ? "aspect-[4/5] w-24" : "size-24"} object-cover`} />}
           <span role="status" className="text-sm font-medium">{preview ? t("acct.f.picked") : t("acct.f.pickedOld")}</span>
-          <button type="button" className="btn btn-ghost" onClick={() => { setPreview(""); onChange(""); }}>{t("acct.f.removePicture")}</button>
+          <button type="button" className="btn btn-ghost" onClick={() => { setPreview(""); onPreview?.(""); onChange(""); }}>{t("acct.f.removePicture")}</button>
         </div>
       )}
       {(problem || error) && <p role="alert" className="mt-[var(--space-xs)] text-sm font-medium text-danger">{problem || error}</p>}

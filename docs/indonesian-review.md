@@ -267,3 +267,16 @@ The agent's wording; `{n}` and `{date}` are filled in by the site; `a|b` is sing
 | `acct.step.game` / `when` / `players` / `safety` / `review` | Game-nya / Kapan dan di mana / Pemain / Keselamatan / Gambar dan periksa | |
 | `acct.stepOf` / `acct.stepsLabel` | Langkah {n} dari {total} / Langkah | |
 | `acct.next` / `acct.back` / `acct.edit` / `acct.review` | Lanjut / Kembali / Ubah / Periksa sebelum menyimpan | |
+
+## The game form beside its notice (added 2026-11-06, ADR-53)
+
+| Key | Indonesian now | Your correction |
+|---|---|---|
+| `acct.preview.title` | Iklanmu di papan | |
+| `acct.preview.untitled` / `noSystem` / `noDate` | Judul game-mu / Sistem permainan / Tanggal menyusul | |
+| `acct.tipsTitle` | Akan membantu pemain | |
+| `acct.nextTo` | Lanjut: {step} | |
+| `acct.postGame` / `acct.saveGame` | Pasang game / Simpan perubahan | |
+| `acct.change` / `acct.summary` | Ubah / Jawabanmu | |
+| `acct.f.pictureChoose` / `pictureChange` | Pilih gambar / Pilih gambar lain | |
+| `acct.step.review` | Gambar dan periksa | |

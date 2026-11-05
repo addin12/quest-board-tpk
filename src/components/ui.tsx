@@ -72,10 +72,10 @@ export const whenShort = (g: Pick<GameView, "startsAt" | "zone" | "onDemand">, l
  * `priority`: the picture is among the first things a visitor sees, so it loads first. `headingLevel`: 2 where the page has no h2 above the cards.
  * `rowOnPhone`: in a long list, a phone shows the game as one row (a small cover, the title, system, price, when and where) so a screen holds several.
  */
-export function GameCard({ game, t, lang, preview = false, priority = false, headingLevel = 3, rowOnPhone = false }: { game: GameView; t: T; lang: Lang; preview?: boolean; priority?: boolean; headingLevel?: 2 | 3; rowOnPhone?: boolean }) {
+export function GameCard({ game, t, lang, preview = false, priority = false, headingLevel = 3, rowOnPhone = false, whenOverride }: { game: GameView; t: T; lang: Lang; preview?: boolean; priority?: boolean; headingLevel?: 2 | 3; rowOnPhone?: boolean; whenOverride?: string }) {
   const Heading = headingLevel === 2 ? "h2" : "h3";
   const genre = game.genres.find(isGenre);
-  const whenText = whenShort(game, lang, t);
+  const whenText = whenOverride ?? whenShort(game, lang, t);
   const whereText = game.locationType === "online" ? t("loc.online") : whereLabel(game, t);
   const rows: [string, string][] = [
     [t("game.when"), whenText],
