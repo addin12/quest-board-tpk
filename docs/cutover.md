@@ -84,4 +84,4 @@ scheduled workflows off after 60 days without repo activity.
 
 - `GET /api/health` with `Authorization: Bearer <buildKey>` answers counts and whether the deploy hook is set.
 - The Activity log is the `activity` table (D1 console: `SELECT * FROM activity ORDER BY id DESC LIMIT 50`).
-- Backups are in the R2 bucket under `backups/`. To restore, load the JSON's tables back with the D1 console or `wrangler d1 execute`.
+- Backups are in the R2 bucket under `backups/`. To restore, follow docs/runbook.md, "The database was damaged or deleted" (it has the tested path: `npm run restore:sql`, then `wrangler d1 execute --file`).

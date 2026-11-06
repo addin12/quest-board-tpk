@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { call } from "@/lib/account-api";
 import { formatShortDay, formatWhen } from "@/lib/format";
 import { paths } from "@/lib/hrefs";
@@ -40,11 +40,16 @@ type Act = (run: () => Promise<{ ok: boolean; error?: string }>, note: string) =
 export function MyGames({ games, now, onAdd, onEdit, act }: { games: GameRecord[]; now: number; onAdd: () => void; onEdit: (g: GameRecord) => void; act: Act }) {
   const { t, lang } = useI18n();
   const [confirm, setConfirm] = useState("");
+  // The remove question: focus goes to its safe answer (Cancel) when it opens; Cancel gives focus back to the Remove button it came from.
+  useEffect(() => { if (confirm) document.getElementById(`remove-cancel-${confirm}`)?.focus(); }, [confirm]);
+  const cancelRemove = (id: string) => { setConfirm(""); requestAnimationFrame(() => document.getElementById(`remove-${id}`)?.focus()); };
+  // A removed game's row is gone with the button that was pressed: focus goes to the list's heading, and the page says so.
+  const remove = (id: string) => act(() => call("DELETE", `/games/${id}`), t("acct.removedGame")).then(() => document.getElementById("games-h")?.focus());
 
   return (
     <section aria-labelledby="games-h" className="min-w-0">
       <div className="flex flex-wrap items-end justify-between gap-[var(--space-md)]">
-        <h2 id="games-h" className="text-[length:var(--text-title)]">{t("acct.gamesTitle")}</h2>
+        <h2 id="games-h" tabIndex={-1} className="text-[length:var(--text-title)] outline-none">{t("acct.gamesTitle")}</h2>
         <button type="button" className="btn btn-primary" onClick={onAdd}>{t("acct.addGame")}</button>
       </div>
       {games.length === 0 ? (
@@ -80,17 +85,17 @@ export function MyGames({ games, now, onAdd, onEdit, act }: { games: GameRecord[
                     {confirm === g.id ? (
                       <div className="mt-[var(--space-sm)] flex flex-wrap items-center gap-x-[var(--space-lg)] gap-y-[var(--space-xs)]" role="alert">
                         <span className="font-medium">{t("acct.removeConfirm", { title: g.title })}</span>
-                        <button type="button" className="btn btn-danger" onClick={() => act(() => call("DELETE", `/games/${g.id}`), "")}>{t("acct.removeYes")}</button>
-                        <button type="button" className="btn btn-secondary" onClick={() => setConfirm("")}>{t("acct.cancel")}</button>
+                        <button type="button" className="btn btn-danger" onClick={() => remove(g.id)}>{t("acct.removeYes")}</button>
+                        <button type="button" id={`remove-cancel-${g.id}`} className="btn btn-secondary" onClick={() => cancelRemove(g.id)}>{t("acct.cancel")}</button>
                       </div>
                     ) : (
                       <div className="mt-[var(--space-sm)] flex flex-wrap items-center gap-x-[var(--space-lg)] gap-y-[var(--space-xs)]">
-                        <button type="button" className="btn btn-secondary" onClick={() => onEdit(g)}>{t("acct.editGame")}</button>
+                        <button type="button" className="btn btn-secondary min-w-11" onClick={() => onEdit(g)}>{t("acct.editGame")}</button>
                         {g.onDemand && Date.parse(g.expiresAt) - now < EXTEND_WITHIN_MS && (
                           <button type="button" className="btn btn-secondary" onClick={() => act(() => call("POST", `/games/${g.id}/extend`), t("acct.extended"))} data-testid="extend">{t("acct.extend")}</button>
                         )}
                         <button type="button" className="btn btn-secondary" onClick={() => act(() => call("POST", `/games/${g.id}/full`, { full: !g.full }), t("acct.savedFull"))}>{g.full ? t("acct.reopen") : t("acct.markFull")}</button>
-                        <button type="button" className="btn btn-ghost" onClick={() => setConfirm(g.id)}>{t("acct.remove")}</button>
+                        <button type="button" id={`remove-${g.id}`} className="btn btn-ghost" onClick={() => setConfirm(g.id)}>{t("acct.remove")}</button>
                       </div>
                     )}
                   </div>

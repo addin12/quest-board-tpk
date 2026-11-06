@@ -10,11 +10,13 @@ import { DAY_MS, iso, logEvent } from "./util.ts";
 export const INACTIVE_DAYS = 730;
 export const GRACE_DAYS = 30;
 /**
- * Per run, so a first run over many old accounts cannot use up the mail relay's daily limit, and so one run stays inside the 50 database
- * queries a request may make (an erase is about 16 of them, a warning 3 and the rest of the daily job about 15).
+ * Per run, so a first run over many old accounts cannot use up the mail relay's daily limit, and so one run stays inside the 50 database queries a request may
+ * make. Counted per statement (a unit test does it, with a game on every account): the rest of the daily job is about 27, an erase about 19 and a warning about 6,
+ * so a run either erases one account (about 46) or warns up to three (about 45), never both. That drains a backlog slowly (accounts that came in together
+ * expire together); the proper cure is expiry in a timer request of its own, which needs the timers Worker deployed again (docs/handoff.md).
  */
-export const ERASE_PER_RUN = 2;
-export const WARN_PER_RUN = 8;
+export const ERASE_PER_RUN = 1;
+export const WARN_PER_RUN = 3;
 
 type Row = { id: string; email: string };
 
@@ -37,16 +39,21 @@ export async function expireInactive(ctx: Ctx, deleteFiles: (keys: string[]) => 
     }
   }
 
+  if (erased > 0) return { warned, erased }; // an erase takes most of the request's queries: the warnings wait for the next run
+
   const idle = await many<Row>(ctx.db, "SELECT id, email FROM accounts WHERE merged_into IS NULL AND expiry_warned_at IS NULL AND COALESCE(last_seen_at, created_at) < ? ORDER BY COALESCE(last_seen_at, created_at) LIMIT ?", iso(now - INACTIVE_DAYS * DAY_MS), WARN_PER_RUN * 3);
   for (const a of idle) {
     if (warned >= WARN_PER_RUN) break;
     if (await isAdmin(ctx, a.email)) continue;
+    // Marked first, then mailed: if the mark cannot be written (the request is out of queries) nothing is sent, so nobody is warned twice; if the mail fails the
+    // mark is taken off again, and the next daily run tries again (the failure is already recorded by the mailer).
+    if ((await exec(ctx.db, "UPDATE accounts SET expiry_warned_at = ? WHERE id = ? AND expiry_warned_at IS NULL", iso(now), a.id)) !== 1) continue;
     try {
       await ctx.mailer.send(expiryMail(a.email, GRACE_DAYS, ctx.siteUrl));
     } catch {
-      continue; // not marked as warned, so the next daily run tries again; the failure is already recorded by the mailer
+      await exec(ctx.db, "UPDATE accounts SET expiry_warned_at = NULL WHERE id = ?", a.id);
+      continue;
     }
-    await exec(ctx.db, "UPDATE accounts SET expiry_warned_at = ? WHERE id = ?", iso(now), a.id);
     await logEvent(ctx.db, now, "expiry_warned", "account", a.id, "", `warned: erased in ${GRACE_DAYS} days unless they sign in`, "the daily job");
     warned++;
   }

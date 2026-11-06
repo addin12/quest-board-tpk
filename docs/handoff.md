@@ -7,7 +7,7 @@ don't tell you.
 
 **Everything is pushed and CI is green; the live site is built from it.** The live site still has **0 games and 0 Game Masters**, so the pages that depend on listings
 (browse blocks, the landing pages for a system or an area, the quiz's matches) are empty or absent there and show only in the local demo. Live D1 has migrations
-**0001 to 0010** (0009 `repeat_days`/`nudged_at` is unused since ADR-52). The decisions are **ADR-40 to ADR-57** in [DECISIONS.md](../DECISIONS.md); the visual rules are in
+**0001 to 0010** (0009: `repeat_days` is unused since ADR-52; `nudged_at` is still used by the expiry nudge of games on request). The decisions are **ADR-40 to ADR-59** in [DECISIONS.md](../DECISIONS.md); the visual rules are in
 [design.md](../design.md). Read those two and [indonesian-review.md](indonesian-review.md) first.
 
 What changed since 2026-11-02, in the order a new reader needs it:

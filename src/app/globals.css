@@ -125,6 +125,8 @@
 
   /* The tavern, in a few quiet touches (design.md). One: a strip of oak at the very top and the very foot of every page. */
   .oak-strip { height: 0.375rem; background: var(--color-oak); }
+  /* the room of the signed-in bar (one 44 px line and its hairline), kept before the page's scripts have run so the page does not jump down when it appears */
+  html[data-signed-in] .signed-in-slot { min-height: calc(2.75rem + 1px); }
   /* Two: a double rule under the masthead, as under the title of an old broadside. */
   .rule-double { border-bottom: 4px double var(--color-ink); }
   /* Three: a listing is a notice, so its card has a nail at the top. A hairline, a nail, nothing else: no shadow, no tilt. */

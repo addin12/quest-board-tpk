@@ -286,7 +286,6 @@ The agent's wording; `{n}` and `{date}` are filled in by the site; `a|b` is sing
 | Key | Indonesian now | Your correction |
 |---|---|---|
 | `acct.profileLead` | Ini yang dilihat pemain tentang kamu, dan cara mereka menghubungimu. Isi sekali, lalu tambahkan game-mu. | |
-| `acct.noGames` | Belum ada game. Tambahkan satu, dan pemain langsung bisa menemukannya di papan. | |
 | `acct.f.systemsHint` | Sampai 10. Cari di daftar; kalau tidak ada, pilih Other lalu ketik namanya. | |
 | `acct.profileEditTitle` | Ubah profilmu | |
 | `acct.profilePart.about` | Tentang kamu | |
@@ -359,3 +358,11 @@ The agent's wording; `{n}` and `{date}` are filled in by the site; `a|b` is sing
 | Key | Indonesian now | Your correction |
 |---|---|---|
 | `games.place` | Wilayah | |
+
+## Review fixes of 2026-11-06 (ADR-59 addendum)
+
+| Key | Indonesian now | Your correction |
+|---|---|---|
+| `acct.removedGame` | Game sudah dihapus. | |
+| `acct.f.systemsFull` | Itu sudah {n} sistem, batas untuk satu profil. Hilangkan centang satu untuk menambah lagi. | |
+| `acct.err.fix` (changed) | Beberapa jawaban perlu diperbaiki. Ditandai di formulir. | |

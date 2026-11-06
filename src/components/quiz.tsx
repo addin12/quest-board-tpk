@@ -44,7 +44,7 @@ export function filtersOf(answers: Record<Question["id"], string>): Filters {
 
 /**
  * "Which game should I try?" (ADR-56): five questions on one page, no wrong answers, and under them the listed games that fit, following the live data.
- * Every question starts on its open answer, so the page opens with something to read; each answer narrows the list at once. The link goes on to the
+ * Every question starts on a default (new to the hobby for the first, the open answer for the rest), so the page opens with something to read; each answer narrows the list at once. The link goes on to the
  * games list with the same answers as filters.
  */
 export function Quiz({ games, covers }: { games: GameView[]; covers: CoverRef[] }) {
@@ -54,7 +54,7 @@ export function Quiz({ games, covers }: { games: GameView[]; covers: CoverRef[] 
   const [answers, setAnswers] = useState<Record<Question["id"], string>>({ played: "new", story: "any", style: "any", where: "any", format: "any" });
   const filters = filtersOf(answers);
   const matches = useMemo(() => applyFilters(all, filtersOf(answers)), [all, answers]);
-  const href = paths.games(lang, filtersToQuery(filters));
+  const href = paths.games(lang, matches.length > 0 ? filtersToQuery(filters) : ""); // with no match the button says "See every game", and it is every game it leads to
 
   return (
     <div className="grid gap-x-[var(--space-2xl)] gap-y-[var(--space-xl)] lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">

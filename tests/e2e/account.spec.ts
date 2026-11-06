@@ -452,3 +452,116 @@ test("the profile form works from the keyboard: focus follows the page, the answ
   await page.keyboard.press("Tab");
   await expect(focused).toHaveAccessibleName("Cancel");
 });
+
+test("an action that fails says so as a problem; removing a game keeps focus and says so; erasing the account says so and takes focus", async ({ page }) => {
+  const world = await newWorld(page, { seed: true });
+  await world.signInAs("raka@example.com");
+  await page.goto("/en/account/");
+  const row = (title: string) => page.getByTestId("my-game").filter({ hasText: title });
+  const message = page.getByTestId("message");
+
+  // a failing action is a problem (an alert in the danger tone), not a green success
+  await page.route("**/api/games/*/full", (r) => r.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ ok: false, error: "server" }) }));
+  await row("Panen Harapan").getByRole("button", { name: "Mark as full" }).click();
+  await expect(message.getByRole("alert")).toBeVisible();
+  await expect(message.getByRole("status")).toHaveCount(0);
+  await page.unroute("**/api/games/*/full");
+  await row("Panen Harapan").getByRole("button", { name: "Mark as full" }).click();
+  await expect(message.getByRole("status")).toContainText("Saved");
+  await expect(message.getByRole("alert")).toHaveCount(0);
+
+  // the remove question: by keyboard, focus goes to Cancel, Cancel gives it back, removing says so and lands on the list's heading
+  const neon = row("Neon Run");
+  await neon.getByRole("button", { name: "Remove" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(neon.getByRole("button", { name: "Cancel" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(neon.getByRole("button", { name: "Remove" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await neon.getByRole("button", { name: "Yes, remove it" }).click();
+  await expect(message).toContainText("The game was removed.");
+  await expect(page.getByRole("heading", { name: "Your games" })).toBeFocused();
+
+  // the erase question: the same, and the answer that follows is shown on the sign-in page and read out
+  const erase = page.getByRole("button", { name: "Erase my account and data" });
+  await erase.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("button", { name: "Cancel" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(erase).toBeFocused();
+  await page.keyboard.press("Enter");
+  await page.getByRole("button", { name: "Yes, erase everything" }).click();
+  await expect(page.getByRole("button", { name: "Email me a sign-in link" })).toBeVisible();
+  await expect(message).toContainText("Your account and data were erased.");
+  await expect(message).toBeFocused();
+});
+
+test("the profile form: a full systems list keeps focus, a name typed in Other is saved with the form, Enter in the closed search sends nothing, the first problem takes focus and is tied to its field", async ({ page }) => {
+  const world = await newWorld(page);
+  await world.signInAs("sari@example.com");
+  await page.goto("/en/account/");
+  const puts: string[] = [];
+  page.on("request", (r) => { if (r.method() === "PUT" && r.url().endsWith("/api/profile")) puts.push(r.url()); });
+  const name = page.getByLabel("Display name", { exact: true });
+
+  // an empty form: the first problem (the name) takes focus and the field names its error
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(name).toBeFocused();
+  await expect(name).toHaveAttribute("aria-invalid", "true");
+  await expect(name).toHaveAccessibleDescription(/\S/);
+  puts.length = 0;
+
+  await fillProfile(page);
+  const add = page.getByLabel("Add a system");
+  await add.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+  expect(puts, "Enter in the closed search does not send the form").toEqual([]);
+
+  // ten systems through Other: the search is replaced by a note, which takes the focus
+  const other = async (system: string) => {
+    await page.getByLabel("Add a system").fill("zzzzzz");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Enter");
+    await expect(page.getByLabel("Name of the system")).toBeFocused();
+    await page.keyboard.type(system);
+    await page.keyboard.press("Enter");
+  };
+  for (let i = 1; i <= 10; i++) await other(`Homebrew ${i}`);
+  await expect(page.locator("#p-systems-full")).toBeFocused();
+  await expect(page.locator("#p-systems-full")).toContainText("That is 10 systems");
+  await expect(page.getByLabel("Add a system")).toHaveCount(0);
+
+  // untick one: the search is back; a name left in Other and not added goes with Save
+  await page.getByRole("checkbox", { name: "Homebrew 10" }).uncheck();
+  await page.getByLabel("Add a system").fill("zzzzzz");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  await page.keyboard.type("Late Entry");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.getByTestId("message")).toContainText("Saved");
+  const me = await (await page.request.get("/api/me")).json();
+  expect(me.profile.systems).toContain("Late Entry");
+  expect(me.profile.systems).not.toContain("Homebrew 10");
+  expect(puts.length).toBe(1);
+});
+
+test("signing out of the admin page clears the signed-in note, and the bar keeps its room from the first paint", async ({ page }) => {
+  const world = await newWorld(page, { seed: true });
+  await world.signInAs("admin@example.com");
+  await page.goto("/en/account/"); // the account page writes the note
+  await expect(page.getByTestId("signed-in-as")).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem("tpk-signed-in"))).toBeTruthy();
+  await expect(page.locator("html"), "the account page has no bar, so no room for one").not.toHaveAttribute("data-signed-in");
+
+  await page.goto("/en/games/");
+  await expect(page.getByTestId("signed-in-bar")).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("data-signed-in", "");
+  const html = await (await page.request.get("/en/games/")).text();
+  expect(html, "the first-paint script and the room the bar will take are in the page").toContain("signed-in-slot");
+  expect(html).toContain("tpk-signed-in");
+
+  await page.goto("/en/admin/");
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("tpk-signed-in"))).toBeNull();
+});

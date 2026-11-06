@@ -691,15 +691,24 @@ test("the quiz: it opens with games to read, each answer narrows them, and the l
 
   await page.getByRole("radio", { name: "Yes, I have" }).check();
   await expect(page.getByTestId("quiz-see")).toHaveAttribute("href", "/en/games/?genre=horror");
-  await page.getByRole("radio", { name: "Online" }).check();
-  await page.getByRole("radio", { name: "Fights and tactics" }).check();
-  await page.getByRole("radio", { name: "A longer story over many sessions" }).check();
-  await expect(page.getByTestId("quiz-see")).toHaveAttribute("href", "/en/games/?genre=horror&style=combat-heavy&format=campaign&where=online");
-  await expect(count).toContainText(/No listed game fits all of your answers|fit/);
-
-  const href = await page.getByTestId("quiz-see").getAttribute("href");
+  // answers that have matches: the button says how many and carries the answers to the list
+  await page.getByRole("radio", { name: "In person" }).check();
+  await expect(count).toContainText("fit your answers");
+  await expect(page.getByTestId("quiz-see")).toHaveAttribute("href", "/en/games/?genre=horror&where=in_person");
+  await expect(page.getByTestId("quiz-see")).toHaveText(/^See (all )?\d+ games?$/);
   await page.getByTestId("quiz-see").click();
-  await expect(page).toHaveURL(new RegExp(href!.replace(/[?]/g, "\\?")));
+  await expect(page).toHaveURL(/\/en\/games\/\?genre=horror&where=in_person$/);
+
+  // answers no listed game fits: the button says "See every game" and leads to every game, not to an empty filtered list
+  await page.goto("/en/find-a-game/");
+  await page.getByRole("radio", { name: "Cozy and gentle" }).check();
+  await page.getByRole("radio", { name: "Fights and tactics" }).check();
+  await page.getByRole("radio", { name: "Online" }).check();
+  await page.getByRole("radio", { name: "One evening" }).check();
+  await expect(count).toContainText("No listed game fits all of your answers");
+  await expect(page.getByTestId("quiz-see")).toHaveText("See every game");
+  await expect(page.getByTestId("quiz-see")).toHaveAttribute("href", "/en/games/");
+  await expect(page.getByTestId("quiz-matches")).toHaveCount(0);
 });
 
 test("the quiz in Bahasa Indonesia, and the ways in from the home page and How it works", async ({ page }) => {
@@ -759,4 +768,12 @@ test("the quiz works from the keyboard: arrow keys change an answer, the matches
   await expect(see).toHaveAttribute("href", "/en/games/?genre=fantasy&level=beginner");
   await page.keyboard.press("Tab"); // out of the story question and into the next one, on its chosen answer
   await expect(page.locator(":focus")).toHaveAccessibleName("A bit of both");
+});
+
+test("an address that asks for an area with no game still shows that area in the select, with an empty list and a way to clear it", async ({ page }) => {
+  await page.goto("/en/games/?place=Jakarta%20Utara", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("[data-ready]")).toBeAttached();
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 0 games");
+  await page.getByRole("button", { name: /Filters/ }).click();
+  await expect(page.getByLabel("Area", { exact: true })).toHaveValue("Jakarta Utara");
 });

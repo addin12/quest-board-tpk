@@ -563,6 +563,58 @@ test("an account nobody signs in to is warned after two years and erased a month
   assert.equal(accountsOf(OWNER), 1, "the owner never expires");
 });
 
+test("a daily run erases one account or warns a few, never both, and stays inside the 50 queries a request may make", async () => {
+  const { daily } = await import("../../worker/src/handler.ts");
+  const { ERASE_PER_RUN, WARN_PER_RUN } = await import("../../worker/src/retention.ts");
+  const w = makeWorld();
+  for (const n of ["a", "b", "c", "d", "e"]) {
+    const c = await w.signIn(`${n}@example.com`);
+    await w.call("PUT", "/profile", { cookie: c, body: { ...PROFILE, name: `Person ${n}`, whatsapp: `08123${n.charCodeAt(0)}0000` } });
+    await w.call("POST", "/games", { cookie: c, body: GAME }); // an erase with a game and its rows is the heavy kind
+  }
+  const count = (sql: string) => (w.db.raw.prepare(sql).get() as { n: number }).n;
+  const accounts = () => count("SELECT COUNT(*) AS n FROM accounts");
+  const marked = () => count("SELECT COUNT(*) AS n FROM accounts WHERE expiry_warned_at IS NOT NULL");
+  const warningMails = () => w.mails.filter((m) => /will be erased/.test(m.subject)).length;
+  const run = async () => { w.db.count.n = 0; await daily(w.env); return w.db.count.n; };
+
+  w.clock.ms += 731 * DAY;
+  const first = await run();
+  assert.equal(marked(), WARN_PER_RUN, "a run warns no more than its cap");
+  assert.equal(warningMails(), WARN_PER_RUN, "and mails exactly those");
+  assert.ok(first <= 50, `${first} queries in a run that warned ${WARN_PER_RUN}`);
+
+  w.clock.ms += 31 * DAY; // the three warned are overdue; the other two have not been warned yet
+  for (let i = 1; i <= 3; i++) {
+    const before = accounts();
+    const used = await run();
+    assert.equal(before - accounts(), ERASE_PER_RUN, `run ${i}: one erase`);
+    assert.equal(warningMails(), WARN_PER_RUN, `run ${i}: an erase run sends no warning`);
+    assert.ok(used <= 50, `${used} queries in a run that erased ${ERASE_PER_RUN} account with a game`);
+  }
+  const last = await run(); // nothing overdue any more: the two never warned are warned now
+  assert.equal(warningMails(), WARN_PER_RUN + 2);
+  assert.ok(last <= 50, `${last} queries in the run that warned the rest`);
+});
+
+test("a warning that cannot be mailed leaves no mark, so the next run tries again; a warning whose mark cannot be written is not mailed", async () => {
+  const { daily } = await import("../../worker/src/handler.ts");
+  const w = makeWorld();
+  await w.signIn("a@example.com");
+  w.clock.ms += 731 * DAY;
+  const send = w.env.ctx.mailer.send;
+  let fail = true;
+  w.env.ctx.mailer.send = async (m) => { if (fail && /will be erased/.test(m.subject)) throw new Error("relay down"); return send(m); };
+  await daily(w.env);
+  assert.equal((w.db.raw.prepare("SELECT COUNT(*) AS n FROM accounts WHERE expiry_warned_at IS NOT NULL").get() as { n: number }).n, 0, "no mark after a failed mail");
+  fail = false;
+  await daily(w.env);
+  assert.equal((w.db.raw.prepare("SELECT COUNT(*) AS n FROM accounts WHERE expiry_warned_at IS NOT NULL").get() as { n: number }).n, 1, "marked once the mail goes");
+  assert.equal(w.mails.filter((m) => /will be erased/.test(m.subject)).length, 1);
+  await daily(w.env);
+  assert.equal(w.mails.filter((m) => /will be erased/.test(m.subject)).length, 1, "a marked account is not warned again");
+});
+
 // ── the review digest and the budget of each kind of mail ───────────────────────────────────────────────
 
 /** Signs in `n` Game Masters, each saving a profile; returns nothing: the digest reads the database. */

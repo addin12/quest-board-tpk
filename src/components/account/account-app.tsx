@@ -28,10 +28,17 @@ type Mode = { kind: "home" } | { kind: "profile" } | { kind: "game"; game: GameR
 export function AccountApp() {
   const { t, lang } = useI18n();
   const [view, setView] = useState<View>({ kind: "loading" });
-  const [message, setMessage] = useState("");
+  // What the last action said: success or a failure (shown in its own tone), a counter so the same words again are still announced and brought into view,
+  // and `focus` for the one message that must be read because everything around it was replaced (an erased account).
+  const [message, setMessage] = useState<{ text: string; tone: "success" | "danger"; id: number; focus: boolean } | null>(null);
+  const said = useRef(0);
+  const say = useCallback((text: string, tone: "success" | "danger" = "success", focus = false) => { setMessage({ text, tone, id: ++said.current, focus }); }, []);
   const [mode, setMode] = useState<Mode>({ kind: "home" });
   const [confirmErase, setConfirmErase] = useState(false);
   const top = useRef<HTMLDivElement>(null);
+  const eraseButton = useRef<HTMLButtonElement>(null);
+  const eraseCancel = useRef<HTMLButtonElement>(null);
+  const eraseWasOpen = useRef(false);
   const shown = useRef<string | null>(null); // which view of the page was on screen last, to see when it changes
 
   const load = useCallback(async (badLink = false) => {
@@ -65,16 +72,29 @@ export function AccountApp() {
     const heading = box.querySelector<HTMLElement>("h2");
     if (heading) { heading.tabIndex = -1; heading.style.outline = "none"; heading.focus({ preventScroll: true }); }
   }, [screen]);
-  // A message from an action that stayed on the same view (saved, extended, removed) is brought into view if it is off screen.
-  useEffect(() => { if (message) document.querySelector('[data-testid="message"]')?.scrollIntoView({ block: "nearest" }); }, [message]);
+  // A message from an action is brought into view if it is off screen (the same words again too: each message has its own number), and one that replaced
+  // everything around it takes focus so it is read.
+  useEffect(() => {
+    if (!message) return;
+    const el = document.querySelector<HTMLElement>('[data-testid="message"]');
+    if (!el) return;
+    el.scrollIntoView({ block: "nearest" });
+    if (message.focus) { el.tabIndex = -1; el.style.outline = "none"; el.focus(); }
+  }, [message]);
+  // The erase question: focus goes to its safe answer (Cancel) when it opens, and back to the button that opened it when it is cancelled.
+  useEffect(() => {
+    if (confirmErase) eraseCancel.current?.focus();
+    else if (eraseWasOpen.current) eraseButton.current?.focus();
+    eraseWasOpen.current = confirmErase;
+  }, [confirmErase]);
 
   function open(next: Mode) {
-    setMessage("");
+    setMessage(null);
     setMode(next);
   }
 
   async function after(note: string) {
-    setMessage(note);
+    if (note) say(note); else setMessage(null);
     setMode({ kind: "home" });
     setConfirmErase(false);
     await load();
@@ -84,7 +104,7 @@ export function AccountApp() {
   async function act(run: () => Promise<{ ok: boolean; error?: string }>, note: string) {
     const r = await run();
     if (r.ok) await after(note);
-    else setMessage(errorText(t, r.error ?? "server"));
+    else say(errorText(t, r.error ?? "server"), "danger");
   }
 
   if (view.kind === "loading") return <p role="status" className="lead">{t("acct.verifying")}</p>;
@@ -106,6 +126,7 @@ export function AccountApp() {
   if (view.kind === "out") {
     return (
       <div>
+        <div aria-live="polite">{message && <div data-testid="message" className="mb-[var(--space-lg)] max-w-xl"><Notice tone={message.tone}>{message.text}</Notice></div>}</div>
         {view.badLink && <div className="mb-[var(--space-lg)] max-w-xl"><Notice tone="danger">{t("acct.linkBad")}</Notice></div>}
         <EmailSignIn heading={t("acct.signIn")} lead={t("acct.lead")} />
       </div>
@@ -127,7 +148,8 @@ export function AccountApp() {
         </div>
       </div>
 
-      {message && <div role="status" data-testid="message"><Notice tone="success">{message}</Notice></div>}
+      {/* The region is always on the page, so a message put into it is announced (one mounted together with its text often is not). */}
+      <div aria-live="polite">{message && <div data-testid="message"><Notice tone={message.tone}>{message.text}</Notice></div>}</div>
 
       {home && me.mergeOffers.length > 0 && (
         <section aria-labelledby="merge-h" className="well max-w-2xl" data-testid="merge-offers">
@@ -163,11 +185,11 @@ export function AccountApp() {
           <p className="mt-[var(--space-xs)] max-w-[60ch] text-ink-2">{t("acct.eraseBody")}</p>
           {confirmErase ? (
             <p className="mt-[var(--space-md)] flex flex-wrap items-center gap-[var(--space-lg)]">
-              <button type="button" className="btn btn-danger" onClick={async () => { const r = await call("DELETE", "/account"); if (r.ok) { writeSignedIn(null); setMessage(t("acct.erased")); setView({ kind: "out", badLink: false }); } else setMessage(errorText(t, r.error)); }}>{t("acct.eraseYes")}</button>
-              <button type="button" className="btn btn-secondary" onClick={() => setConfirmErase(false)}>{t("acct.cancel")}</button>
+              <button type="button" className="btn btn-danger" onClick={async () => { const r = await call("DELETE", "/account"); if (r.ok) { writeSignedIn(null); say(t("acct.erased"), "success", true); setView({ kind: "out", badLink: false }); } else say(errorText(t, r.error), "danger"); }}>{t("acct.eraseYes")}</button>
+              <button type="button" ref={eraseCancel} className="btn btn-secondary" onClick={() => setConfirmErase(false)}>{t("acct.cancel")}</button>
             </p>
           ) : (
-            <p className="mt-[var(--space-md)]"><button type="button" className="btn btn-secondary" onClick={() => setConfirmErase(true)}>{t("acct.erase")}</button></p>
+            <p className="mt-[var(--space-md)]"><button type="button" ref={eraseButton} className="btn btn-secondary" onClick={() => setConfirmErase(true)}>{t("acct.erase")}</button></p>
           )}
         </section>
       )}

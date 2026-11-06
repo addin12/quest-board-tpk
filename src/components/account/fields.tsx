@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { cloneElement, isValidElement, useState, type ReactElement } from "react";
 import { shrinkImage, uploadImage } from "@/lib/account-api";
 import { SUMMARY_MAX } from "@/lib/areas";
 import type { MsgKey, T } from "@/lib/i18n/core";
@@ -14,12 +14,20 @@ export function errorText(t: T, code: string): string {
 
 /** A label above its field, a hint under it, and the error (if any) next to it. */
 export function Field({ id, label, hint, error, children }: { id: string; label: string; hint?: string; error?: string; children: React.ReactNode }) {
+  // The input names its hint and its error (aria-describedby) so a screen reader reads them with the field, and says when the answer is wrong.
+  const own = [hint ? `${id}-hint` : "", error ? `${id}-error` : ""].filter(Boolean);
+  let control = children;
+  if (own.length > 0 && isValidElement(children)) {
+    const props = (children as ReactElement<Record<string, unknown>>).props;
+    const described = [...new Set([...String(props["aria-describedby"] ?? "").split(" ").filter(Boolean), ...own])].join(" ");
+    control = cloneElement(children as ReactElement<Record<string, unknown>>, { "aria-describedby": described, ...(error ? { "aria-invalid": true } : {}) });
+  }
   return (
     <div>
       <label htmlFor={id} className="label">{label}</label>
-      {children}
+      {control}
       {hint && <p className="hint" id={`${id}-hint`}>{hint}</p>}
-      {error && <p role="alert" className="mt-[var(--space-xs)] text-sm font-medium text-danger">{error}</p>}
+      {error && <p role="alert" id={`${id}-error`} className="mt-[var(--space-xs)] text-sm font-medium text-danger">{error}</p>}
     </div>
   );
 }

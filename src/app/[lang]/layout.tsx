@@ -41,7 +41,8 @@ export async function generateMetadata({ params }: LayoutProps<"/[lang]">): Prom
 }
 
 // Applies a remembered light/dark choice before the first paint, so the page never flashes the other theme.
-const THEME_INIT = `try{var t=localStorage.getItem("tpk-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}`;
+// The same script marks a browser that holds the signed-in note (src/lib/signed-in.ts), on the pages that show the bar, so its space is kept from the first paint (ADR-57).
+const THEME_INIT = `try{var t=localStorage.getItem("tpk-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}try{var p=location.pathname.split("/")[2];if(localStorage.getItem("tpk-signed-in")&&p!=="account"&&p!=="admin")document.documentElement.setAttribute("data-signed-in","")}catch(e){}`;
 
 export default async function RootLayout({ children, params }: LayoutProps<"/[lang]">) {
   const { lang } = await params;
@@ -55,7 +56,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
       <body className="overflow-x-clip max-lg:pb-[calc(var(--tabbar-h)+env(safe-area-inset-bottom))]">
         <I18nProvider lang={lang} messages={publicMessages(lang)}>
           <a href="#main" className="btn btn-primary sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50">{t("nav.skip")}</a>
-          <SignedInBar />
+          <div className="signed-in-slot"><SignedInBar /></div>
           <HeaderShell>
             <div className="oak-strip" />
             <div className="rule-double">

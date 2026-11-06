@@ -12,8 +12,8 @@ export type PickerOption = { value: string; label: string };
  * while nothing is typed. The list opens on a click or on typing, never on focus: a filter sheet focuses its first field when it opens, and
  * Escape must then close the sheet.
  */
-export function SearchPicker({ id, value, options, other, any, placeholder, listLabel, onChange, invalid }: {
-  id: string; value: string; options: readonly PickerOption[]; other?: PickerOption; any?: string; placeholder: string; listLabel: string; onChange: (value: string) => void; invalid?: boolean;
+export function SearchPicker({ id, value, options, other, any, placeholder, listLabel, onChange, invalid, "aria-describedby": describedBy }: {
+  id: string; value: string; options: readonly PickerOption[]; other?: PickerOption; any?: string; placeholder: string; listLabel: string; onChange: (value: string) => void; invalid?: boolean; "aria-describedby"?: string;
 }) {
   const listId = useId();
   const [open, setOpen] = useState(false);
@@ -53,6 +53,7 @@ export function SearchPicker({ id, value, options, other, any, placeholder, list
         aria-autocomplete="list"
         aria-activedescendant={open ? `${listId}-${Math.min(active, choices.length - 1)}` : undefined}
         aria-invalid={invalid || undefined}
+        aria-describedby={describedBy}
         autoComplete="off"
         className="input"
         value={open && dirty ? text : shown}

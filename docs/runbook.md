@@ -125,11 +125,22 @@ sign in again and the rest starts afresh (`NOT_BACKED_UP` in `worker/src/backup.
    numbers look right.
 3. If the database still exists but is damaged beyond 7 days, delete it first (Cloudflare → D1 → `quest-board` → Settings → Delete). Download
    the backups before this: deleting the database does not touch R2, but check anyway.
-4. `npm run cloudflare:setup` makes an empty `quest-board` database, applies every migration and binds the site to it.
-5. `npx --yes wrangler@4.156.2 d1 execute quest-board --remote --file <folder>/<date>.restore.sql` loads the rows (one transaction: all or
-   nothing; references are checked at the end).
-6. Ask for a build (admin page → **Publish now**), sign in to the account page and open a few games and Game Masters to check.
-7. Delete the downloaded `.json` and `.restore.sql`: they hold personal data.
+4. `npm run cloudflare:setup -- --backend-only` makes an empty `quest-board` database, applies every migration and binds the site to it; the build then
+   uses the empty day-one data instead of asking the (not yet restored) backend for it.
+5. A changed binding reaches the site only with a new deployment: Cloudflare → the project → Deployments → **Retry deployment** (or push). Wait until
+   `GET /api/health` (build key in an Authorization header) answers. **Do not sign in, and do not open the admin page, before step 6**: a new account for your
+   address would make the load fail on its unique email.
+6. `npx --yes wrangler@4.156.2 d1 execute quest-board --remote --file <folder>/<date>.restore.sql` loads the rows (one transaction: all or nothing;
+   references are checked at the end).
+7. Take care of the people erased since the backup (below), then run `npm run cloudflare:setup` again without the flag and **Retry deployment** once more:
+   the build now reads the restored data. Sign in, press **Publish now**, and open a few games and Game Masters to check.
+8. Delete the downloaded `.json` and `.restore.sql`: they hold personal data. (The timers Worker does not use the database, so it needs nothing.)
+
+**A restore brings back everyone erased after the backup was made**, with their email, WhatsApp number, bio and games, because the backup still has them
+and the erase left no trace in it. Before going public again, find them: in every backup newer than the one you loaded (they are kept 14 days) the `activity`
+rows of kind `erased` (the person asked) or `expired` (two years unused) name the account id in `subject_id`; the old database has the same rows if it still exists.
+Erase those accounts again (each person can also sign in with their address and use **Erase my account**). If no newer backup or old database is left, the
+only list is the people who asked: tell them it needs doing again. Never publish the restored data before this is done.
 
 The restore is tested: `tests/unit/worker.test.ts` takes a nightly backup of a database with every kind of row (a merged account included),
 loads the SQL into a fresh database and compares every table. The backups sit in the same Cloudflare account as the database; a copy outside
@@ -187,4 +198,4 @@ If mail itself is what broke, the alert email cannot be sent: look at `/api/heal
 - The public data and pictures are given only to a request with the build key; the API address itself is public.
 - Free-plan limits: Pages 500 builds a month; D1 and R2 are far above this site's size (10 GB of pictures is thousands of listings); the
   Worker's one-minute tick makes 1,440 calls a day, plus a few for each change, against 100,000.
-- Accounts unused for two years are warned, then erased 30 days later (admins and the owner never). The daily job does at most 20 a run.
+- Accounts unused for two years are warned, then erased 30 days later (admins and the owner never). The daily job warns at most 3, or erases at most 1, a run (never both) (ERASE_PER_RUN and WARN_PER_RUN in `worker/src/retention.ts`, sized to the 50 queries a request may make).

@@ -41,25 +41,44 @@ export function ProfileForm({ profile, heading, lead, openGames, onSaved, onCanc
 
   useEffect(() => { if (typingOther) otherInput.current?.focus(); }, [typingOther]);
 
+  /** Focus goes back to the systems search; once the list is full the search is replaced by a note, which takes the focus instead (a removed control must not drop it). */
+  const focusSystems = () => requestAnimationFrame(() => (document.getElementById("p-systems") ?? document.getElementById("p-systems-full"))?.focus());
+
   function addSystem(raw: string) {
     const name = raw.trim().slice(0, 60);
     if (!name) return;
     setListed((old) => (old.includes(name) ? old : [...old, name]));
     setV((old) => (old.systems.includes(name) || old.systems.length >= MAX_GM_SYSTEMS ? old : { ...old, systems: [...old.systems, name] }));
+    focusSystems();
   }
 
   /** Closes the "name of the system" input (keeping what was typed when `add`) and puts focus back on the search it came from. */
   function finishOther(add: boolean) {
     if (add && other) addSystem(other);
     setOther(null);
-    requestAnimationFrame(() => document.getElementById("p-systems")?.focus());
+    focusSystems();
+  }
+
+  // The first answer with a problem, in the order of the form: focus goes there (the message that names the problem sits at the end of the form).
+  const ERROR_ORDER: [string, string][] = [["name", "#p-name"], ["bio", "#p-bio"], ["photoKey", "#p-photo"], ["city", 'input[name="city"]:checked, input[name="city"]'], ["systems", "#p-systems, #p-systems-full"], ["whatsapp", "#p-wa"], ["discord", "#p-discord"], ["instagram", "#p-instagram"], ["consent", "#p-consent"]];
+  function focusFirstError(fields: Record<string, string>) {
+    const hit = ERROR_ORDER.find(([key]) => key in fields);
+    if (!hit) return;
+    requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>(hit[1]);
+      el?.scrollIntoView({ block: "center" });
+      el?.focus({ preventScroll: true });
+    });
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setProblem("");
-    const r = await call<{ changed: boolean; status?: string }>("PUT", "/profile", v);
+    // A name typed after choosing Other and not yet added is part of the answer: it goes with the form rather than being dropped.
+    const typed = other?.trim().slice(0, 60) ?? "";
+    const systems = typed && !v.systems.includes(typed) && v.systems.length < MAX_GM_SYSTEMS ? [...v.systems, typed] : v.systems;
+    const r = await call<{ changed: boolean; status?: string }>("PUT", "/profile", { ...v, systems });
     setBusy(false);
     if (r.ok) {
       setErrors({});
@@ -67,6 +86,7 @@ export function ProfileForm({ profile, heading, lead, openGames, onSaved, onCanc
     } else if (r.status === 422 && r.fields) {
       setErrors(r.fields);
       setProblem(t("acct.err.fix"));
+      focusFirstError(r.fields);
     } else { setErrors({}); setProblem(errorText(t, r.error)); }
   }
 
@@ -104,8 +124,9 @@ export function ProfileForm({ profile, heading, lead, openGames, onSaved, onCanc
             options={[...areas.map((a) => ({ value: a, label: a })), { value: ONLINE_ONLY, label: t("acct.f.cityOnline") }]} />
           <Ticks name="systems" legend={t("acct.f.systems")} hint={t("acct.f.systemsHint")} counter={t("acct.f.pickCount", { n: v.systems.length, max: MAX_GM_SYSTEMS })} columns={2}
             options={listed.map((s) => ({ value: s, label: s }))} selected={v.systems} max={MAX_GM_SYSTEMS} onChange={(systems) => set({ systems })} error={field(errors, "systems", t)}>
+            {v.systems.length >= MAX_GM_SYSTEMS && <p id="p-systems-full" tabIndex={-1} className="mt-[var(--space-xs)] text-sm text-ink-2 outline-none">{t("acct.f.systemsFull", { n: MAX_GM_SYSTEMS })}</p>}
             {v.systems.length < MAX_GM_SYSTEMS && (
-              <div className="mt-[var(--space-xs)]">
+              <div className="mt-[var(--space-xs)]" onKeyDown={(e) => { if (e.key === "Enter") e.preventDefault(); /* in the search Enter picks (the list's own handler); with the list closed it must not send the whole form */ }}>
                 <label htmlFor="p-systems" className="mb-[var(--space-2xs)] block text-sm text-ink-2">{t("acct.f.systemsAdd")}</label>
                 <SearchPicker id="p-systems" value="" options={SYSTEMS.filter((s) => !listed.includes(s)).map((s) => ({ value: s, label: s }))} other={{ value: OTHER_SYSTEM, label: OTHER_SYSTEM }}
                   placeholder={t("acct.f.systemPlaceholder")} listLabel={t("acct.f.systemList")} onChange={(s) => (s === OTHER_SYSTEM ? setOther("") : addSystem(s))} />
@@ -118,7 +139,7 @@ export function ProfileForm({ profile, heading, lead, openGames, onSaved, onCanc
                   <input id="p-system-other" ref={otherInput} className="input" value={other} maxLength={60} onChange={(e) => setOther(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); finishOther(true); } else if (e.key === "Escape") { e.preventDefault(); finishOther(false); } }} />
                 </div>
-                <button type="button" className="btn btn-secondary" onClick={() => finishOther(true)}>{t("acct.f.systemsAddButton")}</button>
+                <button type="button" className="btn btn-secondary min-w-11" onClick={() => finishOther(true)}>{t("acct.f.systemsAddButton")}</button>
               </div>
             )}
           </Ticks>

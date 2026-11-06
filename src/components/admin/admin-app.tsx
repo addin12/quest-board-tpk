@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { writeSignedIn } from "@/lib/signed-in";
 import { ApiError, api, signOutSession, whoami } from "@/lib/admin-api";
 import { buildItems, pollDelay, publishState, siteBehind, titleOf, whenLabel, type Item, type PublishState } from "@/lib/admin-view";
 import type { MsgKey } from "@/lib/i18n/core";
@@ -41,6 +42,7 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
 
   const signOut = useCallback((wasExpired = false) => {
     void signOutSession();
+    writeSignedIn(null); // the same session as the account page: the top bar must not keep showing the name
     setSignedIn(false);
     setQueue(null);
     setExpired(wasExpired);

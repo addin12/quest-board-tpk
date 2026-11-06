@@ -62,7 +62,7 @@ database, bucket, mailbox and clock).
 
 ## Request budget (ADR-46)
 
-Cloudflare's free plan allows 50 database queries per request ([limits](https://developers.cloudflare.com/d1/platform/limits)). A review call decides at most `REVIEW_MAX_IDS` (5) records: one read, one `db.batch` of every change and its log row, then the emails (the admin page sends longer selections in turns). Erasing an account is three reads and one batch, however many games the person had. `tests/unit/worker.test.ts` counts the statements of those calls (each statement of a batch counted on its own, the worst case) and fails above 50. The daily job erases at most 2 accounts and warns at most 8 per run for the same reason.
+Cloudflare's free plan allows 50 database queries per request ([limits](https://developers.cloudflare.com/d1/platform/limits)). A review call decides at most `REVIEW_MAX_IDS` (5) records: one read, one `db.batch` of every change and its log row, then the emails (the admin page sends longer selections in turns). Erasing an account is three reads and one batch, however many games the person had. `tests/unit/worker.test.ts` counts the statements of those calls (each statement of a batch counted on its own, the worst case) and fails above 50. The daily job erases at most 1 account, or warns at most 3 (never both in one run), for the same reason: a unit test counts the statements of daily runs that do each, with a game on every account (an erase is about 19 of the 50, the rest of the job about 27).
 
 ## Not proven
 
@@ -80,4 +80,4 @@ wiring: `functions/api/[[path]].ts`, `worker/src/email.ts`, `verifyTurnstile`.
   empty database (`npm run restore:sql`, docs/runbook.md); a unit test restores a full backup and compares every table (ADR-55).
 - **Retention** (`worker/src/retention.ts`, run by the daily job): an account with no sign-in for 730 days is emailed; if still unused 30
   days later it is erased with its profile, games and pictures. Signing in (`last_seen_at`, `expiry_warned_at` in `0002_retention.sql`) cancels it.
-  Admins and the owner never expire. At most 20 per step per run.
+  Admins and the owner never expire. At most 1 erasure or 3 warnings per run, never both (`ERASE_PER_RUN`, `WARN_PER_RUN` in `worker/src/retention.ts`).

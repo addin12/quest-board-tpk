@@ -20,6 +20,9 @@ export function SignedInBar() {
   // The account and admin pages already say who is signed in and have their own sign-out: the bar would only repeat them.
   const own = new RegExp(`^/${lang}/(account|admin)(/|$)`).test(usePathname());
 
+  // The page's first-paint script marked the document so this bar's room was kept; keep that mark true (a sign-out removes it, the account page does not show the bar).
+  useEffect(() => { document.documentElement.toggleAttribute("data-signed-in", signedIn && !own); }, [signedIn, own]);
+
   useEffect(() => {
     if (!signedIn || own) return; // the account page asks the server itself
     let stopped = false;
