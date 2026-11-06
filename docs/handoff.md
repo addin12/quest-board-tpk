@@ -166,9 +166,14 @@ The audit script (`scripts/audit-frontend.mjs`, with `npm run preview` running) 
 - **Stale servers and ports** break e2e on Windows: kill leftover `node` processes (PowerShell) before re-running. The bundled Playwright Chromium may be missing: `npx playwright install`, or use Edge (`AUDIT_BROWSER=msedge`).
 - **Check CI after a push**: GitHub CI was once silently red for rounds. Poll the public Actions API; times are UTC.
 
-## Performance, measured once (2026-10-31, Lighthouse 12, Edge, the local preview)
+## Performance, measured again (2026-11-06, Lighthouse 12, Edge, mobile profile: slow 4G and 4x CPU)
 
-Accessibility 98 to 100, best practices 100, SEO 100 on the home page, a game page and /systems/ (the one miss, a skipped heading level on the browse pages, is fixed). Performance: desktop 97; **mobile 64 to 65** (LCP 6.4 to 7.5 s, TBT 420 to 500 ms) under Lighthouse's slow-4G, 4x-CPU profile. The local server does not compress, which Lighthouse counts as 2.7 to 3.3 s; Cloudflare Pages does, so the real figure is better and **not yet measured on the live site**. What is real: about 390 KB of client JavaScript (React and Next, 244 KB of it unused on a static page) and the whole public text dictionary shipped inside every page's HTML (the home page is 110 KB before compression). **Measured on the live site (2026-11-01, mobile, Edge): performance 89 on `/en/`, 93 on `/en/games/`**, LCP 1.3 to 1.7 s, CLS 0, TBT 310 to 390 ms, 329 KiB transferred. So the local 64 was the uncompressed server, not the site. Compressed, the home page's HTML is 20 KiB, so passing each client component only its own texts would save under 10 KiB and was dropped. The one real weakness is TBT (JavaScript), which is React and Next themselves; nothing to fix without dropping client components, and it is not worth it at these scores.
+Live site (no games listed yet, so the shell only): home 69, games list 70, quiz 88, account 69 (SEO 63 there is the page's deliberate noindex). Accessibility 100 and best practices 96 to 100 everywhere; SEO 100 on the public pages.
+FCP 1.1 to 1.7 s, LCP 2.2 to 3.6 s, CLS 0 (the account page's 0.30 was the footer jumping when Cloudflare's robot-check widget appeared; its space is now reserved), TBT 340 to 1080 ms.
+Demo build served with Brotli (the games they show): home 70, games list 65, a game page 77, a system landing page 73, quiz 83; LCP 3.4 to 4.3 s, an image on the pages that have covers.
+**What the time is:** about 360 KB transferred per page (JS 180 to 200 KB, fonts 85 KB, CSS 13 KB, HTML 25 KB). Two chunks, React/Next's runtime (71 KB and 46 KB compressed), take about 800 ms each of scripting under the 4x CPU slowdown; the site's own code is
+under 100 ms on the games list. Nothing cheap is left in the JavaScript: the dictionary chunk (both languages, 40 KB) loads only on the admin page, and unused JavaScript is 26 KB. The account page transfers 2 MB on the live site, 1.5 MB of it Cloudflare's Turnstile challenge on the sign-in form (not ours).
+Real covers use the 480 x 600 `-sm` copy in cards and the 240 x 300 `-xs` copy in phone rows. Method: `node lh.mjs`-style loop over `npx lighthouse@12 <url> --output=json` with `CHROME_PATH` set to Edge; a Brotli wrapper around `scripts/preview.mjs` (the plain preview does not compress, which Lighthouse counts as 3 s).
 
 ## Open items (none blocks use)
 

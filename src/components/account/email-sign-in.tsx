@@ -80,7 +80,8 @@ export function EmailSignIn({ heading, lead }: { heading: string; lead: string }
           <input id="si-email" className="input" type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </Field>
       </div>
-      {TURNSTILE_SITE_KEY && <div ref={box} role="group" className="mt-[var(--space-md)]" aria-label={t("robot.label")} />}
+      {/* min-h: Cloudflare's widget is 65 px high; without the space kept for it the footer jumped down when it appeared (layout shift 0.30 on the live page, 2026-11-06) */}
+      {TURNSTILE_SITE_KEY && <div ref={box} role="group" className="mt-[var(--space-md)] min-h-[65px]" aria-label={t("robot.label")} />}
       {problem && <p role="alert" className="mt-[var(--space-md)] font-medium text-danger">{problem}</p>}
       <p className="mt-[var(--space-lg)]"><button type="submit" className="btn btn-primary" disabled={busy || (Boolean(TURNSTILE_SITE_KEY) && !token)}>{busy ? t("acct.sending") : t("acct.sendLink")}</button></p>
     </form>
