@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { call, type Me } from "@/lib/account-api";
 import { formatPhone } from "@/lib/format";
 import { paths } from "@/lib/hrefs";
+import { writeSignedIn } from "@/lib/signed-in";
 import { adminPictureUrl } from "@/lib/pictures";
 import type { GameRecord, GmRecord, SiteGm } from "@/lib/types";
 import { useI18n } from "../i18n-provider";
@@ -35,6 +36,9 @@ export function AccountApp() {
 
   const load = useCallback(async (badLink = false) => {
     const r = await call<Me>("GET", "/me");
+    // The top bar of every page shows who is signed in from a note kept in this browser (src/lib/signed-in.ts); this is where it is written.
+    if (r.ok) writeSignedIn(r.data.profile?.name || r.data.email);
+    else if (r.status === 401 || r.status === 403) writeSignedIn(null);
     setView(r.ok ? { kind: "in", me: r.data } : { kind: "out", badLink });
   }, []);
 
@@ -147,7 +151,7 @@ export function AccountApp() {
           <p className="mt-[var(--space-xs)] max-w-[60ch] text-ink-2">{t("acct.eraseBody")}</p>
           {confirmErase ? (
             <p className="mt-[var(--space-md)] flex flex-wrap items-center gap-[var(--space-lg)]">
-              <button type="button" className="btn btn-danger" onClick={async () => { const r = await call("DELETE", "/account"); if (r.ok) { setMessage(t("acct.erased")); setView({ kind: "out", badLink: false }); } else setMessage(errorText(t, r.error)); }}>{t("acct.eraseYes")}</button>
+              <button type="button" className="btn btn-danger" onClick={async () => { const r = await call("DELETE", "/account"); if (r.ok) { writeSignedIn(null); setMessage(t("acct.erased")); setView({ kind: "out", badLink: false }); } else setMessage(errorText(t, r.error)); }}>{t("acct.eraseYes")}</button>
               <button type="button" className="btn btn-secondary" onClick={() => setConfirmErase(false)}>{t("acct.cancel")}</button>
             </p>
           ) : (

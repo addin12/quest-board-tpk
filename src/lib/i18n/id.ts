@@ -408,6 +408,7 @@ export const id: Record<MsgKey, string> = {
   "quiz.none": "Belum ada game yang cocok dengan semua jawabanmu. Jawab \"Sama saja\" pada satu pertanyaan, atau lihat semua game.",
   "quiz.see": "Lihat {n} game",
   "quiz.seeAll": "Lihat semua game",
+  "nav.signedInAs": "Masuk sebagai {name}",
   "game.report": "Laporkan iklan ini",
   "game.contactFailed": "Nomor belum bisa diambil sekarang. Coba lagi sebentar lagi.",
   "game.contactBusy": "Sambungan ini sudah meminta banyak nomor. Coba lagi satu jam lagi.",

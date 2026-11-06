@@ -346,3 +346,10 @@ The agent's wording; `{n}` and `{date}` are filled in by the site; `a|b` is sing
 | `quiz.none` | Belum ada game yang cocok dengan semua jawabanmu. Jawab 'Sama saja' pada satu pertanyaan, atau lihat semua game. | |
 | `quiz.see` | Lihat {n} game | |
 | `quiz.seeAll` | Lihat semua game | |
+
+## The signed-in bar (added 2026-11-06, ADR-57)
+
+| Key | Indonesian now | Your correction |
+|---|---|---|
+| `nav.signedInAs` | Masuk sebagai {name} | |
+| `footer.account` (now also the bar's button) | Akunmu | |

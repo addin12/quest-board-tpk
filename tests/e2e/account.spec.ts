@@ -318,3 +318,61 @@ test("in Bahasa Indonesia, on a phone, nothing scrolls sideways", async ({ page 
   await expect(page.getByTestId("game-form")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
+
+test("the top bar says who is signed in and leads to the account; it follows sign-out and an ended session, and a signed-out visitor makes no request for it", async ({ page }) => {
+  const world = await newWorld(page);
+  const asked: string[] = [];
+  page.on("request", (r) => { if (r.url().includes("/api/me")) asked.push(r.url()); });
+  const bar = page.getByTestId("signed-in-bar");
+  const axeViolations = async () => (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze()).violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).slice(0, 3).join(" | ")}`);
+
+  await page.goto("/en/games/");
+  await expect(bar).toHaveCount(0);
+  expect(asked, "no note of a sign-in in this browser: no request").toEqual([]);
+
+  await world.signInAs("sari@example.com");
+  await page.goto("/en/account/"); // the account page is where the browser is told who is signed in
+  await expect(page.getByTestId("signed-in-as")).toBeVisible();
+  await page.goto("/en/games/");
+  await expect(bar).toContainText("Signed in as sari@example.com"); // no profile yet: the address
+  await expect(bar.getByRole("link", { name: "Your account" })).toHaveAttribute("href", "/en/account/");
+
+  await page.goto("/en/account/");
+  await fillProfile(page);
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.getByTestId("message")).toBeVisible();
+  await expect(bar, "the display name once there is a profile").toContainText("Signed in as Sari Dewanti");
+  await page.goto("/id/games/");
+  await expect(bar).toContainText("Masuk sebagai Sari Dewanti");
+  await expect(bar.getByRole("link", { name: "Akunmu" })).toHaveAttribute("href", "/id/account/");
+  for (const scheme of ["light", "dark"] as const) {
+    await page.emulateMedia({ colorScheme: scheme });
+    expect(await axeViolations(), `a page with the bar, ${scheme}`).toEqual([]);
+  }
+
+  await page.goto("/en/account/");
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page.getByRole("button", { name: "Email me a sign-in link" })).toBeVisible();
+  await expect(bar, "signing out takes the bar away").toHaveCount(0);
+
+  // a note left from a session that has ended is checked with the server and cleared
+  await page.evaluate(() => localStorage.setItem("tpk-signed-in", "Someone Else"));
+  await page.goto("/en/games/");
+  await expect(bar).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem("tpk-signed-in"))).toBeNull();
+});
+
+test("a long display name does not push the top bar sideways on a phone", async ({ page }) => {
+  const world = await newWorld(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await world.signInAs("sari@example.com");
+  await page.goto("/en/account/"); // the helper fills the English labels
+  await fillProfile(page, "Sari Dewanti Kusumawardhani Putri Anindya Maharani Widjaja");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.getByTestId("message")).toBeVisible();
+  await page.goto("/id/games/");
+  const bar = page.getByTestId("signed-in-bar");
+  await expect(bar).toContainText("Masuk sebagai Sari Dewanti");
+  await expect(bar.getByRole("link", { name: "Akunmu" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});

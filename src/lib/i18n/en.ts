@@ -407,6 +407,7 @@ export const en = {
   "quiz.none": "No listed game fits all of your answers yet. Answer Either on one question, or look at every game.",
   "quiz.see": "See {n} game|See all {n} games",
   "quiz.seeAll": "See every game",
+  "nav.signedInAs": "Signed in as {name}",
   "game.report": "Report this listing",
   "game.contactFailed": "Could not get the number just now. Try again in a moment.",
   "game.contactBusy": "This connection has asked for a lot of numbers. Try again in an hour.",

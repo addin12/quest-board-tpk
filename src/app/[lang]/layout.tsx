@@ -7,6 +7,7 @@ import { DiceMark } from "@/components/dice-mark";
 import { HeaderShell } from "@/components/header-shell";
 import { LanguageSwitcher, NavLinks } from "@/components/nav";
 import { HeaderSearch } from "@/components/header-search";
+import { SignedInBar } from "@/components/signed-in-bar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { makeT, publicMessages } from "@/lib/i18n/dict";
 import { paths } from "@/lib/hrefs";
@@ -54,6 +55,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
       <body className="overflow-x-clip max-lg:pb-[calc(var(--tabbar-h)+env(safe-area-inset-bottom))]">
         <I18nProvider lang={lang} messages={publicMessages(lang)}>
           <a href="#main" className="btn btn-primary sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50">{t("nav.skip")}</a>
+          <SignedInBar />
           <HeaderShell>
             <div className="oak-strip" />
             <div className="rule-double">
