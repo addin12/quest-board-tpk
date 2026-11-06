@@ -35,6 +35,9 @@ jobs:
         run: |
           test -f out/en/games/none/index.html
           test -f out/id/gm/none/index.html
+          test -f out/en/systems/none/index.html
+          test -f out/en/areas/none/index.html
+          ! test -f out/en/systems/cairn-2e/index.html
           ! grep -q '/none/' out/sitemap.xml
 
   e2e:

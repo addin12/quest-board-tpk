@@ -299,3 +299,50 @@ The agent's wording; `{n}` and `{date}` are filled in by the site; `a|b` is sing
 | `acct.noPicture` | Belum ada gambar | |
 | `acct.status.ended` | Sudah berakhir | |
 | `acct.noGames` (changed again) | Belum ada game. Tambahkan satu, dan langsung tampil di papan begitu disimpan. | |
+
+## Landing pages for a system and an area (added 2026-11-06, ADR-56)
+
+| Key | Indonesian now | Your correction |
+|---|---|---|
+| `land.system.title` | Game {name} di Jabodetabek | |
+| `land.system.lead` | Cari meja {name}? Para Game Master ini menjalankannya di Jabodetabek atau online. Pilih game, lalu kirim pesan ke Game Master lewat WhatsApp. | |
+| `land.area.title` | Game tabletop RPG di {name} | |
+| `land.area.lead` | Game yang dimainkan langsung di {name}. Pilih game, lalu kirim pesan ke Game Master lewat WhatsApp. | |
+| `land.allGames` | Lihat semua game, dengan filter | |
+| `land.otherSystems` | Sistem lain yang ada game-nya | |
+| `land.otherAreas` | Tempat lain yang ada game-nya | |
+
+## The beginner quiz (added 2026-11-06, ADR-56)
+
+| Key | Indonesian now | Your correction |
+|---|---|---|
+| `quiz.link` | Bingung mau main apa? Jawab lima pertanyaan | |
+| `quiz.title` | Game mana yang cocok untukmu? | |
+| `quiz.lead` | Lima pertanyaan singkat, tanpa jawaban salah. Di bawahnya ada game terpasang yang cocok. | |
+| `quiz.q.played` | Pernah main tabletop RPG sebelumnya? | |
+| `quiz.q.story` | Cerita seperti apa yang menarik? | |
+| `quiz.q.style` | Apa yang paling kamu suka saat main? | |
+| `quiz.q.where` | Mau main di mana? | |
+| `quiz.q.format` | Berapa lama mainnya? | |
+| `quiz.a.new` | Belum, aku masih baru | |
+| `quiz.a.played` | Sudah pernah | |
+| `quiz.a.horror` | Seram dan menegangkan | |
+| `quiz.a.fantasy` | Pahlawan dan monster | |
+| `quiz.a.mystery` | Menyelidiki dan membongkar rahasia | |
+| `quiz.a.scifi` | Luar angkasa dan masa depan | |
+| `quiz.a.comedy` | Ringan dan lucu | |
+| `quiz.a.cozy` | Hangat dan santai | |
+| `quiz.a.surprise` | Kejutkan aku | |
+| `quiz.a.roleplay` | Berbicara sebagai karakter | |
+| `quiz.a.combat` | Pertarungan dan taktik | |
+| `quiz.a.both` | Sedikit dari keduanya | |
+| `quiz.a.online` | Online | |
+| `quiz.a.inPerson` | Bertemu langsung | |
+| `quiz.a.either` | Sama saja | |
+| `quiz.a.oneShot` | Satu malam | |
+| `quiz.a.campaign` | Cerita panjang dalam banyak sesi | |
+| `quiz.result` | Game yang cocok | |
+| `quiz.count` | {n} game cocok dengan jawabanmu | |
+| `quiz.none` | Belum ada game yang cocok dengan semua jawabanmu. Jawab 'Sama saja' pada satu pertanyaan, atau lihat semua game. | |
+| `quiz.see` | Lihat {n} game | |
+| `quiz.seeAll` | Lihat semua game | |

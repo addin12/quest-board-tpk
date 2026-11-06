@@ -40,6 +40,7 @@ export default async function HowItWorksPage({ params }: PageProps<"/[lang]/how-
         <section className="lg:col-span-6" aria-labelledby="players-h">
           <h2 id="players-h">{t("how.players")}</h2>
           {list(player)}
+          <p className="mt-[var(--space-xl)]"><Link href={paths.quiz(lang)} className="btn btn-secondary">{t("quiz.link")}</Link></p>
         </section>
 
         <section className="lg:col-span-6" aria-labelledby="gms-h">

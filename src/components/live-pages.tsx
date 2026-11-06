@@ -65,7 +65,7 @@ export function HomeSections({ initial, covers }: { initial: HomeModel; covers: 
             <div className="lg:col-span-5">
               <h2 id="new-h">{t("home.newTitle")}</h2>
               <p className="lead mt-[var(--space-md)]">{t("home.newBody")}</p>
-              <p className="mt-[var(--space-xl)]"><Link href={paths.games(lang, "?level=beginner")} className="btn btn-primary">{t("home.moreBeginner")}</Link></p>
+              <p className="mt-[var(--space-xl)] flex flex-wrap items-center gap-x-[var(--space-lg)] gap-y-[var(--space-sm)]"><Link href={paths.games(lang, "?level=beginner")} className="btn btn-primary">{t("home.moreBeginner")}</Link><Link href={paths.quiz(lang)} className="btn btn-secondary">{t("quiz.link")}</Link></p>
             </div>
             <ul className="ruled lg:col-span-6 lg:col-start-7">
               {beginner.map((g) => <li key={g.id}><GameRow game={g} t={t} lang={lang} /></li>)}

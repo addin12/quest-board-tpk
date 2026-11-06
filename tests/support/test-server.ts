@@ -11,6 +11,7 @@
 //   POST /__test/sql {sql, args}  runs SQL on the world's database (to plant a state the API itself would refuse)
 //   POST /__test/clock {ms}       moves the world's clock
 //   POST /__test/session {email}  a session cookie for that email without the mail round trip
+//   GET  /__test/enter?email=&to=  for trying the site by hand: signs the browser in as that address (no mail, no link that expires) and goes on to `to`
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { createServer, type IncomingMessage } from "node:http";
@@ -126,6 +127,19 @@ createServer(async (req, res) => {
         case "/__test/exec": sql(String(body.sql)).run(...(body.args ?? [])); return send(200, { ok: true });
         case "/__test/clock": world.clock.ms = Number(body.ms); return send(200, { ok: true });
         case "/__test/hook": world.env.deployHook = body.on ? "https://hook.example/deploy" : ""; return send(200, { ok: true });
+        // For a person trying the site by hand: opening /__test/enter?email=gm@example.com&to=/en/account/ signs the browser in as that address (no mail, no
+        // link that expires) and goes on to `to`. owner@example.com is the site's owner and an admin.
+        case "/__test/enter": {
+          const email = url.searchParams.get("email") ?? "";
+          const to = url.searchParams.get("to") ?? "/en/";
+          if (!email.includes("@") || !to.startsWith("/") || to.startsWith("//")) return send(400, { error: "bad_request" });
+          const mailsBefore = world.mails.length;
+          const cookie = await world.signIn(email);
+          world.mails.length = mailsBefore;
+          const worldId = [...worlds].find(([, w]) => w === world)?.[0] ?? "";
+          res.writeHead(302, { Location: to, "Set-Cookie": [`tpk_session=${cookie}; Path=/; HttpOnly; SameSite=Lax`, `tpk_world=${worldId}; Path=/; SameSite=Lax`] }).end();
+          return;
+        }
         case "/__test/session": {
           const mailsBefore = world.mails.length; // the sign-in mail is not part of what a test measures
           const cookie = await world.signIn(String(body.email));

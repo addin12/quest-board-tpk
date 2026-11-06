@@ -6,7 +6,7 @@ import { GAME as GAME_FIXTURE, PROFILE } from "../support/worker-env.ts";
 
 // The public site against the demo data (data/sample.json), as a player uses it.
 const GAME = "/en/games/mercusuar-di-pulau-kabut-0m01/";
-const PAGES = ["/en/", "/en/games/", GAME, "/en/gm/raka-pratama-0r01/", "/en/gms/", "/en/how-it-works/", "/en/list-your-game/", "/id/", "/id/games/", "/id/list-your-game/", "/en/games/a-game-that-ended-9z01/", "/id/gm/a-gm-who-left-9z02/", "/en/games/doskvol-setelah-gelap-0d02/"];
+const PAGES = ["/en/", "/en/games/", GAME, "/en/gm/raka-pratama-0r01/", "/en/gms/", "/en/how-it-works/", "/en/list-your-game/", "/id/", "/id/games/", "/id/list-your-game/", "/en/games/a-game-that-ended-9z01/", "/id/gm/a-gm-who-left-9z02/", "/en/games/doskvol-setelah-gelap-0d02/", "/en/find-a-game/", "/id/find-a-game/", "/en/systems/call-of-cthulhu-7e/", "/en/areas/depok/", "/id/areas/depok/"];
 
 // The pages ask the API what is true now (/api/live) and for a phone number on a tap (/api/contact): each test gets a backend holding the same demo data.
 test.beforeEach(async ({ page }) => { await newWorld(page, { demo: true }); });
@@ -633,4 +633,82 @@ test("a Game Master who plays only online reads 'Hanya online' on the Indonesian
   await expect(page.getByText("Online only")).toHaveCount(0);
   await page.goto("/en/gms/");
   await expect(page.getByRole("link").filter({ hasText: "Nadia Putri" })).toContainText("Online only");
+});
+
+test("a landing page for a system with games: the games, the way on to the filters, the other systems, the sitemap; none for a system with no game or a typed-in name", async ({ page }) => {
+  await page.goto("/en/systems/call-of-cthulhu-7e/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Call of Cthulhu 7e games in Jabodetabek");
+  const games = page.getByTestId("landing-games");
+  await expect(games.getByRole("link", { name: /Mercusuar di Pulau Kabut/ })).toBeVisible();
+  await expect(page.getByTestId("landing-count")).toContainText("listed");
+  await expect(page.getByRole("link", { name: "See every game, with filters" })).toHaveAttribute("href", "/en/games/?system=Call+of+Cthulhu+7e");
+  const others = page.getByTestId("landing-others");
+  await expect(others.getByRole("link", { name: "Cairn 2e" })).toHaveAttribute("href", "/en/systems/cairn-2e/");
+  await expect(others.getByRole("link", { name: "Call of Cthulhu 7e" })).toHaveCount(0);
+  const ld = (await page.locator('script[type="application/ld+json"]').allInnerTexts()).join("");
+  expect(ld).toContain("BreadcrumbList");
+  expect(ld).toContain("Mercusuar di Pulau Kabut");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/en\/systems\/call-of-cthulhu-7e\/$/);
+  await expect(page.locator('link[rel="alternate"][hreflang="id"]')).toHaveAttribute("href", /\/id\/systems\/call-of-cthulhu-7e\/$/);
+
+  const sitemap = await (await page.request.get("/sitemap.xml")).text();
+  expect(sitemap).toContain("/en/systems/call-of-cthulhu-7e/");
+  expect(sitemap).toContain("/id/areas/depok/");
+  expect(sitemap).toContain("/en/find-a-game/");
+  expect(sitemap, "a system with no game has no page, so none in the sitemap").not.toContain("/systems/nimble-5e/");
+
+  for (const gone of ["/en/systems/nimble-5e/", "/en/systems/not-a-system/", "/en/areas/jakarta/", "/en/areas/online-only/"]) {
+    expect((await page.request.get(gone)).status(), gone).toBe(404);
+  }
+});
+
+test("a landing page for an area names the games played there, in Indonesian too", async ({ page }) => {
+  await page.goto("/en/areas/depok/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Tabletop RPG games in Depok");
+  await expect(page.getByTestId("landing-games").getByRole("link", { name: /Mercusuar di Pulau Kabut/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Bogor", exact: true })).toHaveAttribute("href", "/en/areas/bogor/");
+  await page.goto("/id/areas/depok/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Game tabletop RPG di Depok");
+  await expect(page.getByRole("link", { name: "Lihat semua game, dengan filter" })).toHaveAttribute("href", "/id/games/");
+  await page.goto("/id/systems/call-of-cthulhu-7e/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Game Call of Cthulhu 7e di Jabodetabek");
+});
+
+test("the quiz: it opens with games to read, each answer narrows them, and the link carries the answers to the games list", async ({ page }) => {
+  await page.goto("/en/find-a-game/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Which game should you try?");
+  const count = page.getByTestId("quiz-count");
+  await expect(count).toContainText("fit your answers");
+  const total = Number(/^(\d+)/.exec((await count.innerText()).trim())![1]);
+  expect(total).toBeGreaterThan(3);
+  await expect(page.getByTestId("quiz-matches").getByRole("listitem")).toHaveCount(3); // three shown; the link goes on to all of them
+  await expect(page.getByTestId("quiz-see")).toHaveAttribute("href", "/en/games/?level=beginner");
+
+  await page.getByRole("radio", { name: "Scary and tense" }).check();
+  await expect(page.getByTestId("quiz-see")).toHaveAttribute("href", "/en/games/?genre=horror&level=beginner");
+  const narrowed = Number(/^(\d+)/.exec((await count.innerText()).trim())![1]);
+  expect(narrowed).toBeLessThan(total);
+
+  await page.getByRole("radio", { name: "Yes, I have" }).check();
+  await expect(page.getByTestId("quiz-see")).toHaveAttribute("href", "/en/games/?genre=horror");
+  await page.getByRole("radio", { name: "Online" }).check();
+  await page.getByRole("radio", { name: "Fights and tactics" }).check();
+  await page.getByRole("radio", { name: "A longer story over many sessions" }).check();
+  await expect(page.getByTestId("quiz-see")).toHaveAttribute("href", "/en/games/?genre=horror&style=combat-heavy&format=campaign&where=online");
+  await expect(count).toContainText(/No listed game fits all of your answers|fit/);
+
+  const href = await page.getByTestId("quiz-see").getAttribute("href");
+  await page.getByTestId("quiz-see").click();
+  await expect(page).toHaveURL(new RegExp(href!.replace(/[?]/g, "\\?")));
+});
+
+test("the quiz in Bahasa Indonesia, and the ways in from the home page and How it works", async ({ page }) => {
+  await page.goto("/id/find-a-game/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Game mana yang cocok untukmu?");
+  await expect(page.getByRole("radio", { name: "Seram dan menegangkan" })).toBeVisible();
+  await expect(page.getByTestId("quiz-count")).toContainText("game cocok dengan jawabanmu");
+  await page.goto("/en/how-it-works/");
+  await expect(page.getByRole("link", { name: "Not sure what to play? Answer five questions" })).toHaveAttribute("href", "/en/find-a-game/");
+  await page.goto("/en/");
+  await expect(page.getByRole("link", { name: "Not sure what to play? Answer five questions" })).toHaveAttribute("href", "/en/find-a-game/");
 });

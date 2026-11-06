@@ -15,7 +15,7 @@ import { ZONES, type GameFormat, type GameLanguage, type GameRecord, type Lang, 
 import { useI18n } from "../i18n-provider";
 import { SearchPicker } from "../search-picker";
 import { GameCard, languageLabel, placesLabel, priceLabel } from "../ui";
-import { Choice, Ticks } from "./choices";
+import { Choice, Ticks } from "../choices";
 import { Check, Field, PictureField, errorText, field } from "./fields";
 
 const EMPTY: GameFormValues = {

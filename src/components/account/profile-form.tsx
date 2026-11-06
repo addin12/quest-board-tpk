@@ -11,7 +11,7 @@ import type { GmRecord, SiteGm } from "@/lib/types";
 import { useI18n } from "../i18n-provider";
 import { SearchPicker } from "../search-picker";
 import { GmCard } from "../ui";
-import { Choice, Ticks } from "./choices";
+import { Choice, Ticks } from "../choices";
 import { Check, Field, PictureField, errorText, field } from "./fields";
 
 type ProfileValues = { name: string; bio: string; city: string; systems: string[]; whatsapp: string; discord: string; instagram: string; photoKey: string; consent: boolean };

@@ -101,6 +101,8 @@ async function main() {
       const base = sharp(buf).rotate().resize(1080, 1350, { fit: "cover", position: "attention" });
       await base.clone().webp({ quality: 80 }).toFile(path.join(MEDIA, "covers", `${g.id}.webp`));
       await base.clone().resize(480, 600).webp({ quality: 78 }).toFile(path.join(MEDIA, "covers", `${g.id}-sm.webp`));
+      // the one-line rows of the phone lists show a cover 80-96 px wide (twice that on a sharp screen): 240 px is plenty, about a third of the -sm file
+      await base.clone().resize(240, 300).webp({ quality: 78 }).toFile(path.join(MEDIA, "covers", `${g.id}-xs.webp`));
       covers.set(g.id, `/media/covers/${g.id}.webp`);
     } catch (err) {
       console.warn(`[data] warning: the cover of "${g.title}" is not a readable image: ${err.message}`);

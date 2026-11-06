@@ -282,6 +282,30 @@ test("the account page is kept out of search results and has no accessibility pr
   await page.getByRole("button", { name: "Add a game" }).click();
   await expect(page.getByTestId("game-form")).toBeVisible();
   expect(await check()).toEqual([]);
+  await page.getByTestId("game-form").getByRole("button", { name: "Cancel" }).click();
+  await page.getByRole("button", { name: "Edit profile" }).click();
+  await expect(page.getByTestId("profile-form")).toBeVisible();
+  expect(await check(), "the profile form").toEqual([]);
+  // the same three views in the dark stock (the colours are separate tokens: muted text on the tinted frames, the quiet status text)
+  await page.emulateMedia({ colorScheme: "dark" });
+  expect(await check(), "the profile form, dark").toEqual([]);
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await expect(page.getByTestId("my-games")).toBeVisible();
+  expect(await check(), "the account page, dark").toEqual([]);
+  await page.getByRole("button", { name: "Add a game" }).click();
+  await expect(page.getByTestId("game-form")).toBeVisible();
+  expect(await check(), "the game form, dark").toEqual([]);
+});
+
+test("a new Game Master's first visit, the profile form, has no accessibility problems in either stock", async ({ page }) => {
+  const world = await newWorld(page);
+  await world.signInAs("baru@example.com");
+  await page.goto("/en/account/");
+  await expect(page.getByTestId("profile-form")).toBeVisible();
+  const check = async () => (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze()).violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).slice(0, 3).join(" | ")}`);
+  expect(await check()).toEqual([]);
+  await page.emulateMedia({ colorScheme: "dark" });
+  expect(await check()).toEqual([]);
 });
 
 test("in Bahasa Indonesia, on a phone, nothing scrolls sideways", async ({ page }) => {

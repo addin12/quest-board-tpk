@@ -7,7 +7,7 @@ import { checkGame, checkGm, hasErrors } from "../../src/lib/checks.ts";
 import { askContact, contactMessage, messageLang, waLink } from "../../src/lib/contact.ts";
 import { formatDay, formatIdr, formatPhone, formatShortDay, formatWhen, initialsOf } from "../../src/lib/format.ts";
 import { normalizePhone } from "../../worker/src/rules.ts";
-import { smallCover } from "../../src/lib/hrefs.ts";
+import { rowCover, smallCover } from "../../src/lib/hrefs.ts";
 import { SYSTEM_COVER_FILES, systemCover } from "../../src/lib/system-covers.ts";
 import { SYSTEMS } from "../../src/lib/systems.ts";
 import { listingTips } from "../../src/lib/listing-tips.ts";
@@ -392,6 +392,11 @@ test("tiles load the small copy of a system or genre picture, and every one has 
   assert.equal(smallCover("/images/genres/horror.webp"), "/images/genres/horror-sm.webp");
   assert.equal(smallCover("/media/covers/abc.webp"), "/media/covers/abc-sm.webp");
   assert.equal(smallCover("/images/covers/demo.svg"), "/images/covers/demo.svg", "the demo covers have one size");
+  // the rows of the phone lists use the smallest copy of a listing cover; pictures that have no such copy keep the -sm one
+  assert.equal(rowCover("/media/covers/abc.webp"), "/media/covers/abc-xs.webp");
+  assert.equal(rowCover("/images/systems/daggerheart.webp"), "/images/systems/daggerheart-sm.webp");
+  assert.equal(rowCover("/images/covers/demo.svg"), "/images/covers/demo.svg");
+  assert.equal(rowCover("/api/img/covers/abc12345.webp"), "/api/img/covers/abc12345.webp", "a picture straight from the backend has one size");
   for (const f of SYSTEM_COVER_FILES) assert.ok(existsSync(new URL(`../../public/images/systems/${f}-sm.webp`, import.meta.url)), `${f}-sm.webp is missing: run npm run tiles`);
 });
 
@@ -546,4 +551,36 @@ test("the steps of the game form: each step names what it is missing, in the ser
   assert.deepEqual(stepErrors({ ...ok, consent: false }, 4), { consent: "required" });
   assert.equal(firstStepWith({ safetyTools: "required", cities: "invalid" }), 1, "the earliest step with a problem opens");
   assert.equal(firstStepWith({}), null);
+});
+
+// ── landing pages (ADR-56) ──────────────────────────────────────────────────────────────────
+test("landing pages: a page for each curated system or area that has a game now, in a stable address, never for a typed-in name", async () => {
+  const { areaPages, slugOfName, systemPages } = await import("../../src/lib/landing.ts");
+  const { AREAS } = await import("../../src/lib/areas.ts");
+  assert.equal(slugOfName("Mörk Borg"), "mork-borg");
+  assert.equal(slugOfName("Dungeons & Dragons 5e 2014"), "dungeons-and-dragons-5e-2014");
+  assert.equal(slugOfName("CBR+PNK"), "cbr-pnk");
+  assert.equal(slugOfName("Jakarta Selatan"), "jakarta-selatan");
+  for (const list of [SYSTEMS, AREAS] as readonly (readonly string[])[]) {
+    const slugs = list.map(slugOfName);
+    assert.equal(new Set(slugs).size, slugs.length, "no two names share an address");
+    assert.ok(slugs.every((s) => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(s)), "every address is plain");
+  }
+
+  const base = games()[0]!;
+  const at = Date.parse("2026-10-05T00:00:00Z");
+  const g = (over: Partial<GameView>): GameView => ({ ...base, id: `id-${Math.random()}`, expiresAt: "2026-12-01T00:00:00.000Z", locationType: "in_person", city: "Depok", cities: ["Depok"], system: "Cairn 2e", ...over });
+  const list = [
+    g({ system: "Cairn 2e" }),
+    g({ system: "Cairn 2e", cities: ["Bogor", "Depok"], city: "Bogor" }),
+    g({ system: "Pathfinder 2e", locationType: "online", cities: [], city: "" }),
+    g({ system: "Pathfinder 2e", expiresAt: "2026-10-01T00:00:00.000Z" }), // ended: not counted
+    g({ system: "My Own Homebrew", cities: ["Bekasi"], city: "Bekasi" }), // typed in by a Game Master: never a page
+  ];
+  const systems = systemPages(list, at);
+  assert.deepEqual(systems.map((p) => [p.name, p.slug, p.games.length]), [["Cairn 2e", "cairn-2e", 2], ["Pathfinder 2e", "pathfinder-2e", 1]], "most games first; ended and typed-in systems leave no page");
+  const areas = areaPages(list, at);
+  assert.deepEqual(areas.map((p) => [p.name, p.games.length]), [["Depok", 2], ["Bekasi", 1], ["Bogor", 1]].sort((a, b) => (b[1] as number) - (a[1] as number) || String(a[0]).localeCompare(String(b[0]))), "an in-person game is on the page of each place it names; online ones on none");
+  assert.deepEqual(systemPages([], at), [], "a new site has no landing pages");
+  assert.deepEqual(areaPages([g({ locationType: "online", cities: [], city: "" })], at), []);
 });

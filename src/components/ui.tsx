@@ -7,7 +7,7 @@ import type { Lang, SiteGm } from "@/lib/types";
 import { genreLabelKey, isGenre } from "@/lib/categories";
 import { ONLINE_ONLY } from "@/lib/areas";
 import { formatIdr, formatShortDay, initialsOf } from "@/lib/format";
-import { paths, smallCover } from "@/lib/hrefs";
+import { paths, rowCover, smallCover } from "@/lib/hrefs";
 import { Icon } from "./icon";
 
 // Presentational pieces shared by server pages and the client-side games list. Anything that needs words takes `t`.
@@ -164,7 +164,7 @@ export function BrowseCard({ name, count, href, about, t, level = 3 }: { name: s
 export function GameRow({ game, t, lang }: { game: GameView; t: T; lang: Lang }) {
   return (
     <Link href={paths.game(lang, game.slug)} className="bill !h-auto flex-row items-center gap-[var(--space-lg)] py-[var(--space-lg)]">
-      <Cover src={game.cover ? smallCover(game.cover) : null} seed={game.title} className="aspect-[4/5] w-20 shrink-0 sm:w-24" sizes="96px" />
+      <Cover src={game.cover ? rowCover(game.cover) : null} seed={game.title} className="aspect-[4/5] w-20 shrink-0 sm:w-24" sizes="96px" />
       <div className="min-w-0 flex-1">
         <h3 className="bill-title">{game.title}</h3>
         <p className="mt-[var(--space-2xs)] font-medium">{game.system}</p>
