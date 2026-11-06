@@ -30,9 +30,9 @@ export function AccountApp() {
   const [view, setView] = useState<View>({ kind: "loading" });
   const [message, setMessage] = useState("");
   const [mode, setMode] = useState<Mode>({ kind: "home" });
-  const [moved, setMoved] = useState(false);
   const [confirmErase, setConfirmErase] = useState(false);
   const top = useRef<HTMLDivElement>(null);
+  const shown = useRef<string | null>(null); // which view of the page was on screen last, to see when it changes
 
   const load = useCallback(async (badLink = false) => {
     const r = await call<Me>("GET", "/me");
@@ -51,18 +51,30 @@ export function AccountApp() {
     void call<{ email: string }>("POST", "/login/peek", { token: m[1] }).then((r) => (r.ok ? setView({ kind: "confirm", token: m[1]!, email: r.data.email }) : load(true)));
   }, [load]);
 
-  // A form opening in place of the page, or the page coming back with its message, starts at the top of the account (not on the first paint).
-  useEffect(() => { if (moved) top.current?.scrollIntoView({ block: "start" }); }, [mode, moved]);
+  // The views of a signed-in page: the first visit's profile form, the page itself, the profile form, a game's form. When one replaces another the button
+  // that was pressed is gone, so focus would fall to the start of the document: it goes to the new view's heading instead, and the view starts at the top (ADR-59).
+  // Not on the first paint, and not for an action that stays on the same view (marking a game full keeps focus on its button).
+  const screen = view.kind === "in" ? (view.me.profile ? mode.kind : "first") : "";
+  useEffect(() => {
+    const box = top.current;
+    if (!box || !screen) return;
+    const before = shown.current;
+    shown.current = screen;
+    if (before === null || before === screen) return;
+    box.scrollIntoView({ block: "start" });
+    const heading = box.querySelector<HTMLElement>("h2");
+    if (heading) { heading.tabIndex = -1; heading.style.outline = "none"; heading.focus({ preventScroll: true }); }
+  }, [screen]);
+  // A message from an action that stayed on the same view (saved, extended, removed) is brought into view if it is off screen.
+  useEffect(() => { if (message) document.querySelector('[data-testid="message"]')?.scrollIntoView({ block: "nearest" }); }, [message]);
 
   function open(next: Mode) {
     setMessage("");
-    setMoved(true);
     setMode(next);
   }
 
   async function after(note: string) {
     setMessage(note);
-    setMoved(true);
     setMode({ kind: "home" });
     setConfirmErase(false);
     await load();

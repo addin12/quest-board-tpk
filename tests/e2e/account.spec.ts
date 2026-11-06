@@ -378,3 +378,77 @@ test("a long display name does not push the top bar sideways on a phone", async 
   await expect(bar.getByRole("link", { name: "Akunmu" })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
+
+test("the profile form works from the keyboard: focus follows the page, the answers are reachable in order, Other adds a system without sending the form", async ({ page }) => {
+  const world = await newWorld(page);
+  await world.signInAs("sari@example.com");
+  await page.goto("/en/account/");
+  await fillProfile(page);
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.getByTestId("message")).toBeVisible();
+  const puts: string[] = [];
+  page.on("request", (r) => { if (r.method() === "PUT" && r.url().endsWith("/api/profile")) puts.push(r.url()); });
+  const focused = page.locator(":focus");
+
+  // opening the form by keyboard: focus goes to the form's heading, not to the page's start
+  await page.getByRole("button", { name: "Edit profile" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { name: "Edit your profile" })).toBeFocused();
+
+  // the order a person tabs through: header, about you, how to reach you, agreement, save (the area is one stop: arrows move inside it)
+  for (const name of [/^Cancel$/, /^Display name$/, /^Short bio/, /Choose a picture/, /^Depok$/, /^Add a system$/, /^WhatsApp number$/, /^Discord/, /^Instagram/, /I agree that my display name/, /^Save profile$/]) {
+    await page.keyboard.press("Tab");
+    await expect(focused).toHaveAccessibleName(name);
+  }
+
+  // the area: arrow keys move the answer
+  await page.getByRole("radio", { name: "Depok", exact: true }).focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("radio", { name: "Tangerang", exact: true })).toBeChecked();
+  await page.keyboard.press("ArrowUp");
+  await expect(page.getByRole("radio", { name: "Depok", exact: true })).toBeChecked();
+
+  // the systems: type, arrow, Enter picks and ticks it
+  const add = page.getByLabel("Add a system");
+  await add.focus();
+  await page.keyboard.type("cairn");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("checkbox", { name: "Cairn 2e" })).toBeChecked();
+  await expect(page.getByText("Pick up to 10: 1 picked.")).toBeVisible();
+  expect(puts, "Enter in the search picks, it does not send the form").toEqual([]);
+
+  // Other: focus moves to the name, Enter adds it and goes back to the search, Escape gives up
+  await page.keyboard.type("zzzzzz");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  const other = page.getByLabel("Name of the system");
+  await expect(other).toBeFocused();
+  await page.keyboard.type("Homebrew Noir");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("checkbox", { name: "Homebrew Noir" })).toBeChecked();
+  await expect(other).toHaveCount(0);
+  await expect(add).toBeFocused();
+  expect(puts, "Enter in the name adds it, it does not send the form").toEqual([]);
+  await page.keyboard.type("zzzzzz");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  await expect(other).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(other).toHaveCount(0);
+  await expect(add).toBeFocused();
+
+  // Save by keyboard, and the page comes back with focus on its first heading
+  await page.getByLabel("WhatsApp number", { exact: true }).focus();
+  await page.keyboard.press("Enter"); // Enter in a field sends the form
+  await expect(page.getByTestId("message")).toContainText("Saved");
+  expect(puts.length).toBe(1);
+  await expect(page.getByRole("heading", { name: "Your games" })).toBeFocused();
+
+  // and the game form: opened by keyboard, focus is on its heading and the next stop is its Cancel
+  await page.getByRole("button", { name: "Add a game" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { name: "A new game" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(focused).toHaveAccessibleName("Cancel");
+});

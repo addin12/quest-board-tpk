@@ -48,6 +48,13 @@ export function ProfileForm({ profile, heading, lead, openGames, onSaved, onCanc
     setV((old) => (old.systems.includes(name) || old.systems.length >= MAX_GM_SYSTEMS ? old : { ...old, systems: [...old.systems, name] }));
   }
 
+  /** Closes the "name of the system" input (keeping what was typed when `add`) and puts focus back on the search it came from. */
+  function finishOther(add: boolean) {
+    if (add && other) addSystem(other);
+    setOther(null);
+    requestAnimationFrame(() => document.getElementById("p-systems")?.focus());
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -109,9 +116,9 @@ export function ProfileForm({ profile, heading, lead, openGames, onSaved, onCanc
                 <div className="min-w-0 flex-1 basis-56">
                   <label htmlFor="p-system-other" className="mb-[var(--space-2xs)] block text-sm text-ink-2">{t("acct.f.systemsOther")}</label>
                   <input id="p-system-other" ref={otherInput} className="input" value={other} maxLength={60} onChange={(e) => setOther(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSystem(other); setOther(null); } }} />
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); finishOther(true); } else if (e.key === "Escape") { e.preventDefault(); finishOther(false); } }} />
                 </div>
-                <button type="button" className="btn btn-secondary" onClick={() => { addSystem(other); setOther(null); }}>{t("acct.f.systemsAddButton")}</button>
+                <button type="button" className="btn btn-secondary" onClick={() => finishOther(true)}>{t("acct.f.systemsAddButton")}</button>
               </div>
             )}
           </Ticks>

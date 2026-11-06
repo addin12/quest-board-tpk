@@ -746,3 +746,17 @@ test("the Area filter: from the address, from the panel, from an area page; it c
   await expect(page).toHaveURL(/\/en\/games\/\?place=Depok$/);
   await expect(page.getByTestId("games-count")).toHaveText("Showing 1 game");
 });
+
+test("the quiz works from the keyboard: arrow keys change an answer, the matches follow, and Tab moves on to the next question", async ({ page }) => {
+  await page.goto("/en/find-a-game/");
+  const see = page.getByTestId("quiz-see");
+  await expect(see).toHaveAttribute("href", "/en/games/?level=beginner");
+  await page.getByRole("radio", { name: "Scary and tense" }).focus();
+  await page.keyboard.press("Space");
+  await expect(see).toHaveAttribute("href", "/en/games/?genre=horror&level=beginner");
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("radio", { name: "Heroes and monsters" })).toBeChecked();
+  await expect(see).toHaveAttribute("href", "/en/games/?genre=fantasy&level=beginner");
+  await page.keyboard.press("Tab"); // out of the story question and into the next one, on its chosen answer
+  await expect(page.locator(":focus")).toHaveAccessibleName("A bit of both");
+});
