@@ -341,6 +341,8 @@ test("the top bar says who is signed in and leads to the account; it follows sig
   await fillProfile(page);
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.getByTestId("message")).toBeVisible();
+  await expect(bar, "the account page already says who is signed in: no bar there").toHaveCount(0);
+  await page.goto("/en/games/");
   await expect(bar, "the display name once there is a profile").toContainText("Signed in as Sari Dewanti");
   await page.goto("/id/games/");
   await expect(bar).toContainText("Masuk sebagai Sari Dewanti");

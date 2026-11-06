@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { call, type Me } from "@/lib/account-api";
 import { paths } from "@/lib/hrefs";
@@ -16,9 +17,11 @@ export function SignedInBar() {
   const { t, lang } = useI18n();
   const who = useSignedIn();
   const signedIn = who !== null;
+  // The account and admin pages already say who is signed in and have their own sign-out: the bar would only repeat them.
+  const own = new RegExp(`^/${lang}/(account|admin)(/|$)`).test(usePathname());
 
   useEffect(() => {
-    if (!signedIn) return;
+    if (!signedIn || own) return; // the account page asks the server itself
     let stopped = false;
     void call<Me>("GET", "/me").then((r) => {
       if (stopped) return;
@@ -26,9 +29,9 @@ export function SignedInBar() {
       else if (r.status === 401 || r.status === 403) writeSignedIn(null); // the session ended; anything else (offline, a server error) keeps what was shown
     });
     return () => { stopped = true; };
-  }, [signedIn]);
+  }, [signedIn, own]);
 
-  if (!who) return null;
+  if (!who || own) return null;
   return (
     <div className="border-b border-rule bg-paper-2" data-testid="signed-in-bar">
       <div className="wrap flex items-center justify-between gap-x-[var(--space-lg)] gap-y-[var(--space-2xs)] text-sm">
