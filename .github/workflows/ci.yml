@@ -56,6 +56,17 @@ jobs:
         timeout-minutes: 6
         continue-on-error: true
         run: npx playwright install --with-deps chromium firefox webkit
+      # A first try cut off by its time limit can leave apt half-way (the second try then failed within two seconds on 2026-11-06): finish or drop what it left first.
+      - name: Repair apt after a cut-off first try
+        if: steps.browsers.outcome != 'success'
+        timeout-minutes: 4
+        continue-on-error: true
+        run: |
+          sudo pkill -9 -x apt-get || true
+          sudo pkill -9 -x apt || true
+          sudo pkill -9 -x dpkg || true
+          sudo dpkg --configure -a || true
+          sudo apt-get install -f -y || true
       - name: Install browsers (second try)
         if: steps.browsers.outcome != 'success'
         timeout-minutes: 8
