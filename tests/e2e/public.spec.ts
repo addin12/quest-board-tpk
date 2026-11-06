@@ -693,7 +693,7 @@ test("the quiz: it opens with games to read, each answer narrows them, and the l
   await expect(page.getByTestId("quiz-see")).toHaveAttribute("href", "/en/games/?genre=horror");
   // answers that have matches: the button says how many and carries the answers to the list
   await page.getByRole("radio", { name: "In person" }).check();
-  await expect(count).toContainText("fit your answers");
+  await expect(count).toContainText(/fits? your answers/);
   await expect(page.getByTestId("quiz-see")).toHaveAttribute("href", "/en/games/?genre=horror&where=in_person");
   await expect(page.getByTestId("quiz-see")).toHaveText(/^See (all )?\d+ games?$/);
   await page.getByTestId("quiz-see").click();
