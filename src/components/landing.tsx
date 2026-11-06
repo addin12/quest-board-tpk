@@ -22,7 +22,7 @@ export function Landing({ kind, page, others, lang, t }: { kind: LandingKind; pa
   const { name, games } = page;
   const heading = t(kind === "system" ? "land.system.title" : "land.area.title", { name });
   const back = kind === "system" ? { href: paths.systems(lang), label: t("systems.title") } : { href: paths.games(lang), label: t("games.title") };
-  const more = kind === "system" ? paths.games(lang, filtersToQuery({ ...EMPTY_FILTERS, system: name })) : paths.games(lang);
+  const more = paths.games(lang, filtersToQuery(kind === "system" ? { ...EMPTY_FILTERS, system: name } : { ...EMPTY_FILTERS, place: name }));
   return (
     <div className="wrap pb-[var(--section-gap-s)] pt-[var(--space-lg)]">
       <JsonLd data={[

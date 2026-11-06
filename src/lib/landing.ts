@@ -3,7 +3,7 @@
 // curated list (systems.ts) and the fixed areas (areas.ts) get one: a name a Game Master typed in themselves never becomes a page title.
 // Pure module.
 import { AREAS } from "./areas.ts";
-import { isLive, type GameView } from "./games.ts";
+import { isLive, placesOf, type GameView } from "./games.ts";
 import { SYSTEMS } from "./systems.ts";
 
 /**
@@ -12,13 +12,10 @@ import { SYSTEMS } from "./systems.ts";
  * @example slugOfName("Dungeons & Dragons 5e 2014") // "dungeons-and-dragons-5e-2014"
  */
 export function slugOfName(name: string): string {
-  return name.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return name.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
 export type LandingPage = { name: string; slug: string; games: GameView[] };
-
-/** The places an in-person game is played (an older game names one `city`). Online games name none. */
-const placesOf = (g: Pick<GameView, "locationType" | "cities" | "city">): string[] => (g.locationType === "in_person" ? (g.cities?.length ? g.cities : [g.city]) : []);
 
 /** Most games first, then by name, so the pages that matter most come first in the sitemap and in the links between pages. */
 const ranked = (pages: LandingPage[]): LandingPage[] => pages.sort((a, b) => b.games.length - a.games.length || a.name.localeCompare(b.name));

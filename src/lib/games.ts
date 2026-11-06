@@ -1,11 +1,14 @@
 // Finding games: the filters, how they read from and write to the URL, and the sort orders. Pure module, so the
 // same code runs while the site is built (the first render lists everything) and in the browser (filtering).
+import { AREAS } from "./areas.ts";
 import { matchesWords, norm, queryWords, searchText } from "./search.ts";
 import type { GameFormat, Level, LocationType, SiteGame } from "./types.ts";
 
 export type SortKey = "soonest" | "newest" | "priceAsc";
 export type Filters = {
   q: string;
+  /** One of the areas a game is played in (src/lib/areas.ts); only in-person games have one. */
+  place: string;
   system: string;
   genre: string;
   style: string;
@@ -38,7 +41,7 @@ export function pageList(page: number, pages: number): number[] {
   return keep.flatMap((n, i) => (i > 0 && n - keep[i - 1] > 1 ? [0, n] : [n]));
 }
 
-export const EMPTY_FILTERS: Filters = { q: "", system: "", genre: "", style: "", mechanic: "", format: "", where: "", level: "", language: "", free: false, weekend: false, fresh: false, onRequest: false, sort: "soonest", page: 1 };
+export const EMPTY_FILTERS: Filters = { q: "", place: "", system: "", genre: "", style: "", mechanic: "", format: "", where: "", level: "", language: "", free: false, weekend: false, fresh: false, onRequest: false, sort: "soonest", page: 1 };
 
 const oneOf = <T extends string>(v: string | null, allowed: readonly T[], fallback: T): T => (allowed.includes(v as T) ? (v as T) : fallback);
 
@@ -47,6 +50,7 @@ export function parseFilters(search: string): Filters {
   const p = new URLSearchParams(search);
   return {
     q: (p.get("q") ?? "").slice(0, 80),
+    place: (p.get("place") ?? "").slice(0, 40),
     system: (p.get("system") ?? "").slice(0, 80),
     genre: (p.get("genre") ?? "").slice(0, 40),
     style: (p.get("style") ?? "").slice(0, 40),
@@ -67,7 +71,7 @@ export function parseFilters(search: string): Filters {
 /** The query string for filters ("" when nothing differs from the defaults). @example filtersToQuery({ ...EMPTY_FILTERS, q: "horror" }) // "?q=horror" */
 export function filtersToQuery(f: Filters): string {
   const p = new URLSearchParams();
-  (["q", "system", "genre", "style", "mechanic", "format", "where", "level", "language"] as const).forEach((k) => { if (f[k]) p.set(k, f[k]); });
+  (["q", "system", "genre", "style", "mechanic", "format", "where", "place", "level", "language"] as const).forEach((k) => { if (f[k]) p.set(k, f[k]); });
   if (f.free) p.set("free", "1");
   if (f.weekend) p.set("weekend", "1");
   if (f.fresh) p.set("new", "1");
@@ -80,10 +84,13 @@ export function filtersToQuery(f: Filters): string {
 
 /** How many filters are on (the sort doesn't count). */
 export function activeFilterCount(f: Filters): number {
-  return (["q", "system", "genre", "style", "mechanic", "format", "where", "level", "language"] as const).filter((k) => f[k]).length + (f.free ? 1 : 0) + (f.weekend ? 1 : 0) + (f.fresh ? 1 : 0) + (f.onRequest ? 1 : 0);
+  return (["q", "system", "genre", "style", "mechanic", "format", "where", "place", "level", "language"] as const).filter((k) => f[k]).length + (f.free ? 1 : 0) + (f.weekend ? 1 : 0) + (f.fresh ? 1 : 0) + (f.onRequest ? 1 : 0);
 }
 
 export type GameView = SiteGame & { gmName: string };
+
+/** The places an in-person game is played (an older game names one `city`). An online game names none. */
+export const placesOf = (g: Pick<SiteGame, "locationType" | "cities" | "city">): string[] => (g.locationType === "in_person" ? (g.cities?.length ? g.cities : [g.city]).filter(Boolean) : []);
 
 /** Games with their Game Master's name attached, soonest first. */
 export function gameViewsOf(data: { games: readonly SiteGame[]; gms: readonly { id: string; name: string }[] }): GameView[] {
@@ -171,6 +178,7 @@ export function applyFilters<G extends GameView>(games: G[], f: Filters, nowMs: 
   return sortGames(
     games.filter((g) =>
       matchesText(g, f.q) &&
+      (!f.place || placesOf(g).includes(f.place)) &&
       (!f.system || g.system === f.system) &&
       (!f.genre || g.genres.includes(f.genre)) &&
       (!f.style || g.styles.includes(f.style)) &&
@@ -199,5 +207,7 @@ export function filterOptions(games: readonly SiteGame[]) {
     genres: [...new Set(games.flatMap((g) => g.genres))],
     styles: [...new Set(games.flatMap((g) => g.styles))],
     mechanics: [...new Set(games.flatMap((g) => g.mechanics))],
+    // the areas that have a game, in the order the forms list them (anything else a game names comes after, by name)
+    places: ((all) => [...AREAS.filter((a) => all.includes(a)), ...all.filter((a) => !(AREAS as readonly string[]).includes(a)).sort((a, b) => a.localeCompare(b))])([...new Set(games.flatMap((g) => placesOf(g)))]),
   };
 }

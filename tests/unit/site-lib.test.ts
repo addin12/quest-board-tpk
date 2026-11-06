@@ -584,3 +584,23 @@ test("landing pages: a page for each curated system or area that has a game now,
   assert.deepEqual(systemPages([], at), [], "a new site has no landing pages");
   assert.deepEqual(areaPages([g({ locationType: "online", cities: [], city: "" })], at), []);
 });
+
+test("the area filter: read from and written to the address, matches the places of in-person games only, and offers the areas that have a game", async () => {
+  const { placesOf } = await import("../../src/lib/games.ts");
+  assert.deepEqual({ ...parseFilters("?place=Depok&where=in_person") }, { ...EMPTY_FILTERS, place: "Depok", where: "in_person" });
+  assert.equal(filtersToQuery({ ...EMPTY_FILTERS, place: "Jakarta Selatan" }), "?place=Jakarta+Selatan");
+  assert.equal(filtersToQuery({ ...EMPTY_FILTERS, where: "in_person", place: "Bogor", level: "beginner" }), "?where=in_person&place=Bogor&level=beginner");
+  assert.equal(activeFilterCount({ ...EMPTY_FILTERS, place: "Bogor" }), 1);
+  assert.equal(parseFilters("?place=" + "x".repeat(100)).place.length, 40, "a long value is cut");
+
+  const base = games()[0]!;
+  const g = (over: Partial<GameView>): GameView => ({ ...base, id: "x" + Math.random(), locationType: "in_person", city: "Depok", cities: ["Depok"], ...over });
+  assert.deepEqual(placesOf(g({ cities: ["Bogor", "Depok"], city: "Bogor" })), ["Bogor", "Depok"]);
+  assert.deepEqual(placesOf(g({ cities: [], city: "Bekasi" })), ["Bekasi"], "an older game names one city");
+  assert.deepEqual(placesOf(g({ locationType: "online", cities: [], city: "" })), [], "an online game has no place");
+  const list = [g({}), g({ cities: ["Bogor", "Depok"], city: "Bogor" }), g({ locationType: "online", cities: ["Depok"], city: "Depok" })];
+  assert.equal(applyFilters(list, { ...EMPTY_FILTERS, place: "Depok" }).length, 2, "the online game that still names a city is not an in-person game in it");
+  assert.equal(applyFilters(list, { ...EMPTY_FILTERS, place: "Bogor" }).length, 1);
+  assert.equal(applyFilters(list, { ...EMPTY_FILTERS, place: "Jakarta Utara" }).length, 0);
+  assert.deepEqual(filterOptions(list).places, ["Bogor", "Depok"], "in the order the forms list the areas");
+});

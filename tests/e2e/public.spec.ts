@@ -669,7 +669,7 @@ test("a landing page for an area names the games played there, in Indonesian too
   await expect(page.getByRole("link", { name: "Bogor", exact: true })).toHaveAttribute("href", "/en/areas/bogor/");
   await page.goto("/id/areas/depok/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Game tabletop RPG di Depok");
-  await expect(page.getByRole("link", { name: "Lihat semua game, dengan filter" })).toHaveAttribute("href", "/id/games/");
+  await expect(page.getByRole("link", { name: "Lihat semua game, dengan filter" })).toHaveAttribute("href", "/id/games/?place=Depok");
   await page.goto("/id/systems/call-of-cthulhu-7e/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Game Call of Cthulhu 7e di Jabodetabek");
 });
@@ -711,4 +711,38 @@ test("the quiz in Bahasa Indonesia, and the ways in from the home page and How i
   await expect(page.getByRole("link", { name: "Not sure what to play? Answer five questions" })).toHaveAttribute("href", "/en/find-a-game/");
   await page.goto("/en/");
   await expect(page.getByRole("link", { name: "Not sure what to play? Answer five questions" })).toHaveAttribute("href", "/en/find-a-game/");
+});
+
+test("the Area filter: from the address, from the panel, from an area page; it counts in-person games only", async ({ page }) => {
+  await page.goto("/en/games/?place=Depok", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("[data-ready]")).toBeAttached();
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 1 game");
+  await expect(page.getByTestId("games-list").getByRole("link", { name: /Mercusuar di Pulau Kabut/ })).toBeVisible();
+
+  // a game in two places is found by either
+  await page.goto("/en/games/?place=Jakarta%20Barat", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("[data-ready]")).toBeAttached();
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 1 game");
+  await page.goto("/en/games/?place=Jakarta%20Selatan", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("[data-ready]")).toBeAttached();
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 1 game");
+
+  // the panel: the select offers only the areas that have a game, and a pick rewrites the address
+  await page.goto("/en/games/");
+  await expect(page.locator("[data-ready]")).toBeAttached();
+  await page.getByRole("button", { name: /Filters/ }).click();
+  const area = page.getByLabel("Area", { exact: true });
+  const offered = await area.locator("option").allInnerTexts();
+  expect(offered[0]).toBe("Any");
+  expect(offered).toContain("Bogor");
+  expect(offered, "no game is in Jakarta Utara").not.toContain("Jakarta Utara");
+  await area.selectOption("Bogor");
+  await expect(page).toHaveURL(/place=Bogor/);
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 1 game");
+
+  // from an area page, the way on to the filter
+  await page.goto("/en/areas/depok/");
+  await page.getByRole("link", { name: "See every game, with filters" }).click();
+  await expect(page).toHaveURL(/\/en\/games\/\?place=Depok$/);
+  await expect(page.getByTestId("games-count")).toHaveText("Showing 1 game");
 });

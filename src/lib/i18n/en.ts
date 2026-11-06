@@ -408,6 +408,7 @@ export const en = {
   "quiz.see": "See {n} game|See all {n} games",
   "quiz.seeAll": "See every game",
   "nav.signedInAs": "Signed in as {name}",
+  "games.place": "Area",
   "game.report": "Report this listing",
   "game.contactFailed": "Could not get the number just now. Try again in a moment.",
   "game.contactBusy": "This connection has asked for a lot of numbers. Try again in an hour.",

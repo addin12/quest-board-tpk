@@ -353,3 +353,9 @@ The agent's wording; `{n}` and `{date}` are filled in by the site; `a|b` is sing
 |---|---|---|
 | `nav.signedInAs` | Masuk sebagai {name} | |
 | `footer.account` (now also the bar's button) | Akunmu | |
+
+## The Area filter (added 2026-11-06, ADR-58)
+
+| Key | Indonesian now | Your correction |
+|---|---|---|
+| `games.place` | Wilayah | |
