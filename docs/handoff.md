@@ -1,7 +1,32 @@
-# Handoff: where the project stands (2026-11-02, end of day)
+# Handoff: where the project stands (2026-11-06)
 
 For the next agent or person. Read this first, then [CLAUDE.md](../CLAUDE.md). Facts here are the ones the code and git history
 don't tell you.
+
+## State at the end of 2026-11-06 (newest; the sections below are older and kept for the record)
+
+**Everything is pushed and CI is green; the live site is built from it.** The live site still has **0 games and 0 Game Masters**, so the pages that depend on listings
+(browse blocks, the landing pages for a system or an area, the quiz's matches) are empty or absent there and show only in the local demo. Live D1 has migrations
+**0001 to 0010** (0009 `repeat_days`/`nudged_at` is unused since ADR-52). The decisions are **ADR-40 to ADR-57** in [DECISIONS.md](../DECISIONS.md); the visual rules are in
+[design.md](../design.md). Read those two and [indonesian-review.md](indonesian-review.md) first.
+
+What changed since 2026-11-02, in the order a new reader needs it:
+- **Publishing (ADR-40, 46, 48):** a Game Master's save is live at once (status `approved`); only wording the scam check dislikes is held for an admin's look. The public data carries no
+  phone number: `POST /api/contact` gives one on a tap. Pages that list games follow `/api/live` (edge-cached 20 s); an address the build does not know yet is handed from the 404 page to
+  `/view/`. Builds: an ordinary change waits up to 2 h, a listing that just went live 10 min (12 a day).
+- **Mail (ADR-44, 45, 47):** reviewers get a digest, not a mail per save; each kind of mail has its own share of the 90 a day; a merge of two accounts needs the answer of the person it merges into.
+- **Game form (ADR-49, 52, 53):** five steps beside the board's own card as a live preview; games "on request" (no fixed date, listed 90 days, Extend +30); several places per game (ten areas, `src/lib/areas.ts`); up to five genres; safety tools and content warnings required.
+- **Account page (ADR-54):** one centred column; games first, the profile beside them as the Game Masters list shows it; the profile form follows the game form (`src/components/account/`).
+- **Backups (ADR-55):** the nightly JSON now holds every table that matters (`TABLES` in `worker/src/backup.ts`, a test fails if a migration adds one that is in neither list); `npm run restore:sql -- <backup.json>` writes the restore SQL; the runbook puts D1 Time Travel first for the last 7 days.
+- **Discovery (ADR-56):** `/systems/<slug>/` and `/areas/<slug>/` exist only for curated systems and the ten areas that have a game at build time (placeholders when none; CI's empty-data build checks that); `/find-a-game/` is a five-question quiz; the phone list rows use a 240 x 300 `-xs` cover. Not done: an area filter on the games list; the system tiles still lead to the filtered list.
+- **Signed-in bar (ADR-57):** a thin line above the masthead, "Signed in as <name>" and "Your account", driven by a note in browser storage that the account page writes (`src/lib/signed-in.ts`).
+
+**Open, none blocks use (all wait for the owner):** a first real Game Master end to end on live (real sign-in email, the Turnstile checkbox the owner must click, a picture, the phone-number tap; `tests`-style checks are no substitute); the Indonesian wording of every string listed in [indonesian-review.md](indonesian-review.md); whether the places list should go beyond Jabodetabek; the merge email to the address that has a real account; Reply-To (`npm run script:deploy` and `mailReplyTo`); Outlook and Yahoo test inboxes; the GM invitation (still names The Pandemonium Kollektive); a backup copy outside Cloudflare; an outside uptime monitor (GitHub's scheduled check ran 5 times in 15 hours).
+
+**Running the site by hand:** `node scripts/e2e-build.mjs` builds the demo-data site into `out/`; then `PORT=4174 node --conditions=react-server --import ./tests/loader.mjs tests/support/test-server.ts` serves it with the real backend on an in-memory database
+(`tests/support/test-server.ts`; its header lists the helper calls). `/__test/enter?email=<address>&to=<path>` signs a browser in without mail (`owner@example.com` is the admin). Data lives in memory: a restart empties it. Playwright needs port 4174 free, so stop this server before `npx playwright test`.
+
+**Lessons from 2026-11-06:** stopping a background `npx playwright test` leaves its test server on port 4174 (kill it by port before the next run); a progress watcher reading the log of a killed run reports the old failures; Git Bash heredocs lose backslashes in regexes (use the Edit tool); a bar or note that repeats a line a page already shows breaks `getByText` strict mode in the tests; CI's browser install can stall (the second try now follows an apt repair step, untested because the stall did not recur).
 
 ## State at the end of 2026-11-02 (read this before the older sections below)
 
