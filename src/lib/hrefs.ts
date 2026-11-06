@@ -27,7 +27,7 @@ export function switchLang(pathname: string, to: Lang): string {
 }
 
 /** The smaller copy of a cover (cards and tiles use it): the build makes one for each listing cover, `npm run tiles` for each system and genre picture. The demo covers and the admin page's previews straight from the backend have only one size. */
-export const smallCover = (cover: string): string => (/^\/(media|images\/(systems|genres))\//.test(cover) ? cover.replace(/\.webp$/, "-sm.webp") : cover);
+export const smallCover = (cover: string): string => (/^\/(media|images\/systems)\//.test(cover) ? cover.replace(/\.webp$/, "-sm.webp") : cover);
 
 /** The smallest copy of a listing's cover, for the rows of an index (80-96 px wide): the build makes one for each listing cover (`-xs`, 240 px). Anything else has no copy that small: its `smallCover`. */
 export const rowCover = (cover: string): string => (/^\/media\/covers\/.+\.webp$/.test(cover) ? cover.replace(/\.webp$/, "-xs.webp") : smallCover(cover));

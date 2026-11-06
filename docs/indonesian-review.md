@@ -366,3 +366,50 @@ The agent's wording; `{n}` and `{date}` are filled in by the site; `a|b` is sing
 | `acct.removedGame` | Game sudah dihapus. | |
 | `acct.f.systemsFull` | Itu sudah {n} sistem, batas untuk satu profil. Hilangkan centang satu untuk menambah lagi. | |
 | `acct.err.fix` (changed) | Beberapa jawaban perlu diperbaiki. Ditandai di formulir. | |
+
+## Genre descriptions (added 2026-11-07, ADR-60)
+
+The short description under each genre card. Key pattern `genre.<key>.about`.
+
+| Genre | Indonesian now | Your correction |
+|---|---|---|
+| `fantasy` | Pedang, sihir, dan monster di dunia penuh keajaiban. Latar klasik: sekelompok petualang berangkat, menjelajah, lalu bertemu masalah. | |
+| `dark-fantasy` | Sihir ada, tetapi rasa takut juga ada. Para pahlawan rapuh, dunianya suram, dan setiap kemenangan ada harganya. | |
+| `horror` | Rasa takut di meja permainan: ada yang tidak beres, dan makin dekat. Ketegangan, ngeri, dan pertanyaan siapa yang selamat. | |
+| `sci-fi` | Cerita yang dibentuk sains dan teknologi: pesawat antariksa, planet asing, kecerdasan buatan, dan dampaknya bagi manusia. | |
+| `cyberpunk` | Teknologi canggih, hidup keras. Korporasi raksasa, peretas, dan tentara bayaran jalanan berebut kuasa atas kota penuh lampu neon. | |
+| `mystery` | Teka-teki yang melibatkan orang-orang. Kumpulkan petunjuk, tanyai para tersangka, dan susun kejadian yang sebenarnya. | |
+| `post-apocalyptic` | Sesudah keruntuhan. Para penyintas mencari barang bekas, berdagang, dan membangun sesuatu yang baru di antara reruntuhan. | |
+| `urban` | Sihir yang bersembunyi di kota modern: vampir di klub malam, penyihir di apartemen, dunia rahasia di samping dunia biasa. | |
+| `historical` | Bermain di waktu dan tempat yang nyata, dari kekaisaran kuno sampai beberapa dekade lalu, dengan detail zamannya membentuk cerita. | |
+| `cozy` | Taruhan kecil, suasana hangat. Memanggang, berkebun, masalah kota kecil, dan wajah-wajah ramah; game untuk bersantai. | |
+| `high-fantasy` | Epik dan megah: pahlawan besar, kejahatan purba, dan sihir yang bisa mengubah nasib seluruh kerajaan. | |
+| `gritty-fantasy` | Fantasi yang membumi. Luka tidak cepat sembuh, uang pas-pasan, dan satu pertarungan buruk bisa mengakhiri karakter. | |
+| `low-magic` | Sihir langka, aneh, dan sering ditakuti. Kecerdikan, pedang, dan nyali lebih berarti daripada mantra. | |
+| `grimdark` | Dunia suram tempat tak ada yang bersih. Pilihan yang abu-abu secara moral, korupsi, dan tawar-menawar yang pahit. | |
+| `imaginative` | Apa saja boleh: dunia aneh, aturan ala mimpi, dan ide yang tidak masuk label lain. | |
+| `supernatural` | Hantu, roh, dan hal-hal yang seharusnya tidak ada, sering bersembunyi di dunia yang tampak biasa. | |
+| `gothic-horror` | Rumah besar yang lapuk, rahasia keluarga, dan firasat celaka yang merayap. Suasana lebih penting daripada darah. | |
+| `eldritch-horror` | Ngeri kosmik: kebenaran yang terlalu besar untuk dipahami, makhluk purba dari luar bintang, dan kewarasan yang makin menipis. | |
+| `survival` | Sumber daya menipis dan setiap pilihan berarti. Cari makanan, tempat berlindung, dan sekutu sebelum keadaan berbalik melawanmu. | |
+| `modern` | Berlatar dunia seperti sekarang, dengan ponsel, mobil, dan kantor, tempat yang luar biasa bertemu kehidupan sehari-hari. | |
+| `futuristic` | Masa depan yang dekat atau jauh, dibentuk teknologi baru, lengkap dengan harapan dan masalah yang menyertainya. | |
+| `space-opera` | Petualangan megah di antara bintang: kekaisaran yang bersaing, awak yang berani, duel, dan nasib seluruh dunia. | |
+| `space-western` | Hukum rimba di antara bintang. Pos terpencil tanpa aturan, pemburu hadiah, dan awak yang bertahan hidup di tepi peradaban. | |
+| `steampunk` | Kuningan, uap, dan mekanisme jam di masa lalu alternatif, lengkap dengan kapal udara, penemu, dan alat-alat nekat. | |
+| `superhero` | Kekuatan super, kostum, dan tanggung jawab. Pahlawan dan penjahat beradu sementara hidup biasa tetap berjalan di balik topeng. | |
+| `anime` | Emosi besar, jurus berani, dan persahabatan dramatis dalam semangat anime dan manga. | |
+| `isekai` | Orang biasa tertarik masuk ke dunia lain dan harus menemukan tempatnya di sana. | |
+| `pirate` | Kapal, harta karun, dan kebebasan di laut lepas. Awak kapal, saingan, badai, dan benderamu sendiri. | |
+| `viking` | Kapal panjang, saga, dan musim dingin utara yang keras. Kehormatan, penyerbuan, dan ingatan panjang sebuah klan. | |
+| `western` | Debu, saloon, dan perbatasan yang sepi. Penegak hukum, penjahat, dan pendatang, masing-masing mengejar keadilan versinya. | |
+| `victorian` | Kabut, lampu gas, dan tata krama ketat di abad ke-19, dengan skandal dan rahasia di balik permukaan yang sopan. | |
+| `rustic` | Kehidupan desa, ladang, dan hutan. Warga setempat, adat lama, dan cerita kecil yang punya hati. | |
+| `political-intrigue` | Kekuasaan adalah hadiahnya. Aliansi, pengkhianatan, utang budi, dan bisikan di telinga yang tepat menentukan siapa menang. | |
+| `espionage` | Rahasia, identitas samaran, dan operasi senyap. Kumpulkan informasi, tetap tak terlihat, dan percaya dengan hati-hati. | |
+| `comedy` | Tawa dulu. Situasi absurd, rencana konyol yang hampir berhasil, dan meja permainan yang boleh bercanda. | |
+| `wacky` | Kekacauan dengan muka serius: aturan aneh, karakter nyeleneh, dan adegan yang tak terduga. | |
+| `heartwarming` | Kebaikan, persahabatan, dan harapan. Cerita tempat orang saling menolong dan kamu pulang dengan hati senang. | |
+| `romance` | Hubungan antar karakter menggerakkan cerita: ketertarikan, kerinduan, persaingan, dan pilihan yang diambil demi orang lain. | |
+| `battle-royale` | Banyak yang masuk, sedikit yang keluar. Para pemain atau karakter bersaing sampai tinggal sedikit yang tersisa. | |
+| `universal` | Sistem atau game yang cocok untuk genre apa pun, jadi latarnya ditentukan oleh kelompok. | |

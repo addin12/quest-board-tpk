@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, type ReactNode } from "react";
-import { GENRES, MECHANICS, STYLES, genreCover, genreLabelKey, mechanicAboutKey, mechanicLabelKey, styleAboutKey, styleLabelKey, type GenreKey, type MechanicKey, type StyleKey } from "@/lib/categories";
+import { GENRES, MECHANICS, STYLES, genreAboutKey, genreLabelKey, mechanicAboutKey, mechanicLabelKey, styleAboutKey, styleLabelKey, type GenreKey, type MechanicKey, type StyleKey } from "@/lib/categories";
 import { allGenreTiles, allMechanicTiles, allStyleTiles, allSystemTiles, gameViewsOf, type Tile } from "@/lib/games";
 import { homeModel, type HomeModel } from "@/lib/home";
 import { paths } from "@/lib/hrefs";
@@ -58,7 +58,7 @@ export function HomeSections({ initial, covers }: { initial: HomeModel; covers: 
       <BrowseGateway title={t("home.browseTitle")} items={gateway} />
 
       <BrowseSection id="systems-h" ranked cover={systemCover} title={t("home.systemsTitle")} tiles={systems} href={filterHref("system")} allHref={paths.systems(lang)} allLabel={t("home.allSystems", { n: SYSTEMS.length })} t={t} />
-      <BrowseSection id="genres-h" title={t("home.genresTitle")} tiles={genres} href={filterHref("genre")} label={(k) => t(genreLabelKey(k as GenreKey))} cover={(k) => genreCover(k as GenreKey)} allHref={paths.genres(lang)} allLabel={t("home.allGenres", { n: GENRES.length })} t={t} />
+      <BrowseSection id="genres-h" title={t("home.genresTitle")} tiles={genres} href={filterHref("genre")} label={(k) => t(genreLabelKey(k as GenreKey))} variant="card" allHref={paths.genres(lang)} allLabel={t("home.allGenres", { n: GENRES.length })} t={t} />
       {beginner.length > 0 && (
         <section className="section pt-0" aria-labelledby="new-h">
           <div className="wrap grid gap-[var(--space-2xl)] lg:grid-cols-12">
@@ -100,7 +100,7 @@ export function LiveBrowse({ kind, initialTiles, covers, children }: { kind: Bro
     return <BrowsePage {...common} cover={systemCover} search={{ label: t("browse.systemSearch"), placeholder: t("browse.systemPlaceholder") }} emptyHeading={t("systems.noGames")}>{children}</BrowsePage>;
   }
   if (kind === "genres") {
-    return <BrowsePage {...common} label={(k) => t(genreLabelKey(k as GenreKey))} cover={(k) => genreCover(k as GenreKey)}>{children}</BrowsePage>;
+    return <BrowsePage {...common} label={(k) => t(genreLabelKey(k as GenreKey))} about={(k) => t(genreAboutKey(k as GenreKey))} variant="card">{children}</BrowsePage>;
   }
   if (kind === "styles") {
     return <BrowsePage {...common} label={(k) => t(styleLabelKey(k as StyleKey))} about={(k) => t(styleAboutKey(k as StyleKey))} variant="card">{children}</BrowsePage>;

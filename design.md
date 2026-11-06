@@ -68,7 +68,7 @@ The five motions (R-19: each has a UX purpose, written here):
 2. The tavern stays at these five touches (the table above). A sixth needs a reason written here first. No wood textures, parchment filters, torn edges,
    flourishes, gold, glow, sword icons, and no illustration that is not a listing's own cover (R-22, R-23). The one exception is the d20 outline
    beside the wordmark "Quest Board" (`src/components/dice-mark.tsx`), drawn on the owner's explicit request; it is the site's only mark.
-   The genre tiles carry the pictures from StartPlaying's genres page (ADR-35, `public/images/genres`) and the system tiles the publishers' book covers (ADR-34, `public/images/systems`), both chosen on the owner's request and credited in `docs/art-credits.md`; they are the only pictures that are not a listing's own cover.
+   The system tiles carry the publishers' book covers (ADR-34, `public/images/systems`), chosen on the owner's request and credited in `docs/art-credits.md`; they are the only pictures that are not a listing's own cover. Genres, play styles and mechanics are text cards with a short description (ADR-60).
 3. Real content over templates: no three-step explainers, stat tiles or testimonial rows. How it works has its own page.
 4. Every control is at least 44 px in both directions; labels sit above fields; focus is always visible.
 5. Both languages are first class. Indonesian copy is written, not translated word for word, and can run longer: nothing may be clipped.

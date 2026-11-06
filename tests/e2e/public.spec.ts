@@ -6,7 +6,7 @@ import { GAME as GAME_FIXTURE, PROFILE } from "../support/worker-env.ts";
 
 // The public site against the demo data (data/sample.json), as a player uses it.
 const GAME = "/en/games/mercusuar-di-pulau-kabut-0m01/";
-const PAGES = ["/en/", "/en/games/", GAME, "/en/gm/raka-pratama-0r01/", "/en/gms/", "/en/how-it-works/", "/en/list-your-game/", "/id/", "/id/games/", "/id/list-your-game/", "/en/games/a-game-that-ended-9z01/", "/id/gm/a-gm-who-left-9z02/", "/en/games/doskvol-setelah-gelap-0d02/", "/en/find-a-game/", "/id/find-a-game/", "/en/systems/call-of-cthulhu-7e/", "/en/areas/depok/", "/id/areas/depok/"];
+const PAGES = ["/en/", "/en/games/", GAME, "/en/gm/raka-pratama-0r01/", "/en/gms/", "/en/how-it-works/", "/en/list-your-game/", "/id/", "/id/games/", "/id/list-your-game/", "/en/games/a-game-that-ended-9z01/", "/id/gm/a-gm-who-left-9z02/", "/en/games/doskvol-setelah-gelap-0d02/", "/en/find-a-game/", "/id/find-a-game/", "/en/genres/", "/id/genres/", "/en/styles/", "/en/systems/call-of-cthulhu-7e/", "/en/areas/depok/", "/id/areas/depok/"];
 
 // The pages ask the API what is true now (/api/live) and for a phone number on a tap (/api/contact): each test gets a backend holding the same demo data.
 test.beforeEach(async ({ page }) => { await newWorld(page, { demo: true }); });
@@ -776,4 +776,26 @@ test("an address that asks for an area with no game still shows that area in the
   await expect(page.getByTestId("games-count")).toHaveText("Showing 0 games");
   await page.getByRole("button", { name: /Filters/ }).click();
   await expect(page.getByLabel("Area", { exact: true })).toHaveValue("Jakarta Utara");
+});
+
+test("the genres page is text cards with a short description, like play styles and mechanics, with no pictures; the home block is cards too", async ({ page }) => {
+  await page.goto("/en/genres/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Genres");
+  const cards = page.locator("main a.browse-card");
+  await expect(cards).toHaveCount(40);
+  await expect(page.locator("main img"), "the genre pictures are gone").toHaveCount(0);
+  const horror = cards.filter({ has: page.getByRole("heading", { name: "Horror", exact: true }) });
+  await expect(horror).toContainText("Fear at the table");
+  await expect(horror).toContainText("5 games");
+  await expect(horror).toHaveAttribute("href", /genre=horror/);
+  await horror.click();
+  await expect(page).toHaveURL(/genre=horror/);
+
+  await page.goto("/id/genres/");
+  await expect(page.locator("main a.browse-card").filter({ has: page.getByRole("heading", { name: "Horor", exact: true }) })).toContainText("Rasa takut di meja permainan");
+
+  await page.goto("/en/");
+  const block = page.locator("#genres-h").locator("xpath=ancestor::section[1]");
+  await expect(block.locator("a.browse-card").first()).toBeVisible();
+  await expect(block.locator("img"), "no pictures in the home block either").toHaveCount(0);
 });

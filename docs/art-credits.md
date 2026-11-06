@@ -4,7 +4,7 @@ None of the pictures below is licensed for reuse. They were chosen by the owner 
 
 ## Genre pictures
 
-The 40 pictures in `public/images/genres/` are the pictures StartPlaying shows for each genre on its [genres page](https://startplaying.games/play/genres), downloaded on 2026-11-02 and cropped to 480 x 600 WebP. File names are our genre keys (`src/lib/categories.ts`); three differ from StartPlaying's: `sci-fi` is its Sci-Fi, `urban` its Urban Fantasy and `superhero` its Super Heroes. The pictures are StartPlaying's, or its stock and commissioned art; the site does not know each picture's artist. The public domain engravings that were here before (from Inside Out Library, Public Domain Mark 1.0) are in the git history before the commit "Genre tiles use StartPlaying's genre pictures".
+**Removed on 2026-11-07 (ADR-60).** The 40 genre pictures that came from StartPlaying's genres page are no longer on the site: the genres page and the home block are text cards with a description written for this site, like play styles and mechanics. Those pictures were not licensed for reuse (StartPlaying's terms keep its content for its licensors and forbid copying, republishing and automated downloading); the files stay in git history before the commit "Genres are text cards", and removing them completely would need the history rewritten.
 
 ## Game system pictures
 
@@ -14,7 +14,7 @@ The other 31 pictures are for editions StartPlaying does not list. They were fou
 
 ## If someone asks for a picture to be removed
 
-Delete the file in `public/images/genres/` or `public/images/systems/`. For a system also delete its line in `src/lib/system-covers.ts` and the tile falls back to the cover of its soonest listing. For a genre, put a replacement file of the same name (a genre tile without a picture file shows a plain colour block). Then push; the next build drops it. The file stays in git history, so if the request needs it gone completely, the history has to be rewritten too.
+Delete the file in `public/images/systems/`. Also delete its line in `src/lib/system-covers.ts` and the tile falls back to the cover of its soonest listing. Then push; the next build drops it. The file stays in git history, so if the request needs it gone completely, the history has to be rewritten too.
 
 A second pass the same day replaced 14 of those 30 with sharper pictures (2e/3e/4e covers and older books): Fate Condensed (Evil Hat's itch.io page), GURPS 3e (Warehouse 23), Call of Cthulhu 6e and Shadowrun 4e (Open Library), Nimble 5e and Savage Worlds Deluxe (Nimble Co. and Pinnacle shop pages), Mutants & Masterminds 2e, Vampire: The Requiem 1st Edition, Warhammer Fantasy Roleplay 2e (Wikipedia) and 3e, Pokémon Tabletop United (its own cover instead of StartPlaying's icon pattern), The One Ring 1e (the 2011 box; it had wrongly shown the 2nd edition cover), Classic Traveller (the Starter Edition box art, without its title) and Traveller (Mongoose 1st Edition) (its black cover, centred). On 2026-11-04 Legend of the Five Rings 4th Edition was replaced with the 721 x 935 core book cover from the L5R wiki (Fandom, "Fourth Edition Core Book.jpg"; it was a 300 px scan), a real gain in detail. Shadowrun 3e stays the 389 x 500 Open Library scan of the FASA 7001 softcover (ISBN 1-55560-371-8), the largest found (the Shadowrun wiki's copy is only 300 x 390): it was reprocessed with one clean resize and no sharpening, so it has no halos or blocks, but no more detail than before.
 

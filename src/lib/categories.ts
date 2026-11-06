@@ -140,8 +140,8 @@ export const isNeed = (k: string): k is NeedKey => NEEDS.some((n) => n.key === k
 export const safetyToolLabelKey = (k: SafetyToolKey) => `safety.${k}` as MsgKey;
 export const needLabelKey = (k: NeedKey) => `need.${k}` as MsgKey;
 export const characterLabelKey = (k: CharacterSource) => `characters.${k}` as MsgKey;
-/** A genre's picture: the one StartPlaying shows for it, one file per genre in public/images/genres (credits in docs/art-credits.md). */
-export const genreCover = (k: GenreKey) => `/images/genres/${k}.webp`;
+/** The short description of a genre (written for this site, ADR-60; the genre cards carry it instead of a picture). */
+export const genreAboutKey = (k: GenreKey) => `genre.${k}.about` as MsgKey;
 export const styleLabelKey = (k: StyleKey) => `style.${k}` as MsgKey;
 /** The short description of a style or a mechanic (written for this site; tests/unit/site-lib.test.ts checks that every key has one in both languages). */
 export const styleAboutKey = (k: StyleKey) => `style.${k}.about` as MsgKey;

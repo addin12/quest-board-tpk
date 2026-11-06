@@ -20,7 +20,7 @@ import { flatName } from "../../scripts/fix-export.mjs";
 import { parseConfig } from "../../scripts/push-apps-script.mjs";
 import { PLACEHOLDER_SLUG, slugParams } from "../../src/lib/static-params.ts";
 import type { GameRecord, GmRecord, SiteGame } from "../../src/lib/types.ts";
-import { CHARACTER_SOURCES, MECHANICS, NEEDS, SAFETY_TOOLS, STYLES, characterLabelKey, mechanicAboutKey, mechanicLabelKey, needLabelKey, safetyToolLabelKey, styleAboutKey, styleLabelKey } from "../../src/lib/categories.ts";
+import { CHARACTER_SOURCES, GENRES, MECHANICS, NEEDS, SAFETY_TOOLS, STYLES, characterLabelKey, genreAboutKey, genreLabelKey, mechanicAboutKey, mechanicLabelKey, needLabelKey, safetyToolLabelKey, styleAboutKey, styleLabelKey } from "../../src/lib/categories.ts";
 
 const sample = JSON.parse(readFileSync(new URL("../../data/sample.json", import.meta.url), "utf8"));
 
@@ -389,7 +389,7 @@ test("every system picture exists, and a system without one has none", () => {
 
 test("tiles load the small copy of a system or genre picture, and every one has it", () => {
   assert.equal(smallCover("/images/systems/daggerheart.webp"), "/images/systems/daggerheart-sm.webp");
-  assert.equal(smallCover("/images/genres/horror.webp"), "/images/genres/horror-sm.webp");
+  assert.equal(smallCover("/images/genres/horror.webp"), "/images/genres/horror.webp", "genres have no pictures any more: nothing to shrink");
   assert.equal(smallCover("/media/covers/abc.webp"), "/media/covers/abc-sm.webp");
   assert.equal(smallCover("/images/covers/demo.svg"), "/images/covers/demo.svg", "the demo covers have one size");
   // the rows of the phone lists use the smallest copy of a listing cover; pictures that have no such copy keep the -sm one
@@ -400,10 +400,11 @@ test("tiles load the small copy of a system or genre picture, and every one has 
   for (const f of SYSTEM_COVER_FILES) assert.ok(existsSync(new URL(`../../public/images/systems/${f}-sm.webp`, import.meta.url)), `${f}-sm.webp is missing: run npm run tiles`);
 });
 
-test("every style and mechanic has a label and a short description in both languages", () => {
+test("every genre, style and mechanic has a label and a short description in both languages", () => {
   for (const lang of ["en", "id"] as const) {
     const t = makeT(lang);
     const all = [
+      ...GENRES.map((g) => [g.key, t(genreLabelKey(g.key)), t(genreAboutKey(g.key))] as const),
       ...STYLES.map((s) => [s.key, t(styleLabelKey(s.key)), t(styleAboutKey(s.key))] as const),
       ...MECHANICS.map((m) => [m.key, t(mechanicLabelKey(m.key)), t(mechanicAboutKey(m.key))] as const),
     ];
