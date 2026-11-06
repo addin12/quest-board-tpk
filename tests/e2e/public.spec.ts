@@ -621,3 +621,16 @@ test("the home page opens the four browse pages from large tiles, and on a phone
   await page.keyboard.press("Escape");
   await expect(sheet).toBeHidden();
 });
+
+test("a Game Master who plays only online reads 'Hanya online' on the Indonesian list and page, 'Online only' on the English ones", async ({ page }) => {
+  await page.goto("/id/gms/");
+  const row = page.getByRole("link").filter({ hasText: "Nadia Putri" });
+  await expect(row).toContainText("Hanya online");
+  await expect(row).not.toContainText("Online only");
+  await page.goto("/id/gm/nadia-putri-0n01/");
+  await expect(page.getByRole("heading", { name: "Nadia Putri" })).toBeVisible();
+  await expect(page.getByText("Hanya online").first()).toBeVisible();
+  await expect(page.getByText("Online only")).toHaveCount(0);
+  await page.goto("/en/gms/");
+  await expect(page.getByRole("link").filter({ hasText: "Nadia Putri" })).toContainText("Online only");
+});

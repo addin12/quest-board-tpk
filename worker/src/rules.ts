@@ -1,6 +1,6 @@
 // What a GM may send, checked at the edge: every field is cleaned, bounded and, where it has a fixed set of answers,
 // matched against it. The same limits as the site's lists (src/lib/areas.ts, categories.ts). Pure module.
-import { AREAS, LEGACY_AREAS, SUMMARY_MAX, isArea } from "../../src/lib/areas.ts";
+import { AREAS, LEGACY_AREAS, ONLINE_ONLY, SUMMARY_MAX, isArea } from "../../src/lib/areas.ts";
 import { CHARACTER_SOURCES, GENRES, MAX_GENRES, MAX_GM_SYSTEMS, MAX_PER_GAME, MECHANICS, NEEDS, SAFETY_TOOLS, STYLES } from "../../src/lib/categories.ts";
 import { cleanDiscord, cleanInstagram, isGoogleMapsUrl, isPhone } from "../../src/lib/public-data.ts";
 import { ON_DEMAND_LISTING_DAYS } from "../../src/lib/on-demand.ts";
@@ -9,7 +9,6 @@ import { clip, iso } from "./util.ts";
 export type Errors = Record<string, string>;
 export type Parsed<T> = { ok: true; value: T } | { ok: false; errors: Errors };
 
-export const ONLINE_ONLY = "Online only";
 const OFFSET_HOURS = { WIB: 7, WITA: 8, WIT: 9 } as const;
 const KEY = /^(?:covers|photos)\/[a-z0-9]{8,40}\.(?:webp|jpg|png)$/;
 

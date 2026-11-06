@@ -26,9 +26,9 @@ function safely(format: () => string): string {
 /** Where a thing stands, said quietly: "Live" in grey, a held one plainly, a hidden one in the danger colour. */
 const STATUS_TEXT: Record<Status, string> = { approved: "text-sm text-muted", pending: "text-sm font-medium text-ink", rejected: "text-sm font-medium text-danger" };
 
-export function StatusText({ status }: { status: Status }) {
+export function StatusText({ status, ended = false }: { status: Status; ended?: boolean }) {
   const { t } = useI18n();
-  return <span className={`shrink-0 ${STATUS_TEXT[status]}`} data-testid="status">{t(`acct.status.${status}` as MsgKey)}</span>;
+  return <span className={`shrink-0 ${STATUS_TEXT[ended ? "pending" : status]}`} data-testid="status">{t(ended ? "acct.status.ended" : (`acct.status.${status}` as MsgKey))}</span>;
 }
 
 type Act = (run: () => Promise<{ ok: boolean; error?: string }>, note: string) => Promise<void>;
@@ -53,7 +53,8 @@ export function MyGames({ games, now, onAdd, onEdit, act }: { games: GameRecord[
         <>
           <ul className="ruled mt-[var(--space-md)]" data-testid="my-games">
             {games.map((g) => {
-              const live = g.status === "approved";
+              const ended = g.status === "approved" && Date.parse(g.expiresAt) <= now; // approved, but past its end: no longer on the board
+              const live = g.status === "approved" && !ended;
               const when = g.onDemand ? t("game.onRequest") : safely(() => formatWhen(g.startsAt, lang, g.zone));
               const where = g.locationType === "online" ? t("loc.online") : placesLabel(g);
               return (
@@ -62,7 +63,7 @@ export function MyGames({ games, now, onAdd, onEdit, act }: { games: GameRecord[
                       private until the game is live, so a held or hidden game shows an empty frame. */}
                   <div className="relative self-start">
                     {g.coverId
-                      ? <Cover src={live ? adminPictureUrl(g.coverId) : null} seed={g.title} quiet className="aspect-[4/5] w-full" sizes="80px" />
+                      ? <Cover src={g.status === "approved" ? adminPictureUrl(g.coverId) : null} seed={g.title} quiet className="aspect-[4/5] w-full" sizes="80px" />
                       : <div className="plate grid aspect-[4/5] w-full place-items-center p-[var(--space-2xs)] text-center text-xs leading-tight text-muted">{t("acct.noPicture")}</div>}
                     {g.full && <span className="absolute bottom-0 right-0 bg-ink px-1.5 text-sm font-medium text-paper">{t("game.full")}</span>}
                   </div>
@@ -71,7 +72,7 @@ export function MyGames({ games, now, onAdd, onEdit, act }: { games: GameRecord[
                       <h3 className="min-w-0 font-display text-[length:var(--text-lg)] leading-tight">
                         {live ? <Link href={paths.game(lang, g.slug)} className="underline-offset-4 hover:underline">{g.title}</Link> : g.title}
                       </h3>
-                      <StatusText status={g.status} />
+                      <StatusText status={g.status} ended={ended} />
                     </div>
                     <p className="mt-[var(--space-2xs)] text-ink-2">{[g.system, when, where].filter(Boolean).join(" · ")}</p>
                     {g.onDemand && <p className="mt-[var(--space-2xs)] text-sm text-muted">{t("game.listedUntil", { date: safely(() => formatShortDay(g.expiresAt, lang, g.zone)) })}</p>}

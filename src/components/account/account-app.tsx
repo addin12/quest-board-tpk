@@ -98,7 +98,7 @@ export function AccountApp() {
 
   const { me } = view;
   const profile = me.profile;
-  const openGames = me.games.filter((g) => g.status === "approved" && !g.full).length;
+  const openGames = me.games.filter((g) => g.status === "approved" && Date.parse(g.expiresAt) > now).length;
   const home = mode.kind === "home";
 
   return (
@@ -167,7 +167,7 @@ function ProfileSummary({ profile, openGames, onEdit }: { profile: GmRecord; ope
   const { t, lang } = useI18n();
   const live = profile.status === "approved";
   const gm: SiteGm = {
-    id: profile.id, slug: profile.slug, name: profile.name, bio: profile.bio, city: profile.city === "Online only" ? t("acct.f.cityOnline") : profile.city, systems: profile.systems,
+    id: profile.id, slug: profile.slug, name: profile.name, bio: profile.bio, city: profile.city, systems: profile.systems,
     discord: profile.discord, instagram: profile.instagram, photo: live && profile.photoId ? adminPictureUrl(profile.photoId) : null, joinedAt: profile.submittedAt,
   };
   const reach: [string, string][] = [["WhatsApp", formatPhone(profile.whatsapp)]];

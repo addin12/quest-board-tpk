@@ -12,7 +12,7 @@ import { NotFound } from "./game-detail";
 import { GoneNotice } from "./gone-notice";
 import { useI18n } from "./i18n-provider";
 import { ReportButton } from "./report-button";
-import { Avatar, GameCard } from "./ui";
+import { Avatar, GameCard, gmCityLabel } from "./ui";
 import { useLive } from "./use-live";
 
 /** One Game Master's page, following the live data like GameDetail does. `initial` is what the build knew; null for a profile the build never saw. */
@@ -36,7 +36,7 @@ export function GmDetail({ slug, initial, onFound }: { slug: string; initial: { 
         <div className="w-40 min-w-0 sm:w-52 lg:col-span-3 lg:w-full"><Avatar name={gm.name} photo={gm.photo} size={288} priority /></div>
         <div className="min-w-0 lg:col-span-9">
           <h1 className="max-w-none text-[length:var(--text-display-s)]">{gm.name}</h1>
-          {gm.city && <p className="lead mt-[var(--space-sm)] text-ink-2">{gm.city}</p>}
+          {gm.city && <p className="lead mt-[var(--space-sm)] text-ink-2">{gmCityLabel(gm.city, t)}</p>}
           <p className="mt-[var(--space-xs)] text-sm text-muted" data-testid="gm-trust">
             {[gm.joinedAt ? t("gm.memberSince", { date: formatDay(gm.joinedAt, lang, "WIB") }) : "", t("gm.gamesListed", { n: games.length })].filter(Boolean).join(" · ")}
           </p>

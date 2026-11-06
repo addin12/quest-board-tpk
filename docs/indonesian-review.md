@@ -297,3 +297,5 @@ The agent's wording; `{n}` and `{date}` are filled in by the site; `a|b` is sing
 | `acct.f.systemsOther` | Nama sistemnya | |
 | `acct.f.systemsAddButton` | Tambah | |
 | `acct.noPicture` | Belum ada gambar | |
+| `acct.status.ended` | Sudah berakhir | |
+| `acct.noGames` (changed again) | Belum ada game. Tambahkan satu, dan langsung tampil di papan begitu disimpan. | |

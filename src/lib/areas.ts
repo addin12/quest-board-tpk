@@ -5,6 +5,8 @@
 export const AREAS = ["Jakarta Pusat", "Jakarta Utara", "Jakarta Barat", "Jakarta Selatan", "Jakarta Timur", "Bogor", "Depok", "Tangerang", "Tangerang Selatan", "Bekasi"] as const;
 /** Places older saves used: still accepted and shown as they are, no longer offered. */
 export const LEGACY_AREAS = ["Jakarta"] as const;
+/** What a Game Master who plays only online has stored as their city (a profile's city; a game names its places in `cities`). */
+export const ONLINE_ONLY = "Online only";
 /** True for a place the forms offer or an older save used. */
 export const isArea = (v: unknown): v is string => typeof v === "string" && ([...AREAS, ...LEGACY_AREAS] as readonly string[]).includes(v);
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { call } from "@/lib/account-api";
-import { AREAS } from "@/lib/areas";
+import { AREAS, ONLINE_ONLY } from "@/lib/areas";
 import { MAX_GM_SYSTEMS } from "@/lib/categories";
 import { formatPhone } from "@/lib/format";
 import { adminPictureUrl } from "@/lib/pictures";
@@ -13,8 +13,6 @@ import { SearchPicker } from "../search-picker";
 import { GmCard } from "../ui";
 import { Choice, Ticks } from "./choices";
 import { Check, Field, PictureField, errorText, field } from "./fields";
-
-const ONLINE_ONLY = "Online only";
 
 type ProfileValues = { name: string; bio: string; city: string; systems: string[]; whatsapp: string; discord: string; instagram: string; photoKey: string; consent: boolean };
 
@@ -68,7 +66,7 @@ export function ProfileForm({ profile, heading, lead, openGames, onSaved, onCanc
   // A stored photo can be shown once the profile is live (before that it is private); a newly chosen one always.
   const stored = profile && profile.status === "approved" && profile.photoId && v.photoKey === profile.photoId ? adminPictureUrl(profile.photoId) : null;
   const preview: SiteGm = {
-    id: "preview", slug: "preview", name: v.name.trim() || t("acct.preview.noName"), bio: v.bio, city: v.city === ONLINE_ONLY ? t("acct.f.cityOnline") : v.city,
+    id: "preview", slug: "preview", name: v.name.trim() || t("acct.preview.noName"), bio: v.bio, city: v.city,
     systems: v.systems, discord: "", instagram: "", photo: picked || stored, joinedAt: "",
   };
   // An older profile may name a place no longer on the list (plain "Jakarta"): it stays chosen and shown until the Game Master picks another.

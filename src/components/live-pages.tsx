@@ -13,7 +13,7 @@ import type { SiteGm } from "@/lib/types";
 import { BrowseGateway, BrowsePage, BrowseSection, RAIL_BASE } from "./browse";
 import { useI18n } from "./i18n-provider";
 import { TileSearch } from "./tile-search";
-import { EmptyState, GameCard, GameRow, GmCard } from "./ui";
+import { EmptyState, GameCard, GameRow, GmCard, gmCityLabel } from "./ui";
 import { useLive } from "./use-live";
 
 // The home, browse and Game Master list pages. The build writes what it knew (a first paint search engines can read); in the browser the same pages start from that,
@@ -120,7 +120,7 @@ export function GmList({ initialGms, initialOpen, photos }: { initialGms: SiteGm
     return { sorted: [...gms].sort((a, b) => openOf(b.id) - openOf(a.id) || a.name.localeCompare(b.name)), open: openOf };
   }, [live, initialGms, initialOpen]);
   // what the search box looks in: the name, the city, the systems they run and the bio (synonyms count: "dnd" finds a GM who runs Dungeons & Dragons)
-  const searchable = (gm: SiteGm) => searchText([gm.name, gm.city, ...gm.systems, gm.bio].join(" "));
+  const searchable = (gm: SiteGm) => searchText([gm.name, gm.city, gmCityLabel(gm.city, t), ...gm.systems, gm.bio].join(" "));
   if (sorted.length === 0) return <div className="mt-[var(--space-xl)]"><EmptyState title={t("gm.empty")} /></div>;
   return (
     <>

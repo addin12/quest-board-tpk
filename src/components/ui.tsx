@@ -5,6 +5,7 @@ import type { GameView } from "@/lib/games";
 import type { T } from "@/lib/i18n/core";
 import type { Lang, SiteGm } from "@/lib/types";
 import { genreLabelKey, isGenre } from "@/lib/categories";
+import { ONLINE_ONLY } from "@/lib/areas";
 import { formatIdr, formatShortDay, initialsOf } from "@/lib/format";
 import { paths, smallCover } from "@/lib/hrefs";
 import { Icon } from "./icon";
@@ -174,16 +175,20 @@ export function GameRow({ game, t, lang }: { game: GameView; t: T; lang: Lang })
   );
 }
 
+/** A Game Master's city as people read it: the stored "Online only" in the page's language, any place as it is. */
+export const gmCityLabel = (city: string, t: T): string => (city === ONLINE_ONLY ? t("acct.f.cityOnline") : city);
+
 /** A GM as one row of an index: their photo, their name set as a title, where they play and what. `preview`: the same row, not a link (the profile form's preview). */
 export function GmCard({ gm, openGames, t, lang, priority = false, preview = false }: { gm: SiteGm; openGames: number; t: T; lang: Lang; priority?: boolean; preview?: boolean }) {
   const cls = "bill !h-auto flex-row items-start gap-[var(--space-lg)] py-[var(--space-lg)]";
+  const city = gmCityLabel(gm.city, t);
   const body = (
     <>
       <Avatar name={gm.name} photo={gm.photo} size={88} priority={priority} />
       <span className="min-w-0 flex-1">
         <span className="bill-title block font-display text-[length:var(--text-title)] leading-tight">{gm.name}</span>
         <span className="mt-[var(--space-2xs)] block text-muted">
-          {gm.city ? `${gm.city}, ${t("gm.openGames", { n: openGames })}` : t("gm.openGames", { n: openGames })}
+          {city ? `${city}, ${t("gm.openGames", { n: openGames })}` : t("gm.openGames", { n: openGames })}
         </span>
         {gm.systems.length > 0 && <span className="mt-[var(--space-sm)] flex flex-wrap gap-[var(--space-xs)]">{gm.systems.slice(0, 3).map((x) => <span key={x} className="chip">{x}</span>)}</span>}
       </span>
