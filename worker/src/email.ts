@@ -1,5 +1,5 @@
 // Email addresses, and the messages the backend sends (English and Indonesian together, as before).
-import type { Db } from "./db.ts";
+import { one, type Db } from "./db.ts";
 import { formatDay } from "../../src/lib/format.ts";
 import { DAY_MS, allow, clip, iso, metaSet } from "./util.ts";
 
@@ -30,6 +30,12 @@ export type Mail = { to: string; subject: string; body: string; kind?: MailKind 
  * Sign-ins are counted at the door instead (auth.ts, so a visitor gets a clear "try later" and no link is made); the budgeted mailer lets them through.
  */
 export const MAIL_BUDGET: Record<MailKind, number> = { login: 40, decision: 20, notice: 20, system: 10 };
+
+/** How many mails of this kind the share still allows in the rolling day (a read only: it does not use one up). */
+export async function mailsLeft(db: Db, kind: MailKind, nowMs: number): Promise<number> {
+  const row = await one<{ n: number }>(db, "SELECT COUNT(*) AS n FROM rate_events WHERE key = ? AND at > ?", `mail:${kind}`, nowMs - DAY_MS);
+  return Math.max(0, MAIL_BUDGET[kind] - (row?.n ?? 0));
+}
 
 /** Refuses a mail (it throws `mail_budget_<kind>`) when its kind has used its share of the day. A mail without a kind counts as a system mail. */
 export function budgetedMailer(inner: Mailer, db: Db, now: () => number): Mailer {

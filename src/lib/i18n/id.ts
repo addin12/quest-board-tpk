@@ -781,6 +781,7 @@ export const id: Record<MsgKey, string> = {
   "acct.err.turnstile_failed": "Pemeriksaan robot gagal. Muat ulang halaman dan coba lagi.",
   "acct.err.too_large": "Gambar itu terlalu besar.",
   "acct.err.not_an_image": "File itu bukan gambar yang kami terima (WebP, JPEG, atau PNG).",
+  "acct.err.admin_account": "Akun admin tidak bisa dihapus di sini. Minta pemilik menghapus status adminmu terlebih dahulu.",
   "acct.err.network": "Tidak ada koneksi. Coba lagi.",
   "acct.err.server": "Ada masalah di sisi kami. Coba lagi sebentar lagi.",
   "acct.saved": "Tersimpan. Sudah tampil di situs.",

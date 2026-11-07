@@ -6,7 +6,7 @@ import type { GameInput, ProfileInput } from "./rules.ts";
 import type { GameRecord, GmRecord } from "../../src/lib/types.ts";
 import { isGoogleMapsUrl } from "../../src/lib/public-data.ts";
 import { scamSignals } from "../../src/lib/scam-signals.ts";
-import { EXTEND_DAYS } from "../../src/lib/on-demand.ts";
+import { EXTEND_DAYS, MAX_LISTED_AHEAD_DAYS } from "../../src/lib/on-demand.ts";
 import { DAY_MS, eventStmt, iso, logEvent, metaGet, metaSet, parseList, randomId, slugify } from "./util.ts";
 
 export type ProfileRow = {
@@ -34,6 +34,22 @@ export async function markDirty(ctx: Ctx, urgent = false): Promise<void> {
   await metaSet(ctx.db, "dirty", at);
   // A listing that has just gone live has no page until the next build: ask for a quick one (worker/src/deploy.ts decides how quick).
   if (urgent) await metaSet(ctx.db, "dirty_urgent", at);
+}
+
+/** Of these picture keys, the ones no profile or game refers to: a file another record still shows must not be deleted. One query, however many keys. */
+export async function unreferenced(ctx: Ctx, keys: string[]): Promise<string[]> {
+  const list = [...new Set(keys)].filter(Boolean);
+  if (!list.length) return [];
+  const marks = list.map(() => "?").join(", ");
+  const used = new Set((await many<{ k: string }>(ctx.db, `SELECT photo_key AS k FROM profiles WHERE photo_key IN (${marks}) UNION SELECT cover_key FROM games WHERE cover_key IN (${marks})`, ...list, ...list)).map((r) => r.k));
+  return list.filter((k) => !used.has(k));
+}
+
+/** True when this picture already belongs to a record of another account: nobody may point their own record at someone else's file. */
+export async function pictureOfSomeoneElse(ctx: Ctx, s: Session, key: string): Promise<boolean> {
+  if (!key) return false;
+  const row = await one<{ n: number }>(ctx.db, "SELECT (SELECT COUNT(*) FROM profiles WHERE photo_key = ?1 AND account_id != ?2) + (SELECT COUNT(*) FROM games g JOIN profiles p ON p.id = g.profile_id WHERE g.cover_key = ?1 AND p.account_id != ?2) AS n", key, s.accountId);
+  return (row?.n ?? 0) > 0;
 }
 
 export const profileOf = (ctx: Ctx, accountId: string) => one<ProfileRow>(ctx.db, "SELECT rowid, * FROM profiles WHERE account_id = ?", accountId);
@@ -133,7 +149,7 @@ export async function saveProfile(ctx: Ctx, s: Session, input: ProfileInput): Pr
     input.name, input.bio, input.city, JSON.stringify(input.systems), input.whatsapp, input.discord, input.instagram, input.photoKey, status, status, status, now, now, p.id);
   await logEvent(ctx.db, ctx.now(), "edited", "gm", p.id, input.name, `${p.status} → ${status}: the GM changed it`, s.email);
   if (p.status === "approved" || status === "approved") await markDirty(ctx, p.status !== "approved");
-  return { id: p.id, status, changed: true, dropped: p.photo_key && p.photo_key !== input.photoKey ? [p.photo_key] : [] };
+  return { id: p.id, status, changed: true, dropped: await unreferenced(ctx, p.photo_key && p.photo_key !== input.photoKey ? [p.photo_key] : []) };
 }
 
 /** Games a profile may have at once (removed ones do not count). A real GM runs a handful; the cap keeps the site's tables small. */
@@ -183,7 +199,7 @@ export async function saveGame(ctx: Ctx, s: Session, gameId: string | null, inpu
   await exec(ctx.db, `UPDATE games SET ${cols.split(", ").map((c) => `${c} = ?`).join(", ")}, consent = 1, ${MOVE}, reject_reason = '', updated_at = ? WHERE id = ?`, ...valuesOf(input), status, status, status, now, now, g.id);
   await logEvent(ctx.db, ctx.now(), "edited", "game", g.id, input.title, `${g.status} → ${status}: the GM changed it`, s.email);
   if (g.status === "approved" || status === "approved") await markDirty(ctx, g.status !== "approved");
-  return { ok: true, id: g.id, status, changed: true, dropped: g.cover_key && g.cover_key !== input.coverKey ? [g.cover_key] : [] };
+  return { ok: true, id: g.id, status, changed: true, dropped: await unreferenced(ctx, g.cover_key && g.cover_key !== input.coverKey ? [g.cover_key] : []) };
 }
 
 /**
@@ -196,7 +212,8 @@ export async function extendGame(ctx: Ctx, s: Session, gameId: string): Promise<
   const g = await one<GameRow>(ctx.db, "SELECT * FROM games WHERE id = ? AND profile_id = ? AND removed = 0 AND on_demand = 1", gameId, p.id);
   if (!g) return { ok: false };
   const was = Date.parse(g.expires_at);
-  const expiresAt = iso(Math.max(was, ctx.now()) + EXTEND_DAYS * DAY_MS);
+  // Pressing Extend again and again cannot push the end further than MAX_LISTED_AHEAD_DAYS from today.
+  const expiresAt = iso(Math.min(Math.max(was, ctx.now()) + EXTEND_DAYS * DAY_MS, ctx.now() + MAX_LISTED_AHEAD_DAYS * DAY_MS));
   await exec(ctx.db, "UPDATE games SET expires_at = ?, nudged_at = '', updated_at = ? WHERE id = ?", expiresAt, iso(ctx.now()), g.id);
   await logEvent(ctx.db, ctx.now(), "changed", "game", g.id, g.title, `listed until ${expiresAt.slice(0, 10)} (the GM extended it)`, s.email);
   if (g.status === "approved") await markDirty(ctx, was <= ctx.now()); // back on the site after running out: its page may not exist, so ask for the quick build
@@ -269,6 +286,6 @@ export async function eraseAccount(ctx: Ctx, s: Session): Promise<string[]> {
   add(`UPDATE activity SET detail = '' WHERE detail IN (${marks(emails.length)})`, ...emails);
   writes.push(eventStmt(ctx.db, ctx.now(), "erased", "account", s.accountId, "", "account and data erased at the person's request", "the account holder"));
   await ctx.db.batch(writes);
-  if (wasPublic) await markDirty(ctx);
-  return keys;
+  if (wasPublic) await markDirty(ctx, true); // the person asked for their data to go: the static pages that show it are rebuilt without waiting
+  return unreferenced(ctx, keys);
 }

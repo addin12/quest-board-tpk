@@ -5,5 +5,7 @@
 export const ON_DEMAND_LISTING_DAYS = 90;
 /** One press of "extend" keeps an on-request listing this much longer. */
 export const EXTEND_DAYS = 30;
+/** No listing, extended or not, is kept longer than this from today (a date far in the future would also break the date ordering of the stored text). */
+export const MAX_LISTED_AHEAD_DAYS = 400;
 /** The Game Master of an on-request listing is emailed once when it has this long left. */
 export const NUDGE_BEFORE_DAYS = 3;

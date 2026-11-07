@@ -44,7 +44,8 @@ export async function report(ctx: Ctx, ip: string, input: { kind: unknown; id: u
   if (n < REPORTS_TO_HOLD) return { ok: true, held: false };
   // Held, not hidden for good: it leaves the site until an admin looks, and the admin's decision clears the reports.
   const at = iso(ctx.now());
-  await exec(ctx.db, `UPDATE ${table} SET status = 'pending', reject_reason = '', gone_at = ?, updated_at = ? WHERE id = ? AND status = 'approved'`, at, at, row.id);
+  // `reviewed_by` says the hold is not the owner's to lift: a Game Master's own edit (store.ts, statusAfterSave) leaves a record that someone decided on waiting for an admin.
+  await exec(ctx.db, `UPDATE ${table} SET status = 'pending', reject_reason = '', reviewed_by = CASE WHEN reviewed_by = '' THEN 'visitors' ELSE reviewed_by END, gone_at = ?, updated_at = ? WHERE id = ? AND status = 'approved'`, at, at, row.id);
   await logEvent(ctx.db, ctx.now(), "held", kind, row.id, row.title, `held for a look after ${n} reports`, "visitors");
   await markDirty(ctx);
   return { ok: true, held: true };

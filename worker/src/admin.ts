@@ -160,6 +160,7 @@ export async function removeAdmin(ctx: Ctx, by: string, rawEmail: unknown) {
   if (email === by) return fail("forbidden", "self");
   if (by !== ctx.owner) return fail("forbidden", "owner_only");
   await exec(ctx.db, "DELETE FROM admins WHERE email = ?", email);
+  await exec(ctx.db, "DELETE FROM merge_requests WHERE requested_by = ?", email); // what an admin asked for goes with their authority
   await logEvent(ctx.db, ctx.now(), "admin removed", "", "", "", email, by);
   return { ok: true as const, admins: (await listAdmins(ctx)).map((a) => ({ email: a.email, addedBy: a.added_by, addedAt: a.added_at })) };
 }
@@ -203,9 +204,14 @@ export async function requestMerge(ctx: Ctx, admin: string, fromProfileId: unkno
  */
 export async function respondMerge(ctx: Ctx, s: Session, requestId: unknown, accept: unknown) {
   if (typeof requestId !== "string" || typeof accept !== "boolean") return fail("bad_request");
-  const req = await one<{ id: string; from_profile_id: string; into_profile_id: string }>(ctx.db, "SELECT id, from_profile_id, into_profile_id FROM merge_requests WHERE id = ? AND created_at >= ?", requestId, iso(ctx.now() - MERGE_REQUEST_DAYS * DAY_MS));
+  const req = await one<{ id: string; from_profile_id: string; into_profile_id: string; requested_by: string }>(ctx.db, "SELECT id, from_profile_id, into_profile_id, requested_by FROM merge_requests WHERE id = ? AND created_at >= ?", requestId, iso(ctx.now() - MERGE_REQUEST_DAYS * DAY_MS));
   const into = req ? await one<ProfileRow>(ctx.db, "SELECT * FROM profiles WHERE id = ?", req.into_profile_id) : null;
   if (!req || !into || into.account_id !== s.accountId) return fail("not_found");
+  // The request carries its asker's authority: once that person is no longer an admin, nobody can accept it for them.
+  if (accept && !(await isAdmin(ctx, req.requested_by))) {
+    await exec(ctx.db, "DELETE FROM merge_requests WHERE id = ?", req.id);
+    return fail("not_found");
+  }
   if (!accept) {
     await exec(ctx.db, "DELETE FROM merge_requests WHERE id = ?", req.id);
     await logEvent(ctx.db, ctx.now(), "merge declined", "gm", into.id, into.name, `a request to merge ${req.from_profile_id} into this profile was declined`, s.email);
@@ -219,7 +225,8 @@ export async function respondMerge(ctx: Ctx, s: Session, requestId: unknown, acc
   const { from } = sides;
   // One batch, all or none: a failure half-way must not leave a duplicate account with no profile and nothing to retry.
   await ctx.db.batch([
-    ctx.db.prepare("UPDATE games SET profile_id = ?, updated_at = ? WHERE profile_id = ?").bind(into.id, iso(ctx.now()), from.id),
+    // A game of a profile that was not live must not go live by being moved under one that is: it waits for an admin's look.
+    ctx.db.prepare("UPDATE games SET profile_id = ?, status = CASE WHEN status = 'approved' AND ? != 'approved' THEN 'pending' ELSE status END, updated_at = ? WHERE profile_id = ?").bind(into.id, from.status, iso(ctx.now()), from.id),
     ctx.db.prepare("DELETE FROM profiles WHERE id = ?").bind(from.id),
     ctx.db.prepare("UPDATE accounts SET merged_into = ? WHERE merged_into = ?").bind(into.account_id, from.account_id), // accounts merged into the duplicate earlier follow it
     ctx.db.prepare("UPDATE accounts SET merged_into = ? WHERE id = ?").bind(into.account_id, from.account_id),

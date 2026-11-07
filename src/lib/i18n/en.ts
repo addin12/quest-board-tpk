@@ -780,6 +780,7 @@ export const en = {
   "acct.err.turnstile_failed": "The robot check failed. Reload the page and try again.",
   "acct.err.too_large": "That picture is too large.",
   "acct.err.not_an_image": "That file is not a picture we accept (WebP, JPEG or PNG).",
+  "acct.err.admin_account": "An admin account cannot be erased here. Ask the owner to remove you as an admin first.",
   "acct.err.network": "No connection. Try again.",
   "acct.err.server": "Something went wrong on our side. Try again in a minute.",
   "acct.saved": "Saved. It is live on the site.",

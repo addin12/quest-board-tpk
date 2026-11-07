@@ -4,10 +4,10 @@ import { endSession, getSession, isAdmin, peekLogin, pruneAuth, requestLogin, ve
 import { handleAdmin, respondMerge } from "./admin.ts";
 import type { Bucket } from "./db.ts";
 import { deployIfDue, deployState } from "./deploy.ts";
-import { contentTypeOf, storeImage, sweepOrphanImages, type ImageKind } from "./images.ts";
+import { MAX_BYTES, contentTypeOf, storeImage, sweepOrphanImages, type ImageKind } from "./images.ts";
 import { isPublicImage, buildPublic } from "./public.ts";
 import { parseGame, parseProfile } from "./rules.ts";
-import { eraseAccount, extendGame, mine, removeGame, saveGame, saveProfile, setFull } from "./store.ts";
+import { eraseAccount, extendGame, mine, pictureOfSomeoneElse, removeGame, saveGame, saveProfile, setFull } from "./store.ts";
 import { backup } from "./backup.ts";
 import { budgetedMailer, recordingMailer } from "./email.ts";
 import { expireInactive } from "./retention.ts";
@@ -73,10 +73,38 @@ export async function verifyTurnstile(secret: string, token: unknown, ip: string
   }
 }
 
+/** The largest JSON body any call takes (the biggest, a game, is about 15 KB); anything larger is refused before it is read in full. */
+export const MAX_JSON_BYTES = 64_000;
+
+/** The request body as bytes, or null when it is larger than `max`: it stops reading at the limit, so a huge body costs no more than a small one. */
+async function readCapped(request: Request, max: number): Promise<Uint8Array | null> {
+  if (Number(request.headers.get("Content-Length") ?? "0") > max) return null;
+  if (!request.body) return new Uint8Array(0);
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > max) {
+      await reader.cancel().catch(() => undefined);
+      return null;
+    }
+    chunks.push(value);
+  }
+  const out = new Uint8Array(size);
+  let at = 0;
+  for (const c of chunks) { out.set(c, at); at += c.byteLength; }
+  return out;
+}
+
 async function body(request: Request): Promise<Record<string, unknown> | null> {
   if (!(request.headers.get("Content-Type") ?? "").startsWith("application/json")) return null;
   try {
-    const v = await request.json();
+    const bytes = await readCapped(request, MAX_JSON_BYTES);
+    if (!bytes) return null;
+    const v = JSON.parse(new TextDecoder().decode(bytes));
     return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
   } catch {
     return null;
@@ -214,6 +242,7 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
     const parsed = b ? parseProfile(b) : null;
     if (!parsed) return err(400, "bad_request");
     if (!parsed.ok) return err(422, "invalid", { fields: parsed.errors });
+    if (await pictureOfSomeoneElse(ctx, session, parsed.value.photoKey)) return err(422, "invalid", { fields: { photoKey: "invalid" } });
     if (!(await allow(ctx.db, `submit:${session.accountId}`, 30, 3_600_000, ctx.now()))) return err(429, "rate_limited");
     const r = await saveProfile(ctx, session, parsed.value);
     if (r.changed) publish();
@@ -250,6 +279,8 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
   }
 
   if (method === "DELETE" && path === "/account") {
+    // An admin's decisions are the audit trail: erasing the account would blank who made them. The owner removes the admin first.
+    if (await isAdmin(ctx, session.email)) return err(403, "admin_account");
     const keys = await eraseAccount(ctx, session);
     after(Promise.all(keys.map((k) => env.images.delete(k))).catch(() => undefined));
     publish();
@@ -270,6 +301,7 @@ async function writeGame(request: Request, env: Env, session: Session, id: strin
   if (!b) return err(400, "bad_request");
   const parsed = parseGame(b, ctx.now());
   if (!parsed.ok) return err(422, "invalid", { fields: parsed.errors });
+  if (await pictureOfSomeoneElse(ctx, session, parsed.value.coverKey)) return err(422, "invalid", { fields: { coverKey: "invalid" } });
   if (!(await allow(ctx.db, `submit:${session.accountId}`, 30, 3_600_000, ctx.now()))) return err(429, "rate_limited");
   const r = await saveGame(ctx, session, id, parsed.value);
   if (!r.ok) return err(r.error === "no_profile" || r.error === "too_many" ? 409 : 404, r.error);
@@ -281,7 +313,9 @@ async function writeGame(request: Request, env: Env, session: Session, id: strin
 async function upload(request: Request, env: Env, session: Session, kind: ImageKind): Promise<Response> {
   const { ctx } = env;
   if (!(await allow(ctx.db, `upload:${session.accountId}`, 20, 3_600_000, ctx.now()))) return err(429, "rate_limited");
-  const result = await storeImage(env.images, kind, await request.arrayBuffer());
+  const bytes = await readCapped(request, MAX_BYTES[kind]);
+  if (!bytes) return err(413, "too_large");
+  const result = await storeImage(env.images, kind, bytes.buffer as ArrayBuffer);
   return result.ok ? json(201, { ok: true, key: result.key }) : err(result.error === "too_large" ? 413 : 415, result.error);
 }
 

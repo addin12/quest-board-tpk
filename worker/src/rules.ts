@@ -3,7 +3,7 @@
 import { AREAS, LEGACY_AREAS, ONLINE_ONLY, SUMMARY_MAX, isArea } from "../../src/lib/areas.ts";
 import { CHARACTER_SOURCES, GENRES, MAX_GENRES, MAX_GM_SYSTEMS, MAX_PER_GAME, MECHANICS, NEEDS, SAFETY_TOOLS, STYLES } from "../../src/lib/categories.ts";
 import { cleanDiscord, cleanInstagram, isGoogleMapsUrl, isPhone } from "../../src/lib/public-data.ts";
-import { ON_DEMAND_LISTING_DAYS } from "../../src/lib/on-demand.ts";
+import { MAX_LISTED_AHEAD_DAYS, ON_DEMAND_LISTING_DAYS } from "../../src/lib/on-demand.ts";
 import { clip, iso } from "./util.ts";
 
 export type Errors = Record<string, string>;
@@ -114,13 +114,15 @@ export function parseGame(raw: unknown, nowMs: number): Parsed<GameInput> {
   let expiresAt = "";
   if (startsAt && zone && onDemand) expiresAt = iso(Date.parse(startsAt) + ON_DEMAND_LISTING_DAYS * 86_400_000);
   else if (startsAt && zone) {
+    const ceiling = nowMs + MAX_LISTED_AHEAD_DAYS * 86_400_000; // a session or an end date years away is a typo, and one in the year 9999 would break the date order of the stored text
+    if (Date.parse(startsAt) > ceiling) errors.date = "invalid_date";
     if (r.keepUntil) {
       const end = zonedInstant(r.keepUntil, "23:59", zone);
-      if (!end) errors.keepUntil = "invalid_date";
+      if (!end || Date.parse(end) > ceiling) errors.keepUntil = "invalid_date";
       else if (Date.parse(end) < Date.parse(startsAt)) errors.keepUntil = "before_start";
       else expiresAt = end;
     } else expiresAt = iso(Date.parse(startsAt) + 86_400_000);
-    if (expiresAt && Date.parse(expiresAt) <= nowMs) errors.date = "in_the_past";
+    if (expiresAt && Date.parse(expiresAt) <= nowMs && !errors.date) errors.date = "in_the_past";
   }
   const priceIdr = intIn(r.priceIdr, 0, 10_000_000);
   need("priceIdr", priceIdr !== null, "invalid_number");

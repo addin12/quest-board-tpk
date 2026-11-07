@@ -2,7 +2,7 @@
 // /api/health. If the mail relay itself is the thing that broke, the email cannot be sent: the failure is still in /api/health.
 import { listAdmins, type Ctx } from "./auth.ts";
 import { exec, many, one } from "./db.ts";
-import { expiringMail, reviewDigestMail } from "./email.ts";
+import { expiringMail, mailsLeft, reviewDigestMail } from "./email.ts";
 import { NUDGE_BEFORE_DAYS } from "../../src/lib/on-demand.ts";
 import { DAY_MS, iso, metaGet, metaSet } from "./util.ts";
 
@@ -18,6 +18,11 @@ export async function tellOwner(ctx: Ctx, subject: string, body: string): Promis
   }
 }
 
+/** After a nudge mail fails, the next try waits this long. */
+export const NUDGE_RETRY_MS = 30 * 60_000;
+/** Notice mails (of MAIL_BUDGET.notice a day) the review digests leave untouched, so the warnings to Game Masters always have room. */
+export const NUDGE_MAIL_RESERVE = 8;
+
 /**
  * One email to the Game Master of an on-request game that stops being listed within NUDGE_BEFORE_DAYS, so a game they still run does not vanish by surprise. The note
  * that it was sent is made first (a dead relay is not tried every minute); Extend clears it. A few at a time; best effort, nothing here can fail the tick.
@@ -25,6 +30,8 @@ export async function tellOwner(ctx: Ctx, subject: string, body: string): Promis
 export async function nudgeExpiring(ctx: Ctx): Promise<void> {
   try {
     const now = ctx.now();
+    const retryAt = await metaGet(ctx.db, "nudge_retry_at");
+    if (retryAt && now < Date.parse(retryAt)) return;
     const due = await many<{ id: string; title: string; expires_at: string; email: string }>(
       ctx.db,
       "SELECT g.id, g.title, g.expires_at, a.email FROM games g JOIN profiles p ON p.id = g.profile_id JOIN accounts a ON a.id = p.account_id WHERE g.removed = 0 AND g.status = 'approved' AND g.on_demand = 1 AND g.nudged_at = '' AND g.expires_at > ? AND g.expires_at < ? LIMIT 5",
@@ -35,7 +42,11 @@ export async function nudgeExpiring(ctx: Ctx): Promise<void> {
       try {
         await ctx.mailer.send(expiringMail(g.email, g.title, g.expires_at, ctx.siteUrl));
       } catch {
-        // recorded by the recording mailer
+        // The mailer has recorded the failure. The nudge is not lost: the note comes off again and the rest wait, so a share used up or a relay that is down
+        // is tried again in half an hour (not every minute), and the game is still warned about while it is within the window.
+        await exec(ctx.db, "UPDATE games SET nudged_at = '' WHERE id = ? AND nudged_at = ?", g.id, iso(now));
+        await metaSet(ctx.db, "nudge_retry_at", iso(now + NUDGE_RETRY_MS));
+        break;
       }
     }
   } catch {
@@ -76,8 +87,9 @@ export async function digestReviewers(ctx: Ctx): Promise<void> {
     const oldestMs = old?.oldest ? Date.parse(old.oldest) : now;
     const nag = (old?.games ?? 0) + (old?.gms ?? 0) > 0 && now - oldestMs >= NAG_AFTER_MS && (!last || now - Date.parse(last) >= DAY_MS);
     if (!settled && !nag) return;
-    await metaSet(ctx.db, "digest_at", iso(now));
     const to = [...new Set([ctx.owner, ...(await listAdmins(ctx)).map((a) => a.email)])];
+    if ((await mailsLeft(ctx.db, "notice", now)) < to.length + NUDGE_MAIL_RESERVE) return; // the rest of the share is for the warnings to Game Masters; the digest waits
+    await metaSet(ctx.db, "digest_at", iso(now));
     const mail = (address: string) => reviewDigestMail(address, { games: old?.games ?? 0, gms: old?.gms ?? 0, oldestDays: Math.floor((now - oldestMs) / DAY_MS) }, fresh.map((f) => f.title), ctx.siteUrl);
     for (const address of to) await ctx.mailer.send(mail(address)).catch(() => undefined); // the share of notice mails (email.ts) ends the loop's effect when used up
   } catch {
