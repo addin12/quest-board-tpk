@@ -10,6 +10,8 @@ import type { RawPublicData } from "../../src/lib/types.ts";
 
 /** How long the address of a listing that is no longer live keeps its "no longer listed" page. */
 export const TOMBSTONE_DAYS = 180;
+/** Most "no longer listed" pages of each kind the build keeps (the newest first): every page is a file, and a Pages site may hold 20,000 files in all. */
+export const MAX_TOMBSTONES = 2000;
 
 export async function buildPublic(ctx: Ctx): Promise<RawPublicData> {
   const now = ctx.now();
@@ -22,7 +24,12 @@ export async function buildPublic(ctx: Ctx): Promise<RawPublicData> {
   const liveIds = new Set(live.map((g) => g.id));
   const cutoff = now - TOMBSTONE_DAYS * DAY_MS;
   const gone = <T extends { id: string; slug: string; was_live: number; gone_at: string }>(rows: T[], liveSet: Set<string>, anchor: (r: T) => string) =>
-    rows.filter((r) => r.was_live === 1 && !liveSet.has(r.id) && Date.parse(r.gone_at || anchor(r)) > cutoff).map((r) => r.slug).sort();
+    rows
+      .filter((r) => r.was_live === 1 && !liveSet.has(r.id) && Date.parse(r.gone_at || anchor(r)) > cutoff)
+      .sort((x, y) => Date.parse(y.gone_at || anchor(y)) - Date.parse(x.gone_at || anchor(x)))
+      .slice(0, MAX_TOMBSTONES)
+      .map((r) => r.slug)
+      .sort();
 
   return {
     generatedAt: iso(now),

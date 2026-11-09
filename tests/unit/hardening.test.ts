@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { handle } from "../../worker/src/handler.ts";
+import { MAX_TOMBSTONES } from "../../worker/src/public.ts";
 import { NUDGE_RETRY_MS, digestReviewers, nudgeExpiring } from "../../worker/src/watch.ts";
 import { MAX_LISTED_AHEAD_DAYS } from "../../src/lib/on-demand.ts";
 import { DAY_MS } from "../../worker/src/util.ts";
@@ -177,4 +178,22 @@ test("an admin cannot erase their own account (it would blank the record of thei
   assert.equal(count(w, "SELECT COUNT(*) AS n FROM accounts WHERE email = 'helper@example.com'"), 1);
   const gm = await w.signIn("raka@example.com");
   assert.equal((await w.call("DELETE", "/account", { cookie: gm })).status, 200);
+});
+
+test("the build keeps at most MAX_TOMBSTONES notices for games that are gone, the newest ones", async () => {
+  const w = makeWorld();
+  const gm = await w.signIn("raka@example.com");
+  await w.call("PUT", "/profile", { cookie: gm, body: PROFILE });
+  const id = (await w.call("POST", "/games", { cookie: gm, body: GAME })).json.id as string;
+  w.db.raw.prepare("CREATE TEMP TABLE t AS SELECT * FROM games WHERE id = ?").run(id);
+  w.db.raw.prepare("DELETE FROM games WHERE id = ?").run(id);
+  const total = MAX_TOMBSTONES + 50;
+  for (let i = 0; i < total; i++) {
+    w.db.raw.prepare("UPDATE t SET id = ?, slug = ?, removed = 1, was_live = 1, gone_at = ?").run(`g${i}`, `gone-${i}`, new Date(w.clock.ms - i * 1000).toISOString());
+    w.db.raw.prepare("INSERT INTO games SELECT * FROM t").run();
+  }
+  const pub = (await w.call("GET", "/public", { build: true })).json;
+  assert.equal(pub.goneGames.length, MAX_TOMBSTONES);
+  assert.ok(pub.goneGames.includes("gone-0"), "the newest is kept");
+  assert.equal(pub.goneGames.includes(`gone-${total - 1}`), false, "the oldest is dropped");
 });
