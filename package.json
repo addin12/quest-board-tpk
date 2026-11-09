@@ -11,6 +11,7 @@
     "typecheck": "node scripts/build-data.mjs && next typegen && tsc --noEmit",
     "lint": "eslint",
     "restore:sql": "node scripts/restore-backup.mjs",
+    "backup:pull": "node scripts/pull-backup.mjs",
     "test": "node --conditions=react-server --import ./tests/loader.mjs --test \"tests/unit/*.test.ts\"",
     "test:e2e": "npm run build && playwright test",
     "tiles": "node scripts/build-tile-images.mjs",

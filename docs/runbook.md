@@ -144,8 +144,12 @@ Erase those accounts again (each person can also sign in with their address and 
 only list is the people who asked: tell them it needs doing again. Never publish the restored data before this is done.
 
 The restore is tested: `tests/unit/worker.test.ts` takes a nightly backup of a database with every kind of row (a merged account included),
-loads the SQL into a fresh database and compares every table. The backups sit in the same Cloudflare account as the database; a copy outside
-it (for example a weekly download kept somewhere private) is the owner's choice and is not set up.
+loads the SQL into a fresh database and compares every table. The backups sit in the same Cloudflare account as the database, so a copy outside
+Cloudflare is kept on the owner's computer: `npm run backup:pull` (`scripts/pull-backup.mjs`, needs `wrangler` signed in) downloads the newest backup to
+`../quest-board-backups` (next to the project, never inside it: the repository is public) or to a folder you name, and deletes copies older than 28 days, like the bucket does. Run it
+by hand now and then, or have Windows run it weekly (not set up; one way, in PowerShell: `schtasks /Create /SC WEEKLY /D SUN /ST 09:00 /TN QuestBoardBackupPull
+/TR "cmd /c cd /d D:TTRPGQuest Board TPK && node scriptspull-backup.mjs"`, removed again with `schtasks /Delete /TN QuestBoardBackupPull /F`). The copy holds names, emails and phone numbers: keep the folder private, and note that someone who erased their
+account stays in a copy for up to 28 days (the site's own backups keep them 14).
 
 ### Mail is over the limit
 Apps Script allows about 100 emails a day on a free Gmail account and the relay stops at 90. The backend splits those 90 by kind, each over a rolling
