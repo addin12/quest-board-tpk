@@ -184,7 +184,7 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
   if (method === "POST" && path === "/report") {
     const b = await body(request);
     if (!b) return err(400, "bad_request");
-    const r = await report(ctx, ip, { kind: b.kind, id: b.id, reason: b.reason });
+    const r = await report(ctx, ip, { kind: b.kind, id: b.id, reason: b.reason, notMyNumber: b.notMyNumber === true });
     if (!r.ok) return err(r.error === "rate_limited" ? 429 : r.error === "not_found" ? 404 : 400, r.error);
     if (r.held) publish();
     return json(200, { ok: true });
@@ -222,7 +222,7 @@ export async function handle(request: Request, env: Env, after: (p: Promise<unkn
     const b = await body(request);
     if (!b) return err(400, "bad_request");
     const result = await handleAdmin(ctx, session.email, b, Boolean(env.deployHook), async () => (await deployIfDue(ctx, env.deployHook, env.fetcher, true)) === "sent");
-    if (result.ok && (b.action === "review" || b.action === "patch" || b.action === "merge")) publish();
+    if (result.ok && (b.action === "review" || b.action === "patch" || b.action === "merge" || b.action === "verify")) publish();
     return json(result.ok ? 200 : result.error === "forbidden" ? 403 : 400, result);
   }
 

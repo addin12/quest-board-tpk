@@ -38,7 +38,7 @@ export function GmDetail({ slug, initial, onFound }: { slug: string; initial: { 
           <h1 className="max-w-none text-[length:var(--text-display-s)]">{gm.name}</h1>
           {gm.city && <p className="lead mt-[var(--space-sm)] text-ink-2">{gmCityLabel(gm.city, t)}</p>}
           <p className="mt-[var(--space-xs)] text-sm text-muted" data-testid="gm-trust">
-            {[gm.joinedAt ? t("gm.memberSince", { date: formatDay(gm.joinedAt, lang, "WIB") }) : "", t("gm.gamesListed", { n: games.length })].filter(Boolean).join(" · ")}
+            {[gm.joinedAt ? t("gm.memberSince", { date: formatDay(gm.joinedAt, lang, "WIB") }) : "", t("gm.gamesListed", { n: games.length }), gm.verified ? t("gm.verified") : ""].filter(Boolean).join(" · ")}
           </p>
           {gm.systems.length > 0 && (
             <p className="mt-[var(--space-lg)] flex flex-wrap items-center gap-[var(--space-xs)]"><span className="font-medium">{t("gm.systems")}:</span>{gm.systems.map((x) => <span key={x} className="chip">{x}</span>)}</p>

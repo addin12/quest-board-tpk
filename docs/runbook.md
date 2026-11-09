@@ -38,6 +38,7 @@ encrypted variables. Losing the file is recoverable: `npm run cloudflare:setup` 
 | Add an admin | Admin page → Admins → Add admin (their email address; they sign in with an emailed link) |
 | Remove an admin | Admin page → Admins → Remove (only the owner can) |
 | Feature a game | Admin page → open an approved game → Feature |
+| Verify a Game Master's WhatsApp number | The Game Master presses *Verify my number* on their account page and sends the message that opens (it holds their code, QB-XXXXX). In WhatsApp check that the sender's number is the one on their profile, then admin page → Game Masters → open the profile → *Mark number as verified* (it adds a "number verified" note to their public page). The button needs `NEXT_PUBLIC_VERIFY_WHATSAPP` set in Cloudflare Pages (the number the messages go to, digits with country code) and a new build |
 | Merge two profiles of one person | Admin page → open the profile that should go → *Ask to merge into…*; the person it merges into accepts on their account page (request lapses after 7 days) |
 | Read what happened | D1 console: `SELECT * FROM activity ORDER BY id DESC LIMIT 50` |
 

@@ -413,3 +413,19 @@ The short description under each genre card. Key pattern `genre.<key>.about`.
 | `romance` | Hubungan antar karakter menggerakkan cerita: ketertarikan, kerinduan, persaingan, dan pilihan yang diambil demi orang lain. | |
 | `battle-royale` | Banyak yang masuk, sedikit yang keluar. Para pemain atau karakter bersaing sampai tinggal sedikit yang tersisa. | |
 | `universal` | Sistem atau game yang cocok untuk genre apa pun, jadi latarnya ditentukan oleh kelompok. | |
+
+## Verifying a WhatsApp number (added 2026-11-09, ADR-61)
+
+| Key | Indonesian now | Your correction |
+|---|---|---|
+| `gm.verified` | Nomor WhatsApp terverifikasi | |
+| `acct.verify.title` | Verifikasi nomor WhatsApp-mu | |
+| `acct.verify.body` | Kirim pesan singkat dari nomor WhatsApp-mu ke admin Quest Board. Admin memeriksa bahwa pesan itu datang dari nomormu, lalu menandainya terverifikasi. Tidak wajib, tetapi pemain lebih percaya pada nomor yang terverifikasi. Kalau nomormu diganti nanti, verifikasi lagi. | |
+| `acct.verify.button` | Verifikasi nomorku | |
+| `acct.verify.opens` | membuka WhatsApp dengan pesan yang sudah siap | |
+| `acct.verify.done` | Nomor WhatsApp-mu sudah terverifikasi. Pengunjung melihat catatan “nomor terverifikasi” di profilmu. | |
+| `acct.verify.message` | Verifikasi Quest Board {code} | |
+| `game.reportNotMine` | Ini nomor telepon saya dan saya tidak mendaftarkannya | |
+| `game.reportNotMineHint` | Profil disembunyikan sampai admin memeriksanya. | |
+| `acct.err.admin_account` | Akun admin tidak bisa dihapus di sini. Minta pemilik menghapus status adminmu terlebih dahulu. | |
+| `admin.verify.* (admin page, 6 texts)` | see src/lib/i18n/id.ts, keys admin.verify.title … admin.verify.stale | |

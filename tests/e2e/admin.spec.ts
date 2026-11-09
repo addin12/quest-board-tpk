@@ -268,3 +268,19 @@ test("on a phone the list and the review screen take turns", async ({ page }) =>
   await expect(page.getByTestId("admin-list")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
+
+test("an admin marks a Game Master's number as verified (with the code they were sent) and can take it back", async ({ page }) => {
+  const world = await open(page);
+  await page.getByTestId("tab-gms").click();
+  await row(page, "Dewi Lestari").click();
+  const box = page.getByTestId("verify-box");
+  await expect(page.getByTestId("verify-state")).toContainText("Not verified");
+  await expect(page.getByTestId("verify-state")).toContainText(/QB-[A-Z0-9]{5}/);
+  await page.getByTestId("verify-toggle").click();
+  await expect(page.getByTestId("verify-state")).toContainText("Verified:");
+  expect(await world.sql("SELECT (verified_whatsapp = whatsapp AND whatsapp != '') AS ok FROM profiles WHERE name = 'Dewi Lestari'")).toEqual([{ ok: 1 }]);
+  await expect(box.getByRole("button", { name: "Remove verification" })).toBeVisible();
+  await page.getByTestId("verify-toggle").click();
+  await expect(page.getByTestId("verify-state")).toContainText("Not verified");
+  expect(await world.sql("SELECT verified_whatsapp AS v FROM profiles WHERE name = 'Dewi Lestari'")).toEqual([{ v: "" }]);
+});

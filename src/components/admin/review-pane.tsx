@@ -23,13 +23,14 @@ type Props = {
   onFull: (item: Item, full: boolean) => void;
   onNote: (item: Item, note: string) => Promise<boolean>;
   onMerge: (fromId: string, intoId: string) => Promise<boolean>;
+  onVerify: (item: Item, verified: boolean) => Promise<void>;
 };
 
 const levelIcon = { error: "cross-circle", warn: "triangle-warning", info: "info" } as const;
 const levelClass = { error: "text-danger", warn: "text-gold", info: "text-muted" } as const;
 
 /** The list of submissions (by status, searchable) beside the one being reviewed. */
-export function ReviewPane({ items, nowIso, onReview, onFull, onNote, onMerge }: Props) {
+export function ReviewPane({ items, nowIso, onReview, onFull, onNote, onMerge, onVerify }: Props) {
   const { t, lang } = useI18n();
   const [status, setStatus] = useState<Status>("pending");
   const [q, setQ] = useState("");
@@ -114,7 +115,7 @@ export function ReviewPane({ items, nowIso, onReview, onFull, onNote, onMerge }:
         <div className={!selected ? "max-lg:hidden" : ""}>
           {selected ? (
             <Detail key={selected.id} item={selected} nowIso={nowIso} lang={lang} notify={notify} setNotify={setNotify} rejecting={rejecting} setRejecting={setRejecting}
-              onBack={() => select(null)} onDecide={(next, reason) => decide(selected, next, reason)} onFull={(v) => onFull(selected, v)} onNote={(n) => onNote(selected, n)} onMerge={(from, into) => onMerge(from, into)} />
+              onBack={() => select(null)} onDecide={(next, reason) => decide(selected, next, reason)} onFull={(v) => onFull(selected, v)} onNote={(n) => onNote(selected, n)} onMerge={(from, into) => onMerge(from, into)} onVerify={(v) => onVerify(selected, v)} />
           ) : (
             <p className="hidden rounded-xl border border-dashed border-border px-6 py-8 text-center text-muted lg:block">{t("admin.pick")}</p>
           )}
@@ -163,9 +164,9 @@ function checkText(c: Check, t: T): string {
   return t(c.key, vars);
 }
 
-function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting, onBack, onDecide, onFull, onNote, onMerge }: {
+function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting, onBack, onDecide, onFull, onNote, onMerge, onVerify }: {
   item: Item; nowIso: string; lang: Lang; notify: boolean; setNotify: (v: boolean) => void; rejecting: boolean; setRejecting: (v: boolean) => void;
-  onBack: () => void; onDecide: (status: Status, reason?: string) => void; onFull: (full: boolean) => void; onNote: (note: string) => Promise<boolean>; onMerge: (fromId: string, intoId: string) => Promise<boolean>;
+  onBack: () => void; onDecide: (status: Status, reason?: string) => void; onFull: (full: boolean) => void; onNote: (note: string) => Promise<boolean>; onMerge: (fromId: string, intoId: string) => Promise<boolean>; onVerify: (verified: boolean) => Promise<void>;
 }) {
   const { t } = useI18n();
   const rec = item.rec;
@@ -275,6 +276,20 @@ function Detail({ item, nowIso, lang, notify, setNotify, rejecting, setRejecting
         )}
         <p className="mt-2 text-sm"><span className="text-muted">{t("admin.emailLabel")}:</span> <a className="break-all underline" href={`mailto:${rec.email}`}>{rec.email}</a></p>
       </section>
+
+      {item.kind === "gm" && (item.rec as GmRecord).whatsapp ? (
+        <section className="mt-6" aria-labelledby="verify-h" data-testid="verify-box">
+          <h3 id="verify-h" className="text-base font-medium text-ink-2">{t("admin.verify.title")}</h3>
+          <p className="mt-2 text-sm" data-testid="verify-state">
+            {(item.rec as GmRecord).numberVerified ? t("admin.verify.yes") : t("admin.verify.no", { code: (item.rec as GmRecord).verifyCode ?? "" })}
+          </p>
+          <p className="mt-2">
+            <button type="button" className="btn-secondary" onClick={() => void onVerify(!(item.rec as GmRecord).numberVerified)} data-testid="verify-toggle">
+              {(item.rec as GmRecord).numberVerified ? t("admin.verify.unmark") : t("admin.verify.mark")}
+            </button>
+          </p>
+        </section>
+      ) : null}
 
       {item.kind === "gm" && (item.rec as GmRecord).sharesPhoneIds?.length ? (
         <section className="mt-6" aria-labelledby="merge-h" data-testid="merge-box">

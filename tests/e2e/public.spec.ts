@@ -799,3 +799,16 @@ test("the genres page is text cards with a short description, like play styles a
   await expect(block.locator("a.browse-card").first()).toBeVisible();
   await expect(block.locator("img"), "no pictures in the home block either").toHaveCount(0);
 });
+
+test("on a Game Master's page the report form lets a person say the number is theirs and was listed without them", async ({ page }) => {
+  await page.goto("/en/gm/raka-pratama-0r01/");
+  await page.getByTestId("report-open").click();
+  const box = page.getByTestId("report-not-mine");
+  await expect(box).toBeVisible();
+  await expect(page.getByText("The profile is hidden until an admin has checked it.")).toBeVisible();
+  await box.check();
+  await expect(box).toBeChecked();
+  await page.goto("/en/games/mercusuar-di-pulau-kabut-0m01/");
+  await page.getByTestId("report-open").click();
+  await expect(page.getByTestId("report-not-mine")).toHaveCount(0); // a game has no number of its own
+});

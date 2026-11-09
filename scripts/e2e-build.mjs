@@ -10,5 +10,6 @@ execSync("npm run build", {
     NEXT_PUBLIC_SITE_URL: "http://localhost:4174",
     NEXT_PUBLIC_REPORT_URL: "https://forms.example/report",
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: "",
+    NEXT_PUBLIC_VERIFY_WHATSAPP: "6281200000000",
   },
 });

@@ -3,7 +3,7 @@
 // (a visitor asks for a number with POST /api/contact, one Game Master at a time, rate-limited).
 import { many } from "./db.ts";
 import type { Ctx } from "./auth.ts";
-import type { GameRow, ProfileRow } from "./store.ts";
+import { isNumberVerified, type GameRow, type ProfileRow } from "./store.ts";
 import { DAY_MS, iso, parseList } from "./util.ts";
 import { isGoogleMapsUrl } from "../../src/lib/public-data.ts";
 import type { RawPublicData } from "../../src/lib/types.ts";
@@ -33,7 +33,7 @@ export async function buildPublic(ctx: Ctx): Promise<RawPublicData> {
 
   return {
     generatedAt: iso(now),
-    gms: current.map((p) => ({ id: p.id, slug: p.slug, name: p.name, bio: p.bio, city: p.city, systems: parseList(p.systems), photoId: p.photo_key, joinedAt: p.created_at, discord: p.discord, instagram: p.instagram })),
+    gms: current.map((p) => ({ id: p.id, slug: p.slug, name: p.name, bio: p.bio, city: p.city, systems: parseList(p.systems), photoId: p.photo_key, joinedAt: p.created_at, discord: p.discord, instagram: p.instagram, ...(isNumberVerified(p) ? { verified: true } : {}) })),
     games: live.map((g) => ({
       id: g.id, slug: g.slug, gmId: g.profile_id, title: g.title, system: g.system, summary: g.summary, description: g.description, format: g.format, locationType: g.location_type,
       platform: g.platform, city: g.city, venueName: g.venue_name, venueMapsUrl: isGoogleMapsUrl(g.venue_maps_raw) ? g.venue_maps_raw : "", startsAt: g.starts_at, zone: g.zone,

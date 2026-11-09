@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { call, type Me } from "@/lib/account-api";
+import { waLink } from "@/lib/contact";
 import { formatPhone } from "@/lib/format";
 import { paths } from "@/lib/hrefs";
+import { VERIFY_WHATSAPP } from "@/lib/site";
 import { writeSignedIn } from "@/lib/signed-in";
 import { adminPictureUrl } from "@/lib/pictures";
 import type { GameRecord, GmRecord, SiteGm } from "@/lib/types";
@@ -229,6 +231,19 @@ function ProfileSummary({ profile, openGames, onEdit }: { profile: GmRecord; ope
           </div>
         ))}
       </dl>
+      {profile.numberVerified ? (
+        <p className="mt-[var(--space-md)] max-w-[60ch] text-sm font-medium" data-testid="verify-done">{t("acct.verify.done")}</p>
+      ) : VERIFY_WHATSAPP && profile.whatsapp ? (
+        <section aria-labelledby="verify-h" className="mt-[var(--space-md)] border-t border-rule pt-[var(--space-md)]" data-testid="verify-number">
+          <h3 id="verify-h" className="text-base font-medium">{t("acct.verify.title")}</h3>
+          <p className="mt-[var(--space-xs)] max-w-[60ch] text-sm text-ink-2">{t("acct.verify.body")}</p>
+          <p className="mt-[var(--space-sm)]">
+            <a href={waLink(VERIFY_WHATSAPP, t("acct.verify.message", { code: profile.verifyCode ?? "" }))} target="_blank" rel="noopener noreferrer" className="btn btn-secondary" data-testid="verify-link">
+              {t("acct.verify.button")} <span className="sr-only">{`(${t("acct.verify.opens")}, ${t("a11y.opensNewTab")})`}</span>
+            </a>
+          </p>
+        </section>
+      ) : null}
       <p className="mt-[var(--space-md)]"><button type="button" className="btn btn-secondary" onClick={onEdit}>{t("acct.editProfile")}</button></p>
     </section>
   );

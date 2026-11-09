@@ -82,6 +82,7 @@ Everything is read when the site is built. Without any of them the site builds w
 | `NEXT_PUBLIC_SITE_URL` | The site's address (sitemap, canonical links, emails). |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Cloudflare Turnstile's public site key (the robot check on the sign-in form). Empty = no check. |
 | `NEXT_PUBLIC_REPORT_URL` | Optional: where players can report a listing. |
+| `NEXT_PUBLIC_VERIFY_WHATSAPP` | Optional: the WhatsApp number (digits with the country code) Game Masters send their code to, to have their number verified by an admin. Empty hides the button. |
 
 The backend's own settings (database, bucket, secrets) are bindings and encrypted variables of the Pages project, not files: see [docs/backend.md](docs/backend.md) and [docs/cutover.md](docs/cutover.md).
 

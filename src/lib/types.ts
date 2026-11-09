@@ -90,12 +90,12 @@ export type GmFields = GmPublicFields & {
 };
 
 /** `joinedAt`: when the profile was made (shown as "member since"); `updatedAt`: when the Game Master last changed the game. */
-export type RawGm = GmPublicFields & { id: string; slug: string; photoId: string; joinedAt: string };
+export type RawGm = GmPublicFields & { id: string; slug: string; photoId: string; joinedAt: string; /** An admin checked that the WhatsApp number belongs to them (it is only present when true). */ verified?: boolean };
 export type RawGame = GameFields & { id: string; slug: string; gmId: string; coverId: string; full: boolean; listedAt: string; updatedAt: string };
 export type RawPublicData = { generatedAt: string; gms: RawGm[]; games: RawGame[]; goneGames: string[]; goneGms: string[] };
 
 /** `photoKey` / `coverKey` are the picture's key in the bucket, kept so live data can tell whether the picture the build cropped is still the current one. */
-export type SiteGm = GmPublicFields & { id: string; slug: string; photo: string | null; photoKey?: string; joinedAt: string };
+export type SiteGm = GmPublicFields & { id: string; slug: string; photo: string | null; photoKey?: string; joinedAt: string; verified?: boolean };
 export type SiteGame = GameFields & { id: string; slug: string; gmId: string; cover: string | null; coverKey?: string; full: boolean; listedAt: string; updatedAt: string };
 /** `goneGames` / `goneGms`: addresses of listings that were live and are not now; each gets a "no longer listed" page. */
 export type SiteData = { generatedAt: string; gms: SiteGm[]; games: SiteGame[]; goneGames: string[]; goneGms: string[] };
@@ -129,7 +129,13 @@ export type AdminFields = {
 
 export type GameRecord = AdminFields & GameFields & { kind: "game"; coverId: string; venueMapsRaw: string; consent: boolean };
 /** `sharesPhoneWith`: names of other profiles with the same WhatsApp number (a likely second account of one person); filled by the Cloudflare backend. */
-export type GmRecord = AdminFields & GmFields & { kind: "gm"; photoId: string; consent: boolean; sharesPhoneWith?: string[]; sharesPhoneIds?: string[] };
+export type GmRecord = AdminFields & GmFields & {
+  kind: "gm"; photoId: string; consent: boolean; sharesPhoneWith?: string[]; sharesPhoneIds?: string[];
+  /** An admin has checked that this number is the Game Master's own (it stops being true when the number is changed). */
+  numberVerified?: boolean;
+  /** What the Game Master sends from their number to be verified ("QB-K7F2A"); the admin matches it to the message they received. */
+  verifyCode?: string;
+};
 
 export type AdminEntry = { email: string; addedBy: string; addedAt: string };
 export type DeployInfo = { lastAt: number | null; pending: boolean; configured: boolean };

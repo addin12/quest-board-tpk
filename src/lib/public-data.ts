@@ -104,6 +104,7 @@ function parseGm(raw: unknown, warn: (m: string) => void): RawGm | null {
   return {
     id, slug: String(r.slug), name, bio: text(r.bio, 800, true), city: text(r.city, 60), discord: cleanDiscord(r.discord), instagram: cleanInstagram(r.instagram), photoId, joinedAt: isoOrNull(r.joinedAt) ?? "",
     systems: (Array.isArray(r.systems) ? r.systems : []).map((s) => text(s, 40)).filter(Boolean).slice(0, 8),
+    ...(r.verified === true ? { verified: true } : {}),
   };
 }
 

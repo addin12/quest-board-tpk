@@ -11,13 +11,14 @@ export function ReportButton({ kind, id }: { kind: "game" | "gm"; id: string }) 
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
+  const [notMine, setNotMine] = useState(false);
   const [state, setState] = useState<"idle" | "sending" | "done" | "failed">("idle");
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
     setState("sending");
     try {
-      const res = await fetch("/api/report", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind, id, reason }) });
+      const res = await fetch("/api/report", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind, id, reason, ...(kind === "gm" && notMine ? { notMyNumber: true } : {}) }) });
       setState(res.ok ? "done" : "failed");
     } catch {
       setState("failed");
@@ -36,7 +37,16 @@ export function ReportButton({ kind, id }: { kind: "game" | "gm"; id: string }) 
     <form onSubmit={send} className="mt-[var(--space-sm)] grid gap-[var(--space-sm)]" data-testid="report-form">
       <label htmlFor={`report-${id}`} className="text-sm font-medium">{t("game.reportLabel")}</label>
       <p className="text-sm text-ink-2">{t("game.reportBody")}</p>
-      <textarea id={`report-${id}`} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} rows={3} className="input min-h-24" />
+      <textarea id={`report-${id}`} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={280} rows={3} className="input min-h-24" />
+      {kind === "gm" && (
+        <div>
+          <label htmlFor={`notmine-${id}`} className="flex min-h-11 items-start gap-[var(--space-sm)] py-[var(--space-xs)]">
+            <input id={`notmine-${id}`} type="checkbox" className="mt-1 size-5 shrink-0" checked={notMine} onChange={(e) => setNotMine(e.target.checked)} aria-describedby={`notmine-hint-${id}`} data-testid="report-not-mine" />
+            <span className="text-sm font-medium">{t("game.reportNotMine")}</span>
+          </label>
+          <p id={`notmine-hint-${id}`} className="text-sm text-ink-2">{t("game.reportNotMineHint")}</p>
+        </div>
+      )}
       {state === "failed" && <p role="alert" className="text-sm font-medium text-danger">{t("game.reportFailed")}</p>}
       <div className="flex flex-wrap gap-[var(--space-sm)]">
         <button type="submit" className="btn btn-primary" disabled={state === "sending"}>{t("game.reportSend")}</button>

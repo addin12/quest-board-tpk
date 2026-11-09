@@ -37,6 +37,7 @@ const MIGRATIONS = [
   { file: "0008_session_details.sql", applied: "SELECT 1 FROM pragma_table_info('games') WHERE name = 'session_hours'" },
   { file: "0009_repeat.sql", applied: "SELECT 1 FROM pragma_table_info('games') WHERE name = 'repeat_days'" },
   { file: "0010_places_on_request.sql", applied: "SELECT 1 FROM pragma_table_info('games') WHERE name = 'on_demand'" },
+  { file: "0011_number_verified.sql", applied: "SELECT 1 FROM pragma_table_info('profiles') WHERE name = 'verified_whatsapp'" },
 ];
 
 const sh = (command) => {

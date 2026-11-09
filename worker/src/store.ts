@@ -10,7 +10,7 @@ import { EXTEND_DAYS, MAX_LISTED_AHEAD_DAYS } from "../../src/lib/on-demand.ts";
 import { DAY_MS, eventStmt, iso, logEvent, metaGet, metaSet, parseList, randomId, slugify } from "./util.ts";
 
 export type ProfileRow = {
-  id: string; account_id: string; slug: string; name: string; bio: string; city: string; systems: string; whatsapp: string; discord: string; instagram: string; photo_key: string; consent: number;
+  id: string; account_id: string; slug: string; name: string; bio: string; city: string; systems: string; whatsapp: string; verified_whatsapp: string; discord: string; instagram: string; photo_key: string; consent: number;
   status: "pending" | "approved" | "rejected"; admin_note: string; reviewed_by: string; reviewed_at: string; reject_reason: string; was_live: number; gone_at: string; created_at: string; updated_at: string; rowid?: number;
 };
 export type GameRow = {
@@ -56,11 +56,18 @@ export const profileOf = (ctx: Ctx, accountId: string) => one<ProfileRow>(ctx.db
 
 // ── Rows to the shapes the site and the admin page already use ────────────────────────────────────────────────────────
 
+/** True while the number an admin checked is still the number on the profile. */
+export const isNumberVerified = (p: Pick<ProfileRow, "whatsapp" | "verified_whatsapp">): boolean => p.whatsapp !== "" && p.verified_whatsapp === p.whatsapp;
+
+/** The code a Game Master sends from their number to be verified. Not a secret: the proof is that WhatsApp shows the sender's real number. */
+export const verifyCodeOf = (profileId: string): string => `QB-${profileId.slice(0, 5).toUpperCase()}`;
+
 export function gmRecord(p: ProfileRow, email: string, shares: { id: string; name: string }[] = []): GmRecord {
   return {
     kind: "gm", id: p.id, slug: p.slug, status: p.status, full: false, adminNote: p.admin_note, reviewedBy: p.reviewed_by, reviewedAt: p.reviewed_at,
     rejectReason: p.reject_reason, superseded: false, submittedAt: p.created_at, updatedAt: p.updated_at, email, row: p.rowid ?? 0,
     name: p.name, bio: p.bio, city: p.city, systems: parseList(p.systems), whatsapp: p.whatsapp, discord: p.discord, instagram: p.instagram, photoId: p.photo_key, consent: p.consent === 1, sharesPhoneWith: shares.map((s) => s.name), sharesPhoneIds: shares.map((s) => s.id),
+    numberVerified: isNumberVerified(p), verifyCode: verifyCodeOf(p.id),
   };
 }
 

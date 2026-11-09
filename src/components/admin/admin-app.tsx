@@ -5,7 +5,7 @@ import { writeSignedIn } from "@/lib/signed-in";
 import { ApiError, api, signOutSession, whoami } from "@/lib/admin-api";
 import { buildItems, pollDelay, publishState, siteBehind, titleOf, whenLabel, type Item, type PublishState } from "@/lib/admin-view";
 import type { MsgKey } from "@/lib/i18n/core";
-import { REVIEW_MAX_IDS, type AdminEntry, type AdminFields, type DeployInfo, type QueueResponse, type Status } from "@/lib/types";
+import { REVIEW_MAX_IDS, type AdminEntry, type AdminFields, type DeployInfo, type GmRecord, type QueueResponse, type Status } from "@/lib/types";
 import { Icon } from "../icon";
 import { useI18n } from "../i18n-provider";
 import { Notice } from "../ui";
@@ -102,7 +102,7 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
 
   const items = useMemo(() => (queue ? buildItems(queue.games, queue.gms, now) : { games: [], gms: [] }), [queue, now]);
 
-  function patchLocal(kind: "game" | "gm", ids: string[], patch: Partial<AdminFields>) {
+  function patchLocal(kind: "game" | "gm", ids: string[], patch: Partial<AdminFields> & { numberVerified?: boolean }) {
     const apply = <R extends AdminFields>(rows: R[]): R[] => rows.map((r) => (ids.includes(r.id) ? { ...r, ...patch } : r));
     setQueue((q) => (q ? (kind === "game" ? { ...q, games: apply(q.games) } : { ...q, gms: apply(q.gms) }) : q));
   }
@@ -182,6 +182,17 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
     } catch (e) {
       say(t("admin.toast.error", { error: e instanceof ApiError ? e.code : "error" }));
       return false;
+    }
+  }
+
+  /** Confirms (or takes back) that a Game Master's WhatsApp number is theirs; the number the admin looked at goes with it, so a number changed meanwhile is not confirmed. */
+  async function setVerified(item: Item, verified: boolean): Promise<void> {
+    try {
+      const r = await call<{ publishing: boolean }>("verify", { id: item.id, verified, number: (item.rec as GmRecord).whatsapp });
+      patchLocal("gm", [item.id], { numberVerified: verified });
+      if (r.publishing) setQueue((q) => (q ? { ...q, deploy: { ...q.deploy, pending: true } } : q));
+    } catch (e) {
+      say(e instanceof ApiError && e.code === "stale" ? t("admin.verify.stale") : t("admin.toast.error", { error: e instanceof ApiError ? e.code : "error" }));
     }
   }
 
@@ -279,8 +290,8 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
             </div>
             <PublishStatus deploy={queue.deploy} state={state} lang={lang} now={now} behind={siteBehind(builtAt, queue.deploy.lastAt, now)} onPublish={publishNow} onRefresh={() => void load()} />
           </div>
-          {tab === "games" && <ReviewPane key="games" items={items.games} nowIso={queue.now} onReview={review} onFull={markFull} onNote={saveNote} onMerge={merge} />}
-          {tab === "gms" && <ReviewPane key="gms" items={items.gms} nowIso={queue.now} onReview={review} onFull={markFull} onNote={saveNote} onMerge={merge} />}
+          {tab === "games" && <ReviewPane key="games" items={items.games} nowIso={queue.now} onReview={review} onFull={markFull} onNote={saveNote} onMerge={merge} onVerify={setVerified} />}
+          {tab === "gms" && <ReviewPane key="gms" items={items.gms} nowIso={queue.now} onReview={review} onFull={markFull} onNote={saveNote} onMerge={merge} onVerify={setVerified} />}
           {tab === "admins" && <AdminsPane admins={queue.admins} owner={queue.owner} me={email} onAdd={addAdmin} onRemove={removeAdmin} />}
         </>
       )}

@@ -565,3 +565,32 @@ test("signing out of the admin page clears the signed-in note, and the bar keeps
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect.poll(() => page.evaluate(() => localStorage.getItem("tpk-signed-in"))).toBeNull();
 });
+
+test("a Game Master can ask for their number to be verified: a link opens WhatsApp with their code, and once an admin has confirmed it the page says so", async ({ page }) => {
+  const world = await newWorld(page);
+  await world.signInAs("sari.dewanti@example.com");
+  await page.goto("/en/account/");
+  await fillProfile(page);
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.getByTestId("message")).toContainText("Saved.");
+
+  const box = page.getByTestId("verify-number");
+  await expect(box).toContainText("Verify your WhatsApp number");
+  const code = (await world.sql("SELECT id FROM profiles"))[0].id.slice(0, 5).toUpperCase();
+  const href = new URL((await page.getByTestId("verify-link").getAttribute("href")) ?? "");
+  expect(href.host).toBe("wa.me");
+  expect(href.pathname).toBe("/6281200000000");
+  expect(href.searchParams.get("text")).toBe(`Verify Quest Board QB-${code}`);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+
+  await world.exec("UPDATE profiles SET verified_whatsapp = whatsapp");
+  await page.reload();
+  await expect(page.getByTestId("verify-done")).toContainText("Your WhatsApp number is verified");
+  await expect(page.getByTestId("verify-number")).toHaveCount(0);
+
+  // a new number is a new thing to verify
+  await page.getByRole("button", { name: "Edit profile" }).click();
+  await page.getByLabel("WhatsApp number", { exact: true }).fill("0813-5555-0202");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.getByTestId("verify-number")).toBeVisible();
+});

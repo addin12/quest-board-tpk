@@ -143,6 +143,26 @@ export async function patch(ctx: Ctx, admin: string, req: Record<string, unknown
   return { ok: true as const, publishing: dirty };
 }
 
+/**
+ * An admin confirms that a Game Master's WhatsApp number is theirs (the Game Master sent the profile's code from that number, and WhatsApp showed the admin
+ * the sender), or takes the confirmation back. `number` is the number the admin looked at: if the Game Master changed it meanwhile, nothing is confirmed.
+ */
+export async function setVerified(ctx: Ctx, admin: string, req: Record<string, unknown>) {
+  if (typeof req.id !== "string" || typeof req.verified !== "boolean") return fail("bad_request");
+  const p = await one<ProfileRow>(ctx.db, "SELECT * FROM profiles WHERE id = ?", req.id);
+  if (!p) return fail("not_found");
+  if (req.verified && (!p.whatsapp || req.number !== p.whatsapp)) return fail("stale");
+  const value = req.verified ? p.whatsapp : "";
+  const changed = p.verified_whatsapp !== value;
+  if (changed) {
+    await exec(ctx.db, "UPDATE profiles SET verified_whatsapp = ? WHERE id = ?", value, p.id);
+    await logEvent(ctx.db, ctx.now(), "changed", "gm", p.id, p.name, req.verified ? "WhatsApp number verified" : "WhatsApp number verification removed", admin);
+  }
+  const publishing = changed && p.status === "approved";
+  if (publishing) await markDirty(ctx); // the badge is on the public pages
+  return { ok: true as const, publishing, verified: req.verified };
+}
+
 export async function addAdmin(ctx: Ctx, by: string, rawEmail: unknown) {
   const email = normalizeEmail(rawEmail);
   if (!email) return fail("bad_request");
@@ -246,6 +266,7 @@ export async function handleAdmin(ctx: Ctx, email: string, req: Record<string, u
     case "queue": return queue(ctx, deployConfigured);
     case "review": return review(ctx, email, req);
     case "patch": return patch(ctx, email, req);
+    case "verify": return setVerified(ctx, email, req);
     case "admin.add": return addAdmin(ctx, email, req.email);
     case "admin.remove": return removeAdmin(ctx, email, req.email);
     case "merge": return requestMerge(ctx, email, req.fromId, req.intoId);
