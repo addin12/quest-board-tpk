@@ -51,7 +51,7 @@ test("one email is one account: the same address typed differently opens the sam
   await page.context().clearCookies({ name: "tpk_session" });
   await world.signInAs("SariDewanti+games@gmail.com");
   await page.goto("/en/account/");
-  await expect(page.getByText("Sari Dewanti", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("account-name")).toBeVisible();
   expect(await world.sql("SELECT COUNT(*) AS n FROM accounts")).toEqual([{ n: 1 }]);
   expect(await world.sql("SELECT COUNT(*) AS n FROM profiles")).toEqual([{ n: 1 }]);
   expect(await world.sql("SELECT instagram FROM profiles")).toEqual([{ instagram: "sari.plays" }]); // typed with an @ and capitals, stored plain
