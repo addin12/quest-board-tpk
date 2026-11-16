@@ -130,7 +130,7 @@ export function GamesBrowser({ games: built }: { games: GameView[] }) {
       </div>
 
       {/* The five filters people reach for first, one tap each, under the search on a phone (a second tap on one clears it). The sheet below has the rest. */}
-      <div role="group" aria-label={t("games.quick")} className="mt-[var(--space-sm)] flex gap-[var(--space-xs)] overflow-x-auto pb-1 [scrollbar-width:none] max-sm:-mx-[var(--gutter)] max-sm:px-[var(--gutter)] sm:hidden">
+      <div role="group" aria-label={t("games.quick")} className="mt-[var(--space-sm)] flex flex-wrap gap-[var(--space-xs)] sm:hidden">
         {quick.map((c) => <button key={c.label} type="button" className={`chip-toggle ${wait}`} aria-pressed={c.on} onClick={c.toggle}>{c.label}</button>)}
       </div>
 

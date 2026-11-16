@@ -100,12 +100,12 @@ export function LiveBrowse({ kind, initialTiles, covers, children }: { kind: Bro
     return <BrowsePage {...common} cover={systemCover} search={{ label: t("browse.systemSearch"), placeholder: t("browse.systemPlaceholder") }} emptyHeading={t("systems.noGames")}>{children}</BrowsePage>;
   }
   if (kind === "genres") {
-    return <BrowsePage {...common} label={(k) => t(genreLabelKey(k as GenreKey))} about={(k) => t(genreAboutKey(k as GenreKey))} variant="card">{children}</BrowsePage>;
+    return <BrowsePage {...common} label={(k) => t(genreLabelKey(k as GenreKey))} about={(k) => t(genreAboutKey(k as GenreKey))} variant="card" emptyHeading={t("systems.noGames")}>{children}</BrowsePage>;
   }
   if (kind === "styles") {
-    return <BrowsePage {...common} label={(k) => t(styleLabelKey(k as StyleKey))} about={(k) => t(styleAboutKey(k as StyleKey))} variant="card">{children}</BrowsePage>;
+    return <BrowsePage {...common} label={(k) => t(styleLabelKey(k as StyleKey))} about={(k) => t(styleAboutKey(k as StyleKey))} variant="card" emptyHeading={t("systems.noGames")}>{children}</BrowsePage>;
   }
-  return <BrowsePage {...common} label={(k) => t(mechanicLabelKey(k as MechanicKey))} about={(k) => t(mechanicAboutKey(k as MechanicKey))} variant="card">{children}</BrowsePage>;
+  return <BrowsePage {...common} label={(k) => t(mechanicLabelKey(k as MechanicKey))} about={(k) => t(mechanicAboutKey(k as MechanicKey))} variant="card" emptyHeading={t("systems.noGames")}>{children}</BrowsePage>;
 }
 
 /** The Game Master list: who is listed and how many open games each has follow the live data. */

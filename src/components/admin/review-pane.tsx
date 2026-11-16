@@ -92,8 +92,8 @@ export function ReviewPane({ items, nowIso, onReview, onFull, onNote, onMerge }:
 
       <div className="mt-3 grid gap-6 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
         <div className={selected ? "max-lg:hidden" : ""}>
-          <label htmlFor="admin-q" className="sr-only">{t("admin.search")}</label>
-          <input id="admin-q" type="search" className="input" value={q} placeholder={`${t("admin.search")}: ${t("admin.searchPlaceholder")}`} onChange={(e) => setQ(e.target.value)} />
+          <label htmlFor="admin-q" className="label">{t("admin.search")}</label>
+          <input id="admin-q" type="search" className="input" value={q} placeholder={t("admin.searchPlaceholder")} onChange={(e) => setQ(e.target.value)} />
 
           {picked.length > 0 && (
             <div className="card mt-3 flex flex-wrap items-center gap-2 p-3">

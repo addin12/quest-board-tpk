@@ -232,7 +232,7 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
   const waiting = queue ? { games: queue.games.filter((g) => g.status === "pending").length, gms: queue.gms.filter((g) => g.status === "pending").length } : { games: 0, gms: 0 };
 
   return (
-    <div className="app-screen mx-auto max-w-7xl px-4 py-8">
+    <div className="app-screen wrap py-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-medium">{t("admin.title")}</h1>
@@ -301,7 +301,7 @@ export function AdminApp({ builtAt }: { builtAt: string }) {
 function PublishStatus({ deploy, state, lang, now, behind, onPublish, onRefresh }: { deploy: DeployInfo; state: PublishState; lang: "en" | "id"; now: number; behind: boolean; onPublish: () => void; onRefresh: () => void }) {
   const { t } = useI18n();
   const label = state === "waiting" ? t("admin.publish.pending") : state === "building" ? t("admin.publish.building") : t("admin.publish.live");
-  const tone = state === "live" ? "text-success" : "text-gold";
+  const tone = state === "live" ? "text-success" : "text-ink-2"; // waiting and building are routine; the warning colour is for a site that is behind (below)
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm sm:ml-auto" data-testid="publish-bar">
       <span className={`flex items-center gap-1.5 font-semibold ${tone}`} role="status"><Icon name={state === "live" ? "check-circle" : "refresh"} /> {label}</span>

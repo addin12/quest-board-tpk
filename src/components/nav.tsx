@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { paths, switchLang } from "@/lib/hrefs";
+import { useSignedIn } from "@/lib/signed-in";
 import { LANGS, type Lang } from "@/lib/types";
 import { Icon } from "./icon";
 import { useI18n } from "./i18n-provider";
@@ -25,6 +26,7 @@ const isCurrent = (pathname: string, lang: Lang, prefix: string) => {
 export function NavLinks({ variant }: { variant: "header" | "tabs" }) {
   const { t, lang } = useI18n();
   const pathname = usePathname();
+  const signedIn = useSignedIn() !== null;
   if (variant === "tabs") {
     return (
       <ul className="flex">
@@ -49,9 +51,11 @@ export function NavLinks({ variant }: { variant: "header" | "tabs" }) {
       {ITEMS.map((i, n) => {
         const current = isCurrent(pathname, lang, i.prefix);
         const action = n === ITEMS.length - 1;
+        // Someone signed in does not need to be invited to list a game: their one button leads to their account, where the games are.
+        const toAccount = action && signedIn;
         return (
-          <Link key={i.prefix} href={i.href(lang)} aria-current={current ? "page" : undefined} className={`inline-flex items-center rounded-[var(--radius-input)] ${action ? "ml-auto min-h-11 bg-accent px-4 font-medium text-accent-ink hover:bg-accent-deep" : `-mx-3 min-h-12 border-b-2 border-transparent bg-clip-padding px-3 ${current ? "bg-accent-soft hover:bg-[color-mix(in_oklab,var(--color-accent)_24%,var(--color-paper))]" : "hover:bg-paper-3"}`}`}>
-            {t(i.label)}
+          <Link key={i.prefix} href={toAccount ? paths.account(lang) : i.href(lang)} aria-current={current ? "page" : undefined} className={`inline-flex items-center rounded-[var(--radius-input)] ${action ? "ml-auto min-h-11 bg-accent px-4 font-medium text-accent-ink hover:bg-accent-deep" : `-mx-3 min-h-12 border-b-2 border-transparent bg-clip-padding px-3 ${current ? "bg-accent-soft hover:bg-[color-mix(in_oklab,var(--color-accent)_24%,var(--color-paper))]" : "hover:bg-paper-3"}`}`}>
+            {toAccount ? t("acct.title") : t(i.label)}
           </Link>
         );
       })}
