@@ -149,7 +149,7 @@ export function AccountApp() {
       </div>
 
       {/* The region is always on the page, so a message put into it is announced (one mounted together with its text often is not). */}
-      <div aria-live="polite">{message && <div data-testid="message"><Notice tone={message.tone}>{message.text}</Notice></div>}</div>
+      <div aria-live="polite" className={message ? undefined : "sr-only"}>{message && <div data-testid="message"><Notice tone={message.tone}>{message.text}</Notice></div>}</div>
 
       {home && me.mergeOffers.length > 0 && (
         <section aria-labelledby="merge-h" className="well max-w-2xl" data-testid="merge-offers">

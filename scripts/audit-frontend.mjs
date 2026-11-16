@@ -6,7 +6,7 @@
 import { chromium } from "playwright";
 import AxeBuilder from "@axe-core/playwright";
 const BASE = process.env.AUDIT_BASE || "http://localhost:4173";
-const PAGES = ["", "games", "games/abomination-vaults-0a01", "gms", "gm/raka-pratama-0r01", "how-it-works", "list-your-game", "account", "admin"];
+const PAGES = ["", "games", "games/abomination-vaults-0a01", "gms", "gm/raka-pratama-0r01", "how-it-works", "list-your-game", "account", "admin", "genres", "styles", "mechanics", "systems", "systems/call-of-cthulhu-7e", "areas/depok", "find-a-game"];
 const BUZZ = /\b(seamless(ly)?|revolutionary|cutting[- ]edge|next[- ]gen|unleash|supercharge|game[- ]changing|world[- ]class|robust|elevate|empower|leverage|delve|streamline|effortless(ly)?)\b/i;
 const GENERIC_CTA = /^(get started|learn more|click here|submit|read more|see more|continue|go|more)$/i;
 const findings = {};

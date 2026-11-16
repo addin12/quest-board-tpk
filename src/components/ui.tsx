@@ -23,11 +23,11 @@ const fieldOf = (text: string) => (hueOf(text) % 2 === 0 ? "bg-ink text-paper" :
 /** A 4:5 cover (like an Instagram post). With no picture it is a solid field with the title set big, or with `quiet` an empty tinted one. */
 export function Cover({ src, seed, className = "", priority = false, sizes, quiet = false }: { src: string | null; seed: string; className?: string; priority?: boolean; sizes?: string; quiet?: boolean }) {
   return (
-    <div className={`plate ${src ? "" : quiet ? "" : `${fieldOf(seed)} grain flex items-end p-[var(--space-md)]`} ${className}`}>
+    <div className={`plate ${src ? "" : quiet ? "" : `${fieldOf(seed)} grain flex items-end overflow-hidden p-[var(--space-md)] [container-type:inline-size]`} ${className}`}>
       {src ? (
         <Picture src={src} priority={priority} sizes={sizes ?? "(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"} />
       ) : quiet ? null : (
-        <span aria-hidden className="font-display text-[length:var(--text-title)] leading-tight">{seed}</span>
+        <span aria-hidden className="min-w-0 break-words font-display text-[length:clamp(0.7rem,12cqw,var(--text-title))] leading-tight">{seed}</span>
       )}
     </div>
   );
@@ -163,14 +163,14 @@ export function BrowseCard({ name, count, href, about, t, level = 3 }: { name: s
 /** A game as one row of an index: a small cover, the title and its facts, the price at the edge. */
 export function GameRow({ game, t, lang }: { game: GameView; t: T; lang: Lang }) {
   return (
-    <Link href={paths.game(lang, game.slug)} className="bill !h-auto flex-row items-center gap-[var(--space-lg)] py-[var(--space-lg)]">
-      <Cover src={game.cover ? rowCover(game.cover) : null} seed={game.title} className="aspect-[4/5] w-20 shrink-0 sm:w-24" sizes="96px" />
-      <div className="min-w-0 flex-1">
+    <Link href={paths.game(lang, game.slug)} className="bill !h-auto !grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-[var(--space-lg)] gap-y-[var(--space-2xs)] py-[var(--space-lg)] sm:grid-cols-[auto_minmax(0,1fr)_auto]">
+      <Cover src={game.cover ? rowCover(game.cover) : null} seed={game.title} className="row-span-2 aspect-[4/5] w-20 shrink-0 sm:row-span-1 sm:w-24" sizes="96px" />
+      <div className="min-w-0">
         <h3 className="bill-title">{game.title}</h3>
         <p className="mt-[var(--space-2xs)] font-medium">{game.system}</p>
         <p className="mt-[var(--space-2xs)] text-muted">{`${whenShort(game, lang, t)}, ${game.locationType === "online" ? t("loc.online") : whereLabel(game, t)}`}</p>
       </div>
-      <span className="shrink-0 text-right font-medium">{priceLabel(game.priceIdr, t)}</span>
+      <span className="font-medium max-sm:col-start-2 sm:text-right">{priceLabel(game.priceIdr, t)}</span>
     </Link>
   );
 }
