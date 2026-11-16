@@ -9,6 +9,9 @@ next-env.d.ts
 src/generated/
 public/media/
 
+# The local sandbox's database, pictures (npm run sandbox)
+.sandbox/
+
 # Test output
 test-results/
 playwright-report/

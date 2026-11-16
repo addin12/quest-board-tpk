@@ -59,10 +59,19 @@ npm run build        # the static site, in out/
 npm run preview      # http://localhost:4173, served like Cloudflare Pages
 ```
 
+### Try it by hand before going live: the sandbox
+
+```bash
+npm run sandbox      # builds the site, then http://localhost:4180/__sandbox/
+```
+
+The built site plus the **real backend** on a SQLite file in `.sandbox/` (git-ignored), so sign-in, profiles, games, pictures and the admin review all work, and the data stays between runs. Nothing reaches the live site: no Cloudflare credentials, no mail relay. A sign-in mail is not sent; it appears in the sandbox mailbox (`/__sandbox/mail`) and its link works. `/__sandbox/` has one-click sign-ins for four demo accounts (a Game Master with games, a new one, one held for review, the admin), a sign-in as any address, and a reset. `npm run sandbox -- --skip-build` reuses the site already in `out/`.
+
 ## Commands
 
 | Command | What it does |
 |---|---|
+| `npm run sandbox` | The local sandbox above: the site with the real backend, a mailbox and demo accounts, at http://localhost:4180/__sandbox/ |
 | `npm run dev` | Builds the data, then the development server |
 | `npm run build` | The data → `next build` (static export to `out/`) → `fix-export` |
 | `npm run preview` | Serves `out/` the way Cloudflare Pages does (`/` → `/en/`, a 404 page) |

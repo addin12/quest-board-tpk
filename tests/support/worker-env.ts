@@ -2,7 +2,7 @@
 // The backend (worker/src) wired to Node's built-in SQLite, an in-memory bucket and a mailer that records its mails,
 // so the tests run the real code, the real migration and the real HTTP handler without Cloudflare.
 import { DatabaseSync } from "node:sqlite";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import type { Bucket, Db, Stmt } from "../../worker/src/db.ts";
 import type { Mail, Mailer } from "../../worker/src/email.ts";
 import { handle, type Env } from "../../worker/src/handler.ts";
@@ -15,9 +15,10 @@ const MIGRATION = readdirSync(MIGRATIONS).filter((f) => f.endsWith(".sql")).sort
  * The schema on Node's SQLite. `count.n` is the number of statements run so far, each statement of a batch counted on its own: Cloudflare's free plan
  * allows 50 database queries per request, so a test can reset it, make one call and check the call stayed under that.
  */
-export function sqliteDb(): Db & { raw: DatabaseSync; count: { n: number } } {
-  const raw = new DatabaseSync(":memory:");
-  raw.exec(MIGRATION);
+export function sqliteDb(file = ":memory:"): Db & { raw: DatabaseSync; count: { n: number } } {
+  const fresh = file === ":memory:" || !existsSync(file); // the sandbox keeps its database in a file: an existing one already has its schema
+  const raw = new DatabaseSync(file);
+  if (fresh) raw.exec(MIGRATION);
   const count = { n: 0 };
   const stmt = (sql: string, values: unknown[] = []): Stmt => ({
     bind: (...v) => stmt(sql, v),
@@ -59,12 +60,12 @@ export const SITE = "https://board.example";
 export const OWNER = "owner@example.com";
 export const BUILD_KEY = "build-key-for-tests";
 
-export function makeWorld(startMs = Date.parse("2026-10-28T03:00:00Z")) {
-  const db = sqliteDb();
+export function makeWorld(startMs = Date.parse("2026-10-28T03:00:00Z"), options: { dbFile?: string; bucket?: ReturnType<typeof memoryBucket> } = {}) {
+  const db = sqliteDb(options.dbFile);
   const mails: Mail[] = [];
   const mailer: Mailer = { send: async (m) => { mails.push(m); } };
   const clock = { ms: startMs };
-  const bucket = memoryBucket(() => clock.ms);
+  const bucket = options.bucket ?? memoryBucket(() => clock.ms);
   const hook: string[] = [];
   /** What the site's /build.json says: when its data was read (null: the file is not there). The backend reads it to know a build has landed. */
   const site = { generatedAt: null as string | null };

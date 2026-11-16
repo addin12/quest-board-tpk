@@ -8,6 +8,7 @@
     "dev": "node scripts/build-data.mjs --more && next dev",
     "build": "node scripts/build-data.mjs && next build && node scripts/fix-export.mjs",
     "preview": "node scripts/preview.mjs",
+    "sandbox": "node scripts/sandbox.mjs",
     "typecheck": "node scripts/build-data.mjs && next typegen && tsc --noEmit",
     "lint": "eslint",
     "restore:sql": "node scripts/restore-backup.mjs",
