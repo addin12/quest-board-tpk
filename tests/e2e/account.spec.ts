@@ -336,6 +336,7 @@ test("the top bar says who is signed in and leads to the account; it follows sig
   await page.goto("/en/games/");
   await expect(bar).toContainText("Signed in as sari@example.com"); // no profile yet: the address
   await expect(bar.getByRole("link", { name: "Your account" })).toHaveAttribute("href", "/en/account/");
+  await expect(page.getByTestId("nav-account"), "no profile yet: the button says what it is, not the address").toHaveText("Your account");
 
   await page.goto("/en/account/");
   await fillProfile(page);
@@ -344,6 +345,8 @@ test("the top bar says who is signed in and leads to the account; it follows sig
   await expect(bar, "the account page already says who is signed in: no bar there").toHaveCount(0);
   await page.goto("/en/games/");
   await expect(bar, "the display name once there is a profile").toContainText("Signed in as Sari Dewanti");
+  await expect(page.getByTestId("nav-account"), "the top bar's one button is the Game Master's name").toHaveText("Sari Dewanti");
+  await expect(page.getByTestId("nav-account")).toHaveAttribute("href", "/en/account/");
   await page.goto("/id/games/");
   await expect(bar).toContainText("Masuk sebagai Sari Dewanti");
   await expect(bar.getByRole("link", { name: "Akunmu" })).toHaveAttribute("href", "/id/account/");

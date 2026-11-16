@@ -141,7 +141,13 @@ export function AccountApp() {
   return (
     <div ref={top} className="grid scroll-mt-24 gap-[var(--space-2xl)]">
       <div className="flex flex-wrap items-center justify-between gap-[var(--space-md)] border-b border-rule pb-[var(--space-md)]">
-        <p className="text-ink-2" data-testid="signed-in-as">{t("acct.signedInAs", { email: me.email })}</p>
+        <div className="flex min-w-0 items-center gap-[var(--space-md)]">
+          <span aria-hidden="true" className="grid size-12 shrink-0 place-items-center rounded-full bg-accent font-display text-xl text-accent-ink">{Array.from(profile?.name || me.email)[0]?.toUpperCase()}</span>
+          <div className="min-w-0">
+            {profile && <p className="truncate text-[length:var(--text-lg)] font-medium" data-testid="account-name">{profile.name}</p>}
+            <p className="truncate text-sm text-ink-2" data-testid="signed-in-as">{t("acct.signedInAs", { email: me.email })}</p>
+          </div>
+        </div>
         <div className="flex flex-wrap items-center gap-[var(--space-lg)]">
           {me.admin && <Link href={paths.admin(lang)} className="btn btn-secondary">{t("acct.admin")}</Link>}
           <button type="button" className="btn btn-secondary" onClick={() => act(async () => { await call("POST", "/logout"); return { ok: true }; }, "")}>{t("acct.signOut")}</button>

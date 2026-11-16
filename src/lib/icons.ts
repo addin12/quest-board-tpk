@@ -32,6 +32,7 @@ export const ICON_FILES = {
   games: "dice-five",
   "game-masters": "users-three",
   "list-game": "plus-circle",
+  account: "user-circle",
   search: "magnifying-glass",
   more: "dots-three",
   // the four ways in on the home page: round duotone marks of our own choosing (no copied artwork)
