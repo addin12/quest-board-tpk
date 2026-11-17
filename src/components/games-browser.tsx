@@ -124,7 +124,7 @@ export function GamesBrowser({ games: built }: { games: GameView[] }) {
           <label htmlFor="q" className="label">{t("games.search")}</label>
           <input id="q" type="search" className={`input ${wait}`} readOnly={!ready} value={filters.q} placeholder={t("games.searchPlaceholder")} maxLength={80} onChange={(e) => set({ q: e.target.value })} />
         </div>
-        <button type="button" data-filters-btn className={`btn btn-secondary min-w-11 ${wait}`} aria-disabled={!ready || undefined} aria-expanded={phone ? sheet : open} aria-controls="filter-panel" onClick={() => (phone ? setSheet(true) : setOpen(!open))}>
+        <button type="button" data-filters-btn className={`btn btn-secondary min-w-11 max-sm:justify-self-start ${wait}`} aria-disabled={!ready || undefined} aria-expanded={phone ? sheet : open} aria-controls="filter-panel" onClick={() => (phone ? setSheet(true) : setOpen(!open))}>
           {t("games.filters")}{filterCount > 0 ? ` (${filterCount})` : ""}
         </button>
       </div>

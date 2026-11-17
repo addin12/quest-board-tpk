@@ -40,7 +40,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
               </div>
               <button type="submit" className="btn btn-primary">{t("games.search")}</button>
             </form>
-            <p className="mt-[var(--space-lg)] flex flex-wrap items-center justify-center gap-x-[var(--space-md)] gap-y-[var(--space-xs)] text-ink-2">{t("home.gmHint")} <Link href={paths.list(lang)} className="btn btn-soft">{t("nav.list")}</Link></p>
+            <p className="mt-[var(--space-lg)] flex flex-wrap items-center justify-center gap-x-[var(--space-md)] gap-y-[var(--space-xs)] text-ink-2">{t("home.gmHint")} <Link href={paths.list(lang)} className="link-spot inline-flex min-h-11 items-center font-medium">{t("nav.list")}</Link></p>
           </div>
         </div>
       </section>
