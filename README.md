@@ -67,6 +67,8 @@ npm run sandbox      # builds the site, then http://localhost:4180/__sandbox/
 
 The built site plus the **real backend** on a SQLite file in `.sandbox/` (git-ignored), so sign-in, profiles, games, pictures and the admin review all work, and the data stays between runs. Nothing reaches the live site: no Cloudflare credentials, no mail relay. A sign-in mail is not sent; it appears in the sandbox mailbox (`/__sandbox/mail`) and its link works. `/__sandbox/` has one-click sign-ins for four demo accounts (a Game Master with games, a new one, one held for review, the admin), a sign-in as any address, and a reset. `npm run sandbox -- --skip-build` reuses the site already in `out/`.
 
+To let other people try it, `npm run sandbox -- --share` also opens a temporary public link (a free Cloudflare quick tunnel; it needs `cloudflared`, no account) and prints it. Guests get the demo accounts and the mailbox; the admin sign-in needs a key printed only in your terminal, and reset and sign-in as any address are switched off for them. The link dies when you stop the command. It is still the sandbox: its own data, no connection to the live database, pictures or mail. `npm run sandbox:check` tests those limits.
+
 ## Commands
 
 | Command | What it does |

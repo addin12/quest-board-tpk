@@ -8,6 +8,7 @@
 // Run it with `npm run sandbox` (scripts/sandbox.mjs builds the site first).
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { randomBytes, timingSafeEqual } from "node:crypto";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { serveStatic } from "../../scripts/preview.mjs";
 import { makeWorld, HELD, OWNER, type memoryBucket } from "./worker-env.ts";
@@ -15,7 +16,13 @@ import { loadDemo } from "./demo-data.ts";
 
 const PORT = Number(process.env.PORT ?? 4180);
 const ORIGIN = `http://localhost:${PORT}`;
-const DIR = path.join(process.cwd(), ".sandbox");
+// Shared mode (`npm run sandbox -- --share`): the address other people reach this through (a tunnel). The page then is for guests: no admin sign-in without the key
+// printed at start, no reset, no sign-in as an arbitrary address, no mail to the owner in the mailbox. The sandbox still holds nothing real and reaches nothing real.
+const PUBLIC = (process.env.SANDBOX_PUBLIC_URL ?? "").replace(/\/$/, "");
+const GUEST = PUBLIC !== "";
+const ADMIN_KEY = randomBytes(12).toString("hex");
+const keyOk = (k: string) => k.length === ADMIN_KEY.length && timingSafeEqual(Buffer.from(k), Buffer.from(ADMIN_KEY));
+const DIR = process.env.SANDBOX_DIR ?? path.join(process.cwd(), ".sandbox");
 const PICTURES = path.join(DIR, "pictures");
 
 /** The accounts on the switcher page: what each one is for, and where it lands. */
@@ -49,7 +56,7 @@ const fresh = !existsSync(dbFile);
 const world = makeWorld(Date.now(), { dbFile, bucket: fileBucket(PICTURES) });
 // Real time, this address, and a deploy hook that answers at once: publishing needs no site build here, because the pages ask the API for what is live now.
 world.env.ctx.now = () => Date.now();
-world.env.ctx.siteUrl = ORIGIN;
+world.env.ctx.siteUrl = GUEST ? PUBLIC : ORIGIN; // the backend accepts writes only from this address, and mail links point at it
 world.env.fetcher = (async (url: string) => new Response(String(url).includes("/build.json") ? JSON.stringify({ generatedAt: new Date(Date.now() + 60_000).toISOString() }) : "{}", { status: 200 })) as unknown as typeof fetch;
 
 const soon = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
@@ -108,21 +115,21 @@ input{width:100%;min-height:44px;padding:0 .75rem;border:1px solid var(--ink);bo
 }
 
 function switcher(): string {
-  const accounts = ACCOUNTS.map((a) => `<li><strong>${esc(a.name)}</strong><p class="muted">${esc(a.email)}</p><p>${esc(a.about)}</p><p style="margin-top:.75rem"><a class="btn" href="/__sandbox/enter?email=${encodeURIComponent(a.email)}&amp;to=${encodeURIComponent(a.to)}">Sign in as this</a></p></li>`).join("");
+  const accounts = ACCOUNTS.filter((a) => !GUEST || a.email !== OWNER).map((a) => `<li><strong>${esc(a.name)}</strong><p class="muted">${esc(a.email)}</p><p>${esc(a.about)}</p><p style="margin-top:.75rem"><a class="btn" href="/__sandbox/enter?email=${encodeURIComponent(a.email)}&amp;to=${encodeURIComponent(a.to)}">Sign in as this</a></p></li>`).join("");
   return page("Quest Board sandbox", `
 <h1>Quest Board sandbox</h1>
-<p class="muted">A copy of the site with the real backend, on your computer. Nothing here is sent anywhere: sign-in mails land in the mailbox below, and the data stays between runs.</p>
+<p class="muted">${GUEST ? "A practice copy of Quest Board. Nothing here is real: what you add is only for trying the site, and it may be wiped at any time. No email is ever sent; the sign-in links appear in the mailbox below." : "A copy of the site with the real backend, on your computer. Nothing here is sent anywhere: sign-in mails land in the mailbox below, and the data stays between runs."}</p>
 <p style="margin-top:1rem" class="row"><a class="btn" href="/en/">Open the site</a><a class="btn quiet" href="/__sandbox/mail">Mailbox (${world.mails.length})</a></p>
 <h2>Sign in with one click</h2><ul>${accounts}</ul>
-<h2>Or any address</h2>
-<form class="card" action="/__sandbox/enter" method="get"><label for="e">Email address</label><input id="e" name="email" type="email" required placeholder="someone@example.com"><input type="hidden" name="to" value="/en/account/"><p style="margin-top:.75rem"><button type="submit">Sign in as this address</button></p></form>
+${GUEST ? "" : `<h2>Or any address</h2>
+<form class="card" action="/__sandbox/enter" method="get"><label for="e">Email address</label><input id="e" name="email" type="email" required placeholder="someone@example.com"><input type="hidden" name="to" value="/en/account/"><p style="margin-top:.75rem"><button type="submit">Sign in as this address</button></p></form>`}
 <p class="muted" style="margin-top:.75rem">To try the real sign-in form instead, type an address at /en/account/, then open the link from the <a href="/__sandbox/mail">mailbox</a>.</p>
-<h2>Start over</h2>
-<form class="card" action="/__sandbox/reset" method="post"><p>Deletes everything made here (accounts, games, pictures) and loads the demo data again.</p><p style="margin-top:.75rem"><button class="quiet" type="submit">Reset the sandbox</button></p></form>`);
+${GUEST ? "" : `<h2>Start over</h2>
+<form class="card" action="/__sandbox/reset" method="post"><p>Deletes everything made here (accounts, games, pictures) and loads the demo data again.</p><p style="margin-top:.75rem"><button class="quiet" type="submit">Reset the sandbox</button></p></form>`}`);
 }
 
 function mailbox(): string {
-  const items = [...world.mails].reverse().map((m) => `<li><p class="muted">To ${esc(m.to)}</p><p><strong>${esc(m.subject)}</strong></p><pre>${linkify(m.body)}</pre></li>`).join("");
+  const items = [...world.mails].filter((m) => !GUEST || m.to !== OWNER).reverse().map((m) => `<li><p class="muted">To ${esc(m.to)}</p><p><strong>${esc(m.subject)}</strong></p><pre>${linkify(m.body)}</pre></li>`).join("");
   return page("Sandbox mailbox", `<h1>Sandbox mailbox</h1><p class="muted">Every mail the site would have sent, newest first. This page refreshes itself.</p><p style="margin:1rem 0" class="row"><a class="btn quiet" href="/__sandbox/">Back to the sandbox</a><a class="btn quiet" href="/en/">Open the site</a></p>${items ? `<ul>${items}</ul>` : '<p class="card muted">No mail yet.</p>'}`, true);
 }
 
@@ -136,18 +143,22 @@ async function route(req: IncomingMessage, res: ServerResponse) {
   const url = new URL(req.url ?? "/", ORIGIN);
   const html = (status: number, body: string) => res.writeHead(status, { "Content-Type": "text/html; charset=utf-8" }).end(body);
 
+  res.setHeader("X-Robots-Tag", "noindex, nofollow"); // a practice copy must never be found through a search engine
   if (url.pathname === "/__sandbox" || url.pathname === "/__sandbox/") return html(200, switcher());
   if (url.pathname === "/__sandbox/mail") return html(200, mailbox());
   if (url.pathname === "/__sandbox/enter") {
     const email = url.searchParams.get("email") ?? "";
     const to = url.searchParams.get("to") ?? "/en/account/";
     if (!email.includes("@") || !to.startsWith("/") || to.startsWith("//")) return html(400, page("Not valid", '<h1>Not valid</h1><p><a href="/__sandbox/">Back</a></p>'));
+    // Shared: guests may take only the demo accounts; the admin account needs the key printed at start.
+    if (GUEST && !ACCOUNTS.some((a) => a.email === email && a.email !== OWNER) && !(email === OWNER && keyOk(url.searchParams.get("key") ?? ""))) return html(403, page("Not allowed", '<h1>Not allowed</h1><p>This copy is shared: only the demo accounts can be signed into with one click. Use the sign-in form and the mailbox for any other address.</p><p><a href="/__sandbox/">Back</a></p>'));
     const before = world.mails.length;
     const cookie = await world.signIn(email);
     world.mails.length = before; // a one-click sign-in leaves no mail behind
     return void res.writeHead(302, { Location: to, "Set-Cookie": `tpk_session=${cookie}; Path=/; HttpOnly; SameSite=Lax` }).end();
   }
   if (url.pathname === "/__sandbox/reset" && req.method === "POST") {
+    if (GUEST) return html(403, page("Not allowed", '<h1>Not allowed</h1><p>A shared copy cannot be reset by a visitor.</p><p><a href="/__sandbox/">Back</a></p>'));
     await reset();
     return void res.writeHead(303, { Location: "/__sandbox/" }).end();
   }
@@ -156,7 +167,8 @@ async function route(req: IncomingMessage, res: ServerResponse) {
     const bodyBuf = req.method === "GET" || req.method === "HEAD" ? undefined : await readBody(req);
     const headers = new Headers();
     for (const [k, v] of Object.entries(req.headers)) if (typeof v === "string") headers.set(k, v);
-    headers.set("CF-Connecting-IP", "127.0.0.1");
+    // Shared: the tunnel (Cloudflare) sets the visitor's real address, so each guest has their own rate limits instead of all sharing 127.0.0.1's.
+    if (!GUEST || !headers.has("CF-Connecting-IP")) headers.set("CF-Connecting-IP", "127.0.0.1");
     const pending: Promise<unknown>[] = [];
     const { handle } = await import("../../worker/src/handler.ts");
     const response = await handle(new Request(url, { method: req.method, headers, body: bodyBuf as any }), world.env, (p) => pending.push(p));
@@ -174,5 +186,6 @@ if (fresh) await seed();
 createServer((req, res) => {
   route(req, res).catch((e) => { console.error(e); if (!res.headersSent) res.writeHead(500, { "Content-Type": "text/plain" }); res.end(String(e)); });
 }).listen(PORT, "127.0.0.1", () => {
-  console.log(`\nQuest Board sandbox: ${ORIGIN}/__sandbox/\n  site:    ${ORIGIN}/en/\n  mailbox: ${ORIGIN}/__sandbox/mail\n  data:    ${DIR} (delete the folder, or press Reset, to start over)\n`);
+  if (GUEST) console.log(`\nQuest Board sandbox, SHARED\n  give guests:  ${PUBLIC}/__sandbox/\n  you as admin: ${PUBLIC}/__sandbox/enter?email=${encodeURIComponent(OWNER)}&key=${ADMIN_KEY}&to=%2Fen%2Fadmin%2F   (keep this one to yourself)\n  data:         ${DIR}\n  open the site through ${PUBLIC}, not localhost: it accepts requests only from that address while shared\n`);
+  else console.log(`\nQuest Board sandbox: ${ORIGIN}/__sandbox/\n  site:    ${ORIGIN}/en/\n  mailbox: ${ORIGIN}/__sandbox/mail\n  data:    ${DIR} (delete the folder, or press Reset, to start over)\n`);
 });
