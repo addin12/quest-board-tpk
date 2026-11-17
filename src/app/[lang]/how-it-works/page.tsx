@@ -34,7 +34,7 @@ export default async function HowItWorksPage({ params }: PageProps<"/[lang]/how-
       <JsonLd data={{ "@context": "https://schema.org", "@type": "WebPage", name: t("how.title"), description: t("how.lead"), url: `${SITE_URL}${paths.how(lang)}` }} />
       <h1 className="max-w-none text-[length:var(--text-display-s)]">{t("how.title")}</h1>
       <p className="lead mt-[var(--space-sm)] text-ink-2">{t("how.lead")}</p>
-      <p className="mt-[var(--space-lg)]"><Link href={paths.games(lang)} className="btn btn-primary">{t("nav.games")}</Link></p>
+      <p className="mt-[var(--space-lg)]"><Link href={paths.games(lang)} className="btn btn-soft">{t("home.browseAll")}</Link></p>
 
       <div className="mt-[var(--section-gap-s)] grid gap-x-[var(--gap-columns)] gap-y-[var(--space-2xl)] lg:grid-cols-12">
         <section className="lg:col-span-6" aria-labelledby="players-h">

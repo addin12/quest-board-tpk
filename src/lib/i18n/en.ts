@@ -467,7 +467,7 @@ export const en = {
   "game.listedUntil": "Listed until {date}",
   "game.sessionAt": "{when} ({zone})",
   "gm.title": "Game Masters",
-  "gm.lead": "Game Masters list their own games here; admins step in when something is reported.",
+  "gm.lead": "Find the people who run the games, and see what each of them is running now.",
   "gm.search": "Find a Game Master",
   "gm.searchPlaceholder": "Try a name, a city or a system, like “Raka”, “Jakarta” or “dnd”",
   "gm.openGames": "{n} open game|{n} open games",

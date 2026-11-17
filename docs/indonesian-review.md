@@ -182,7 +182,8 @@ The agent's wording; the "Indonesian now" column is what the site shows. The ear
 
 | Key | Indonesian now | Your correction |
 |---|---|---|
-| `gm.lead` | Para Game Master di sini mendaftarkan sendiri game mereka; admin turun tangan kalau ada laporan. | |
+| `gm.lead` | Temukan para Game Master, dan lihat game apa yang sedang mereka pandu. | |
+| `home.searchPlaceholder` | Coba “horror” atau “Jakarta” | |
 | `how.g3` | Listing-mu langsung tampil begitu kamu simpan. Admin baru memeriksanya kalau dilaporkan atau kata-katanya tampak seperti spam; kamu akan mendapat email. | |
 | `how.g4` | Listing tampil di sini dalam semenit. Untuk mengubahnya, masuk lalu ubah: perubahan langsung tampil. Kamu juga bisa menandai game penuh atau menghapusnya sendiri. | |
 | `post.step3Title` / `post.step3Body` | 3. Langsung tampil / Game-mu tampil di situs dalam semenit. Admin hanya turun tangan kalau sebuah listing dilaporkan atau tampak seperti spam, dan memberi tahu lewat email. | |
